@@ -4,8 +4,8 @@
 <style>
 
 @font-face {
-font-family: "null0";
-src: url("default.ttf");
+  font-family: "null0";
+  src: url("default.ttf");
 }
 
 html, body {
@@ -23,6 +23,11 @@ body {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  text-align: center;
+}
+
+p {
+  padding: 2em;
 }
 
 canvas {
@@ -30,15 +35,16 @@ canvas {
   image-rendering: -webkit-crisp-edges;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  border: 1px solid #f4f4f4;
 }
 
-canvas.landscape {
+/*canvas.landscape {
   height: 100vh;
 }
 
 canvas.portrait {
   width: 100vw;
-}
+}*/
 
 #title {
   text-align: center;
@@ -54,7 +60,14 @@ canvas.portrait {
 <body>
   <!-- <div id="title">click to hear sound.</div> -->
   <div>
+    <p>
+      This is the demo-page for <a href="https://github.com/notnullgames/null0">null0</a>. The web requires you to click on the page to hear sound.
+    </p>
     <canvas width="320" height="240" id="canvas"></canvas>
+    <p>
+      <a href="#jstest">jstest</a>
+      <a href="#basic">basic</a>
+    </p>
   </div>
 </body>
 </html>
@@ -66,18 +79,26 @@ import WebRuntime from './null0.js'
 const canvas = document.getElementById('canvas')
 
 let example = 'basic'
+let w
+async function load () {
+  const hash = window.location.hash
+  if (hash) {
+    example = hash.substring(1)
+  }
 
-const hash = window.location.hash
-if (hash) {
-  example = hash.substring(1)
+  const cart = `build/wasm/debug/${example}/cart.wasm`
+  const prefix = `build/wasm/debug/${example}/`
+
+  // this is how you load your game, you can also load null0 files
+  w = new WebRuntime(await fetch(cart).then(r => r.arrayBuffer()), canvas, prefix)
+  w.run()
 }
+load()
 
-let cart = `build/wasm/debug/${example}/cart.wasm`
-let prefix = `build/wasm/debug/${example}/`
-
-// this is how you load your game, you can also load null0 files
-const w = new WebRuntime(await fetch(cart).then(r => r.arrayBuffer()), canvas, prefix)
-w.run()
+window.addEventListener('hashchange', () => {
+  w.stop()
+  load()
+})
 
 // resize canvas to better fit window, smoothed
 const onResize = () => {

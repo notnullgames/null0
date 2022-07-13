@@ -190,6 +190,13 @@ export default class WebRuntime {
     }
   }
 
+  stop () {
+    this.running = false
+    if (this.musicPlayer) {
+      this.musicPlayer.stop()
+    }
+  }
+
   // start the runtime
   async run () {
     const fileHeader = new Uint8Array(this.wasmBinary).subarray(0, 4).toString()
