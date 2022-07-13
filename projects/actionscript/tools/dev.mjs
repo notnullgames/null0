@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// this will build an assemblyscript cart for a dir of source (with index.ts in it)
+// this will build an assemblyscript wasm cart for a dir of source (with index.ts in it)
 
 import { resolve } from 'path'
 import { createWriteStream } from 'fs'

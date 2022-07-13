@@ -65,10 +65,18 @@ import WebRuntime from './null0.js'
 
 const canvas = document.getElementById('canvas')
 
-let cart = 'cart/basic.null0'
+let example = 'basic'
 
-// this is how you load your game
-const w = new WebRuntime(await fetch(cart).then(r => r.arrayBuffer()), canvas, '')
+const hash = window.location.hash
+if (hash) {
+  example = hash.substring(1)
+}
+
+let cart = `build/wasm/debug/${example}/cart.wasm`
+let prefix = `build/wasm/debug/${example}/`
+
+// this is how you load your game, you can also load null0 files
+const w = new WebRuntime(await fetch(cart).then(r => r.arrayBuffer()), canvas, prefix)
 w.run()
 
 // resize canvas to better fit window, smoothed

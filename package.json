@@ -2,18 +2,26 @@
   "name": "null0",
   "version": "0.0.0",
   "scripts": {
-    "example:jstest": "node ./tools/build_as_cart.mjs examples/as_jstest jstest",
-    "example:basic": "node ./tools/build_as_cart.mjs examples/as_basic basic",
-    "build:example": "run-p example:*",
-    "watch:example": "nodemon  -w 'examples/*/index.ts' --exec 'npm run build:example'",
-    "build:native": "cd runtimes/native && mkdir -p build && cd build && cmake .. && make",
-    "watch:native": "nodemon  -w 'runtimes/native/src/*' --exec 'npm run build:native'",
+    "cart:basic": "node ./tools/build_as_cart.mjs examples/as_basic basic",
+    "cart:jstest": "node ./tools/build_as_cart.mjs examples/as_jstest jstest",
+    
     "native:basic": "./runtimes/native/build/null0 ./build/cart/basic.null0",
     "native:jstest": "./runtimes/native/build/null0 ./build/cart/jstest.null0",
-    "watch:web": "live-server runtimes/web --mount=/cart:./build/cart",
-    "start": "run-p watch:example watch:web",
-    "deploy": "rm -rf build/web && mkdir -p build/web/cart && cp -R examples/as_basic/assets runtimes/web/* build/web/ && cp build/cart/*.null0 build/web/cart/ && surge build/web null0.surge.sh",
-    "predeploy": "npm run build:example"
+    
+    "predeploy": "npm run cart",
+    
+    "wasm:basic": "node ./tools/build.mjs examples/as_basic",
+    "wasm:jstest": "node ./tools/build.mjs examples/as_jstest",
+    
+    "watch:cart": "nodemon  -w 'examples/*/index.ts' --exec 'npm run cart'",
+    "watch:native": "nodemon  -w 'runtimes/native/src/*' --exec 'npm run build:native'",
+    "watch:web": "live-server runtimes/web --mount=/build:./build/",
+
+    "deploy": "rm -rf build/web && mkdir -p build/web/cart && cp -R runtimes/web/* build/web/ && cp build/cart/*.null0 build/web/cart/ && surge build/web null0.surge.sh",
+    "start": "run-p watch:cart watch:web",
+    "wasm": "run-p wasm:*",
+    "cart": "run-p cart:*",
+    "native": "cd runtimes/native && mkdir -p build && cd build && cmake .. && make"
   },
   "devDependencies": {
     "archiver": "^5.3.1",
