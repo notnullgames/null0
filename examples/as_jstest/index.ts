@@ -4,7 +4,7 @@ import {
   drawImage,
   loadImage,
   palette
-} from "../../projects/actionscript/null0"
+} from "../../projects/actionscript/src/null0"
 
 const buttonState = [
   false, // A

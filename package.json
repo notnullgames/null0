@@ -2,8 +2,8 @@
   "name": "null0",
   "version": "0.0.0",
   "scripts": {
-    "example:jstest": "node ./tools/build_as_cart.mjs example/as_jstest jstest",
-    "example:basic": "node ./tools/build_as_cart.mjs example/as_basic basic",
+    "example:jstest": "node ./tools/build_as_cart.mjs examples/as_jstest jstest",
+    "example:basic": "node ./tools/build_as_cart.mjs examples/as_basic basic",
     "build:example": "run-p example:*",
     "watch:example": "nodemon  -w 'examples/*/index.ts' --exec 'npm run build:example'",
     "build:native": "cd runtimes/native && mkdir -p build && cd build && cmake .. && make",

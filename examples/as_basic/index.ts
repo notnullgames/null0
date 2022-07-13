@@ -17,11 +17,10 @@ import {
   loadSound,
   soundPlaying,
   exit
-} from "../../projects/actionscript/null0"
+} from "../../projects/actionscript/src/null0"
 
 let logo:u32
 let music:u32
-let bigFont:u32
 let cat:u32
 let bounce:u32
 
@@ -42,8 +41,7 @@ export function init(): void {
   setTitle("null0 - basic demo")
   logo = loadImage('assets/logo.png')
   cat = loadImage('assets/cat.png')
-  music = loadMusic('assets/the_golden_ages.mod')
-  bigFont = loadFont('assets/likeraylib.ttf', 50, palette[3])
+  music = loadMusic('assets/powermetal.xm')
   bounce = loadSound("assets/bounce.wav")
 }
 
@@ -62,10 +60,6 @@ export function loaded(id: u32): void {
   if (id === music) {
     log('loaded music: starting')
     playMusic(music)
-  }
-
-  if (id === bigFont) {
-    log('loaded bigFont')
   }
 
   if (id === cat) {
@@ -99,6 +93,5 @@ export function update(delta:u16): void  {
     catFrame += 1
   }
   drawSprite(cat, <u16>catFrames[catFrame % catFrames.length] , 32, 32, 152, 200)
-
-  drawText(bigFont, 'null0', 120, 80)
+  drawText('null0', 120, 80,  palette[3], 50, 0)
 }

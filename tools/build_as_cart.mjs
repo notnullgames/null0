@@ -25,6 +25,13 @@ const { error, stdout, stderr, stats } = await asc.main([
   '--exportRuntime'
 ])
 
+if (error) {
+  console.error(stderr.toString())
+  process.exit(1)
+} else {
+  console.log(stats)
+}
+
 await copy(resolve(dir, 'assets'), resolve(`build/cart/${name}/assets`))
 await remove(resolve(`build/cart/${name}`, 'cart.js'))
 await remove(resolve(`build/cart/${name}`, 'cart.d.ts'))

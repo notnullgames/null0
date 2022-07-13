@@ -125,15 +125,15 @@ export default class WebRuntime {
         },
 
         null0_imageWidth (image) {
-          if (image && this.assets[image] && this.assets[image].loaded) {
-            return this.assets[image].image.width
+          if (image && runtime.assets[image] && runtime.assets[image].loaded) {
+            return runtime.assets[image].image.width
           }
           return 0
         },
 
         null0_imageHeight (image) {
-          if (image && this.assets[image] && this.assets[image].loaded) {
-            return this.assets[image].image.height
+          if (image && runtime.assets[image] && runtime.assets[image].loaded) {
+            return runtime.assets[image].image.height
           }
           return 0
         },
