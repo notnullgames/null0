@@ -1,0 +1,28 @@
+{
+  "name": "null0",
+  "version": "0.0.0",
+  "scripts": {
+    "example:jstest": "node ./tools/build_as_cart.mjs example/as_jstest jstest",
+    "example:basic": "node ./tools/build_as_cart.mjs example/as_basic basic",
+    "build:example": "run-p example:*",
+    "watch:example": "nodemon  -w 'examples/*/index.ts' --exec 'npm run build:example'",
+    "build:native": "cd runtimes/native && mkdir -p build && cd build && cmake .. && make",
+    "watch:native": "nodemon  -w 'runtimes/native/src/*' --exec 'npm run build:native'",
+    "native:basic": "./runtimes/native/build/null0 ./build/cart/basic.null0",
+    "native:jstest": "./runtimes/native/build/null0 ./build/cart/jstest.null0",
+    "watch:web": "live-server runtimes/web --mount=/cart:./build/cart",
+    "start": "run-p watch:example watch:web",
+    "deploy": "rm -rf build/web && mkdir -p build/web/cart && cp -R examples/as_basic/assets runtimes/web/* build/web/ && cp build/cart/*.null0 build/web/cart/ && surge build/web null0.surge.sh",
+    "predeploy": "npm run build:example"
+  },
+  "devDependencies": {
+    "archiver": "^5.3.1",
+    "assemblyscript": "^0.20.13",
+    "fs-extra": "^10.1.0",
+    "live-server": "^1.2.2",
+    "nodemon": "^2.0.18",
+    "npm-run-all": "^4.1.5",
+    "pretty-bytes": "^6.0.0",
+    "surge": "^0.23.1"
+  }
+}

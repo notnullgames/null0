@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+
+@font-face {
+font-family: "null0";
+src: url("default.ttf");
+}
+
+html, body {
+  width:  100vw;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  font-family: null0;
+}
+
+body {
+  background: #1a1c2c;
+  color: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+canvas {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+canvas.landscape {
+  height: 100vh;
+}
+
+canvas.portrait {
+  width: 100vw;
+}
+
+#title {
+  text-align: center;
+  position:absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  font-size: 40px;
+  color: #3b5dc9;
+}
+</style>
+</head>
+<body>
+  <!-- <div id="title">click to hear sound.</div> -->
+  <div>
+    <canvas width="320" height="240" id="canvas"></canvas>
+  </div>
+</body>
+</html>
+<!-- used for null0 carts, you can leave it out, if you point it at a wasm file -->
+<script type="text/javascript" src="https://gildas-lormeau.github.io/zip.js/demos/lib/zip.min.js"></script>
+<script type="module">
+import WebRuntime from './null0.js'
+
+const canvas = document.getElementById('canvas')
+
+let cart = 'cart/jstest.null0'
+
+// this is how you load your game
+const w = new WebRuntime(await fetch(cart).then(r => r.arrayBuffer()), canvas, '')
+w.run()
+
+// resize canvas to better fit window, smoothed
+const onResize = () => {
+  window.removeEventListener('resize', onResize)
+  setTimeout(() => { window.addEventListener('resize', onResize) }, 100)
+  const { clientWidth, clientHeight } = document.body
+  canvas.className = clientWidth > clientHeight ? 'landscape' : 'portrait'
+}
+onResize()
+</script>
