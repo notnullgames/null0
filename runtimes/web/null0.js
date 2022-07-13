@@ -207,7 +207,6 @@ export default class WebRuntime {
       if (!c) {
         throw new Error('No cart.wasm')
       }
-      console.log('ZIP', this.zipFile)
       this.wasmBinary = await c.getData(new zip.Uint8ArrayWriter())
     }
 

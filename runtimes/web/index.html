@@ -95,8 +95,12 @@ async function load () {
     example = hash.substring(1)
   }
 
-  // const cart = `cart/${example}.null0`
-  const cart = `build/wasm/debug/${example}/cart.wasm`
+  // I do this so it uses null0 files on web, without editing
+  let cart = `build/wasm/debug/${example}/cart.wasm`
+  if (document.location.origin === 'https://null0.surge.sh') {
+    cart = `cart/${example}.null0`
+  }
+
   const prefix = `build/wasm/debug/${example}/`
 
   // this is how you load your game, you can also load null0 files
