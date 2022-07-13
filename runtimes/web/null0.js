@@ -36,6 +36,9 @@ export const keyMap = {
 
 export const gamepadMap = [1, 0, 3, 2, 4, 5, 9, 8, 14, 15, 12, 13]
 
+const gamePadeState = [false, false, false, false, false, false, false, false, false, false, false, false]
+const gamePadeStateOld = [false, false, false, false, false, false, false, false, false, false, false, false]
+
 // Euclidean modulus (wrap around)
 const emod = (n, m) => (n % m + m) % m
 
@@ -46,6 +49,7 @@ export default class WebRuntime {
     this.prefix = prefix
     this.musicPlayer = false
     this.ctx = canvas.getContext('2d')
+    this.controllers = []
 
     const runtime = this
 
@@ -228,8 +232,26 @@ export default class WebRuntime {
         if (this.cart.update) {
           this.cart.update(this.delta)
         }
-        // const [gamepad] = navigator.getGamepads()
-        // TODO: handle gamepads here
+        if (this.cart.buttonUp || this.cart.buttonDown) {
+          const [gamepad] = navigator.getGamepads()
+          if (gamepad) {
+            for (const b in gamepadMap) {
+              gamePadeState[b] = gamepad.buttons[gamepadMap[b]].pressed
+              if (gamePadeState[b] !== gamePadeStateOld[b]) {
+                if (gamePadeState[b]) {
+                  if (this.cart.buttonDown) {
+                    this.cart.buttonDown(b)
+                  }
+                } else {
+                  if (this.cart.buttonUp) {
+                    this.cart.buttonUp(b)
+                  }
+                }
+              }
+              gamePadeStateOld[b] = gamePadeState[b]
+            }
+          }
+        }
         if (this.running) {
           window.requestAnimationFrame(doUpdate)
         }
