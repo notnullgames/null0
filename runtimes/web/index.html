@@ -55,13 +55,22 @@ canvas.portrait {
   font-size: 40px;
   color: #3b5dc9;
 }
+
+a, a:visited, a:active {
+  color: #ef7d57;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
 </style>
 </head>
 <body>
   <!-- <div id="title">click to hear sound.</div> -->
   <div>
     <p>
-      This is the demo-page for <a href="https://github.com/notnullgames/null0">null0</a>. The web requires you to click on the page to hear sound.
+      This is the demo-page for <a href="https://github.com/notnullgames/null0">null0</a>. <br/> Click on the page to hear sound.
     </p>
     <canvas width="320" height="240" id="canvas"></canvas>
     <p>
@@ -86,6 +95,7 @@ async function load () {
     example = hash.substring(1)
   }
 
+  // const cart = `cart/${example}.null0`
   const cart = `build/wasm/debug/${example}/cart.wasm`
   const prefix = `build/wasm/debug/${example}/`
 
