@@ -242,9 +242,10 @@ export default class WebRuntime {
       for (const a in this.assets) {
         const asset = this.assets[a]
         if (asset && asset.type === 'music') {
-        // TODO: jump to correct time (based on playing, which is ms since play() was called)
           if (asset.playing) {
             this.musicPlayer.play(asset.buffer)
+            // TODO: this is currently broken
+            this.musicPlayer.setPositionSeconds((Date.now() - asset.playing) / 1000)
           }
           this.loaded(a)
         }

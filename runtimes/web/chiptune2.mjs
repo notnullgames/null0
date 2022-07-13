@@ -66,6 +66,10 @@ ChiptuneJsPlayer.prototype.getCurrentOrder = function () {
   return libopenmpt._openmpt_module_get_current_order(this.currentPlayingNode.modulePtr)
 }
 
+ChiptuneJsPlayer.prototype.setPositionSeconds = function (position) {
+  return libopenmpt._openmpt_module_set_position_seconds(this.currentPlayingNode.modulePtr, position)
+}
+
 ChiptuneJsPlayer.prototype.metadata = function () {
   const data = {}
   const keys = UTF8ToString(libopenmpt._openmpt_module_get_metadata_keys(this.currentPlayingNode.modulePtr)).split(';')
