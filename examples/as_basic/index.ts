@@ -44,7 +44,7 @@ export function init(): void {
   music = loadMusic('assets/powermetal.xm')
   bounce = loadSound("assets/bounce.wav")
 
-  // I call it here, which will start it silently on web
+  // I call it here, which will start it silently on web (until user clicks)
   log('playing music now')
   playMusic(music)
 }

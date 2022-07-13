@@ -155,7 +155,7 @@ export default class WebRuntime {
           if (runtime.assets[a]) {
             runtime.assets[a].playing = 0
             if (runtime.assets[a].loaded && runtime.musicPlayer) {
-              runtime.musicPlayer.stop()
+              runtime.musicPlayer.audio.stop()
             }
           }
         },
@@ -164,14 +164,14 @@ export default class WebRuntime {
           if (!sound || !runtime.assets[sound] || !runtime.assets[sound].loaded || !runtime.musicPlayer) {
             return
           }
-          runtime.assets[sound].play()
+          runtime.assets[sound].audio.play()
         },
 
         null0_soundPlaying (sound) {
           if (!sound || !runtime.assets[sound] || !runtime.assets[sound].loaded) {
             return false
           }
-          return !runtime.assets[sound].paused
+          return !runtime.assets[sound].audio.paused
         },
 
         null0_drawText (text, x, y, color, size, font) {
@@ -263,13 +263,18 @@ export default class WebRuntime {
       this.musicPlayer = new ChiptuneJsPlayer(new ChiptuneJsConfig(-1))
       for (const a in this.assets) {
         const asset = this.assets[a]
-        if (asset && asset.type === 'music') {
-          if (asset.playing) {
-            this.musicPlayer.play(asset.buffer)
-            // TODO: this is currently broken
-            this.musicPlayer.setPositionSeconds((Date.now() - asset.playing) / 1000)
+        if (asset) {
+          if (asset.type === 'sound') {
+            this.loaded(a)
           }
-          this.loaded(a)
+          if (asset.type === 'music') {
+            if (asset.playing) {
+              this.musicPlayer.play(asset.buffer)
+              // TODO: this is currently broken
+              this.musicPlayer.setPositionSeconds((Date.now() - asset.playing) / 1000)
+            }
+            this.loaded(a)
+          }
         }
       }
     }, { once: true })
@@ -354,6 +359,7 @@ export default class WebRuntime {
     const aud = new Audio()
     aud.addEventListener('canplaythrough', () => {
       this.assets[a].audio = aud
+      this.assets[a].loaded = true
       URL.revokeObjectURL(aud.src)
       // loaded(a) not called to prevent audio before click
     })
