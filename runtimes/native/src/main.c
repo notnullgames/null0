@@ -15,7 +15,6 @@
 #define RLUNICODE_IMPLEMENTATION
 #include "rlunicode.h"
 
-
 int map_keys[12] = {
   KEY_X,           // A
   KEY_Z,           // B
@@ -45,6 +44,8 @@ int map_gamepad[12] = {
   GAMEPAD_BUTTON_LEFT_FACE_UP,    // UP
   GAMEPAD_BUTTON_LEFT_FACE_DOWN   // DOWN
 };
+
+char *asset_prefix;
 
 static M3Environment* env;
 static M3Runtime* runtime;

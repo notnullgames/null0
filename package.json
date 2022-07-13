@@ -21,7 +21,7 @@
     "start": "run-p watch:cart watch:web",
     "wasm": "run-p wasm:*",
     "cart": "run-p cart:*",
-    "native": "cd runtimes/native && mkdir -p build && cd build && cmake .. && make"
+    "native": "cd runtimes/native && mkdir -p build && cd build && cmake .. && make && cp null0 ../../../build"
   },
   "devDependencies": {
     "archiver": "^5.3.1",

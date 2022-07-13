@@ -43,6 +43,10 @@ export function init(): void {
   cat = loadImage('assets/cat.png')
   music = loadMusic('assets/powermetal.xm')
   bounce = loadSound("assets/bounce.wav")
+
+  // I call it here, which will start it silently on web
+  log('playing music now')
+  playMusic(music)
 }
 
 // called when resources are loaded (after init)
@@ -58,8 +62,7 @@ export function loaded(id: u32): void {
   }
 
   if (id === music) {
-    log('loaded music: starting')
-    playMusic(music)
+    log('loaded music')
   }
 
   if (id === cat) {
