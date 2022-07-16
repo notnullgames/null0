@@ -20,7 +20,7 @@
     "wasm": "run-p wasm:*",
     "cart": "run-p cart:*",
     "native": "cd runtimes/native && mkdir -p build && cd build && cmake .. && make && cp null0 ../../../build",
-    "start": "ntl -e 'watch:*' -e 'wasm:*'"
+    "start": "ntl -e 'watch:*' -e 'wasm:*' -A"
   },
   "devDependencies": {
     "archiver": "^5.3.1",
