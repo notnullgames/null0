@@ -5,24 +5,28 @@
     "cart:basic": "node ./tools/build_as_cart.mjs examples/as_basic basic",
     "cart:jstest": "node ./tools/build_as_cart.mjs examples/as_jstest jstest",
     
-    "native:basic": "./runtimes/native/build/null0 ./build/cart/basic.null0",
-    "native:jstest": "./runtimes/native/build/null0 ./build/cart/jstest.null0",
+    "native:basic": "cd examples/as_basic && ../../runtimes/native/build/null0 ../../build/wasm/debug/basic/cart.wasm",
+    "native:jstest": "cd examples/as_jstest && ../../runtimes/native/build/null0 ../../build/wasm/debug/jstest/cart.wasm",
     
     "predeploy": "npm run cart",
     
     "wasm:basic": "node ./tools/build.mjs examples/as_basic",
     "wasm:jstest": "node ./tools/build.mjs examples/as_jstest",
+
+    "prenative:basic": "run-p native wasm:basic",
+    "prenative:jstest": "run-p native wasm:jstest",
     
     "watch:cart": "nodemon  -w 'examples/*/index.ts' --exec 'npm run cart'",
     "watch:wasm": "nodemon  -w 'examples/*/index.ts' --exec 'npm run wasm'",
-    "watch:native": "nodemon  -w 'runtimes/native/src/*' --exec 'npm run build:native'",
+    "watch:native": "nodemon  -w 'runtimes/native/src/*' --exec 'npm run native'",
     "watch:web": "live-server runtimes/web --mount=/build:./build/",
 
     "deploy": "rm -rf build/web && mkdir -p build/web/cart && cp -R runtimes/web/* build/web/ && cp build/cart/*.null0 build/web/cart/ && surge build/web null0.surge.sh",
     "start": "run-p watch:wasm watch:web",
     "wasm": "run-p wasm:*",
     "cart": "run-p cart:*",
-    "native": "cd runtimes/native && mkdir -p build && cd build && cmake .. && make && cp null0 ../../../build"
+    "native": "cd runtimes/native && mkdir -p build && cd build && cmake .. && make && cp null0 ../../../build",
+    "test": "run-p watch:wasm watch:native"
   },
   "devDependencies": {
     "archiver": "^5.3.1",
