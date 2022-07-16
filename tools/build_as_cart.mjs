@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 // this will build an assemblyscript cart for a dir of source (with index.ts in it)
+// TODO: reuse code in build.mjs, so it's shared
 
 import { resolve } from 'path'
 import { createWriteStream } from 'fs'

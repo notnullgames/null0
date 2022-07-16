@@ -17,24 +17,7 @@ You can write your games in any language that compiles to wasm (simialr to wasm4
 
 One idea is to setup fast/easy live-reloading dev in a browser, then later you can use that same wasm file with a local native runtime, or deploy on the web.
 
-Currently, I am putting it all together, so it's mostly just a demo/dev project. You can install deps with `npm i`, and all the tasks are setup as top-level `npm run` tasks:
-
-```sh
-# build the example wasm game (written in assemblyscript)
-npm run build:example
-
-# build the native C runtime
-npm run build:native
-
-# build a complete web project for deployment
-npm run build:web
-
-# Build & run the example in the native C runtime
-npm test
-
-# start the watching webserver to prototype
-npm start
-```
+Currently, I am putting it all together, so it's mostly just a demo/dev project. You can install deps with `npm i`, and get a menu with `npm start`
 
 ## thanks
 

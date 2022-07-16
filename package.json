@@ -4,29 +4,23 @@
   "scripts": {
     "cart:basic": "node ./tools/build_as_cart.mjs examples/as_basic basic",
     "cart:jstest": "node ./tools/build_as_cart.mjs examples/as_jstest jstest",
-    
     "native:basic": "cd examples/as_basic && ../../runtimes/native/build/null0 ../../build/wasm/debug/basic/cart.wasm",
     "native:jstest": "cd examples/as_jstest && ../../runtimes/native/build/null0 ../../build/wasm/debug/jstest/cart.wasm",
-    
-    "predeploy": "npm run cart",
-    
-    "wasm:basic": "node ./tools/build.mjs examples/as_basic",
-    "wasm:jstest": "node ./tools/build.mjs examples/as_jstest",
-
     "prenative:basic": "run-p native wasm:basic",
     "prenative:jstest": "run-p native wasm:jstest",
-    
+    "predeploy": "npm run cart",
+    "wasm:basic": "node ./tools/build.mjs examples/as_basic",
+    "wasm:jstest": "node ./tools/build.mjs examples/as_jstest",
     "watch:cart": "nodemon  -w 'examples/*/index.ts' --exec 'npm run cart'",
     "watch:wasm": "nodemon  -w 'examples/*/index.ts' --exec 'npm run wasm'",
     "watch:native": "nodemon  -w 'runtimes/native/src/*' --exec 'npm run native'",
     "watch:web": "live-server runtimes/web --mount=/build:./build/",
-
     "deploy": "rm -rf build/web && mkdir -p build/web/cart && cp -R runtimes/web/* build/web/ && cp build/cart/*.null0 build/web/cart/ && surge build/web null0.surge.sh",
-    "start": "run-p watch:wasm watch:web",
+    "web": "run-p watch:wasm watch:web",
     "wasm": "run-p wasm:*",
     "cart": "run-p cart:*",
     "native": "cd runtimes/native && mkdir -p build && cd build && cmake .. && make && cp null0 ../../../build",
-    "test": "run-p watch:wasm watch:native"
+    "start": "ntl -e 'watch:*' -e 'wasm:*'"
   },
   "devDependencies": {
     "archiver": "^5.3.1",
@@ -35,7 +29,22 @@
     "live-server": "^1.2.2",
     "nodemon": "^2.0.18",
     "npm-run-all": "^4.1.5",
+    "ntl": "^5.1.0",
     "pretty-bytes": "^6.0.0",
     "surge": "^0.23.1"
+  },
+  "ntl": {
+    "descriptions": {
+      "cart": "Build all demos as .null0 carts",
+      "cart:basic": "Compile basic demo as a .null0 cart in build/cart/",
+      "cart:jstest": "Compile jstest demo as a .null0 cart in build/cart/",
+      "deploy": "Deploy website & carts to https://null0.surge.sh/",
+      "native": "Build the native runtime",
+      "native:basic": "Run basic wasm in native runtime",
+      "native:jstest": "Run jstest wasm in native runtime",
+      "start": "Show this menu",
+      "wasm": "Build all demos as wasm",
+      "web": "Run a watching web-server that builds wasm - good for dev"
+    }
   }
 }
