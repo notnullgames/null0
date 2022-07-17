@@ -15,6 +15,25 @@ FetchContent_MakeAvailable(raylib)
 FetchContent_Declare(m3 GIT_REPOSITORY https://github.com/wasm3/wasm3.git GIT_TAG main)
 FetchContent_MakeAvailable(m3)
 
+# Adding PhysFS for filesystm/zip abstraction
+# TODO: currently not working
+# set(PHYSFS_ARCHIVE_ZIP ON CACHE BOOL "" FORCE)
+# set(PHYSFS_ARCHIVE_7Z OFF CACHE BOOL "" FORCE)
+# set(PHYSFS_ARCHIVE_GRP OFF CACHE BOOL "" FORCE)
+# set(PHYSFS_ARCHIVE_WAD OFF CACHE BOOL "" FORCE)
+# set(PHYSFS_ARCHIVE_HOG OFF CACHE BOOL "" FORCE)
+# set(PHYSFS_ARCHIVE_MVL OFF CACHE BOOL "" FORCE)
+# set(PHYSFS_ARCHIVE_QPAK OFF CACHE BOOL "" FORCE)
+# set(PHYSFS_ARCHIVE_SLB OFF CACHE BOOL "" FORCE)
+# set(PHYSFS_ARCHIVE_ISO9660 OFF CACHE BOOL "" FORCE)
+# set(PHYSFS_ARCHIVE_VDF OFF CACHE BOOL "" FORCE)
+# # set(PHYSFS_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+# # set(PHYSFS_BUILD_TEST OFF CACHE BOOL "" FORCE)
+# # set(PHYSFS_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+# # set(PHYSFS_DISABLE_INSTALL OFF CACHE BOOL "" FORCE)
+# FetchContent_Declare(physfs GIT_REPOSITORY https://github.com/icculus/physfs.git GIT_TAG main)
+# FetchContent_MakeAvailable(physfs)
+
 # Adding our source files
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.c") # Define PROJECT_SOURCES as a list of all source files
 set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/src/") # Define PROJECT_INCLUDE to be the path to the include directory of the project

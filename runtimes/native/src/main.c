@@ -18,6 +18,9 @@
 // #define PHYSFS_SUPPORTS_ONLY_ZIP
 // #import "miniphysfs.h"
 
+// this also fails, probly need to look at cmake path
+// #include "physfs.h"
+
 #define RLUNICODE_IMPLEMENTATION
 #include "rlunicode.h"
 
@@ -61,19 +64,13 @@ bool shouldExit = false;
 // this is the resource-counter, so every resource has a unique ID
 uint32_t r = 0;
 
-// fonts have a little extra info, because tehy are inited with color & size
-struct FontHolder {
-  Font font;
-  uint16_t size;
-  Color color;
-};
-
 // These are the resources, each in their own array
 // TODO: is there a better way to do these arrays?
+// TODO: do more pointers
 Texture2D resources_images[1024];
 Music resources_music[1024];
 Sound resources_sound[1024];
-struct FontHolder resources_fonts[1024];
+Font resources_fonts[1024];
 int currentMusic = 0;
 
 // throw a fatal error
@@ -302,30 +299,34 @@ static m3ApiRawFunction (null0_loadFont) {
   char fileName[_lfileName];
   ConvertUTF16ToUTF8(_fileName, fileName, _lfileName);
 
-  m3ApiGetArg(uint16_t, size);
-  m3ApiGetArg(uint32_t, color);
-
   r++;
-  resources_fonts[r].font = LoadFont(fileName);
-  resources_fonts[r].size = size;
-  resources_fonts[r].color = GetColor(color);
+  resources_fonts[r] = LoadFont(fileName);
 
   m3ApiReturn(r);
 }
 
 // Draw text on the screen
+// TODO: this seems to be crashing update()
 static m3ApiRawFunction (null0_drawText) {
+  // text:string, x:i16, y: i16, color: u32, size: u16, font:u32
+  m3ApiGetArgMem(const uint16_t *, _text);
+  m3ApiGetArg(int16_t, x);
+  m3ApiGetArg(int16_t, y);
+  m3ApiGetArg(uint32_t, _color);
+  m3ApiGetArg(uint16_t, size);
   m3ApiGetArg(uint32_t, id);
 
-  m3ApiGetArgMem(const uint16_t *, _text);
   int _ltext = (*(_text-2) / 2);
   char text[_ltext];
   ConvertUTF16ToUTF8(_text, text, _ltext);
 
-  m3ApiGetArg(int16_t, x);
-  m3ApiGetArg(int16_t, y);
+  Color color = GetColor(_color);
 
-  DrawTextEx(resources_fonts[id].font, text, (Vector2){ x, y }, resources_fonts[id].size, 0, resources_fonts[id].color);
+  if (id == 0) {
+    DrawText(text, x, y, size, color);
+  } else {
+    DrawTextEx(resources_fonts[id], text, (Vector2){ x, y }, size, 0, color);
+  }
 
   m3ApiSuccess();
 }
@@ -438,7 +439,7 @@ int main (int argc, char **argv) {
   InitWindow(320, 240, "null0");
   InitAudioDevice();
   SetTargetFPS(60);
-  
+
   if (cart_init) {
     null0_check_wasm3(m3_CallV(cart_init));
   } else {

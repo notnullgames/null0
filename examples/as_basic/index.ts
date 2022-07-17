@@ -84,17 +84,22 @@ export function update(delta:u16): void  {
   
   // DVD-style thing
   cls(touching ? palette[15] : palette[0])
+
   x = x + xSpeed
   y = y + ySpeed
   if (x > 280) xSpeed = -1
   if (x < 0) xSpeed = 1
   if (y > 200) ySpeed = -1
   if (y < 0) ySpeed = 1
+  
   drawImage(logo, x, y);
 
   if (counter % 20 === 0) {
     catFrame += 1
   }
+
   drawSprite(cat, <u16>catFrames[catFrame % catFrames.length] , 32, 32, 152, 200)
-  drawText('null0', 120, 80,  palette[3], 50, 0)
+
+  // in C runtime this crashes update
+  // drawText('null0', 120, 80,  palette[3], 50, 0)
 }
