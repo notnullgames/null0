@@ -8,7 +8,7 @@ You can see the current demo [here](https://null0.surge.sh/).
 
 # features
 
-- use any language like, that compiles to wasm (C, rust, assemblyscript, nim, etc)
+- use any language you like, that compiles to wasm (C, rust, assemblyscript, nim, etc)
 - sound - audio-files & mod-music
 - graphics - 320x240, any colors, driven by images/sprites, not really shapes/pixels/etc
 - input - mapped from keys & joystick, A, B, X, Y, L, R, start, select, digital directional
@@ -17,7 +17,15 @@ You can write your games in any language that compiles to wasm (simialr to wasm4
 
 One idea is to setup fast/easy live-reloading dev in a browser, then later you can use that same wasm file with a local native runtime, or deploy on the web.
 
-Currently, I am putting it all together, so it's mostly just a demo/dev project. You can install deps with `npm i`, and get a menu with `npm start`
+Currently, I am putting it all together, so it's mostly just demo/dev projects. You can install deps with `npm i`, and get a menu of what is possible with `npm start`
+
+## todo
+
+- Only assmeblyscript strings are really supported in web & native runtime. Should support all supprted-language types
+- more examples, outside of assemblyscript
+- currently, native-runtime needs to have all direct-file-loads replaced with PhysFS
+- Automatic build of runtimes for every platform in CI
+- Automatic publish web demo in CI
 
 ## thanks
 
@@ -25,3 +33,4 @@ Currently, I am putting it all together, so it's mostly just a demo/dev project.
 - [Raylib](https://www.raylib.com/) is so nice. Easy & fun to work with, fast, and has a ton of features, and Ray & the community around Raylib are incredibly helpful.
 - [Node-raylib](https://github.com/RobLoach/node-raylib) is extremely helpful for prototyping & the other people that are working on it (@twuky and @RobLoach) have been really helpful discussing things, and hammering out ideas with.
 - Gulrak wrote the [utf8 lib](https://gist.github.com/gulrak/2eda01eacebdb308787b639fa30958b3) that makes dealing with assemblyscript strings much easier, and was helpful with inciteful discussion.
+- [physfs](https://icculus.org/physfs/) - this provides the fs-sandbox (locked into specific dir or cart zip file) in native runtime, and it works really well.

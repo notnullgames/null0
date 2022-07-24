@@ -1,8 +1,9 @@
 // this is the native C runtime for null0
 
-// TODO: sound-effects
 // TODO: figure out screen-scaling (scale 320x240 to any size) & fullscreen
 // TODO: configurable input-mapping
+// TODO: replace all direct file loads with PhysFS calls
+// TODO: handle other string-types (non-assemblyscript)
 
 #include <stdlib.h>
 #include <string.h>
@@ -11,15 +12,8 @@
 #include "wasm3.h"
 #include "m3_env.h"
 #include "raylib.h"
-
-// hmm, no idea how to make this work on mac, but this would make "zip file fs" work:
-// #define PHYSFS_IMPL
-// #define PHYSFS_PLATFORM_IMPL
-// #define PHYSFS_SUPPORTS_ONLY_ZIP
-// #import "miniphysfs.h"
-
-// this also fails, probly need to look at cmake path
-// #include "physfs.h"
+#include "physfs.h"
+#include <libgen.h>
 
 #define RLUNICODE_IMPLEMENTATION
 #include "rlunicode.h"
@@ -395,45 +389,46 @@ void null0_load_cart_wasm (u8* wasmBuffer, int byteLength) {
   m3_FindFunction(&cart_buttonDown, runtime, "buttonDown");
 }
 
-// load a binary wasm file
-void null0_load_cart_file (char* filename) {
-  u8* wasm = NULL;
-  int fsize = 0;
-  
-  FILE* f = fopen (filename, "rb");
-  if (!f) null0_fatal_error("file", "open - Cannot open file.");
-  fseek (f, 0, SEEK_END);
-  fsize = ftell(f);
-  fseek (f, 0, SEEK_SET);
-
-  if (fsize < 8) {
-    null0_fatal_error("file", "size - File is too small.");
-  } else if (fsize > 64*1024*1024) {
-    null0_fatal_error("file", "size - File is too big.");
-  }
-
-  wasm = (u8*) malloc(fsize);
-  if (!wasm) {
-    null0_fatal_error("file", "memory - Cannot allocate memory for wasm binary.");
-  }
-
-  if (fread (wasm, 1, fsize, f) != fsize) {
+// detect if this is a zip file
+bool null0_detect_zip(char* filename) {
+  unsigned char bytes[4];
+  FILE* fp=fopen(filename, "r");
+  if (!fp) {
     null0_fatal_error("file", "read - Cannot read file.");
   }
-  fclose (f);
-  f = NULL;
-
-  null0_load_cart_wasm(wasm, fsize);
+  fread(&bytes, 4, 1, fp);
+  fclose(fp);
+  return (bytes[0] == 0x50 && bytes[1] == 0x4b && bytes[2] == 0x03 && bytes[3] == 0x04);
 }
 
 int main (int argc, char **argv) {
-  // TODO: detect if argv[1] is zip or wasm
-  // if wasm, chdir to dir of wasm file, then load it
-  // if zip mount the raylib-physfs first, then load cart.wasm
+  PHYSFS_init(argv[0]);
 
-  null0_load_cart_file(argv[1]);
+  if (null0_detect_zip(argv[1])) {
+    // zip file, so add to search-path
+    PHYSFS_mount(argv[1], NULL, 0);
+  } else {
+    // not zip, so add the dir of the wasm file to search-path
+    PHYSFS_mount(dirname(argv[1]), NULL, 0);
+  }
+
+  if (PHYSFS_exists("/cart.wasm") == 0) {
+    null0_fatal_error("cart", "no cart.wasm!");
+  }
+
+  PHYSFS_File* wasmFile = PHYSFS_openRead("/cart.wasm");
+  PHYSFS_uint64 wasmLen = PHYSFS_fileLength(wasmFile);
+  u8* wasmBuffer[wasmLen];
+  PHYSFS_sint64 bytesRead = PHYSFS_readBytes(wasmFile, wasmBuffer, wasmLen);
+  if (bytesRead == -1) {
+    char* err;
+    sprintf(err, "Error opening cart.wasm: %s", PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+    null0_fatal_error("file", err);
+  }
+
+  null0_load_cart_wasm (wasmBuffer, wasmLen);
   
-  // disable raylib debugging
+  // disable raylib debugging output
   SetTraceLogLevel(LOG_ERROR);
 
   InitWindow(320, 240, "null0");
@@ -443,7 +438,7 @@ int main (int argc, char **argv) {
   if (cart_init) {
     null0_check_wasm3(m3_CallV(cart_init));
   } else {
-    printf("cart: no init.");
+    printf("cart: no init.\n");
   }
 
   // this ensures loaded is called after init
