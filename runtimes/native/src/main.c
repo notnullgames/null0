@@ -4,6 +4,7 @@
 // TODO: configurable input-mapping
 // TODO: replace all direct file loads with PhysFS calls
 // TODO: handle other string-types (non-assemblyscript)
+// TODO: safe writable support for persistant data
 
 #include <stdlib.h>
 #include <string.h>
