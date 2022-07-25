@@ -4,7 +4,8 @@
 // TODO: configurable input-mapping
 // TODO: handle other string-types (non-assemblyscript)
 // TODO: safe writable support for persistant data
-// TODO: I chnaged how fonts work, need to update runtime
+// TODO: I changed how fonts work, need to update runtime
+// TODO: Need to unload things
 
 #include <stdlib.h>
 #include <string.h>
@@ -322,7 +323,15 @@ Music LoadMusicStreamFromPhysFS(const char* fileName) {
     return music;
 }
 
-
+/**
+ * Load sound data from PhysFS.
+ *
+ * @param fileName The file name to load from the PhysFS mount paths.
+ *
+ * @return The Sound object, or an empty Sound object on failure.
+ *
+ * @see UnloadSound()
+ */
 Sound LoadSoundFromPhysFS(const char* fileName) {
   return LoadSoundFromWave(LoadWaveFromPhysFS(fileName));
 }
