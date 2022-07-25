@@ -6,6 +6,7 @@
 // TODO: safe writable support for persistant data
 // TODO: I changed how fonts work, need to update runtime
 // TODO: Need to unload things
+// TODO: Use TraceLog instaead of null0_fatal_error
 
 #include <stdlib.h>
 #include <string.h>
@@ -252,7 +253,7 @@ Texture2D LoadTextureFromPhysFS(const char* fileName) {
  *
  * @see UnloadFont()
  */
-Font LoadFontFromPhysFS(const char* fileName, int fontSize, int *fontChars, int charsCount) {
+Font LoadFontExFromPhysFS(const char* fileName, int fontSize, int *fontChars, int charsCount) {
     unsigned int bytesRead;
     unsigned char* fileData = LoadFileDataFromPhysFS(fileName, &bytesRead);
     if (bytesRead == 0) {
@@ -270,6 +271,50 @@ Font LoadFontFromPhysFS(const char* fileName, int fontSize, int *fontChars, int 
     Font font = LoadFontFromMemory(extension, fileData, bytesRead, fontSize, fontChars, charsCount);
     UnloadFileData(fileData);
     return font;
+}
+
+/**
+ * Load font from PhysFS. Matches raylib LoadFont, except no BM font support
+ *
+ * @param fileName The file name to load from the PhysFS mount paths.
+ *
+ * @return The Font object, or an empty Font object on failure.
+ *
+ * @see UnloadFont()
+ */
+Font LoadFontFromPhysFS(const char* fileName) {
+  // Default values for ttf font generation
+#ifndef FONT_TTF_DEFAULT_SIZE
+    #define FONT_TTF_DEFAULT_SIZE           32      // TTF font generation default char size (char-height)
+#endif
+#ifndef FONT_TTF_DEFAULT_NUMCHARS
+    #define FONT_TTF_DEFAULT_NUMCHARS       95      // TTF font generation default charset: 95 glyphs (ASCII 32..126)
+#endif
+#ifndef FONT_TTF_DEFAULT_FIRST_CHAR
+    #define FONT_TTF_DEFAULT_FIRST_CHAR     32      // TTF font generation default first char for image sprite font (32-Space)
+#endif
+#ifndef FONT_TTF_DEFAULT_CHARS_PADDING
+    #define FONT_TTF_DEFAULT_CHARS_PADDING   4      // TTF font generation default chars padding
+#endif
+
+    Font font = { 0 };
+
+#if defined(SUPPORT_FILEFORMAT_TTF)
+    if (IsFileExtension(fileName, ".ttf") || IsFileExtension(fileName, ".otf")) font = LoadFontExFromPhysFS(fileName, FONT_TTF_DEFAULT_SIZE, NULL, FONT_TTF_DEFAULT_NUMCHARS);
+    else
+#endif
+  Image image = LoadImageFromPhysFS(fileName);
+  UnloadImage(image);
+
+  if (font.texture.id == 0) {
+    TraceLog(LOG_WARNING, "FONT: [%s] Failed to load font texture -> Using default font", fileName);
+    font = GetFontDefault();
+  } else {
+    SetTextureFilter(font.texture, TEXTURE_FILTER_POINT);    // By default we set point filter (best performance)
+    TraceLog(LOG_INFO, "FONT: Data loaded successfully (%i pixel size | %i glyphs)", FONT_TTF_DEFAULT_SIZE, FONT_TTF_DEFAULT_NUMCHARS);
+  }
+
+  return font;
 }
 
 /**
@@ -687,7 +732,7 @@ int main (int argc, char **argv) {
   // in async places (javascript) these would be called in the loader
   if (cart_loaded) {
     for (int i=0; i<=r; i++) {
-      m3_CallV (cart_loaded, i);
+      null0_check_wasm3(m3_CallV (cart_loaded, i));
     }
   }
 
@@ -699,11 +744,11 @@ int main (int argc, char **argv) {
     if (cart_buttonDown) {
       for (uint8_t i=0; i< 12; i++) {
         if (IsKeyPressed(map_keys[i])) {
-          m3_CallV (cart_buttonDown, i);
+          null0_check_wasm3(m3_CallV (cart_buttonDown, i));
         }
         if (IsGamepadAvailable(0)) {
           if (IsGamepadButtonPressed(0, map_gamepad[i])) {
-            m3_CallV (cart_buttonDown, i);
+            null0_check_wasm3(m3_CallV (cart_buttonDown, i));
           }
         }
       }
@@ -711,11 +756,11 @@ int main (int argc, char **argv) {
     if (cart_buttonUp) {
       for (uint8_t i=0; i< 12; i++) {
         if (IsKeyReleased(map_keys[i])) {
-          m3_CallV (cart_buttonUp, i);
+          null0_check_wasm3(m3_CallV (cart_buttonUp, i));
         }
         if (IsGamepadAvailable(0)) {
           if (IsGamepadButtonReleased(0, map_gamepad[i])) {
-            m3_CallV (cart_buttonUp, i);
+           null0_check_wasm3(m3_CallV (cart_buttonUp, i));
           }
         }
       }
@@ -724,9 +769,10 @@ int main (int argc, char **argv) {
     BeginDrawing();
     
     if (cart_update) {
-      m3_CallV (cart_update, delta);
-      UpdateMusicStream(resources_music[currentMusic]);
+      null0_check_wasm3(m3_CallV (cart_update, delta));
     }
+
+    UpdateMusicStream(resources_music[currentMusic]);
 
     EndDrawing();
   }
