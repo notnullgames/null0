@@ -715,7 +715,7 @@ int main (int argc, char **argv) {
     null0_fatal_error("file", err);
   }
 
-  null0_load_cart_wasm (wasmBuffer, wasmLen);
+  null0_load_cart_wasm ((u8*)wasmBuffer, wasmLen);
   
   // disable raylib debugging output
   // SetTraceLogLevel(LOG_ERROR);
