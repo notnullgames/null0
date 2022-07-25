@@ -23,7 +23,6 @@ Currently, I am putting it all together, so it's mostly just demo/dev projects. 
 
 - Only assmeblyscript strings are really supported in web & native runtime. Should support all supprted-language types
 - more examples, outside of assemblyscript
-- currently, native-runtime needs to have all direct-file-loads replaced with PhysFS
 - Automatic build of runtimes for every platform in CI
 - Automatic publish web demo in CI
 
@@ -31,6 +30,6 @@ Currently, I am putting it all together, so it's mostly just demo/dev projects. 
 
 - [TIC80](https://tic80.com/) & [wasm4](https://wasm4.org/) are a constant source of inspiration
 - [Raylib](https://www.raylib.com/) is so nice. Easy & fun to work with, fast, and has a ton of features, and Ray & the community around Raylib are incredibly helpful.
-- [Node-raylib](https://github.com/RobLoach/node-raylib) is extremely helpful for prototyping & the other people that are working on it (@twuky and @RobLoach) have been really helpful discussing things, and hammering out ideas with.
+- [Node-raylib](https://github.com/RobLoach/node-raylib) is extremely helpful for prototyping & the other people that are working on it (@twuky and @RobLoach) have been really helpful discussing things, and hammering out ideas with. Also, lots of ideas from @RobLoach's [raylib-physfs](https://github.com/RobLoach/raylib-physfs).
 - Gulrak wrote the [utf8 lib](https://gist.github.com/gulrak/2eda01eacebdb308787b639fa30958b3) that makes dealing with assemblyscript strings much easier, and was helpful with inciteful discussion.
 - [physfs](https://icculus.org/physfs/) - this provides the fs-sandbox (locked into specific dir or cart zip file) in native runtime, and it works really well.

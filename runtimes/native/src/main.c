@@ -2,9 +2,9 @@
 
 // TODO: figure out screen-scaling (scale 320x240 to any size) & fullscreen
 // TODO: configurable input-mapping
-// TODO: replace all direct file loads with PhysFS calls
 // TODO: handle other string-types (non-assemblyscript)
 // TODO: safe writable support for persistant data
+// TODO: I chnaged how fonts work, need to update runtime
 
 #include <stdlib.h>
 #include <string.h>
@@ -96,6 +96,237 @@ static void null0_check_wasm3_is_ok () {
   }
 }
 
+// THESE LOOSELY CAME FROM raylib-physfs
+
+/**
+ * Reports the last PhysFS error to raylib's TraceLog.
+ *
+ * @param detail Any additional detail to append to the reported error.
+ *
+ * @see PHYSFS_getLastErrorCode()
+ *
+ * @internal
+ */
+void TracePhysFSError(const char* detail) {
+    int errorCode = PHYSFS_getLastErrorCode();
+    if (errorCode == PHYSFS_ERR_OK) {
+        TraceLog(LOG_WARNING, TextFormat("PHYSFS: %s", detail));
+    } else {
+        const char* errorMessage = PHYSFS_getErrorByCode(errorCode);
+        TraceLog(LOG_WARNING, TextFormat("PHYSFS: %s (%s)", errorMessage, detail));
+    }
+}
+
+/**
+ * Determine if a file exists in the search path.
+ *
+ * @param fileName Filename in platform-independent notation.
+ *
+ * @return True if the file exists, false otherwise.
+ *
+ * @see DirectoryExistsInPhysFS()
+ */
+bool FileExistsInPhysFS(const char* fileName) {
+    PHYSFS_Stat stat;
+    if (PHYSFS_stat(fileName, &stat) == 0) {
+        return false;
+    }
+    return stat.filetype == PHYSFS_FILETYPE_REGULAR;
+}
+
+
+/**
+ * Loads the given file as a byte array from PhysFS (read).
+ *
+ * @param fileName The file to load.
+ * @param bytesRead An unsigned integer to save the bytes that were read.
+ *
+ * @return The file data as a pointer. Make sure to use UnloadFileData() when finished using the file data.
+ *
+ * @see UnloadFileData()
+ */
+unsigned char* LoadFileDataFromPhysFS(const char* fileName, unsigned int* bytesRead) {
+    if (!FileExistsInPhysFS(fileName)) {
+        TraceLog(LOG_WARNING, TextFormat("PHYSFS: Tried to load unexisting file '%s'", fileName));
+        *bytesRead = 0;
+        return 0;
+    }
+
+    // Open up the file.
+    void* handle = PHYSFS_openRead(fileName);
+    if (handle == 0) {
+        TracePhysFSError(fileName);
+        *bytesRead = 0;
+        return 0;
+    }
+
+    // Check to see how large the file is.
+    int size = PHYSFS_fileLength(handle);
+    if (size == -1) {
+        *bytesRead = 0;
+        PHYSFS_close(handle);
+        TraceLog(LOG_WARNING, TextFormat("PHYSFS: Cannot determine size of file '%s'", fileName));
+        return 0;
+    }
+
+    // Close safely when it's empty.
+    if (size == 0) {
+        PHYSFS_close(handle);
+        *bytesRead = 0;
+        return 0;
+    }
+
+    // Read the file, return if it's empty.
+    void* buffer = MemAlloc(size);
+    int read = PHYSFS_readBytes(handle, buffer, size);
+    if (read < 0) {
+        *bytesRead = 0;
+        MemFree(buffer);
+        PHYSFS_close(handle);
+        TracePhysFSError(fileName);
+        return 0;
+    }
+
+    // Close the file handle, and return the bytes read and the buffer.
+    PHYSFS_close(handle);
+    *bytesRead = read;
+    return buffer;
+}
+
+/**
+ * Load an image from PhysFS.
+ *
+ * @param fileName The filename to load from the search paths.
+ *
+ * @return The loaded image on success. An empty Image otherwise.
+ */
+Image LoadImageFromPhysFS(const char* fileName) {
+    unsigned int bytesRead;
+    unsigned char* fileData = LoadFileDataFromPhysFS(fileName, &bytesRead);
+    if (bytesRead == 0) {
+        struct Image output;
+        output.data = 0;
+        output.width = 0;
+        output.height = 0;
+        return output;
+    }
+
+    // Load from the memory.
+    const char* extension = GetFileExtension(fileName);
+    Image image = LoadImageFromMemory(extension, fileData, bytesRead);
+    UnloadFileData(fileData);
+    return image;
+}
+
+/**
+ * Load a texture from PhysFS.
+ *
+ * @param fileName The filename to load from the search paths.
+ *
+ * @return The loaded texture on success. An empty texture otherwise.
+ *
+ * @see LoadImageFromPhysFS()
+ */
+Texture2D LoadTextureFromPhysFS(const char* fileName) {
+    Image image = LoadImageFromPhysFS(fileName);
+    if (image.data == 0) {
+        Texture2D output = { 0 };
+        output.id = 0;
+        output.format = 0;
+        output.width = 0;
+        output.height = 0;
+        return output;
+    }
+    Texture2D texture = LoadTextureFromImage(image);
+    UnloadImage(image);
+    return texture;
+}
+
+/**
+ * Load font from PhysFS.
+ *
+ * @param fileName The file name to load from the PhysFS mount paths.
+ *
+ * @return The Font object, or an empty Font object on failure.
+ *
+ * @see UnloadFont()
+ */
+Font LoadFontFromPhysFS(const char* fileName, int fontSize, int *fontChars, int charsCount) {
+    unsigned int bytesRead;
+    unsigned char* fileData = LoadFileDataFromPhysFS(fileName, &bytesRead);
+    if (bytesRead == 0) {
+        struct Font output;
+        output.baseSize = 0;
+        output.glyphCount = 0;
+        output.glyphPadding = 0;
+        output.glyphs = 0;
+        output.recs = 0;
+        return output;
+    }
+
+    // Load from the memory.
+    const char* extension = GetFileExtension(fileName);
+    Font font = LoadFontFromMemory(extension, fileData, bytesRead, fontSize, fontChars, charsCount);
+    UnloadFileData(fileData);
+    return font;
+}
+
+/**
+ * Load wave data from PhysFS.
+ *
+ * @param fileName The file name to load from the PhysFS mount paths.
+ *
+ * @return The Wave object, or an empty Wave object on failure.
+ *
+ * @see UnloadWave()
+ */
+Wave LoadWaveFromPhysFS(const char* fileName) {
+    unsigned int bytesRead;
+    unsigned char* fileData = LoadFileDataFromPhysFS(fileName, &bytesRead);
+    if (bytesRead == 0) {
+        struct Wave output;
+        output.data = 0;
+        return output;
+    }
+
+    // Load from the memory.
+    const char* extension = GetFileExtension(fileName);
+    Wave wave = LoadWaveFromMemory(extension, fileData, bytesRead);
+    UnloadFileData(fileData);
+    return wave;
+}
+
+/**
+ * Load module music from PhysFS.
+ *
+ * @param fileName The file name to load from the PhysFS mount paths.
+ *
+ * @return The Music object, or an empty Music object on failure.
+ *
+ * @see UnloadMusic()
+ */
+Music LoadMusicStreamFromPhysFS(const char* fileName) {
+    unsigned int bytesRead;
+    unsigned char* fileData = LoadFileDataFromPhysFS(fileName, &bytesRead);
+    if (bytesRead == 0) {
+        struct Music output;
+        output.ctxData = 0;
+        output.stream.buffer = 0;
+        return output;
+    }
+
+    // Load from the memory.
+    const char* extension = GetFileExtension(fileName);
+    Music music = LoadMusicStreamFromMemory(extension, fileData, bytesRead);
+    UnloadFileData(fileData);
+    return music;
+}
+
+
+Sound LoadSoundFromPhysFS(const char* fileName) {
+  return LoadSoundFromWave(LoadWaveFromPhysFS(fileName));
+}
+
 // EXPORTS
 static M3Function* cart_init;
 static M3Function* cart_update;
@@ -179,7 +410,7 @@ static m3ApiRawFunction (null0_loadImage) {
   ConvertUTF16ToUTF8(_fileName, fileName, _lfileName);
 
   r++;
-  resources_images[r] = LoadTexture(fileName);
+  resources_images[r] = LoadTextureFromPhysFS(fileName);
 
   m3ApiReturn(r);
 }
@@ -227,7 +458,7 @@ static m3ApiRawFunction (null0_loadMusic) {
   ConvertUTF16ToUTF8(_fileName, fileName, _lfileName);
 
   r++;
-  resources_music[r] = LoadMusicStream(fileName);
+  resources_music[r] = LoadMusicStreamFromPhysFS(fileName);
   resources_music[r].looping = true;
 
   m3ApiReturn(r);
@@ -243,7 +474,7 @@ static m3ApiRawFunction (null0_loadSound) {
   ConvertUTF16ToUTF8(_fileName, fileName, _lfileName);
 
   r++;
-  resources_sound[r] = LoadSound(fileName);
+  resources_sound[r] = LoadSoundFromPhysFS(fileName);
 
   m3ApiReturn(r);
 }
@@ -295,7 +526,7 @@ static m3ApiRawFunction (null0_loadFont) {
   ConvertUTF16ToUTF8(_fileName, fileName, _lfileName);
 
   r++;
-  resources_fonts[r] = LoadFont(fileName);
+  resources_fonts[r] = LoadFontFromPhysFS(fileName);
 
   m3ApiReturn(r);
 }
@@ -413,11 +644,11 @@ int main (int argc, char **argv) {
     PHYSFS_mount(dirname(argv[1]), NULL, 0);
   }
 
-  if (PHYSFS_exists("/cart.wasm") == 0) {
+  if (!FileExistsInPhysFS("cart.wasm")) {
     null0_fatal_error("cart", "no cart.wasm!");
   }
 
-  PHYSFS_File* wasmFile = PHYSFS_openRead("/cart.wasm");
+  PHYSFS_File* wasmFile = PHYSFS_openRead("cart.wasm");
   PHYSFS_uint64 wasmLen = PHYSFS_fileLength(wasmFile);
   u8* wasmBuffer[wasmLen];
   PHYSFS_sint64 bytesRead = PHYSFS_readBytes(wasmFile, wasmBuffer, wasmLen);
