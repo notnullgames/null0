@@ -101,5 +101,5 @@ export function update(delta:u16): void  {
   drawSprite(cat, <u16>catFrames[catFrame % catFrames.length] , 32, 32, 152, 200)
 
   // in C runtime this crashes update
-  // drawText('null0', 120, 80,  palette[3], 50, 0)
+  drawText('null0', 120, 80,  palette[3], 50, 0)
 }

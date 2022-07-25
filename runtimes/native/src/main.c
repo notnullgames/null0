@@ -274,7 +274,7 @@ Font LoadFontExFromPhysFS(const char* fileName, int fontSize, int *fontChars, in
 }
 
 /**
- * Load font from PhysFS. Matches raylib LoadFont, except no BM font support
+ * Load font from PhysFS. Matches raylib LoadFont, except no BM-font support
  *
  * @param fileName The file name to load from the PhysFS mount paths.
  *
@@ -590,17 +590,18 @@ static m3ApiRawFunction (null0_loadFont) {
 static m3ApiRawFunction (null0_drawText) {
   // text:string, x:i16, y: i16, color: u32, size: u16, font:u32
   m3ApiGetArgMem(const uint16_t *, _text);
-  m3ApiGetArg(int16_t, x);
-  m3ApiGetArg(int16_t, y);
-  m3ApiGetArg(uint32_t, _color);
-  m3ApiGetArg(uint16_t, size);
-  m3ApiGetArg(uint32_t, id);
-
   int _ltext = (*(_text-2) / 2);
   char text[_ltext];
   ConvertUTF16ToUTF8(_text, text, _ltext);
 
+  m3ApiGetArg(int16_t, x);
+  m3ApiGetArg(int16_t, y);
+  
+  m3ApiGetArg(uint32_t, _color);
   Color color = GetColor(_color);
+
+  m3ApiGetArg(uint16_t, size);
+  m3ApiGetArg(uint32_t, id);
 
   if (id == 0) {
     DrawText(text, x, y, size, color);
@@ -659,12 +660,12 @@ void null0_load_cart_wasm (u8* wasmBuffer, int byteLength) {
   m3_LinkRawFunction(module, "env", "null0_stopMusic", "v(i)", &null0_stopMusic);
   m3_LinkRawFunction(module, "env", "null0_drawSprite", "v(iiiiii)", &null0_drawSprite);
   m3_LinkRawFunction(module, "env", "null0_getFPS", "i()", &null0_getFPS);
-  m3_LinkRawFunction(module, "env", "null0_drawText", "v(iiii)", &null0_drawText);
+  m3_LinkRawFunction(module, "env", "null0_drawText", "v(iiiiii)", &null0_drawText);
   m3_LinkRawFunction(module, "env", "null0_loadFont", "i(iii)", &null0_loadFont);
   m3_LinkRawFunction(module, "env", "null0_log", "v(i)", &null0_log);
   m3_LinkRawFunction(module, "env", "null0_exit", "v()", &null0_exit);
   m3_LinkRawFunction(module, "env", "abort", "v(iiii)", &null0_abort);
-  
+
   null0_check_wasm3_is_ok();
 
   // EXPORTS
@@ -715,7 +716,7 @@ int main (int argc, char **argv) {
   null0_load_cart_wasm (wasmBuffer, wasmLen);
   
   // disable raylib debugging output
-  SetTraceLogLevel(LOG_ERROR);
+  // SetTraceLogLevel(LOG_ERROR);
 
   InitWindow(320, 240, "null0");
   InitAudioDevice();
