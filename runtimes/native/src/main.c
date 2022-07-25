@@ -7,6 +7,8 @@
 // TODO: I changed how fonts work, need to update runtime
 // TODO: Need to unload things
 // TODO: Use TraceLog instaead of null0_fatal_error
+// TODO: sounds stopped working
+// TODO: disable unused raylib stuff (rlgl, rshapes, rmodels, etc)
 
 #include <stdlib.h>
 #include <string.h>
