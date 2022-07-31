@@ -78,7 +78,7 @@ export function update(delta:u16): void  {
 
   const touching = (x <= 0 || y <= 0 || x >= 276 || y >= 198)
 
-  if (touching && !soundPlaying(bounce)) {
+  if (touching) {
     playSound(bounce)
   }
   

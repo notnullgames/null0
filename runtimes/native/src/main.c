@@ -346,6 +346,19 @@ Wave LoadWaveFromPhysFS(const char* fileName) {
 }
 
 /**
+ * Load sound data from PhysFS.
+ *
+ * @param fileName The file name to load from the PhysFS mount paths.
+ *
+ * @return The Sound object, or an empty Sound object on failure.
+ *
+ * @see UnloadSound()
+ */
+Sound LoadSoundFromPhysFS(const char* fileName) {
+  return LoadSoundFromWave(LoadWaveFromPhysFS(fileName));
+}
+
+/**
  * Load module music from PhysFS.
  *
  * @param fileName The file name to load from the PhysFS mount paths.
@@ -371,18 +384,7 @@ Music LoadMusicStreamFromPhysFS(const char* fileName) {
     return music;
 }
 
-/**
- * Load sound data from PhysFS.
- *
- * @param fileName The file name to load from the PhysFS mount paths.
- *
- * @return The Sound object, or an empty Sound object on failure.
- *
- * @see UnloadSound()
- */
-Sound LoadSoundFromPhysFS(const char* fileName) {
-  return LoadSoundFromWave(LoadWaveFromPhysFS(fileName));
-}
+
 
 // EXPORTS
 static M3Function* cart_init;
