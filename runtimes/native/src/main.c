@@ -23,6 +23,19 @@
 #define RLUNICODE_IMPLEMENTATION
 #include "rlunicode.h"
 
+#ifndef FONT_TTF_DEFAULT_SIZE
+  #define FONT_TTF_DEFAULT_SIZE           32      // TTF font generation default char size (char-height)
+#endif
+#ifndef FONT_TTF_DEFAULT_NUMCHARS
+  #define FONT_TTF_DEFAULT_NUMCHARS       95      // TTF font generation default charset: 95 glyphs (ASCII 32..126)
+#endif
+#ifndef FONT_TTF_DEFAULT_FIRST_CHAR
+  #define FONT_TTF_DEFAULT_FIRST_CHAR     32      // TTF font generation default first char for image sprite font (32-Space)
+#endif
+#ifndef FONT_TTF_DEFAULT_CHARS_PADDING
+  #define FONT_TTF_DEFAULT_CHARS_PADDING   4      // TTF font generation default chars padding
+#endif
+
 int map_keys[12] = {
   KEY_X,           // A
   KEY_Z,           // B
@@ -285,28 +298,16 @@ Font LoadFontExFromPhysFS(const char* fileName, int fontSize, int *fontChars, in
  * @see UnloadFont()
  */
 Font LoadFontFromPhysFS(const char* fileName) {
-  // Default values for ttf font generation
-#ifndef FONT_TTF_DEFAULT_SIZE
-    #define FONT_TTF_DEFAULT_SIZE           32      // TTF font generation default char size (char-height)
-#endif
-#ifndef FONT_TTF_DEFAULT_NUMCHARS
-    #define FONT_TTF_DEFAULT_NUMCHARS       95      // TTF font generation default charset: 95 glyphs (ASCII 32..126)
-#endif
-#ifndef FONT_TTF_DEFAULT_FIRST_CHAR
-    #define FONT_TTF_DEFAULT_FIRST_CHAR     32      // TTF font generation default first char for image sprite font (32-Space)
-#endif
-#ifndef FONT_TTF_DEFAULT_CHARS_PADDING
-    #define FONT_TTF_DEFAULT_CHARS_PADDING   4      // TTF font generation default chars padding
-#endif
-
     Font font = { 0 };
 
 #if defined(SUPPORT_FILEFORMAT_TTF)
     if (IsFileExtension(fileName, ".ttf") || IsFileExtension(fileName, ".otf")) font = LoadFontExFromPhysFS(fileName, FONT_TTF_DEFAULT_SIZE, NULL, FONT_TTF_DEFAULT_NUMCHARS);
     else
 #endif
-  Image image = LoadImageFromPhysFS(fileName);
-  UnloadImage(image);
+  {
+    Image image = LoadImageFromPhysFS(fileName);
+    UnloadImage(image);
+  }
 
   if (font.texture.id == 0) {
     TraceLog(LOG_WARNING, "FONT: [%s] Failed to load font texture -> Using default font", fileName);
