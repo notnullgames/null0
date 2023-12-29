@@ -3,45 +3,40 @@ load_sound:
     filename: string
   returns: Sound
   description: Load a sound from a file in cart
+
 play_sound:
   args:
     sound: Sound
     loop: bool
   returns: void
   description: Play a sound
+
 stop_sound:
   args:
     sound: Sound
   returns: void
   description: Stop a sound
-seek_sound:
-  args:
-    sound: Sound
-    position: f32
-  returns: void
-  description: Seek to a position in a sound
-speak:
-  args:
-    text: string
-  returns: Sound
-  description: Create a new sound from some text (text-to-speech)
+
 new_sfx:
   args:
     params: SfxParams*
   returns: Sound
   description: Create a new sound-effect from some sfxr params
+
 preset_sfx:
   args:
     params: SfxParams*
     type: SfxPresetType
   returns: void
   description: Generate randomized preset sfxr params
+
 randomize_sfx:
   args:
     params: SfxParams*
     waveType: SfxWaveType
   returns: void
   description: Randomize sfxr params
+
 mutate_sfx:
   args:
     params: SfxParams*
@@ -49,11 +44,13 @@ mutate_sfx:
     mask: u32
   returns: void
   description: Randomly mutate sfxr params
+
 load_sfx:
   args:
     filename: string
   returns: SfxParams
   description: Create a new sfxr from a .rfx file
+
 unload_sound:
   args:
     sound: Sound

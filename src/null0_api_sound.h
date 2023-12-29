@@ -73,17 +73,6 @@ void null0_stop_sound(uint32_t sound) {
   pntr_stop_sound(null0_sounds[sound]);
 }
 
-// Seek to a position in a sound
-void null0_seek_sound(uint32_t sound, float position) {
-  // TODO
-}
-
-// Create a new sound from some text (text-to-speech)
-uint32_t null0_speak(char* text) {
-  // TODO
-  return 0;
-}
-
 // Create a new sound-effect from some sfxr params
 uint32_t null0_new_sfx(SfxParams* params) {
   SfxSynth* synth = sfx_allocSynth(SFX_U8, 44100, 10);
@@ -133,8 +122,15 @@ void null0_mutate_sfx(SfxParams* params, float range, uint32_t mask) {
 
 // Create a new sound-effect from a .rfx file
 uint32_t null0_load_sfx(char* filename) {
-  // TODO
-  return 0;
+  size_t s = sizeof(SfxParams);
+  SfxParams* params = malloc(s);
+  uint32_t bytesRead = 0;
+  unsigned char* bytes = null0_file_read(filename, &bytesRead);
+  if (s != bytesRead) {
+    return 0;
+  }
+  memcpy(params, bytes, s);
+  return null0_new_sfx(params);
 }
 
 // Unload a sound

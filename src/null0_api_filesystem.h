@@ -18,7 +18,14 @@ unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
     }
   }
 
-  // TODO: loop through null0_embedded_files looking for file
+  // loop through null0_embedded_files looking for file
+  size_t i;
+  for (i = 0; i < cvector_size(null0_embedded_files); ++i) {
+    if (null0_embedded_files[i]->filename == filename) {
+      *bytesRead = null0_embedded_files[i]->size;
+      return null0_embedded_files[i]->data;
+    }
+  }
 
   // Load the file information from assetsys.
   assetsys_file_t file;
@@ -69,7 +76,7 @@ bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize) {
     printf("Cannot write to %s outside of write/\n", filename);
     return false;
   }
-  // write to assetsys write dir
+  // TODO: write to assetsys write dir
 }
 
 // Embed memory as a file
