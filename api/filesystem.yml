@@ -1,0 +1,20 @@
+file_read:
+  args:
+    filename: string
+    bytesRead: u32*
+  returns: bytes
+  description: Read a file from cart
+file_write:
+  args:
+    filename: string
+    data: bytes
+    byteSize: u32
+  returns: bool
+  description: Write a file to persistant storage
+file_embed:
+  args:
+    filename: string
+    data: bytes
+    byteSize: u32
+  returns: bool
+  description: Embed memory as a file

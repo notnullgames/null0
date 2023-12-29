@@ -1,0 +1,19 @@
+trace:
+  returns: void
+  args:
+    str: string
+  description: Log a string
+current_time:
+  returns: u64
+  args: {}
+  description: Get system-time (ms) since unix epoch
+delta_time:
+  returns: f32
+  args: {}
+  description: Get the change in time (seconds) since the last update run
+random_int:
+  returns: i32
+  args:
+    min: i32
+    max: i32
+  description: Get a random integer between 2 numbers
