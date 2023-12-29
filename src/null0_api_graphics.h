@@ -1,4 +1,4 @@
-// Null0 host - graphics - generated 2023-12-29T02:43:33.871Z
+// Null0 host - graphics - generated 2023-12-29T03:53:18.391Z
 #pragma once
 
 #include <stdint.h>
@@ -6,19 +6,13 @@
 #include "pntr.h"
 
 // Create a new blank image
-uint32_t null0_new_image(int32_t width, int32_t height, uint32_t color) {
-  return 0;
-}
+uint32_t null0_new_image(int32_t width, int32_t height, uint32_t color) {}
 
 // Copy an image to a new image
-uint32_t null0_image_copy(uint32_t image) {
-  return 0;
-}
+uint32_t null0_image_copy(uint32_t image) {}
 
 // Create an image from a region of another image
-uint32_t null0_image_subimage(uint32_t image, int32_t x, int32_t y, int32_t width, int32_t height) {
-  return 0;
-}
+uint32_t null0_image_subimage(uint32_t image, int32_t x, int32_t y, int32_t width, int32_t height) {}
 
 // Clear the screen
 void null0_clear(uint32_t color) {}
@@ -60,13 +54,13 @@ void null0_draw_image(uint32_t src, int32_t posX, int32_t posY) {}
 void null0_draw_image_tint(uint32_t src, int32_t posX, int32_t posY, uint32_t tint) {}
 
 // Draw an image, rotated, on the screen
-void null0_draw_image_rotated(uint32_t src, int32_t posX, int32_t posY, float degrees, float offsetX, float offsetY, ImageFilter filter) {}
+void null0_draw_image_rotated(uint32_t src, int32_t posX, int32_t posY, float degrees, float offsetX, float offsetY, pntr_filter filter) {}
 
 // Draw an image, flipped, on the screen
 void null0_draw_image_flipped(uint32_t src, int32_t posX, int32_t posY, bool flipHorizontal, bool flipVertical) {}
 
 // Draw an image, scaled, on the screen
-void null0_draw_image_scaled(uint32_t src, int32_t posX, int32_t posY, float scaleX, float scaleY, float offsetX, float offsetY, ImageFilter filter) {}
+void null0_draw_image_scaled(uint32_t src, int32_t posX, int32_t posY, float scaleX, float scaleY, float offsetX, float offsetY, pntr_filter filter) {}
 
 // Draw some text on the screen
 void null0_draw_text(uint32_t font, char* text, int32_t posX, int32_t posY, uint32_t color) {}
@@ -75,15 +69,13 @@ void null0_draw_text(uint32_t font, char* text, int32_t posX, int32_t posY, uint
 void null0_save_image(uint32_t image, char* filename) {}
 
 // Load an image from a file in cart
-uint32_t null0_load_image(char* filename) {
-  return 0;
-}
+uint32_t null0_load_image(char* filename) {}
 
 // Resize an image, in-place
 void null0_image_resize(uint32_t image, int32_t newWidth, int32_t newHeight, int32_t offsetX, int32_t offsetY, uint32_t fill) {}
 
 // Scale an image, in-place
-void null0_image_scale(uint32_t image, float scaleX, float scaleY, ImageFilter filter) {}
+void null0_image_scale(uint32_t image, float scaleX, float scaleY, pntr_filter filter) {}
 
 // Replace a color in an image, in-place
 void null0_image_color_replace(uint32_t image, uint32_t color, uint32_t replace) {}
@@ -95,52 +87,31 @@ void null0_image_color_tint(uint32_t image, uint32_t color) {}
 void null0_image_color_fade(uint32_t image, float alpha) {}
 
 // Copy a font to a new font
-uint32_t null0_font_copy(uint32_t font) {
-  return 0;
-}
+uint32_t null0_font_copy(uint32_t font) {}
 
 // Scale a font, return a new font
-uint32_t null0_font_scale(uint32_t font, float scaleX, float scaleY, ImageFilter filter) {
-  return 0;
-}
+uint32_t null0_font_scale(uint32_t font, float scaleX, float scaleY, pntr_filter filter) {}
 
 // Load a BMF font from a file in cart
-uint32_t null0_load_font_bmf(char* filename, char* characters) {
-  return 0;
-}
+uint32_t null0_load_font_bmf(char* filename, char* characters) {}
 
 // Load a BMF font from an image
-uint32_t null0_load_font_bmf_from_image(uint32_t image, char* characters) {
-  return 0;
-}
+uint32_t null0_load_font_bmf_from_image(uint32_t image, char* characters) {}
 
 // Measure the size of some text
-pntr_vector null0_measure_text(uint32_t font, char* text) {
-  return 0;
-}
+pntr_vector null0_measure_text(uint32_t font, char* text) {}
 
 // Meaure an image (use 0 for screen)
-pntr_vector null0_measure_image(uint32_t image) {
-  if (image == 0) {
-    pntr_vector v = (pntr_vector) { .x=320, .y=240 };
-    return v;
-  }
-}
+pntr_vector null0_measure_image(uint32_t image) {}
 
 // Load a TTY font from a file in cart
-uint32_t null0_load_font_tty(char* filename, int32_t glyphWidth, int32_t glyphHeight, char* characters) {
-  return 0;
-}
+uint32_t null0_load_font_tty(char* filename, int32_t glyphWidth, int32_t glyphHeight, char* characters) {}
 
 // Load a TTY font from an image
-uint32_t null0_load_font_tty_from_image(uint32_t image, int32_t glyphWidth, int32_t glyphHeight, char* characters) {
-  return 0;
-}
+uint32_t null0_load_font_tty_from_image(uint32_t image, int32_t glyphWidth, int32_t glyphHeight, char* characters) {}
 
 // Load a TTF font from a file in cart
-uint32_t null0_load_font_ttf(char* filename, int32_t fontSize) {
-  return 0;
-}
+uint32_t null0_load_font_ttf(char* filename, int32_t fontSize) {}
 
 // Invert the colors in an image, in-place
 void null0_image_color_invert(uint32_t image) {}
@@ -167,14 +138,10 @@ void null0_image_color_contrast(uint32_t image, float contrast) {}
 void null0_image_alpha_mask(uint32_t image, uint32_t alphaMask, int32_t posX, int32_t posY) {}
 
 // Create a new image, rotating another image
-uint32_t null0_image_rotate(uint32_t image, float degrees, ImageFilter filter) {
-  return 0;
-}
+uint32_t null0_image_rotate(uint32_t image, float degrees, pntr_filter filter) {}
 
 // Create a new image of a gradient
-uint32_t null0_image_gradient(int32_t width, int32_t height, uint32_t topLeft, uint32_t topRight, uint32_t bottomLeft, uint32_t bottomRight) {
-  return 0;
-}
+uint32_t null0_image_gradient(int32_t width, int32_t height, uint32_t topLeft, uint32_t topRight, uint32_t bottomLeft, uint32_t bottomRight) {}
 
 // Unload an image
 void null0_unload_image(uint32_t image) {}
@@ -219,13 +186,13 @@ void null0_draw_image_on_image(uint32_t destination, uint32_t src, int32_t posX,
 void null0_draw_image_tint_on_image(uint32_t destination, uint32_t src, int32_t posX, int32_t posY, uint32_t tint) {}
 
 // Draw an image, rotated, on an image
-void null0_draw_image_rotated_on_image(uint32_t destination, uint32_t src, int32_t posX, int32_t posY, float degrees, float offsetX, float offsetY, ImageFilter filter) {}
+void null0_draw_image_rotated_on_image(uint32_t destination, uint32_t src, int32_t posX, int32_t posY, float degrees, float offsetX, float offsetY, pntr_filter filter) {}
 
 // Draw an image, flipped, on an image
 void null0_draw_image_flipped_on_image(uint32_t destination, uint32_t src, int32_t posX, int32_t posY, bool flipHorizontal, bool flipVertical) {}
 
 // Draw an image, scaled, on an image
-void null0_draw_image_scaled_on_image(uint32_t destination, uint32_t src, int32_t posX, int32_t posY, float scaleX, float scaleY, float offsetX, float offsetY, ImageFilter filter) {}
+void null0_draw_image_scaled_on_image(uint32_t destination, uint32_t src, int32_t posX, int32_t posY, float scaleX, float scaleY, float offsetX, float offsetY, pntr_filter filter) {}
 
 // Draw some text on an image
 void null0_draw_text_on_image(uint32_t destination, uint32_t font, char* text, int32_t posX, int32_t posY, uint32_t color) {}
