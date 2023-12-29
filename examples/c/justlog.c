@@ -1,3 +1,5 @@
+// simple native example of logging
+
 #include "null0_api.h"
 
 int main(int argc, char* argv[]) {

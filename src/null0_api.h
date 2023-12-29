@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 // use null0 file-functions (defined in null0_api_filesystem) for pntr
 unsigned char* null0_file_read(char* filename, uint32_t* bytesRead);
@@ -33,16 +34,18 @@ typedef struct {
   unsigned char* data;
 } Null0FileData;
 
-// this holds mem-embedded files
-cvector_vector_type(Null0FileData*) null0_embedded_files;
+// return true if 1 string starts with another
+#define string_starts_with(string_to_check, prefix) (strncmp(string_to_check, prefix, ((sizeof(prefix) / sizeof(prefix[0])) - 1)) ? 0 : ((sizeof(prefix) / sizeof(prefix[0])) - 1))
 
-// setup shared arrays of resources
+// setup shared globals
+cvector_vector_type(Null0FileData*) null0_embedded_files;
 cvector_vector_type(pntr_font*) null0_fonts;
 cvector_vector_type(pntr_image*) null0_images;
 cvector_vector_type(pntr_sound*) null0_sounds;
 pntr_app* null0_app;
 pntr_image* null0_screen;
 bool null0_can_write = false;
+assetsys_t* null0_fs;
 
 // these are to simplify bindings
 uint32_t null0_add_image(pntr_image* image) {

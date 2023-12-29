@@ -145,6 +145,7 @@ draw_image_flipped:
     posY: i32
     flipHorizontal: bool
     flipVertical: bool
+    flipDiagonal: bool
   returns: void
   description: Draw an image, flipped, on the screen
 draw_image_scaled:
@@ -245,6 +246,7 @@ measure_text:
   args:
     font: Font
     text: string
+    textLength: i32
   returns: Dimensions
   description: Measure the size of some text
 measure_image:
@@ -483,6 +485,7 @@ draw_image_flipped_on_image:
     posY: i32
     flipHorizontal: bool
     flipVertical: bool
+    flipDiagonal: bool
   returns: void
   description: Draw an image, flipped, on an image
 draw_image_scaled_on_image:

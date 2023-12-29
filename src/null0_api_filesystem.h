@@ -7,12 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define STARTS_WITH(string_to_check, prefix) (strncmp(string_to_check, prefix, ((sizeof(prefix) / sizeof(prefix[0])) - 1)) ? 0 : ((sizeof(prefix) / sizeof(prefix[0])) - 1))
-
 // Read a file from cart
 unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
   // check for write/ (requires permission)
-  if (STARTS_WITH(filename, "write/")) {
+  if (string_starts_with(filename, "write/")) {
     if (!null0_can_write) {
       *bytesRead = 0;
       printf("Cannot read %s (need write permission.)\n", filename);
@@ -62,7 +60,7 @@ unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
 // Write a file to persistant storage
 bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize) {
   // check for write/ (requires permission)
-  if (STARTS_WITH(filename, "write/")) {
+  if (string_starts_with(filename, "write/")) {
     if (!null0_can_write) {
       printf("Cannot write to %s (need permission.)\n", filename);
       return false;
