@@ -19,6 +19,7 @@ function typeMap (arg) {
     case 'Rectangle': return 'pntr_rectangle'
     case 'Sound': return 'uint32_t'
     case 'Dimensions': return 'pntr_vector'
+    case 'ImageFilter': return 'pntr_filter'
     case 'Font': return 'uint32_t'
     case 'Key': return 'pntr_app_key'
     case 'GamepadButton': return 'pntr_app_gamepad_button'
@@ -50,16 +51,31 @@ for (const f of await glob('api/*.yml')) {
     out.push('#include <stdbool.h>')
   }
 
-  if (['sound'].includes(api_name)) {
-    out.push('#include "sfx_gen.h"')
-  }
-
-  if (['graphics', 'input'].includes(api_name)) {
-    out.push('#include "pntr.h"')
+  if (['graphics'].includes(api_name)) {
+    out.push('#include <pntr.h>')
   }
 
   if (['input'].includes(api_name)) {
-    out.push('#include "pntr_app.h"')
+    out.push('#include <pntr_app.h>')
+  }
+
+  if (['sound'].includes(api_name)) {
+    out.push('#include "sfx_gen.h"')
+    out.push(`
+typedef enum SfxPresetType {
+  SFX_COIN,
+  SFX_LASER,
+  SFX_EXPLOSION,
+  SFX_POWERUP,
+  SFX_HURT,
+  SFX_JUMP,
+  SFX_SELECT,
+} SfxPresetType;
+
+typedef enum SfxWaveType SfxWaveType;
+int sfx_random(int range) {
+  return null0_random_int(0, range);
+}`)
   }
 
   for (const func of Object.keys(api)) {

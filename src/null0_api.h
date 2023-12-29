@@ -5,16 +5,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+// use null0 file-functions (defined in null0_api_filesystem) for pntr
 unsigned char* null0_file_read(char* filename, uint32_t* bytesRead);
 bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize);
 
-// use null0 file-functions (defined in null0_api_filesystem) for pntr
 #define PNTR_LOAD_FILE null0_file_read
 #define PNTR_SAVE_FILE null0_file_write
-
-// settings for pntr
-#define PNTR_ENABLE_DEFAULT_FONT
-#define PNTR_ENABLE_TTF
 
 // make sure importing pntr will implement it, too
 #define PNTR_IMPLEMENTATION
@@ -55,18 +51,18 @@ uint32_t null0_add_font(pntr_font* font) {
   return id;
 }
 
-#include "null0_api_filesystem.h"
+#include "null0_api_utilities.h"
+
 #include "null0_api_colors.h"
+#include "null0_api_filesystem.h"
 #include "null0_api_graphics.h"
 #include "null0_api_input.h"
 #include "null0_api_sound.h"
-#include "null0_api_utilities.h"
 
 // initialize null0 API for a single game (using a zip file oir directory for assets)
 bool null0_init(char* filename) {
   return false;
 }
-
 
 // load a cart (wasm or zip file)
 bool null0_load_cart(char* filename) {
@@ -78,5 +74,4 @@ bool null0_load_cart(char* filename) {
 void null0_update() {}
 
 // call when you are ready to quit, to unload things
-void null0_unload () {}
-
+void null0_unload() {}
