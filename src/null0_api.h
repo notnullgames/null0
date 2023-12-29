@@ -27,10 +27,22 @@ bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize);
 #define CVECTOR_LOGARITHMIC_GROWTH
 #include "cvector.h"
 
+typedef struct {
+  char* filename;
+  size_t size;
+  unsigned char* data;
+} Null0FileData;
+
+// this holds mem-embedded files
+cvector_vector_type(Null0FileData*) null0_embedded_files;
+
 // setup shared arrays of resources
 cvector_vector_type(pntr_font*) null0_fonts;
 cvector_vector_type(pntr_image*) null0_images;
 cvector_vector_type(pntr_sound*) null0_sounds;
+pntr_app* null0_app;
+pntr_image* null0_screen;
+bool null0_can_write = false;
 
 // these are to simplify bindings
 uint32_t null0_add_image(pntr_image* image) {
@@ -59,19 +71,32 @@ uint32_t null0_add_font(pntr_font* font) {
 #include "null0_api_input.h"
 #include "null0_api_sound.h"
 
-// initialize null0 API for a single game (using a zip file oir directory for assets)
-bool null0_init(char* filename) {
-  return false;
+// call when an event happens
+void null0_event(pntr_app_event* event) {
 }
 
 // load a cart (wasm or zip file)
 bool null0_load_cart(char* filename) {
-  bool loaded = null0_init(filename);
+  bool loaded = false;
+
+  // check cart/dir
+  // add screen to images
+  // add default font to fonts
+  // setup null0_can_write
+
   return loaded;
 }
 
 // call on each frame to update things
-void null0_update() {}
+void null0_update(pntr_app* app, pntr_image* screen) {
+  null0_app = app;
+  null0_screen = screen;
+}
 
 // call when you are ready to quit, to unload things
-void null0_unload() {}
+void null0_unload() {
+  // unload null0_fonts
+  // unload null0_images
+  // unload null0_sounds
+  // unload null0_embedded_files
+}

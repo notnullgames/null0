@@ -18,3 +18,4 @@ file_embed:
     byteSize: u32
   returns: bool
   description: Embed memory as a file
+

@@ -13,19 +13,39 @@
 
 #include "null0_api.h"
 
+char* filename = NULL;
+
 bool Init(pntr_app* app) {
-  return true;
+  if (filename == NULL) {
+    return false;
+  }
+  bool ok = null0_load_cart(filename);
+
+  // TODO: initialize wasm
+
+  return ok;
 }
 
 bool Update(pntr_app* app, pntr_image* screen) {
+  null0_update(app, screen);
   return true;
 }
 
-void Close(pntr_app* app) {}
+void Close(pntr_app* app) {
+  null0_unload();
+}
 
-void Event(pntr_app* app, pntr_app_event* event) {}
+void Event(pntr_app* app, pntr_app_event* event) {
+  null0_event(event);
+}
 
 pntr_app Main(int argc, char* argv[]) {
+  if (argc != 2) {
+    printf("Usage: null0 <CART>\n");
+  } else {
+    filename = argv[1];
+  }
+
 #ifdef PNTR_APP_RAYLIB
   SetTraceLogLevel(LOG_WARNING);
 #endif
