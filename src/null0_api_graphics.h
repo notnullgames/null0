@@ -162,8 +162,8 @@ uint32_t null0_load_font_bmf_from_image(uint32_t image, char* characters) {
 }
 
 // Measure the size of some text
-pntr_vector null0_measure_text(uint32_t font, char* text, int32_t textLength) {
-  pntr_vector r = pntr_measure_text_ex(null0_fonts[font], text, textLength);
+pntr_vector null0_measure_text(uint32_t font, char* text) {
+  pntr_vector r = pntr_measure_text_ex(null0_fonts[font], text, 0);
   return r;
 }
 

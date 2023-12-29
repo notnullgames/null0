@@ -4,6 +4,7 @@ file_read:
     bytesRead: u32*
   returns: bytes
   description: Read a file from cart
+
 file_write:
   args:
     filename: string
@@ -11,6 +12,7 @@ file_write:
     byteSize: u32
   returns: bool
   description: Write a file to persistant storage
+
 file_embed:
   args:
     filename: string
