@@ -1,10 +1,14 @@
 // Null0 host - colors - generated 2023-12-29T06:49:42.373Z
 #pragma once
 
+#include <pntr.h>
 #include <stdint.h>
 
 // Tint a color with another color
-uint32_t null0_color_tint(uint32_t color, uint32_t tint) {}
+uint32_t null0_color_tint(uint32_t color, uint32_t tint) {
+  pntr_color c = pntr_color_tint(pntr_get_color(color), pntr_get_color(tint));
+  return c.value;
+}
 
 // Fade a color
 uint32_t null0_color_fade(uint32_t color, float alpha) {}
