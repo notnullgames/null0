@@ -11,6 +11,7 @@
 #include <libgen.h>
 
 #include "ini.h"
+#include "cfgpath.h"
 
 // use null0 file-functions (defined in null0_api_filesystem) for pntr
 unsigned char* null0_file_read(char* filename, uint32_t* bytesRead);
@@ -44,9 +45,10 @@ typedef struct {
 // this is the global app-config
 // this could be merged with the other shared globals, too
 typedef struct {
-  char* name;
+  char name[127];
   bool can_write;
   bool can_http;
+  char write_dir[1024];
 } Null0CartConfig;
 
 // return true if 1 string starts with another
@@ -195,7 +197,8 @@ static int null0_config_handler(void* user, const char* section, const char* nam
 
   if (config_name_match("", "name")) {
     strreplace(value, "/", "_");
-    strncpy(null0_config.name, value, 127);
+    strncpy(null0_config.name, value, sizeof(null0_config.name));
+    get_user_config_folder(null0_config.write_dir, sizeof(null0_config.write_dir), null0_config.name);
   }
 
   if (config_name_match("permissions", "write")) {
@@ -250,11 +253,11 @@ bool null0_load_cart(char* filename) {
   } else {
     assetsys_mount(null0_fs, filename, "/cart");
   }
-
-  null0_config.name = malloc(127);
+  
   strncpy(null0_config.name, basename_without_extension(filename), 127);
   null0_config.can_write = false;
   null0_config.can_http = false;
+  null0_config.write_dir[0] = 0;
 
   // read config
   uint32_t bytesReadConfig = 0;
@@ -263,7 +266,12 @@ bool null0_load_cart(char* filename) {
     ini_parse_string((const char*) configBytes, null0_config_handler, (void*) &null0_config);
   }
 
-  printf("name: %s\nwrite: %s\nhttp: %s\n", null0_config.name, null0_config.can_write ? "Y" : "N", null0_config.can_http ? "Y" : "N");
+  printf("name: %s\nwrite: %s (%s)\nhttp: %s\n", null0_config.name, null0_config.can_write ? "Y" : "N", null0_config.write_dir, null0_config.can_http ? "Y" : "N");
+
+  // allow reading the write-dir
+  if (null0_config.can_write) {
+    assetsys_mount(null0_fs, null0_config.write_dir, "/write");
+  }
 
   // default font is 0
   null0_add_font(pntr_load_font_default());
