@@ -2,16 +2,18 @@
 
 #pragma once
 
+#include <dirent.h>
+#include <libgen.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <dirent.h>
-#include <libgen.h>
 
-#include "ini.h"
 #include "cfgpath.h"
+#include "ini.h"
+
+#define MAX_PATH_STRING_SIZE 127
 
 // use null0 file-functions (defined in null0_api_filesystem) for pntr
 unsigned char* null0_file_read(char* filename, uint32_t* bytesRead);
@@ -48,16 +50,16 @@ typedef struct {
   char name[127];
   bool can_write;
   bool can_http;
-  char write_dir[1024];
+  char write_dir[MAX_PATH_STRING_SIZE];
 } Null0CartConfig;
 
 // return true if 1 string starts with another
 #define string_starts_with(string_to_check, prefix) (strncmp(string_to_check, prefix, ((sizeof(prefix) / sizeof(prefix[0])) - 1)) ? 0 : ((sizeof(prefix) / sizeof(prefix[0])) - 1))
 
 // string replace, in -place
-void strreplace(char *string, const char *find, const char *replaceWith){
-  if(strstr(string, find) != NULL){
-    char *temporaryString = malloc(strlen(strstr(string, find) + strlen(find)) + 1);
+void strreplace(char* string, const char* find, const char* replaceWith) {
+  if (strstr(string, find) != NULL) {
+    char* temporaryString = malloc(strlen(strstr(string, find) + strlen(find)) + 1);
     strcpy(temporaryString, strstr(string, find) + strlen(find));
     *strstr(string, find) = '\0';
     strcat(string, replaceWith);
@@ -75,7 +77,6 @@ cvector_vector_type(pntr_sound*) null0_sounds;
 assetsys_t* null0_fs;
 pntr_app* null0_app;
 pntr_image* null0_screen;
-
 
 // these are to simplify bindings
 uint32_t null0_add_image(pntr_image* image) {
@@ -146,33 +147,32 @@ int null0_button_map_key(int key) {
 }
 
 // get the basename of a file path, without extension
-char* basename_without_extension(const char *path) {
-  char *base = strrchr(path, '/');
+char* basename_without_extension(const char* path) {
+  char* base = strrchr(path, '/');
   if (base == NULL) {
     return path;
   }
   base++;
-  char *ext = strrchr(base, '.');
+  char* ext = strrchr(base, '.');
   if (ext != NULL) {
     *ext = '\0';
   }
   return base;
 }
 
-
 // turn string representing bool into a bool
-bool parse_string_as_bool(const char *str) {
+bool parse_string_as_bool(const char* str) {
   switch (*str) {
     case '0':
       return false;
     case '1':
-        return true;
+      return true;
     case 'y':
     case 'Y':
-        return true;
+      return true;
     case 't':
     case 'T':
-       return true;
+      return true;
     case 'o':
     case 'O':
       if (strcasecmp(str, "on") == 0) {
@@ -181,24 +181,23 @@ bool parse_string_as_bool(const char *str) {
       return false;
     case 'n':
     case 'N':
-        return false;
+      return false;
     case 'f':
     case 'F':
-        return false;
+      return false;
   }
 }
 
-
 // used with ini_parse_string to parse cart ini
 static int null0_config_handler(void* user, const char* section, const char* name, const char* value) {
-  Null0CartConfig* pconfig = (Null0CartConfig*) user;
-  
-  #define config_name_match(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+  Null0CartConfig* pconfig = (Null0CartConfig*)user;
+
+#define config_name_match(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
 
   if (config_name_match("", "name")) {
     strreplace(value, "/", "_");
     strncpy(null0_config.name, value, sizeof(null0_config.name));
-    get_user_config_folder(null0_config.write_dir, sizeof(null0_config.write_dir), null0_config.name);
+    get_user_config_folder(null0_config.write_dir, MAX_PATH_STRING_SIZE, null0_config.name);
   }
 
   if (config_name_match("permissions", "write")) {
@@ -253,7 +252,7 @@ bool null0_load_cart(char* filename) {
   } else {
     assetsys_mount(null0_fs, filename, "/cart");
   }
-  
+
   strncpy(null0_config.name, basename_without_extension(filename), 127);
   null0_config.can_write = false;
   null0_config.can_http = false;
@@ -263,7 +262,7 @@ bool null0_load_cart(char* filename) {
   uint32_t bytesReadConfig = 0;
   unsigned char* configBytes = null0_file_read("/cart/cart.ini", &bytesReadConfig);
   if (bytesReadConfig != 0) {
-    ini_parse_string((const char*) configBytes, null0_config_handler, (void*) &null0_config);
+    ini_parse_string((const char*)configBytes, null0_config_handler, (void*)&null0_config);
   }
 
   printf("name: %s\nwrite: %s (%s)\nhttp: %s\n", null0_config.name, null0_config.can_write ? "Y" : "N", null0_config.write_dir, null0_config.can_http ? "Y" : "N");

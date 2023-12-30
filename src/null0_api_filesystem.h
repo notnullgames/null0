@@ -80,7 +80,18 @@ bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize) {
     printf("Cannot write to %s outside of write/\n", filename);
     return false;
   }
-  // TODO: write to assetsys write dir
+
+  // write to assetsys write dir
+  char* path = malloc(MAX_PATH_STRING_SIZE);
+  int l = strlen(null0_config.write_dir);
+  int f = strlen(filename);
+  strncpy(path, null0_config.write_dir, l);
+  strncpy(path + l, filename + 6, f);
+
+  FILE* hs = fopen(path, "w");
+  fwrite(data, byteSize, 1, hs);
+  fclose(hs);
+  free(path);
 }
 
 // Embed memory as a file
