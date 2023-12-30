@@ -265,7 +265,7 @@ bool null0_load_cart(char* filename) {
     ini_parse_string((const char*)configBytes, null0_config_handler, (void*)&null0_config);
   }
 
-  printf("name: %s\nwrite: %s (%s)\nhttp: %s\n", null0_config.name, null0_config.can_write ? "Y" : "N", null0_config.write_dir, null0_config.can_http ? "Y" : "N");
+  // printf("name: %s\nwrite: %s (%s)\nhttp: %s\n", null0_config.name, null0_config.can_write ? "Y" : "N", null0_config.write_dir, null0_config.can_http ? "Y" : "N");
 
   // allow reading the write-dir
   if (null0_config.can_write) {

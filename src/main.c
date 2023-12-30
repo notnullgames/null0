@@ -12,6 +12,7 @@
 #define PTNR_NO_STB_IMAGE_RESIZE_IMPLEMENTATION
 
 #include "null0_api.h"
+#include "null0_host_wamr.h"
 
 char* filename = NULL;
 
@@ -19,11 +20,13 @@ bool Init(pntr_app* app) {
   if (filename == NULL) {
     return false;
   }
-  bool ok = null0_load_cart(filename);
-
-  // TODO: initialize wasm
-
-  return ok;
+  if (!null0_load_cart(filename)) {
+    return false;
+  }
+  if (!null0_init_wamr()) {
+    return false;
+  }
+  return true;
 }
 
 bool Update(pntr_app* app, pntr_image* screen) {
