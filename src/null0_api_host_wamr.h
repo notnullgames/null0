@@ -1,3 +1,5 @@
+// this is the WAMR native host functionality
+
 #pragma once
 
 #include "null0_api.h"
@@ -17,5 +19,5 @@ bool null0_init_wamr() {
   unsigned int bytesRead = 0;
   unsigned char* wasmBytes;
 
-  wasmBytes = null0_load_file("/cart/main.wasm", &bytesRead);
+  wasmBytes = null0_file_read("/cart/main.wasm", &bytesRead);
 }

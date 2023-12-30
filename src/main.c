@@ -1,4 +1,4 @@
-// this is the entrypoint for the main runtime
+// this is the entrypoint for the main native runtime
 
 // settings for pntr
 #define PNTR_APP_RAYLIB
@@ -11,8 +11,7 @@
 #define PNTR_NO_STB_IMAGE_WRITE_IMPLEMENTATION
 #define PTNR_NO_STB_IMAGE_RESIZE_IMPLEMENTATION
 
-#include "null0_api.h"
-#include "null0_host_wamr.h"
+#include "null0_api_host_wamr.h"
 
 char* filename = NULL;
 

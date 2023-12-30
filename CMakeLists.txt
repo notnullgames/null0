@@ -12,6 +12,9 @@ set(FETCHCONTENT_QUIET FALSE)
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CFLAGS "${CMAKE_CFLAGS} -Wno-deprecated-opengl")
 
+option(NATIVE_RUNTIME "Build native runtime for running carts" TRUE)
+option(EXAMPLES_NATIVE "Build native demo executables" TRUE)
+
 
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example games
@@ -65,10 +68,20 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(wamr)
 include (${wamr_SOURCE_DIR}/build-scripts/runtime_lib.cmake)
 
+# all other cmake files can import from src/
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-add_library(vmlib ${WAMR_RUNTIME_LIB_SOURCE})
+# shared lib for null0 API (no WAMR)
+add_library(null0api src/lib.c src/sfx_gen.c src/ini.c)
+target_link_libraries(null0api raylib pntr pntr_app)
 
-add_executable(${PROJECT_NAME} src/main.c src/sfx_gen.c src/ini.c)
-target_link_libraries(${PROJECT_NAME} PUBLIC raylib pntr pntr_app vmlib)
+if (NATIVE_RUNTIME)
+  add_library(vmlib ${WAMR_RUNTIME_LIB_SOURCE})
+  add_executable(${PROJECT_NAME} src/main.c )
+  target_link_libraries(${PROJECT_NAME} PUBLIC null0api vmlib)
+endif(NATIVE_RUNTIME)
 
+if (EXAMPLES_NATIVE)
+  add_subdirectory(examples/c)
+endif(EXAMPLES_NATIVE)
 
