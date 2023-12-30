@@ -41,6 +41,8 @@ typedef struct {
   unsigned char* data;
 } Null0FileData;
 
+// this is the global app-config
+// this could be merged with the other shared globals, too
 typedef struct {
   char* name;
   bool can_write;
@@ -49,6 +51,18 @@ typedef struct {
 
 // return true if 1 string starts with another
 #define string_starts_with(string_to_check, prefix) (strncmp(string_to_check, prefix, ((sizeof(prefix) / sizeof(prefix[0])) - 1)) ? 0 : ((sizeof(prefix) / sizeof(prefix[0])) - 1))
+
+// string replace, in -place
+void strreplace(char *string, const char *find, const char *replaceWith){
+  if(strstr(string, find) != NULL){
+    char *temporaryString = malloc(strlen(strstr(string, find) + strlen(find)) + 1);
+    strcpy(temporaryString, strstr(string, find) + strlen(find));
+    *strstr(string, find) = '\0';
+    strcat(string, replaceWith);
+    strcat(string, temporaryString);
+    free(temporaryString);
+  }
+}
 
 // setup shared globals
 Null0CartConfig null0_config;
@@ -180,6 +194,7 @@ static int null0_config_handler(void* user, const char* section, const char* nam
   #define config_name_match(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
 
   if (config_name_match("", "name")) {
+    strreplace(value, "/", "_");
     strncpy(null0_config.name, value, 127);
   }
 
