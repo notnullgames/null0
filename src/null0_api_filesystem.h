@@ -6,14 +6,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "assetsys.h"
 
 // Read a file from cart
 unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
+  *bytesRead = 0;
+
   // check for write/ (requires permission)
   if (string_starts_with(filename, "write/")) {
-    if (!null0_can_write) {
-      *bytesRead = 0;
-      printf("Cannot read %s (need write permission.)\n", filename);
+    if (!null0_config.can_write) {
+      // printf("Cannot read %s (need write permission.)\n", filename);
       return NULL;
     }
   }
@@ -30,21 +32,21 @@ unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
   // Load the file information from assetsys.
   assetsys_file_t file;
   if (assetsys_file(null0_fs, filename, &file) != 0) {
-    printf("Could not get info for %s.\n", filename);
+    // printf("Could not get info for %s.\n", filename);
     return NULL;
   }
 
   // Find out the size of the file.
   int size = assetsys_file_size(null0_fs, file);
   if (size <= 0) {
-    printf("Could not get size of %s.\n", filename);
+    // printf("Could not get size of %s.\n", filename);
     return NULL;
   }
 
   // Create the memory buffer.
   unsigned char* out = malloc(size);
   if (out == NULL) {
-    printf("Could not malloc %s.\n", filename);
+    // printf("Could not malloc %s.\n", filename);
     return NULL;
   }
 
@@ -52,7 +54,7 @@ unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
   int outSize = 0;
   if (assetsys_file_load(null0_fs, file, &outSize, (void*)out, size) != 0) {
     free(out);
-    printf("Could not load %s into buffer.\n", filename);
+    // printf("Could not load %s into buffer.\n", filename);
     return NULL;
   }
 
@@ -61,6 +63,8 @@ unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
     *bytesRead = outSize;
   }
 
+  // printf("file read: %s\n", filename);
+
   return out;
 }
 
@@ -68,7 +72,7 @@ unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
 bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize) {
   // check for write/ (requires permission)
   if (string_starts_with(filename, "write/")) {
-    if (!null0_can_write) {
+    if (!null0_config.can_write) {
       printf("Cannot write to %s (need permission.)\n", filename);
       return false;
     }
