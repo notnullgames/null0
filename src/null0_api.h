@@ -224,11 +224,6 @@ Null0CartConfig null0_get_config(char* filename) {
   return null0_config;
 }
 
-
-// call when an event happens
-void null0_event(pntr_app_event* event) {
-}
-
 // initialize structures & load a cart (wasm or zip file)
 bool null0_load_cart(char* filename) {
   bool isZip = false;

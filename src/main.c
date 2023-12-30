@@ -16,29 +16,22 @@
 char* filename = NULL;
 
 bool Init(pntr_app* app) {
-  if (filename == NULL) {
-    return false;
-  }
-  if (!null0_load_cart(filename)) {
-    return false;
-  }
-  if (!null0_init_wamr()) {
+  if (!null0_init_wamr(filename)) {
     return false;
   }
   return true;
 }
 
 bool Update(pntr_app* app, pntr_image* screen) {
-  null0_update(app, screen);
-  return true;
+  return null0_upate_wamr(app, screen);
 }
 
 void Close(pntr_app* app) {
-  null0_unload();
+  null0_unload_wamr();
 }
 
 void Event(pntr_app* app, pntr_app_event* event) {
-  null0_event(event);
+  null0_event_wamr(event);
 }
 
 pntr_app Main(int argc, char* argv[]) {

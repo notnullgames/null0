@@ -8,10 +8,16 @@
 
 #include "null0_api.h"
 
+// embedded file example
+unsigned int byteSize = 12;
+unsigned char* data[] = { 0x68,0x65,0x6c,0x6c,0x6f,0x20,0x77,0x6f,0x72,0x6c,0x64,0x0a };
+
 void cart_main() {
   null0_trace("Hello from filesystem.");
 
   unsigned int bytesRead = 0;
+  
+  // here is an example of a regular read, no special permissions
   unsigned char* cyberBytes;
   cyberBytes = null0_file_read("/cart/cyber.txt", &bytesRead);
   if (bytesRead != 0) {
@@ -19,6 +25,17 @@ void cart_main() {
   } else {
     null0_trace("could not read cyber.txt.");
   }
+
+  // here is an embedded-file, also no special permissions
+  unsigned int bytesRead2;
+  bool ok = null0_file_embed("hello.txt", (unsigned char *) &data, byteSize);
+  unsigned char* bytes2 = null0_file_read("hello.txt", &bytesRead2);
+  if (ok) {
+    null0_trace("hello.txt (%d):\n%s", bytesRead2, (char*)bytes2);
+  } else {
+    null0_trace("hello.txt not embedded.");
+  }
+
 }
 
 
