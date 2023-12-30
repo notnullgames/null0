@@ -30,6 +30,10 @@ void cart_main() {
   unsigned int bytesRead2;
   bool ok = null0_file_embed("hello.txt", (unsigned char *) &data, byteSize);
   unsigned char* bytes2 = null0_file_read("hello.txt", &bytesRead2);
+
+  printf("%s\n", (char*)bytes2);
+
+
   if (ok) {
     null0_trace("hello.txt (%d):\n%s", bytesRead2, (char*)bytes2);
   } else {
