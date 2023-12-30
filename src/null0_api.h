@@ -209,6 +209,22 @@ static int null0_config_handler(void* user, const char* section, const char* nam
   }
 }
 
+// read config from cart, return null0_config struct
+Null0CartConfig null0_get_config(char* filename) {
+  strncpy(null0_config.name, basename_without_extension(filename), 127);
+  null0_config.can_write = false;
+  null0_config.can_http = false;
+  null0_config.write_dir[0] = 0;
+  
+  uint32_t bytesReadConfig = 0;
+  unsigned char* configBytes = null0_file_read("/cart/cart.ini", &bytesReadConfig);
+  if (bytesReadConfig != 0) {
+    ini_parse_string((const char*)configBytes, null0_config_handler, (void*)&null0_config);
+  }
+  return null0_config;
+}
+
+
 // call when an event happens
 void null0_event(pntr_app_event* event) {
 }
@@ -253,17 +269,7 @@ bool null0_load_cart(char* filename) {
     assetsys_mount(null0_fs, filename, "/cart");
   }
 
-  strncpy(null0_config.name, basename_without_extension(filename), 127);
-  null0_config.can_write = false;
-  null0_config.can_http = false;
-  null0_config.write_dir[0] = 0;
-
-  // read config
-  uint32_t bytesReadConfig = 0;
-  unsigned char* configBytes = null0_file_read("/cart/cart.ini", &bytesReadConfig);
-  if (bytesReadConfig != 0) {
-    ini_parse_string((const char*)configBytes, null0_config_handler, (void*)&null0_config);
-  }
+  null0_get_config(filename);
 
   // printf("name: %s\nwrite: %s (%s)\nhttp: %s\n", null0_config.name, null0_config.can_write ? "Y" : "N", null0_config.write_dir, null0_config.can_http ? "Y" : "N");
 

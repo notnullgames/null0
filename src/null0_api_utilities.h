@@ -4,10 +4,21 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
+#include <stdarg.h>
 
-// Log a string
-void null0_trace(char* str) {
-  printf("%s\n", str);
+// max-size for trace messages
+#ifndef NULL0_TRACE_SIZE
+#define NULL0_TRACE_SIZE 1024 * 10
+#endif
+char null0_traceBuffer[NULL0_TRACE_SIZE];
+
+// Log a string (using printf-style)
+void null0_trace(const char *format, ...) {
+  va_list args;
+  va_start (args, format);
+  vsnprintf (null0_traceBuffer, NULL0_TRACE_SIZE, format, args);
+  va_end (args);
+  printf("%s\n", null0_traceBuffer);
 }
 
 // Get system-time (ms) since unix epoch

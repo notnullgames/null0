@@ -8,12 +8,24 @@
 
 #include "null0_api.h"
 
-bool Init(pntr_app* app) {
+void cart_main() {
   null0_trace("Hello from justlog.");
+}
+
+bool Init(pntr_app* app) {
+  if (!null0_load_cart("examples/cart/c/filesystem")) {
+    printf("Could not load examples/cart/c/filesystem as root-filesystem!\n");
+    null0_unload();
+    return false;
+  }
+  
+  cart_main();
   
   // exit after init
+  null0_unload();
   return false;
 }
+
 
 pntr_app Main(int argc, char* argv[]) {
 #ifdef PNTR_APP_RAYLIB
