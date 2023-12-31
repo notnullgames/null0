@@ -2,7 +2,7 @@
 
 I could not have made this without a great deal of help from others. I am probly forgetting people, and all these developers have huge bodies of great open-source work to look at, so go checkout their Githubs.
 
-- [@RobLoach](https://github.com/RobLoach)'s rad [pntr](https://github.com/robloach/pntr) and [pntr_app](pntr](https://github.com/robloach/pntr_app) make up most of the game-engine, and also he's been extremely helpful with ideas & design.
+- [@RobLoach](https://github.com/RobLoach)'s rad [pntr](https://github.com/robloach/pntr) and [pntr_app](https://github.com/robloach/pntr_app) make up most of the game-engine, and also he's been extremely helpful with ideas & design.
 - [@twuky](https://github.com/twuky) has been very helpful with ideas & design.
 - [@dcodeIO](https://github.com/dcodeIO) for helping with types in assemblyscript, and wasm in general.
 - [mattiasgustavsson's libs](https://github.com/mattiasgustavsson/libs) are a nice & light collection of headers, that include assetsys (which I use for filesystem.)
