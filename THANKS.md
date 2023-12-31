@@ -5,6 +5,7 @@ I could not have made this without a great deal of help from others. I am probly
 - [@RobLoach](https://github.com/RobLoach)'s rad [pntr](https://github.com/robloach/pntr) and [pntr_app](https://github.com/robloach/pntr_app) make up most of the game-engine, and also he's been extremely helpful with ideas & design.
 - [@twuky](https://github.com/twuky) has been very helpful with ideas & design.
 - [@dcodeIO](https://github.com/dcodeIO) for helping with types in assemblyscript, and wasm in general.
+- [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime) is used as the native wasm-host
 - [mattiasgustavsson's libs](https://github.com/mattiasgustavsson/libs) are a nice & light collection of headers, that include assetsys (which I use for filesystem.)
 - [c-vector](https://github.com/eteran/c-vector/) is a nice well-made & light variable-length array that I use for assets and stuff
 - [inih](https://github.com/benhoyt/inih)  is a great INI config-file parser that I use for cart.ini
