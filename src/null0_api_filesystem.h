@@ -9,13 +9,21 @@
 #include "assetsys.h"
 
 // Read a file from cart
-unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
+unsigned char* null0_file_read(char* fname, uint32_t* bytesRead) {
   *bytesRead = 0;
 
+  char filename[MAX_PATH_STRING_SIZE];
+
+  if (fname[0] == '/') {
+    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart", fname);
+  } else {
+    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart/", fname);
+  }
+
   // check for write/ (requires permission)
-  if (string_starts_with(filename, "write/")) {
+  if (string_starts_with(filename, "/cart/write/")) {
     if (!null0_config.can_write) {
-      // printf("Cannot read %s (need write permission.)\n", filename);
+      printf("Cannot read %s (need write permission.)\n", filename);
       return NULL;
     }
   }
@@ -23,7 +31,7 @@ unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
   // loop through null0_embedded_files looking for file
   size_t i;
   for (i = 0; i < cvector_size(null0_embedded_files); ++i) {
-    if (null0_embedded_files[i]->filename == filename) {
+    if (strncmp(null0_embedded_files[i]->filename, filename, strlen(filename)) == 0) {
       *bytesRead = null0_embedded_files[i]->size;
       return null0_embedded_files[i]->data;
     }
@@ -95,16 +103,26 @@ bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize) {
 }
 
 // Embed memory as a file
-bool null0_file_embed(char* filename, unsigned char* data, uint32_t byteSize) {
+bool null0_file_embed(char* fname, unsigned char* data, uint32_t byteSize) {
+  char filename[MAX_PATH_STRING_SIZE];
+  
+  if (fname[0] == '/') {
+    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart", fname);
+  } else {
+    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart/", fname);
+  }
+
   // don't allow them to mess with permissions
-  if (strncmp(filename, "cart.yml", strlen(filename)) == 0) {
+  if (strncmp(filename, "/cart/cart.yml", strlen(filename)) == 0) {
     printf("Cannot write to cart.yml.\n");
     return false;
   }
   Null0FileData* f = malloc(sizeof(Null0FileData));
-  f->filename = filename;
   f->size = byteSize;
-  f->data = data;
+  f->data = malloc(byteSize);
+  strncpy(f->filename, filename, strlen(filename));
+  memcpy(f->data, data, byteSize);
+
   cvector_push_back(null0_embedded_files, f);
   return true;
 }

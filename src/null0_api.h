@@ -39,7 +39,7 @@ bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize);
 
 // this is use for embedded files
 typedef struct {
-  char* filename;
+  char filename[MAX_PATH_STRING_SIZE];
   size_t size;
   unsigned char* data;
 } Null0FileData;
@@ -66,6 +66,63 @@ void strreplace(char* string, const char* find, const char* replaceWith) {
     strcat(string, temporaryString);
     free(temporaryString);
   }
+}
+
+// recursive mkdir
+int mkdir_p(const char *dir, const mode_t mode) {
+    char tmp[MAX_PATH_STRING_SIZE];
+    char *p = NULL;
+    struct stat sb;
+    size_t len;
+    
+    /* copy path */
+    len = strnlen (dir, MAX_PATH_STRING_SIZE);
+    if (len == 0 || len == MAX_PATH_STRING_SIZE) {
+        return -1;
+    }
+    memcpy (tmp, dir, len);
+    tmp[len] = '\0';
+
+    /* remove trailing slash */
+    if(tmp[len - 1] == '/') {
+        tmp[len - 1] = '\0';
+    }
+
+    /* check if path exists and is a directory */
+    if (stat (tmp, &sb) == 0) {
+        if (S_ISDIR (sb.st_mode)) {
+            return 0;
+        }
+    }
+    
+    /* recursive mkdir */
+    for(p = tmp + 1; *p; p++) {
+        if(*p == '/') {
+            *p = 0;
+            /* test path */
+            if (stat(tmp, &sb) != 0) {
+                /* path does not exist - create directory */
+                if (mkdir(tmp, mode) < 0) {
+                    return -1;
+                }
+            } else if (!S_ISDIR(sb.st_mode)) {
+                /* not a directory */
+                return -1;
+            }
+            *p = '/';
+        }
+    }
+    /* test path */
+    if (stat(tmp, &sb) != 0) {
+        /* path does not exist - create directory */
+        if (mkdir(tmp, mode) < 0) {
+            return -1;
+        }
+    } else if (!S_ISDIR(sb.st_mode)) {
+        /* not a directory */
+        return -1;
+    }
+    return 0;
 }
 
 // setup shared globals
@@ -268,9 +325,15 @@ bool null0_load_cart(char* filename) {
 
   // printf("name: %s\nwrite: %s (%s)\nhttp: %s\n", null0_config.name, null0_config.can_write ? "Y" : "N", null0_config.write_dir, null0_config.can_http ? "Y" : "N");
 
+  if (strcmp(null0_config.write_dir, "") == 0) {
+    null0_config.can_write = false;
+  }
+
   // allow reading the write-dir
   if (null0_config.can_write) {
-    assetsys_mount(null0_fs, null0_config.write_dir, "/write");
+    mkdir_p(null0_config.write_dir, 755);
+    printf("Enabled writing (/write/) to '%s'\n", null0_config.write_dir);
+    assetsys_mount(null0_fs, null0_config.write_dir, "/cart/write");
   }
 
   // default font is 0

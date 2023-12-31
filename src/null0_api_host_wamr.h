@@ -27,7 +27,7 @@ bool null0_init_wamr(char* filename) {
   unsigned int bytesRead = 0;
   unsigned char* wasmBytes;
 
-  wasmBytes = null0_file_read("/cart/main.wasm", &bytesRead);
+  wasmBytes = null0_file_read("/main.wasm", &bytesRead);
 
   return true;
 }
