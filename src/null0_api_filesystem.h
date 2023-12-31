@@ -105,7 +105,7 @@ bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize) {
 // Embed memory as a file
 bool null0_file_embed(char* fname, unsigned char* data, uint32_t byteSize) {
   char filename[MAX_PATH_STRING_SIZE];
-  
+
   if (fname[0] == '/') {
     snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart", fname);
   } else {
@@ -113,10 +113,23 @@ bool null0_file_embed(char* fname, unsigned char* data, uint32_t byteSize) {
   }
 
   // don't allow them to mess with permissions
-  if (strncmp(filename, "/cart/cart.yml", strlen(filename)) == 0) {
-    printf("Cannot write to cart.yml.\n");
+  if (strncmp(filename, "/cart/cart.ini", strlen("/cart/cart.ini")) == 0) {
+    printf("Cannot write to cart.ini.\n");
     return false;
   }
+
+  // don't allow them to mess with entrypoint
+  if (strncmp(filename, "/cart/main.wasm", strlen("/cart/main.wasm")) == 0) {
+    printf("Cannot write to main.wasm.\n");
+    return false;
+  }
+
+  // don't allow them to mess with /write/
+  if (strncmp(filename, "/cart/write/", strlen("/cart/write/")) == 0) {
+    printf("Use file_write() to write to peristant-data.\n");
+    return false;
+  }
+
   Null0FileData* f = malloc(sizeof(Null0FileData));
   f->size = byteSize;
   f->data = malloc(byteSize);
