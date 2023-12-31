@@ -69,7 +69,7 @@ unsigned char* null0_file_read(char* fname, uint32_t* bytesRead) {
   // Save how many bytes were read.
   *bytesRead = outSize;
 
-  printf("(host) read: %s (%d)\n", filename, outSize);
+  // printf("(host) read: %s (%d)\n", filename, outSize);
 
   return out;
 }
