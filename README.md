@@ -22,3 +22,5 @@ npm run gen:host:wamr
 # Generate the C cart-header
 npm run gen:cart:c
 ```
+
+See [THANKS](THANKS.md) for acknowledgement and thanks for all the great help & code I received to make this.
