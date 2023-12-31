@@ -26,7 +26,25 @@ unsigned char* null0_file_read(char* fname, uint32_t* bytesRead) {
       printf("Cannot read %s (need write permission.)\n", filename);
       return NULL;
     }
+
+    char realpath[MAX_PATH_STRING_SIZE];
+    string_replace(filename, "/cart/write/", "");
+    snprintf(realpath, MAX_PATH_STRING_SIZE, "%s%s", null0_config.write_dir, filename);
+
+    // printf("(host) reading written file: %s\n", realpath);
+
+    FILE* fp = fopen(realpath, "rb");
+    fseek(fp, 0, SEEK_END);
+    long filelen = ftell(fp);
+    *bytesRead = (uint32_t) filelen;
+    rewind(fp);
+    char* buffer = (char *)malloc(filelen * sizeof(char));
+    fread(buffer, filelen, 1, fp);
+    fclose(fp);
+    return buffer;
   }
+
+  // printf("(host) read request: %s\n", filename);
 
   // loop through null0_embedded_files looking for file
   size_t i;
@@ -69,8 +87,6 @@ unsigned char* null0_file_read(char* fname, uint32_t* bytesRead) {
   // Save how many bytes were read.
   *bytesRead = outSize;
 
-  // printf("(host) read: %s (%d)\n", filename, outSize);
-
   return out;
 }
 
@@ -97,13 +113,15 @@ bool null0_file_write(char* fname, unsigned char* data, uint32_t byteSize) {
 
   // write to assetsys write dir (replace /cart/write/ with null0_config.write_dir)
   char realpath[MAX_PATH_STRING_SIZE];
-  string_replace(filename, "/cart/write/", "/");
+  string_replace(filename, "/cart/write/", "");
   snprintf(realpath, MAX_PATH_STRING_SIZE, "%s%s", null0_config.write_dir, filename);
-  printf("(host) writing to real file: %s\n", realpath);
+  // printf("(host) writing to real file: %s\n", realpath);
+  
   FILE* hs = fopen(realpath, "w");
   fwrite(data, byteSize, 1, hs);
   fclose(hs);
-  free(realpath);
+  
+  return true;
 }
 
 // Embed memory as a file
@@ -139,7 +157,7 @@ bool null0_file_embed(char* fname, unsigned char* data, uint32_t byteSize) {
   f->data = malloc(byteSize);
   strncpy(f->filename, filename, strlen(filename));
   memcpy(f->data, data, byteSize);
-  printf("(host) embedded %s (%d): %s\n", f->filename, f->size, (char*) f->data);
+  // printf("(host) embedded %s (%d): %s\n", f->filename, f->size, (char*) f->data);
 
   cvector_push_back(null0_embedded_files, f);
   return true;

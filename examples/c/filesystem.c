@@ -10,7 +10,7 @@
 
 // embedded file example
 unsigned int embedSize = 6;
-unsigned char* embedData = "hello\0";
+unsigned char embedData[6] = { 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00 };
 
 void cart_main() {
   null0_trace("Hello from filesystem.");
@@ -25,13 +25,21 @@ void cart_main() {
   }
 
   // here is an embedded-file, also no special permissions
-  printf("(cart) embedding hello.txt (%d): %s\n", embedSize, embedData);
   if (null0_file_embed("hello.txt", &embedData, embedSize)) {
     unsigned int bytesReadEmbed;
     unsigned char* embedBytes = null0_file_read("hello.txt", &bytesReadEmbed);
-    printf("(cart) read hello.txt (%d): %s\n", bytesReadEmbed, (char*) embedBytes);
+    printf("read embeded hello.txt (%d): %s\n", bytesReadEmbed, (char*) embedBytes);
   } else {
-    printf("(cart) hello.txt not embedded.\n");
+    printf("hello.txt not embedded.\n");
+  }
+
+  // here I need special permissions
+  if (null0_file_write("/write/hello.txt", &embedData, embedSize)) {
+    unsigned int bytesReadWrite;
+    unsigned char* writeBytes = null0_file_read("/write/hello.txt", &bytesReadWrite);
+    printf("read written hello.txt (%d): %s\n", bytesReadWrite, (char*) writeBytes);
+  } else {
+    printf("hello.txt not written/read.\n");
   }
 }
 

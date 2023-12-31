@@ -277,7 +277,7 @@ Null0CartConfig null0_get_config(char* filename) {
   null0_config.write_dir[0] = 0;
   
   uint32_t bytesReadConfig = 0;
-  unsigned char* configBytes = null0_file_read("/cart/cart.ini", &bytesReadConfig);
+  unsigned char* configBytes = null0_file_read("/cart.ini", &bytesReadConfig);
   if (bytesReadConfig != 0) {
     ini_parse_string((const char*)configBytes, null0_config_handler, (void*)&null0_config);
   }
@@ -335,8 +335,6 @@ bool null0_load_cart(char* filename) {
   // allow reading the write-dir
   if (null0_config.can_write) {
     mkdir_p(null0_config.write_dir, 755);
-    printf("Enabled writing (/write/) to '%s'\n", null0_config.write_dir);
-    assetsys_mount(null0_fs, null0_config.write_dir, "/cart/write");
   }
 
   // default font is 0
