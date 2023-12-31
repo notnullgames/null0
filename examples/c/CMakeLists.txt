@@ -11,3 +11,6 @@ target_link_libraries(demo-justlog PUBLIC null0api)
 
 add_executable(demo-filesystem filesystem.c)
 target_link_libraries(demo-filesystem PUBLIC null0api)
+
+add_executable(demo-draw draw.c)
+target_link_libraries(demo-draw PUBLIC null0api)

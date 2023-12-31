@@ -45,3 +45,31 @@ uint32_t null0_color_bilinear_interpolate(uint32_t color00, uint32_t color01, ui
   pntr_color c = pntr_color_bilinear_interpolate(pntr_get_color(color00), pntr_get_color(color01), pntr_get_color(color10), pntr_get_color(color11), coordinateX, coordinateY);
   return c.value;
 }
+
+// these are for standalone native use, since null0 uses plain uint32s
+#define NULL0_LIGHTGRAY PNTR_LIGHTGRAY.value
+#define NULL0_GRAY PNTR_GRAY.value
+#define NULL0_DARKGRAY PNTR_DARKGRAY.value
+#define NULL0_YELLOW PNTR_YELLOW.value
+#define NULL0_GOLD PNTR_GOLD.value
+#define NULL0_ORANGE PNTR_ORANGE.value
+#define NULL0_PINK PNTR_PINK.value
+#define NULL0_RED PNTR_RED.value
+#define NULL0_MAROON PNTR_MAROON.value
+#define NULL0_GREEN PNTR_GREEN.value
+#define NULL0_LIME PNTR_LIME.value
+#define NULL0_DARKGREEN PNTR_DARKGREEN.value
+#define NULL0_SKYBLUE PNTR_SKYBLUE.value
+#define NULL0_BLUE PNTR_BLUE.value
+#define NULL0_DARKBLUE PNTR_DARKBLUE.value
+#define NULL0_PURPLE PNTR_PURPLE.value
+#define NULL0_VIOLET PNTR_VIOLET.value
+#define NULL0_DARKPURPLE PNTR_DARKPURPLE.value
+#define NULL0_BEIGE PNTR_BEIGE.value
+#define NULL0_BROWN PNTR_BROWN.value
+#define NULL0_DARKBROWN PNTR_DARKBROWN.value
+#define NULL0_WHITE PNTR_WHITE.value
+#define NULL0_BLACK PNTR_BLACK.value
+#define NULL0_BLANK PNTR_BLANK.value
+#define NULL0_MAGENTA PNTR_MAGENTA.value
+#define NULL0_RAYWHITE PNTR_RAYWHITE.value
