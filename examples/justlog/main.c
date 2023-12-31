@@ -13,17 +13,13 @@ void cart_main() {
 }
 
 bool Init(pntr_app* app) {
-  if (!null0_load_cart("examples/cart/c/filesystem")) {
-    printf("Could not load examples/cart/c/filesystem as root-filesystem!\n");
+  if (!null0_load_cart(NULL)) {
+    printf("Could not initialize\n");
     null0_unload();
     return false;
   }
-  
   cart_main();
-  
-  // exit after init
-  null0_unload();
-  return false;
+  return true;
 }
 
 

@@ -82,6 +82,6 @@ if (NATIVE_RUNTIME)
 endif(NATIVE_RUNTIME)
 
 if (EXAMPLES_NATIVE)
-  add_subdirectory(examples/c)
+  add_subdirectory(examples)
 endif(EXAMPLES_NATIVE)
 

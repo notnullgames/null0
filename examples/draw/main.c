@@ -31,8 +31,8 @@ bool cart_update() {
 }
 
 bool Init(pntr_app* app) {
-  if (!null0_load_cart("examples/cart/c/draw")) {
-    printf("Could not load examples/cart/c/draw as root-filesystem!\n");
+  if (!null0_load_cart(NULL)) {
+    printf("Could not initialize\n");
     null0_unload();
     return false;
   }

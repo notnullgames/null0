@@ -6,11 +6,11 @@ project(null0-native-examples
   LANGUAGES C
 )
 
-add_executable(demo-justlog justlog.c)
+add_executable(demo-justlog justlog/main.c)
 target_link_libraries(demo-justlog PUBLIC null0api)
 
-add_executable(demo-filesystem filesystem.c)
+add_executable(demo-filesystem filesystem/main.c)
 target_link_libraries(demo-filesystem PUBLIC null0api)
 
-add_executable(demo-draw draw.c)
+add_executable(demo-draw draw/main.c)
 target_link_libraries(demo-draw PUBLIC null0api)

@@ -45,17 +45,13 @@ void cart_main() {
 
 
 bool Init(pntr_app* app) {
-  if (!null0_load_cart("examples/cart/c/filesystem")) {
-    null0_trace("Could not load examples/cart/c/filesystem as root-filesystem!");
+  if (!null0_load_cart("examples/filesystem")) {
+    printf("Could not initialize with examples/filesystem\n");
     null0_unload();
     return false;
   }
-  
   cart_main();
-  
-  // exit after init
-  null0_unload();
-  return false;
+  return true;
 }
 
 

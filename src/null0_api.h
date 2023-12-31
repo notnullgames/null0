@@ -286,55 +286,57 @@ Null0CartConfig null0_get_config(char* filename) {
 
 // initialize structures & load a cart (wasm or zip file)
 bool null0_load_cart(char* filename) {
-  bool isZip = false;
-  bool isWasm = false;
-  bool isDir = false;
+  if (filename != NULL) {
+    bool isZip = false;
+    bool isWasm = false;
+    bool isDir = false;
 
-  DIR* dirptr;
-  if (access(filename, F_OK) != -1) {
-    if ((dirptr = opendir(filename)) != NULL) {
-      isDir = true;
-    } else {
-      FILE* fptr1 = fopen(filename, "r");
-      char str[4];
-      if (fptr1 == NULL) {
-        printf("Could not open file.\n");
-        return false;
+    DIR* dirptr;
+    if (access(filename, F_OK) != -1) {
+      if ((dirptr = opendir(filename)) != NULL) {
+        isDir = true;
+      } else {
+        FILE* fptr1 = fopen(filename, "r");
+        char str[4];
+        if (fptr1 == NULL) {
+          printf("Could not open file.\n");
+          return false;
+        }
+        fread(str, 4, 1, fptr1);
+        fclose(fptr1);
+        isZip = memcmp(str, "PK\3\4", 4) == 0;
+        isWasm = memcmp(str, "\0asm", 4) == 0;
       }
-      fread(str, 4, 1, fptr1);
-      fclose(fptr1);
-      isZip = memcmp(str, "PK\3\4", 4) == 0;
-      isWasm = memcmp(str, "\0asm", 4) == 0;
+    } else {
+      printf("Could not open file.\n");
+      return false;
     }
-  } else {
-    printf("Could not open file.\n");
-    return false;
-  }
 
-  if (!isDir && !isZip && !isWasm) {
-    printf("Unknown filetype.\n");
-    return false;
-  }
+    if (!isDir && !isZip && !isWasm) {
+      printf("Unknown filetype.\n");
+      return false;
+    }
 
-  null0_fs = assetsys_create(0);
+    null0_fs = assetsys_create(0);
 
-  if (isWasm) {
-    assetsys_mount(null0_fs, dirname(filename), "/cart");
-  } else {
-    assetsys_mount(null0_fs, filename, "/cart");
-  }
+    if (isWasm) {
+      assetsys_mount(null0_fs, dirname(filename), "/cart");
+    } else {
+      assetsys_mount(null0_fs, filename, "/cart");
+    }
 
-  null0_get_config(filename);
+    null0_get_config(filename);
 
-  // printf("name: %s\nwrite: %s (%s)\nhttp: %s\n", null0_config.name, null0_config.can_write ? "Y" : "N", null0_config.write_dir, null0_config.can_http ? "Y" : "N");
+    // printf("name: %s\nwrite: %s (%s)\nhttp: %s\n", null0_config.name, null0_config.can_write ? "Y" : "N", null0_config.write_dir, null0_config.can_http ? "Y" : "N");
 
-  if (strcmp(null0_config.write_dir, "") == 0) {
-    null0_config.can_write = false;
-  }
+    if (strcmp(null0_config.write_dir, "") == 0) {
+      null0_config.can_write = false;
+    }
 
-  // allow reading the write-dir
-  if (null0_config.can_write) {
-    mkdir_p(null0_config.write_dir, 755);
+    // allow reading the write-dir
+    if (null0_config.can_write) {
+      mkdir_p(null0_config.write_dir, 755);
+    }
   }
 
   // default font is 0
