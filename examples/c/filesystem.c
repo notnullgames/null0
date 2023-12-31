@@ -9,8 +9,8 @@
 #include "null0_api.h"
 
 // embedded file example
-unsigned int byteSize = 12;
-unsigned char* data = "hello";
+unsigned int embedSize = 6;
+unsigned char* embedData = "hello\0";
 
 void cart_main() {
   null0_trace("Hello from filesystem.");
@@ -19,23 +19,20 @@ void cart_main() {
   unsigned int bytesRead = 0;
   unsigned char* cyberBytes = null0_file_read("cyber.txt", &bytesRead);
   if (bytesRead != 0) {
-    null0_trace("read %d bytes from cyber.txt:\n%s", bytesRead, cyberBytes);
+    null0_trace("read %d bytes from cyber.txt:\n%s", bytesRead, (char*) cyberBytes);
   } else {
     null0_trace("could not read cyber.txt.");
   }
 
   // here is an embedded-file, also no special permissions
-  unsigned int bytesRead2;
-  printf("embedding hello.txt (%d): %s\n", byteSize, data);
-  bool ok = null0_file_embed("hello.txt", &data, byteSize);
-  unsigned char* bytes2 = null0_file_read("hello.txt", &bytesRead2);
-
-  if (ok) {
-    printf("hello.txt (%d): %s\n", bytesRead2, (char*) bytes2);
+  printf("(cart) embedding hello.txt (%d): %s\n", embedSize, embedData);
+  if (null0_file_embed("hello.txt", &embedData, embedSize)) {
+    unsigned int bytesReadEmbed;
+    unsigned char* embedBytes = null0_file_read("hello.txt", &bytesReadEmbed);
+    printf("(cart) read hello.txt (%d): %s\n", bytesReadEmbed, (char*) embedBytes);
   } else {
-    printf("hello.txt not embedded.\n");
+    printf("(cart) hello.txt not embedded.\n");
   }
-
 }
 
 

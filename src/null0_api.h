@@ -56,8 +56,11 @@ typedef struct {
 // return true if 1 string starts with another
 #define string_starts_with(string_to_check, prefix) (strncmp(string_to_check, prefix, ((sizeof(prefix) / sizeof(prefix[0])) - 1)) ? 0 : ((sizeof(prefix) / sizeof(prefix[0])) - 1))
 
+// if 2 strings are same
+#define string_equals(string_to_check, test_string) (strncmp(string_to_check, test_string, strlen(test_string)) == 0)
+
 // string replace, in -place
-void strreplace(char* string, const char* find, const char* replaceWith) {
+void string_replace(char* string, const char* find, const char* replaceWith) {
   if (strstr(string, find) != NULL) {
     char* temporaryString = malloc(strlen(strstr(string, find) + strlen(find)) + 1);
     strcpy(temporaryString, strstr(string, find) + strlen(find));
@@ -252,7 +255,7 @@ static int null0_config_handler(void* user, const char* section, const char* nam
 #define config_name_match(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
 
   if (config_name_match("", "name")) {
-    strreplace(value, "/", "_");
+    string_replace(value, "/", "_");
     strncpy(null0_config.name, value, sizeof(null0_config.name));
     get_user_config_folder(null0_config.write_dir, MAX_PATH_STRING_SIZE, null0_config.name);
   }

@@ -31,7 +31,7 @@ unsigned char* null0_file_read(char* fname, uint32_t* bytesRead) {
   // loop through null0_embedded_files looking for file
   size_t i;
   for (i = 0; i < cvector_size(null0_embedded_files); ++i) {
-    if (strncmp(null0_embedded_files[i]->filename, filename, strlen(filename)) == 0) {
+    if (string_equals(null0_embedded_files[i]->filename, filename)) {
       *bytesRead = null0_embedded_files[i]->size;
       return null0_embedded_files[i]->data;
     }
@@ -67,19 +67,25 @@ unsigned char* null0_file_read(char* fname, uint32_t* bytesRead) {
   }
 
   // Save how many bytes were read.
-  if (bytesRead != NULL) {
-    *bytesRead = outSize;
-  }
+  *bytesRead = outSize;
 
-  // printf("file read: %s\n", filename);
+  printf("(host) read: %s (%d)\n", filename, outSize);
 
   return out;
 }
 
 // Write a file to persistant storage
-bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize) {
+bool null0_file_write(char* fname, unsigned char* data, uint32_t byteSize) {
+  char filename[MAX_PATH_STRING_SIZE];
+
+  if (fname[0] == '/') {
+    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart", fname);
+  } else {
+    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart/", fname);
+  }
+
   // check for write/ (requires permission)
-  if (string_starts_with(filename, "write/")) {
+  if (string_starts_with(filename, "/cart/write/")) {
     if (!null0_config.can_write) {
       printf("Cannot write to %s (need permission.)\n", filename);
       return false;
@@ -89,17 +95,15 @@ bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize) {
     return false;
   }
 
-  // write to assetsys write dir
-  char* path = malloc(MAX_PATH_STRING_SIZE);
-  int l = strlen(null0_config.write_dir);
-  int f = strlen(filename);
-  strncpy(path, null0_config.write_dir, l);
-  strncpy(path + l, filename + 6, f);
-
-  FILE* hs = fopen(path, "w");
+  // write to assetsys write dir (replace /cart/write/ with null0_config.write_dir)
+  char realpath[MAX_PATH_STRING_SIZE];
+  string_replace(filename, "/cart/write/", "/");
+  snprintf(realpath, MAX_PATH_STRING_SIZE, "%s%s", null0_config.write_dir, filename);
+  printf("(host) writing to real file: %s\n", realpath);
+  FILE* hs = fopen(realpath, "w");
   fwrite(data, byteSize, 1, hs);
   fclose(hs);
-  free(path);
+  free(realpath);
 }
 
 // Embed memory as a file
@@ -113,20 +117,20 @@ bool null0_file_embed(char* fname, unsigned char* data, uint32_t byteSize) {
   }
 
   // don't allow them to mess with permissions
-  if (strncmp(filename, "/cart/cart.ini", strlen("/cart/cart.ini")) == 0) {
+  if (string_equals(filename, "/cart/cart.ini")) {
     printf("Cannot write to cart.ini.\n");
     return false;
   }
 
   // don't allow them to mess with entrypoint
-  if (strncmp(filename, "/cart/main.wasm", strlen("/cart/main.wasm")) == 0) {
+  if (string_equals(filename, "/cart/main.wasm")) {
     printf("Cannot write to main.wasm.\n");
     return false;
   }
 
   // don't allow them to mess with /write/
-  if (strncmp(filename, "/cart/write/", strlen("/cart/write/")) == 0) {
-    printf("Use file_write() to write to peristant-data.\n");
+  if (string_starts_with(filename, "/cart/write/")) {
+    printf("Use file_write() to write to peristant-data (write/)\n");
     return false;
   }
 
@@ -135,6 +139,7 @@ bool null0_file_embed(char* fname, unsigned char* data, uint32_t byteSize) {
   f->data = malloc(byteSize);
   strncpy(f->filename, filename, strlen(filename));
   memcpy(f->data, data, byteSize);
+  printf("(host) embedded %s (%d): %s\n", f->filename, f->size, (char*) f->data);
 
   cvector_push_back(null0_embedded_files, f);
   return true;
