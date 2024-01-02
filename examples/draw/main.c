@@ -15,6 +15,7 @@ void cart_main() {
 
 bool cart_update() {
   null0_clear(NULL0_GREEN);
+  return true;
 }
 
 bool Init(pntr_app* app) {
