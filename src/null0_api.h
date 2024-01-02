@@ -22,6 +22,9 @@ bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize);
 #define PNTR_LOAD_FILE null0_file_read
 #define PNTR_SAVE_FILE null0_file_write
 
+#define PNTR_ENABLE_DEFAULT_FONT
+#define PNTR_ENABLE_TTF
+
 // make sure importing pntr will implement it, too
 #define PNTR_IMPLEMENTATION
 #define PNTR_APP_IMPLEMENTATION
