@@ -21,7 +21,7 @@ uint32_t null0_image_subimage(uint32_t image, int32_t x, int32_t y, int32_t widt
 }
 
 // Clear the screen
-void null0_clear(int32_t color) {
+void null0_clear(uint32_t color) {
   return pntr_clear_background(null0_screen, pntr_get_color(color));
 }
 

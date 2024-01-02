@@ -14,21 +14,7 @@ void cart_main() {
 }
 
 bool cart_update() {
-  null0_clear(NULL0_BLACK);
-  null0_draw_ellipse(100, 100, 100, 50, NULL0_WHITE);
-
-  null0_draw_triangle(200, 200, 100, 100, 150, 0, NULL0_GREEN);
-
-  null0_draw_circle(100, 100, 30, NULL0_RED);
-  null0_draw_rectangle(150, 150, 30, 30, NULL0_RED);
-  null0_draw_rectangle_outline(145, 145, 40, 40, NULL0_RED);
-
-  null0_draw_circle_outline(100, 100, 35, NULL0_BLUE);
-  null0_draw_circle_outline(100, 100, 40, NULL0_PURPLE);
-  null0_draw_circle_outline(100, 100, 45, NULL0_GREEN);
-
-  null0_draw_point(100, 100, NULL0_WHITE);
-  null0_draw_line(0, 0, 320, 240, NULL0_YELLOW);
+  null0_clear(NULL0_GREEN);
 }
 
 bool Init(pntr_app* app) {
