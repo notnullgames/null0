@@ -101,7 +101,7 @@ void Event(pntr_app* app, pntr_app_event* event) {
   }
   if (event->type == PNTR_APP_EVENTTYPE_KEY_UP) {
     pntr_app_gamepad_button b = null0_button_map_key(event->key);
-    if (b!= -1){
+    if (b != -1){
       cart_buttonUp(b);
     }
   }
