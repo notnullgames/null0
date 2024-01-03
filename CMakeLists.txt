@@ -14,7 +14,7 @@ set(CMAKE_CFLAGS "${CMAKE_CFLAGS} -Wno-deprecated-opengl")
 
 option(NATIVE_RUNTIME "Build native runtime for running carts" TRUE)
 option(EXAMPLES_NATIVE "Build native demo executables" TRUE)
-
+option(IWASM_NATIVE "Build native iwasm extension" TRUE)
 
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example games
@@ -75,11 +75,20 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_library(null0api src/lib.c src/sfx_gen.c src/ini.c)
 target_link_libraries(null0api raylib pntr pntr_app)
 
-if (NATIVE_RUNTIME)
+if (NATIVE_RUNTIME OR IWASM_NATIVE)
   add_library(vmlib ${WAMR_RUNTIME_LIB_SOURCE})
+endif(NATIVE_RUNTIME OR IWASM_NATIVE) 
+
+
+if (NATIVE_RUNTIME)
   add_executable(${PROJECT_NAME} src/main.c )
   target_link_libraries(${PROJECT_NAME} PUBLIC null0api vmlib)
 endif(NATIVE_RUNTIME)
+
+if (IWASM_NATIVE)
+  add_library(iwasm_null0 src/main_iwasm.c)
+  target_link_libraries(iwasm_null0 PUBLIC null0api vmlib)
+endif(IWASM_NATIVE)
 
 if (EXAMPLES_NATIVE)
   add_subdirectory(examples)

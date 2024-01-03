@@ -33,9 +33,9 @@ const wamrMap = {
 }
 
 const retMap = {
-  Image: 'u32',
-  Font: 'u32',
-  Sound: 'u32',
+  Image: 'uint32_t',
+  Font: 'uint32_t',
+  Sound: 'uint32_t',
   'Color*': 'pntr_color*'
 }
 
@@ -50,11 +50,26 @@ let code = ''
 
 // map types in api to C types
 function mapType (type) {
-  if (['Font', 'Sound', 'Image'].includes(type)) {
-    return 'u32'
+  if (['Font', 'Sound', 'Image', 'u32'].includes(type)) {
+    return 'uint32_t'
+  }
+  if (type === 'i64') {
+    return 'int64_t'
+  }
+  if (type === 'u64') {
+    return 'uint64_t'
+  }
+  if (type === 'i32') {
+    return 'int32_t'
+  }
+  if (type === 'f32') {
+    return 'float'
   }
   if (type === 'Dimensions*') {
-    return 'Null0Dimensions*'
+    return 'pntr_vector*'
+  }
+  if (type === 'Dimensions') {
+    return 'pntr_vector'
   }
   if (type === 'SfxrParams*') {
     return 'Null0SfxrParams*'
@@ -63,10 +78,13 @@ function mapType (type) {
     return 'char*'
   }
   if (type === 'bytes') {
-    return 'u8*'
+    return 'unsigned char*'
+  }
+  if (type === 'Color') {
+    return 'uint32_t'
   }
   if (type === 'Color*') {
-    return 'pntr_color*'
+    return 'uint32_t*'
   }
   if (type === 'MouseButton') {
     return 'pntr_app_mouse_button'
@@ -85,6 +103,12 @@ function mapType (type) {
   }
   if (type === 'Vector*') {
     return 'pntr_vector*'
+  }
+  if (type === 'Rectangle') {
+    return 'pntr_rectangle'
+  }
+  if (type === 'Vector') {
+    return 'pntr_vector'
   }
   return type
 }
