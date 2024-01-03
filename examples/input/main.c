@@ -94,10 +94,16 @@ bool Update(pntr_app* app, pntr_image* screen) {
 
 void Event(pntr_app* app, pntr_app_event* event) {
   if (event->type == PNTR_APP_EVENTTYPE_KEY_DOWN) {
-    cart_buttonDown(null0_button_map_key(event->key));
+    pntr_app_gamepad_button b = null0_button_map_key(event->key);
+    if (b != -1){
+      cart_buttonDown(b);
+    }
   }
   if (event->type == PNTR_APP_EVENTTYPE_KEY_UP) {
-    cart_buttonUp(null0_button_map_key(event->key));
+    pntr_app_gamepad_button b = null0_button_map_key(event->key);
+    if (b!= -1){
+      cart_buttonUp(b);
+    }
   }
   if (event->type == PNTR_APP_EVENTTYPE_GAMEPAD_BUTTON_DOWN) {
     cart_buttonDown(event->gamepadButton);

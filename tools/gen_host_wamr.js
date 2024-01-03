@@ -35,7 +35,7 @@ function genHostApi (name, { description, returns, args }) {
   const aw = { exec_env: 'wasm_exec_env_t', ...args }
   out.push(`\n// ${description}`)
   out.push(`static ${typeMap(returns)} wamr_null0_${name}(${Object.keys(aw).map(a => `${typeMap(aw[a])} ${a}`).join(', ')}) {
-  return null0_${name}(${Object.keys(args).join(', ')});
+  ${returns !== 'void' ? 'return ' : ''}null0_${name}(${Object.keys(args).join(', ')});
 }`)
 
   return out
