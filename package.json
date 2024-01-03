@@ -6,6 +6,7 @@
     "build": "cmake -B build && cmake --build build",
     "gen:host:api": "node tools/confirm.js 'This will overwrite any changes to several files in src/! These are likely hand-edited, so this could be very bad! Are you sure?' && node tools/gen_host_api.js",
     "gen:host:wamr": "node tools/confirm.js 'This will overwrite any changes to src/null0_api_host_wamr.h! Are you sure?' && node tools/gen_host_wamr.js",
+    "gen:host:web": "node tools/confirm.js 'This will overwrite any changes to headers/null0_web_host.mjs! Are you sure?' && node tools/gen_host_web.js",
     "gen:cart:c": "node tools/confirm.js 'This will overwrite any changes to headers/null0.h! Are you sure?' && node tools/gen_cart_c.js"
   },
   "keywords": [],
