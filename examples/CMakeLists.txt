@@ -14,3 +14,6 @@ target_link_libraries(demo-filesystem PUBLIC null0api)
 
 add_executable(demo-draw draw/main.c)
 target_link_libraries(demo-draw PUBLIC null0api)
+
+add_executable(demo-hello hello/main.c)
+target_link_libraries(demo-hello PUBLIC null0api)
