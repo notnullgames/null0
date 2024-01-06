@@ -13,11 +13,24 @@ file_write:
   returns: bool
   description: Write a file to persistant storage
 
-file_embed:
+file_append:
   args:
     filename: string
     data: bytes
     byteSize: u32
   returns: bool
-  description: Embed memory as a file
+  description: Write a file to persistant storage, appending to the end
+
+file_info:
+  args:
+    filename: string
+  returns: FileInfo
+  description: Get info about a single file
+
+file_list:
+  args:
+    dir: string
+    length: u32*
+  returns: FileInfo[]
+  description: Get list of files in a directory
 
