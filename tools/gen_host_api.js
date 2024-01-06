@@ -26,6 +26,8 @@ function typeMap (arg) {
     case 'MouseButton': return 'pntr_app_mouse_button'
     case 'bytes': return 'unsigned char*'
     case 'string': return 'char*'
+    case 'FileInfo*': return 'Null0FileInfo*'
+    case 'FileInfo': return 'Null0FileInfo'
     default: return arg
   }
 }
@@ -51,6 +53,15 @@ for (const f of await glob('api/*.yml')) {
     out.push('#include <stdbool.h>')
   }
 
+  if (['filesystem'].includes(api_name)) {
+    out.push(`
+typedef struct {
+  char* full_path;
+  bool isDirectory;
+} Null0FileInfo;
+`)
+  }
+
   if (['graphics'].includes(api_name)) {
     out.push('#include <pntr.h>')
   }
@@ -73,9 +84,12 @@ typedef enum SfxPresetType {
 } SfxPresetType;
 
 typedef enum SfxWaveType SfxWaveType;
+
+// used by sfx_gen
 int sfx_random(int range) {
   return null0_random_int(0, range);
-}`)
+}
+`)
   }
 
   for (const func of Object.keys(api)) {
