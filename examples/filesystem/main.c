@@ -11,7 +11,7 @@
 
 // embedded file example
 unsigned int embedSize = 6;
-unsigned char embedData[6] = {0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00};
+unsigned char embedData[6] = {0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x0a};
 
 void cart_main() {
   null0_trace("Hello from filesystem.");
@@ -25,7 +25,7 @@ void cart_main() {
     null0_trace("could not read cyber.txt.");
   }
 
-  // here is an embedded-file
+  // here is an embedded (written) file
   if (null0_file_write("hello.txt", &embedData, embedSize)) {
     unsigned int bytesReadEmbed;
     unsigned char* embedBytes = null0_file_read("hello.txt", &bytesReadEmbed);
@@ -34,8 +34,21 @@ void cart_main() {
     printf("hello.txt not embedded.\n");
   }
 
-  // TODO: append
-  // TODO: list
+  // here is how to append a file
+  if (null0_file_append("log.txt", "a\n", 2)) {
+    unsigned int bytesReadAppend;
+    unsigned char* appendBytes = null0_file_read("log.txt", &bytesReadAppend);
+    printf("read embeded log.txt (%d): %s\n", bytesReadAppend, (char*)appendBytes);
+  } else {
+    printf("hello.txt not embedded.\n");
+  }
+
+  // list files
+  char** i;
+  printf("Here are the files:\n");
+  for (i = null0_file_list("/"); *i != NULL; i++) {
+    printf("  %s\n", *i);
+  }
 }
 
 bool Init(pntr_app* app) {
