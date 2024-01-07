@@ -556,9 +556,9 @@ static bool wamr_null0_file_append(wasm_exec_env_t exec_env, char* filename, uns
 }
 
 // Get info about a single file
-// static FileInfo wamr_null0_file_info(wasm_exec_env_t exec_env, char* filename) {
-//   return null0_file_info(filename);
-// }
+static PHYSFS_Stat wamr_null0_file_info(wasm_exec_env_t exec_env, char* filename) {
+  return null0_file_info(filename);
+}
 
 // Get list of files in a directory
 static char** wamr_null0_file_list(wasm_exec_env_t exec_env, char* dir) {
