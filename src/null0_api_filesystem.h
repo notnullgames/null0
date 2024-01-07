@@ -1,164 +1,104 @@
-// Null0 host - filesystem - generated 2023-12-29T06:49:42.371Z
+// Null0 host - filesystem
 #pragma once
 
+#include <libgen.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "assetsys.h"
+#include "physfs.h"
+
+char** null0_file_list_array;
+
+// intialize filesystem
+bool null0_init_filesystem(char* cart) {
+  if (!PHYSFS_init("null0")) {
+    printf("Could not init filesystem.\n");
+    return false;
+  }
+  char* cartName = strtok(basename(cart), ".");
+
+  if (strlen(cartName) > 127) {
+    printf("Name is too long.\n");
+    return false;
+  }
+
+  char pathname[134];
+  snprintf(pathname, 134, "null0-%s", cartName);
+
+  const char* writeDir = PHYSFS_getPrefDir("null0", pathname);
+
+  if (!PHYSFS_mount(cart, NULL, 1)) {
+    PHYSFS_deinit();
+    printf("Could not mount filesystem.\n");
+    return false;
+  }
+
+  // put writeDir at end of search-path (so user can overwrite any files)
+  if (!PHYSFS_mount(writeDir, NULL, 1)) {
+    PHYSFS_deinit();
+    printf("Could not mount write-dir.\n");
+    return false;
+  }
+
+  if (!PHYSFS_setWriteDir(writeDir)) {
+    PHYSFS_deinit();
+    printf("Could not set write-dir.\n");
+    return false;
+  }
+
+  return true;
+}
+
+// unload the filesystem
+void null0_unload_filesystem() {
+  PHYSFS_deinit();
+  PHYSFS_freeList(null0_file_list_array);
+}
+
+// Get info about a single file
+PHYSFS_Stat null0_file_info(char* filename) {
+  PHYSFS_Stat stat;
+  PHYSFS_stat(filename, &stat);
+  return stat;
+}
 
 // Read a file from cart
-unsigned char* null0_file_read(char* fname, uint32_t* bytesRead) {
-  *bytesRead = 0;
-
-  char filename[MAX_PATH_STRING_SIZE];
-
-  if (fname[0] == '/') {
-    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart", fname);
-  } else {
-    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart/", fname);
-  }
-
-  // check for write/ (requires permission)
-  if (string_starts_with(filename, "/cart/write/")) {
-    if (!null0_config.can_write) {
-      printf("Cannot read %s (need write permission.)\n", filename);
-      return NULL;
-    }
-
-    char realpath[MAX_PATH_STRING_SIZE];
-    string_replace(filename, "/cart/write/", "");
-    snprintf(realpath, MAX_PATH_STRING_SIZE, "%s%s", null0_config.write_dir, filename);
-
-    // printf("(host) reading written file: %s\n", realpath);
-
-    FILE* fp = fopen(realpath, "rb");
-    fseek(fp, 0, SEEK_END);
-    long filelen = ftell(fp);
-    *bytesRead = (uint32_t) filelen;
-    rewind(fp);
-    char* buffer = (char *)malloc(filelen * sizeof(char));
-    fread(buffer, filelen, 1, fp);
-    fclose(fp);
-    return buffer;
-  }
-
-  // printf("(host) read request: %s\n", filename);
-
-  // loop through null0_embedded_files looking for file
-  size_t i;
-  for (i = 0; i < cvector_size(null0_embedded_files); ++i) {
-    if (string_equals(null0_embedded_files[i]->filename, filename)) {
-      *bytesRead = null0_embedded_files[i]->size;
-      return null0_embedded_files[i]->data;
-    }
-  }
-
-  // Load the file information from assetsys.
-  assetsys_file_t file;
-  if (assetsys_file(null0_fs, filename, &file) != 0) {
-    // printf("Could not get info for %s.\n", filename);
-    return NULL;
-  }
-
-  // Find out the size of the file.
-  int size = assetsys_file_size(null0_fs, file);
-  if (size <= 0) {
-    // printf("Could not get size of %s.\n", filename);
-    return NULL;
-  }
-
-  // Create the memory buffer.
-  unsigned char* out = malloc(size);
-  if (out == NULL) {
-    // printf("Could not malloc %s.\n", filename);
-    return NULL;
-  }
-
-  // Load the file into the buffer.
-  int outSize = 0;
-  if (assetsys_file_load(null0_fs, file, &outSize, (void*)out, size) != 0) {
-    free(out);
-    // printf("Could not load %s into buffer.\n", filename);
-    return NULL;
-  }
-
-  // Save how many bytes were read.
-  *bytesRead = outSize;
-
-  return out;
+unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
+  PHYSFS_File* f = PHYSFS_openRead(filename);
+  PHYSFS_Stat i = null0_file_info(filename);
+  unsigned char* b = (unsigned char*)malloc(i.filesize);
+  PHYSFS_sint64 br = PHYSFS_readBytes(f, b, i.filesize);
+  *bytesRead = br;
+  PHYSFS_close(f);
+  return b;
 }
 
 // Write a file to persistant storage
-bool null0_file_write(char* fname, unsigned char* data, uint32_t byteSize) {
-  char filename[MAX_PATH_STRING_SIZE];
-
-  if (fname[0] == '/') {
-    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart", fname);
-  } else {
-    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart/", fname);
-  }
-
-  // check for write/ (requires permission)
-  if (string_starts_with(filename, "/cart/write/")) {
-    if (!null0_config.can_write) {
-      printf("Cannot write to %s (need permission.)\n", filename);
-      return false;
-    }
-  } else {
-    printf("Cannot write to %s outside of write/\n", filename);
+bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize) {
+  PHYSFS_File* f = PHYSFS_openWrite(filename);
+  PHYSFS_sint64 bytesWritten = PHYSFS_writeBytes(f, data, byteSize);
+  PHYSFS_close(f);
+  if (byteSize != bytesWritten) {
     return false;
   }
-
-  // write to assetsys write dir (replace /cart/write/ with null0_config.write_dir)
-  char realpath[MAX_PATH_STRING_SIZE];
-  string_replace(filename, "/cart/write/", "");
-  snprintf(realpath, MAX_PATH_STRING_SIZE, "%s%s", null0_config.write_dir, filename);
-  // printf("(host) writing to real file: %s\n", realpath);
-  
-  FILE* hs = fopen(realpath, "w");
-  fwrite(data, byteSize, 1, hs);
-  fclose(hs);
-  
   return true;
 }
 
-// Embed memory as a file
-bool null0_file_embed(char* fname, unsigned char* data, uint32_t byteSize) {
-  char filename[MAX_PATH_STRING_SIZE];
-
-  if (fname[0] == '/') {
-    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart", fname);
-  } else {
-    snprintf(filename, MAX_PATH_STRING_SIZE, "%s%s", "/cart/", fname);
-  }
-
-  // don't allow them to mess with permissions
-  if (string_equals(filename, "/cart/cart.ini")) {
-    printf("Cannot write to cart.ini.\n");
+// Write a file to persistant storage, appending to the end
+bool null0_file_append(char* filename, unsigned char* data, uint32_t byteSize) {
+  PHYSFS_File* f = PHYSFS_openAppend(filename);
+  PHYSFS_sint64 bytesWritten = PHYSFS_writeBytes(f, data, byteSize);
+  PHYSFS_close(f);
+  if (byteSize != bytesWritten) {
     return false;
   }
-
-  // don't allow them to mess with entrypoint
-  if (string_equals(filename, "/cart/main.wasm")) {
-    printf("Cannot write to main.wasm.\n");
-    return false;
-  }
-
-  // don't allow them to mess with /write/
-  if (string_starts_with(filename, "/cart/write/")) {
-    printf("Use file_write() to write to peristant-data (write/)\n");
-    return false;
-  }
-
-  Null0FileData* f = malloc(sizeof(Null0FileData));
-  f->size = byteSize;
-  f->data = malloc(byteSize);
-  strncpy(f->filename, filename, strlen(filename));
-  memcpy(f->data, data, byteSize);
-  // printf("(host) embedded %s (%d): %s\n", f->filename, f->size, (char*) f->data);
-
-  cvector_push_back(null0_embedded_files, f);
   return true;
+}
+
+// Get list of files in a directory
+char** null0_file_list(char* dir) {
+  null0_file_list_array = PHYSFS_enumerateFiles(dir);
+  return null0_file_list_array;
 }

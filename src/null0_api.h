@@ -10,9 +10,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "cfgpath.h"
-#include "ini.h"
-
 #define MAX_PATH_STRING_SIZE 127
 
 // use null0 file-functions (defined in null0_api_filesystem) for pntr
@@ -31,113 +28,14 @@ bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize);
 #include <pntr.h>
 #include <pntr_app.h>
 
-// use zip as dir
-#define STRPOOL_IMPLEMENTATION
-#define ASSETSYS_IMPLEMENTATION
-#include "assetsys.h"
-
 // growable arrays
 #define CVECTOR_LOGARITHMIC_GROWTH
 #include "cvector.h"
 
-// this is use for embedded files
-typedef struct {
-  char filename[MAX_PATH_STRING_SIZE];
-  size_t size;
-  unsigned char* data;
-} Null0FileData;
-
-// this is the global app-config
-// this could be merged with the other shared globals, too
-typedef struct {
-  char name[127];
-  bool can_write;
-  bool can_http;
-  char write_dir[MAX_PATH_STRING_SIZE];
-} Null0CartConfig;
-
-// return true if 1 string starts with another
-#define string_starts_with(string_to_check, prefix) (strncmp(string_to_check, prefix, ((sizeof(prefix) / sizeof(prefix[0])) - 1)) ? 0 : ((sizeof(prefix) / sizeof(prefix[0])) - 1))
-
-// if 2 strings are same
-#define string_equals(string_to_check, test_string) (strncmp(string_to_check, test_string, strlen(test_string)) == 0)
-
-// string replace, in -place
-void string_replace(char* string, const char* find, const char* replaceWith) {
-  if (strstr(string, find) != NULL) {
-    char* temporaryString = malloc(strlen(strstr(string, find) + strlen(find)) + 1);
-    strcpy(temporaryString, strstr(string, find) + strlen(find));
-    *strstr(string, find) = '\0';
-    strcat(string, replaceWith);
-    strcat(string, temporaryString);
-    free(temporaryString);
-  }
-}
-
-// recursive mkdir
-int mkdir_p(const char *dir, const mode_t mode) {
-    char tmp[MAX_PATH_STRING_SIZE];
-    char *p = NULL;
-    struct stat sb;
-    size_t len;
-    
-    /* copy path */
-    len = strnlen (dir, MAX_PATH_STRING_SIZE);
-    if (len == 0 || len == MAX_PATH_STRING_SIZE) {
-        return -1;
-    }
-    memcpy (tmp, dir, len);
-    tmp[len] = '\0';
-
-    /* remove trailing slash */
-    if(tmp[len - 1] == '/') {
-        tmp[len - 1] = '\0';
-    }
-
-    /* check if path exists and is a directory */
-    if (stat (tmp, &sb) == 0) {
-        if (S_ISDIR (sb.st_mode)) {
-            return 0;
-        }
-    }
-    
-    /* recursive mkdir */
-    for(p = tmp + 1; *p; p++) {
-        if(*p == '/') {
-            *p = 0;
-            /* test path */
-            if (stat(tmp, &sb) != 0) {
-                /* path does not exist - create directory */
-                if (mkdir(tmp, mode) < 0) {
-                    return -1;
-                }
-            } else if (!S_ISDIR(sb.st_mode)) {
-                /* not a directory */
-                return -1;
-            }
-            *p = '/';
-        }
-    }
-    /* test path */
-    if (stat(tmp, &sb) != 0) {
-        /* path does not exist - create directory */
-        if (mkdir(tmp, mode) < 0) {
-            return -1;
-        }
-    } else if (!S_ISDIR(sb.st_mode)) {
-        /* not a directory */
-        return -1;
-    }
-    return 0;
-}
-
 // setup shared globals
-Null0CartConfig null0_config;
-cvector_vector_type(Null0FileData*) null0_embedded_files;
 cvector_vector_type(pntr_font*) null0_fonts;
 cvector_vector_type(pntr_image*) null0_images;
 cvector_vector_type(pntr_sound*) null0_sounds;
-assetsys_t* null0_fs;
 pntr_app* null0_app;
 pntr_image* null0_screen;
 
@@ -209,136 +107,11 @@ int null0_button_map_key(int key) {
   return -1;
 }
 
-// get the basename of a file path, without extension
-char* basename_without_extension(const char* path) {
-  char* base = strrchr(path, '/');
-  if (base == NULL) {
-    return path;
-  }
-  base++;
-  char* ext = strrchr(base, '.');
-  if (ext != NULL) {
-    *ext = '\0';
-  }
-  return base;
-}
-
-// turn string representing bool into a bool
-bool parse_string_as_bool(const char* str) {
-  switch (*str) {
-    case '0':
-      return false;
-    case '1':
-      return true;
-    case 'y':
-    case 'Y':
-      return true;
-    case 't':
-    case 'T':
-      return true;
-    case 'o':
-    case 'O':
-      if (strcasecmp(str, "on") == 0) {
-        return true;
-      }
-      return false;
-    case 'n':
-    case 'N':
-      return false;
-    case 'f':
-    case 'F':
-      return false;
-  }
-}
-
-// used with ini_parse_string to parse cart ini
-static int null0_config_handler(void* user, const char* section, const char* name, const char* value) {
-  Null0CartConfig* pconfig = (Null0CartConfig*)user;
-
-#define config_name_match(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
-
-  if (config_name_match("", "name")) {
-    string_replace(value, "/", "_");
-    strncpy(null0_config.name, value, sizeof(null0_config.name));
-    get_user_config_folder(null0_config.write_dir, MAX_PATH_STRING_SIZE, null0_config.name);
-  }
-
-  if (config_name_match("permissions", "write")) {
-    null0_config.can_write = parse_string_as_bool(value);
-  }
-
-  if (config_name_match("permissions", "http")) {
-    null0_config.can_http = parse_string_as_bool(value);
-  }
-}
-
-// read config from cart, return null0_config struct
-Null0CartConfig null0_get_config(char* filename) {
-  strncpy(null0_config.name, basename_without_extension(filename), 127);
-  null0_config.can_write = false;
-  null0_config.can_http = false;
-  null0_config.write_dir[0] = 0;
-  
-  uint32_t bytesReadConfig = 0;
-  unsigned char* configBytes = null0_file_read("/cart.ini", &bytesReadConfig);
-  if (bytesReadConfig != 0) {
-    ini_parse_string((const char*)configBytes, null0_config_handler, (void*)&null0_config);
-  }
-  return null0_config;
-}
-
 // initialize structures & load a cart (wasm or zip file)
 bool null0_load_cart(char* filename) {
   if (filename != NULL) {
-    bool isZip = false;
-    bool isWasm = false;
-    bool isDir = false;
-
-    DIR* dirptr;
-    if (access(filename, F_OK) != -1) {
-      if ((dirptr = opendir(filename)) != NULL) {
-        isDir = true;
-      } else {
-        FILE* fptr1 = fopen(filename, "r");
-        char str[4];
-        if (fptr1 == NULL) {
-          printf("Could not open file.\n");
-          return false;
-        }
-        fread(str, 4, 1, fptr1);
-        fclose(fptr1);
-        isZip = memcmp(str, "PK\3\4", 4) == 0;
-        isWasm = memcmp(str, "\0asm", 4) == 0;
-      }
-    } else {
-      printf("Could not open file.\n");
+    if (!null0_init_filesystem(filename)) {
       return false;
-    }
-
-    if (!isDir && !isZip && !isWasm) {
-      printf("Unknown filetype.\n");
-      return false;
-    }
-
-    null0_fs = assetsys_create(0);
-
-    if (isWasm) {
-      assetsys_mount(null0_fs, dirname(filename), "/cart");
-    } else {
-      assetsys_mount(null0_fs, filename, "/cart");
-    }
-
-    null0_get_config(filename);
-
-    // printf("name: %s\nwrite: %s (%s)\nhttp: %s\n", null0_config.name, null0_config.can_write ? "Y" : "N", null0_config.write_dir, null0_config.can_http ? "Y" : "N");
-
-    if (strcmp(null0_config.write_dir, "") == 0) {
-      null0_config.can_write = false;
-    }
-
-    // allow reading the write-dir
-    if (null0_config.can_write) {
-      mkdir_p(null0_config.write_dir, 755);
     }
   }
 
@@ -359,10 +132,8 @@ void null0_update(pntr_app* app, pntr_image* screen) {
 
 // call when you are ready to quit, to unload things
 void null0_unload() {
-  // unload null0_fonts
-  // unload null0_images
-  // unload null0_sounds
-  // unload null0_embedded_files
-
-  assetsys_destroy(null0_fs);
+  // null0_unload_fonts
+  // null0_unload_images
+  // null0_unload_sounds
+  // null0_unload_filesystem
 }

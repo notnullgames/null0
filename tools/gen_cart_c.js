@@ -24,6 +24,9 @@ function mapType (type) {
   if (type === 'string') {
     return 'char*'
   }
+  if (type === 'string*') {
+    return 'char**'
+  }
   if (type === 'bytes') {
     return 'u8*'
   }

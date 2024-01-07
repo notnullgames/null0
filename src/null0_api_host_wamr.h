@@ -1,4 +1,4 @@
-// Null0 WAMR native host - generated 2024-01-03T02:28:19.733Z
+// Null0 WAMR native host - generated 2024-01-07T23:14:25.958Z
 
 #pragma once
 
@@ -14,8 +14,6 @@ wasm_function_inst_t cart_buttonUp = NULL;
 wasm_function_inst_t cart_buttonDown = NULL;
 wasm_function_inst_t cart_keyUp = NULL;
 wasm_function_inst_t cart_keyDown = NULL;
-
-
 
 // UTILITIES
 
@@ -552,9 +550,19 @@ static bool wamr_null0_file_write(wasm_exec_env_t exec_env, char* filename, unsi
   return null0_file_write(filename, data, byteSize);
 }
 
-// Embed memory as a file
-static bool wamr_null0_file_embed(wasm_exec_env_t exec_env, char* filename, unsigned char* data, uint32_t byteSize) {
-  return null0_file_embed(filename, data, byteSize);
+// Write a file to persistant storage, appending to the end
+static bool wamr_null0_file_append(wasm_exec_env_t exec_env, char* filename, unsigned char* data, uint32_t byteSize) {
+  return null0_file_append(filename, data, byteSize);
+}
+
+// Get info about a single file
+// static FileInfo wamr_null0_file_info(wasm_exec_env_t exec_env, char* filename) {
+//   return null0_file_info(filename);
+// }
+
+// Get list of files in a directory
+static char** wamr_null0_file_list(wasm_exec_env_t exec_env, char* dir) {
+  return null0_file_list(dir);
 }
 
 // COLORS
@@ -598,7 +606,7 @@ bool null0_init_wamr(char* filename) {
   if (filename == NULL) {
     return false;
   }
-  
+
   if (!null0_load_cart(filename)) {
     return false;
   }
@@ -611,7 +619,6 @@ bool null0_init_wamr(char* filename) {
   return true;
 }
 
-  
 // call when an event happens
 void null0_event_wamr(pntr_app_event* event) {
 }

@@ -25,7 +25,9 @@ function typeMap (arg) {
     case 'MouseButton': return 'pntr_app_mouse_button'
     case 'bytes': return 'unsigned char*'
     case 'string': return 'char*'
+    case 'string*': return 'char**'
     case 'SfxParams': return 'uint32_t'
+    case 'FileInfo': return 'PHYSFS_Stat'
     default: return arg
   }
 }

@@ -30,7 +30,6 @@ file_info:
 file_list:
   args:
     dir: string
-    length: u32*
-  returns: FileInfo*
+  returns: string*
   description: Get list of files in a directory
 

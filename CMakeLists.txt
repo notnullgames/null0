@@ -68,12 +68,37 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(wamr)
 include (${wamr_SOURCE_DIR}/build-scripts/runtime_lib.cmake)
 
+set(PHYSFS_ARCHIVE_7Z FALSE)
+set(PHYSFS_ARCHIVE_GRP FALSE)
+set(PHYSFS_ARCHIVE_HOG FALSE)
+set(PHYSFS_ARCHIVE_ISO9660 FALSE)
+set(PHYSFS_ARCHIVE_MVL FALSE)
+set(PHYSFS_ARCHIVE_QPAK FALSE)
+set(PHYSFS_ARCHIVE_SLB FALSE)
+set(PHYSFS_ARCHIVE_VDF FALSE)
+set(PHYSFS_ARCHIVE_CSM FALSE)
+set(PHYSFS_ARCHIVE_WAD FALSE)
+set(PHYSFS_BUILD_TEST FALSE)
+set(PHYSFS_DISABLE_INSTALL ON)
+set(PHYSFS_BUILD_DOCS FALSE)
+set(PHYSFS_TARGETNAME_UNINSTALL "physfs-uninstall")
+
+FetchContent_Declare(
+  physfs
+  GIT_REPOSITORY https://github.com/icculus/physfs.git
+  GIT_TAG main
+  GIT_PROGRESS TRUE
+  GIT_SHALLOW 1
+)
+FetchContent_MakeAvailable(physfs)
+include_directories(${physfs_SOURCE_DIR}/src)
+
 # all other cmake files can import from src/
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # shared lib for null0 API (no WAMR)
-add_library(null0api src/lib.c src/sfx_gen.c src/ini.c)
-target_link_libraries(null0api raylib pntr pntr_app)
+add_library(null0api src/lib.c src/sfx_gen.c)
+target_link_libraries(null0api raylib pntr pntr_app physfs)
 
 if (NATIVE_RUNTIME OR IWASM_NATIVE)
   add_library(vmlib ${WAMR_RUNTIME_LIB_SOURCE})

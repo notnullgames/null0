@@ -26,8 +26,8 @@ function typeMap (arg) {
     case 'MouseButton': return 'pntr_app_mouse_button'
     case 'bytes': return 'unsigned char*'
     case 'string': return 'char*'
-    case 'FileInfo*': return 'Null0FileInfo*'
-    case 'FileInfo': return 'Null0FileInfo'
+    case 'string*': return 'char**'
+    case 'FileInfo': return 'PHYSFS_Stat'
     default: return arg
   }
 }
@@ -54,11 +54,54 @@ for (const f of await glob('api/*.yml')) {
   }
 
   if (['filesystem'].includes(api_name)) {
-    out.push(`
-typedef struct {
-  char* full_path;
-  bool isDirectory;
-} Null0FileInfo;
+    out.push('#include "physfs.h"');
+    out.push(`char** null0_file_list_array;
+
+// intialize filesystem
+bool null0_init_filesystem(char* cart) {
+  if (!PHYSFS_init("null0")) {
+    printf("Could not init filesystem.\n");
+    return false;
+  }
+  char* cartName = strtok(basename(cart), ".");
+
+  if (strlen(cartName) > 127) {
+    printf("Name is too long.\n");
+    return false;
+  }
+
+  char pathname[134];
+  snprintf(pathname, 134, "null0-%s", cartName);
+
+  const char* writeDir = PHYSFS_getPrefDir("null0", pathname);
+
+  if (!PHYSFS_mount(cart, NULL, 1)) {
+    PHYSFS_deinit();
+    printf("Could not mount filesystem.\n");
+    return false;
+  }
+
+  // put writeDir at end of search-path (so user can overwrite any files)
+  if (!PHYSFS_mount(writeDir, NULL, 1)) {
+    PHYSFS_deinit();
+    printf("Could not mount write-dir.\n");
+    return false;
+  }
+
+  if (!PHYSFS_setWriteDir(writeDir)) {
+    PHYSFS_deinit();
+    printf("Could not set write-dir.\n");
+    return false;
+  }
+
+  return true;
+}
+
+// unload the filesystem
+void null0_unload_filesystem() {
+  PHYSFS_deinit();
+  PHYSFS_freeList(null0_file_list_array);
+}
 `)
   }
 
