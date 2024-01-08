@@ -38,6 +38,7 @@ void cart_main() {
   if (null0_file_append("log.txt", "a\n", 2)) {
     unsigned int bytesReadAppend;
     unsigned char* appendBytes = null0_file_read("log.txt", &bytesReadAppend);
+    appendBytes[bytesReadAppend - 1] = 0;
     printf("read embeded log.txt (%d): %s\n", bytesReadAppend, (char*)appendBytes);
   } else {
     printf("hello.txt not embedded.\n");

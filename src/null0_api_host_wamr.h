@@ -1,4 +1,4 @@
-// Null0 WAMR native host - generated 2024-01-07T23:14:25.958Z
+// Null0 WAMR native host - generated 2024-01-08T00:15:08.593Z
 
 #pragma once
 
@@ -10,6 +10,7 @@ wasm_exec_env_t exec_env;
 wasm_module_inst_t module_inst;
 
 wasm_function_inst_t cart_update = NULL;
+wasm_function_inst_t cart_unload = NULL;
 wasm_function_inst_t cart_buttonUp = NULL;
 wasm_function_inst_t cart_buttonDown = NULL;
 wasm_function_inst_t cart_keyUp = NULL;
@@ -621,15 +622,44 @@ bool null0_init_wamr(char* filename) {
 
 // call when an event happens
 void null0_event_wamr(pntr_app_event* event) {
+  // if (cart_buttonDown) {
+  //   if (event->type == PNTR_APP_EVENTTYPE_KEY_DOWN) {
+  //     pntr_app_gamepad_button b = null0_button_map_key(event->key);
+  //     if (b != -1){
+  //       cart_buttonDown(b);
+  //     }
+  //   }
+  //   if (event->type == PNTR_APP_EVENTTYPE_GAMEPAD_BUTTON_DOWN) {
+  //     cart_buttonDown(event->gamepadButton);
+  //   }
+  // }
+  // if (cart_buttonUp) {
+  //   if (event->type == PNTR_APP_EVENTTYPE_KEY_UP) {
+  //     pntr_app_gamepad_button b = null0_button_map_key(event->key);
+  //     if (b != -1){
+  //       cart_buttonUp(b);
+  //     }
+  //   }
+
+  //   if (event->type == PNTR_APP_EVENTTYPE_GAMEPAD_BUTTON_UP) {
+  //     cart_buttonUp(event->gamepadButton);
+  //   }
+  // }
 }
 
 // call on each frame
 bool null0_upate_wamr(pntr_app* app, pntr_image* screen) {
   null0_update(app, screen);
+  // if (cart_update) {
+  //   return cart_update();
+  // }
   return true;
 }
 
 // call when your game exits
 void null0_unload_wamr() {
+  // if (cart_unload) {
+  //   cart_unload();
+  // }
   null0_unload();
 }
