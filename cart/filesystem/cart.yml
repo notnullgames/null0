@@ -1,0 +1,3 @@
+name: null0/filesystem-demo
+permissions:
+  - file_write
