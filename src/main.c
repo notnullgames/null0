@@ -23,7 +23,7 @@ bool Init(pntr_app* app) {
 }
 
 bool Update(pntr_app* app, pntr_image* screen) {
-  return null0_upate_wamr(app, screen);
+  return null0_update_wamr(app, screen);
 }
 
 void Close(pntr_app* app) {

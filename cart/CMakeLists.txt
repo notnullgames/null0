@@ -41,16 +41,6 @@ function(BUILDCART name)
     TARGET ${name}
     POST_BUILD
     COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../tools/buildcart.sh"
-    ARGS "${CMAKE_CURRENT_BINARY_DIR}/${name}.null0" "${CMAKE_CURRENT_BINARY_DIR}/${name}.wasm"
-  )
-endfunction()
-
-function(BUILDCART_WITH_ASSETS name)
-  add_executable(${name} ${name}/main.c)
-  add_custom_command(
-    TARGET ${name}
-    POST_BUILD
-    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../tools/buildcart.sh"
     ARGS "${CMAKE_CURRENT_BINARY_DIR}/${name}.null0" "${CMAKE_CURRENT_BINARY_DIR}/${name}.wasm" "${CMAKE_CURRENT_SOURCE_DIR}/${name}"
   )
 endfunction()
@@ -58,7 +48,7 @@ endfunction()
 BUILDCART("justlog")
 BUILDCART("hello")
 BUILDCART("draw")
-BUILDCART_WITH_ASSETS("filesystem")
-BUILDCART_WITH_ASSETS("tracker")
-BUILDCART_WITH_ASSETS("input")
-BUILDCART_WITH_ASSETS("sound")
+BUILDCART("filesystem")
+BUILDCART("tracker")
+BUILDCART("input")
+BUILDCART("sound")
