@@ -76,6 +76,7 @@ cmake --build build
 
 ### longterm
 
+- libretro core
 - add TTS libs & API functions
 - setup a ESP32 host
 - AI? would be cool to embed llama, with a flag (disabled by default)
