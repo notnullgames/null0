@@ -80,6 +80,7 @@ cmake --build build
 - setup a ESP32 host
 - AI? would be cool to embed llama, with a flag (disabled by default)
 - Networking? would be cool to at least do basic HTTP, with a flag (disabled by default)
+- standalone DLL for iwasm
 
 
 ## thanks
