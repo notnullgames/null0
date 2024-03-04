@@ -63,6 +63,17 @@ cmake --build build
 - auto-generate more code from api defs
 - generate headers for other cart-lannguages (not just C)
 - test everything
+- update website with docs generated from the api defs
+
+### demos
+
+These demos need to be fixed up (pulled form old code)
+
+- filesystem is referencing removed `file_embed`, and needs some testing
+- hello is not doing `measure_text` right (probly needs wamr def fixed, see `color_`)
+- input needs event-handlers setup
+- sound segfaults
+
 
 
 ## thanks
