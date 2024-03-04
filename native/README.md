@@ -1,0 +1,1 @@
+This directory contains the native WAMR-based runtime-host for null0.

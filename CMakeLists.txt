@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
+
 project(null0
   DESCRIPTION "null0 game engine"
   HOMEPAGE_URL "https://github.com/konsumer/null0"
@@ -12,115 +13,106 @@ set(FETCHCONTENT_QUIET 0)
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-option(NATIVE_RUNTIME "Build native runtime for running carts" TRUE)
-option(EXAMPLES_NATIVE "Build native demo executables" TRUE)
-option(IWASM_NATIVE "Build native iwasm extension" TRUE)
-option(EXAMPLES_CART "Build example carts" TRUE)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake")
 
-set(PHYSFS_ARCHIVE_7Z FALSE)
-set(PHYSFS_ARCHIVE_GRP FALSE)
-set(PHYSFS_ARCHIVE_HOG FALSE)
-set(PHYSFS_ARCHIVE_ISO9660 FALSE)
-set(PHYSFS_ARCHIVE_MVL FALSE)
-set(PHYSFS_ARCHIVE_QPAK FALSE)
-set(PHYSFS_ARCHIVE_SLB FALSE)
-set(PHYSFS_ARCHIVE_VDF FALSE)
-set(PHYSFS_ARCHIVE_CSM FALSE)
-set(PHYSFS_ARCHIVE_WAD FALSE)
-set(PHYSFS_DISABLE_INSTALL TRUE)
-set(PHYSFS_BUILD_TEST FALSE)
-set(PHYSFS_BUILD_DOCS FALSE)
-set(PHYSFS_BUILD_STATIC TRUE)
-set(PHYSFS_BUILD_SHARED FALSE)
+# These options will change what is built, and what libraries are used
 
-FetchContent_Declare(
-  physfs
-  GIT_REPOSITORY https://github.com/icculus/physfs.git
-  GIT_TAG main
-  GIT_PROGRESS TRUE
-  GIT_SHALLOW 1
-)
-FetchContent_MakeAvailable(physfs)
-include_directories(${physfs_SOURCE_DIR}/src)
-
-set(BUILD_EXAMPLES 0) # don't build the supplied examples
-set(BUILD_GAMES    0) # don't build the supplied example games
-set(VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS "OpenGL")
-FetchContent_Declare(
-  raylib
-  GIT_REPOSITORY "https://github.com/raysan5/raylib.git"
-  GIT_TAG "master"
-  GIT_PROGRESS 1
-  GIT_SHALLOW 1
-)
-FetchContent_MakeAvailable(raylib)
-include_directories(${RAYLIB_SOURCE_DIR})
-
-FetchContent_Declare(
-  pntr
-  GIT_REPOSITORY https://github.com/robloach/pntr.git
-  GIT_TAG master
-  GIT_PROGRESS 1
-  GIT_SHALLOW 1
-)
-FetchContent_MakeAvailable(pntr)
-include_directories(${pntr_SOURCE_DIR})
+option(LIBRETRO "Build Null0 libretro Host" FALSE)
+option(SDL "Use SDL in hosts (Choose SDL or RAYLIB)" TRUE)
+option(RAYLIB "Use Raylib in hosts (Choose SDL or RAYLIB)" FALSE)
+option(CARTS "Build Demo Null0 Carts" TRUE)
+option(TESTS "Unit tests" TRUE)
 
 
-FetchContent_Declare(
-  pntr_app
-  GIT_REPOSITORY https://github.com/robloach/pntr_app.git
-  GIT_TAG master
-  GIT_PROGRESS 1
-  GIT_SHALLOW 1
-)
-FetchContent_MakeAvailable(pntr_app)
-include_directories(${pntr_app_SOURCE_DIR}/include)
+# this is used to output options
+macro(message_bool _NAME _VALUE)
+  if(${_VALUE})
+    message(STATUS "  ${_NAME}: enabled")
+  else()
+    message(STATUS "  ${_NAME}: disabled")
+  endif()
+endmacro()
+
+# set some defaults for if this is running in emcmake or cmake
+if (EMSCRIPTEN)
+  option(NATIVE "Build Null0 NATIVE Host" FALSE)
+else()
+  option(NATIVE "Build Null0 NATIVE Host" TRUE)
+endif()
+
+if (LIBRETRO)
+  set(PNTR_APP_LIBRETRO ON)
+endif()
+
+if (SDL)
+  find_package(SDL2 REQUIRED)
+  include_directories(${SDL2_INCLUDE_DIRS})
+  add_definitions(-DPNTR_APP_SDL)
+endif()
+
+if (RAYLIB)
+  find_package(raylib REQUIRED)
+  add_definitions(-DPNTR_APP_RAYLIB)
+endif()
+
+# wamr is used in libretro & native runtimes
+if (NATIVE OR LIBRETRO)
+  find_package(wamr REQUIRED)
+endif()
+
+# check some invalid combos
+
+if(EMSCRIPTEN)
+  if (LIBRETRO)
+    message(FATAL_ERROR "Do not build libretro core in emscripten. It will not turn out right.")
+  endif()
+  if (NATIVE)
+    message(FATAL_ERROR "Do not build web runtime in emscripten. A web host will be built for you, if you disable NATIVE.")
+  endif()
+endif()
+
+if (NOT (SDL OR RAYLIB))
+  message(FATAL_ERROR "You must set SDL or RAYLIB.")
+endif()
+
+if (SDL AND RAYLIB)
+  message(FATAL_ERROR "You must set SDL or RAYLIB, not both.")
+endif()
+
+# shared defines for the API
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/null0_api/src)
+
+# core API will be built with any runtime
+if (EMSCRIPTEN OR LIBRETRO OR NATIVE OR TESTS)
+  find_package(pntr REQUIRED)
+  find_package(pntr_app REQUIRED)
+  find_package(physfs REQUIRED)
+  add_subdirectory(null0_api)
+endif()
+
+if (EMSCRIPTEN)
+  add_subdirectory(web)
+endif()
+
+if (NATIVE)
+  add_subdirectory(native)
+endif()
+
+if (CARTS)
+  add_subdirectory(cart/c)
+endif()
+
+if (TESTS)
+  add_subdirectory(test)
+endif()
 
 
-string(TOLOWER ${CMAKE_HOST_SYSTEM_NAME} WAMR_BUILD_PLATFORM)
-set (WAMR_BUILD_INTERP 1)
-set (WAMR_BUILD_FAST_INTERP 0)
-set (WAMR_BUILD_AOT 0)
-set (WAMR_BUILD_LIBC_BUILTIN 1)
-set (WAMR_BUILD_LIBC_WASI 1)
-set (WAMR_BUILD_SIMD 1)
-FetchContent_Declare(
-  wamr
-  GIT_REPOSITORY https://github.com/bytecodealliance/wasm-micro-runtime.git
-  GIT_TAG main
-  GIT_PROGRESS 1
-  GIT_SHALLOW 1
-)
-FetchContent_MakeAvailable(wamr)
-include (${wamr_SOURCE_DIR}/build-scripts/runtime_lib.cmake)
+message(STATUS "Null0 will built with the following options:")
+message_bool("Web host" EMSCRIPTEN)
+message_bool("Native host" NATIVE)
+message_bool("Libretro host" LIBRETRO)
+message_bool("Example carts" CARTS)
+message_bool("Unit tests" TESTS)
+message_bool("Hosts use Raylib" RAYLIB)
+message_bool("Hosts use SDL" SDL)
 
-# all other cmake files can import from src/
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-# shared lib for null0 API (no WAMR)
-add_library(null0api src/lib.c src/sfx_gen.c)
-target_link_libraries(null0api raylib pntr pntr_app physfs-static)
-
-if (NATIVE_RUNTIME OR IWASM_NATIVE)
-  add_library(vmlib ${WAMR_RUNTIME_LIB_SOURCE})
-endif(NATIVE_RUNTIME OR IWASM_NATIVE) 
-
-
-if (NATIVE_RUNTIME)
-  add_executable(${PROJECT_NAME} src/main.c )
-  target_link_libraries(${PROJECT_NAME} PUBLIC null0api vmlib)
-endif(NATIVE_RUNTIME)
-
-if (IWASM_NATIVE)
-  add_library(iwasm_null0 src/main_iwasm.c)
-  target_link_libraries(iwasm_null0 PUBLIC null0api vmlib)
-endif(IWASM_NATIVE)
-
-if (EXAMPLES_NATIVE)
-  add_subdirectory(examples)
-endif(EXAMPLES_NATIVE)
-
-if (EXAMPLES_CART)
-  add_subdirectory(cart)
-endif(EXAMPLES_CART)
