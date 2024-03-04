@@ -67,7 +67,7 @@ cmake --build build
 
 ### demos
 
-These demos need to be fixed up (pulled form old code)
+These demos need to be fixed up (pulled from old code)
 
 - filesystem is referencing removed `file_embed`, and needs some testing
 - hello is not doing `measure_text` right (probly needs wamr def fixed, see `color_`)
