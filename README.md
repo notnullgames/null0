@@ -62,7 +62,7 @@ cmake --build build
 - add TTS libs & API functions
 - auto-generate more code from api defs
 - generate headers for other cart-lannguages (not just C)
-- test everything
+- test everything, maybe a full battery of wasm-side tests (every single function)
 - update website with docs generated from the api defs
 
 ### demos

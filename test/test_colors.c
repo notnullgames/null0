@@ -1,3 +1,5 @@
+// this is a native implementation of colorbars cart, to ensure they match
+
 #define PNTR_IMPLEMENTATION
 #define PNTR_APP_IMPLEMENTATION
 #define PNTR_PIXELFORMAT_ARGB
