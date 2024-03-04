@@ -1,3 +1,5 @@
+// this is the WAMR wrapper, for loading wasm on native
+
 #include "null0_api.h"
 #include "wasm_c_api.h"
 #include "wasm_export.h"
@@ -22,14 +24,14 @@ typedef struct {
   uint8_t a;
 } Null0WasmColor;
 
-void pack_rgba(pntr_color c, Null0WasmColor* colorOut) {
+void color_from_pntr_to_wasm(pntr_color c, Null0WasmColor* colorOut) {
   colorOut->r = c.rgba.r;
   colorOut->g = c.rgba.g;
   colorOut->b = c.rgba.b;
   colorOut->a = c.rgba.a;
 }
 
-pntr_color unpack_rgba(Null0WasmColor c) {
+pntr_color color_from_wasm_to_pntr(Null0WasmColor c) {
   return pntr_new_color(c.r, c.g, c.b, c.a);
 }
 
@@ -173,7 +175,7 @@ static bool wamr_null0_mouse_button_up(wasm_exec_env_t exec_env, pntr_app_mouse_
 
 // Create a new blank image
 static uint32_t wamr_null0_new_image(wasm_exec_env_t exec_env, int32_t width, int32_t height, Null0WasmColor* color) {
-  return null0_new_image(width, height, unpack_rgba(*color));
+  return null0_new_image(width, height, color_from_wasm_to_pntr(*color));
 }
 
 // Copy an image to a new image
@@ -188,57 +190,57 @@ static uint32_t wamr_null0_image_subimage(wasm_exec_env_t exec_env, uint32_t ima
 
 // Clear the screen
 static void wamr_null0_clear(wasm_exec_env_t exec_env, Null0WasmColor* color) {
-  null0_clear(unpack_rgba(*color));
+  null0_clear(color_from_wasm_to_pntr(*color));
 }
 
 // Draw a single pixel on the screen
 static void wamr_null0_draw_point(wasm_exec_env_t exec_env, int32_t x, int32_t y, Null0WasmColor* color) {
-  null0_draw_point(x, y, unpack_rgba(*color));
+  null0_draw_point(x, y, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a line on the screen
 static void wamr_null0_draw_line(wasm_exec_env_t exec_env, int32_t startPosX, int32_t startPosY, int32_t endPosX, int32_t endPosY, Null0WasmColor* color) {
-  null0_draw_line(startPosX, startPosY, endPosX, endPosY, unpack_rgba(*color));
+  null0_draw_line(startPosX, startPosY, endPosX, endPosY, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled rectangle on the screen
 static void wamr_null0_draw_rectangle(wasm_exec_env_t exec_env, int32_t posX, int32_t posY, int32_t width, int32_t height, Null0WasmColor* color) {
-  null0_draw_rectangle(posX, posY, width, height, unpack_rgba(*color));
+  null0_draw_rectangle(posX, posY, width, height, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled triangle on the screen
 static void wamr_null0_draw_triangle(wasm_exec_env_t exec_env, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, Null0WasmColor* color) {
-  null0_draw_triangle(x1, y1, x2, y2, x3, y3, unpack_rgba(*color));
+  null0_draw_triangle(x1, y1, x2, y2, x3, y3, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled ellipse on the screen
 static void wamr_null0_draw_ellipse(wasm_exec_env_t exec_env, int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, Null0WasmColor* color) {
-  null0_draw_ellipse(centerX, centerY, radiusX, radiusY, unpack_rgba(*color));
+  null0_draw_ellipse(centerX, centerY, radiusX, radiusY, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled circle on the screen
 static void wamr_null0_draw_circle(wasm_exec_env_t exec_env, int32_t centerX, int32_t centerY, int32_t radius, Null0WasmColor* color) {
-  null0_draw_circle(centerX, centerY, radius, unpack_rgba(*color));
+  null0_draw_circle(centerX, centerY, radius, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled polygon on the screen
 static void wamr_null0_draw_polygon(wasm_exec_env_t exec_env, pntr_vector* points, int32_t numPoints, Null0WasmColor* color) {
-  null0_draw_polygon(points, numPoints, unpack_rgba(*color));
+  null0_draw_polygon(points, numPoints, color_from_wasm_to_pntr(*color));
 }
 
 // Draw several lines on the screen
 static void wamr_null0_draw_polyline(wasm_exec_env_t exec_env, pntr_vector* points, int32_t numPoints, Null0WasmColor* color) {
-  null0_draw_polyline(points, numPoints, unpack_rgba(*color));
+  null0_draw_polyline(points, numPoints, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled arc on the screen
 static void wamr_null0_draw_arc(wasm_exec_env_t exec_env, int32_t centerX, int32_t centerY, float radius, float startAngle, float endAngle, int32_t segments, Null0WasmColor* color) {
-  null0_draw_arc(centerX, centerY, radius, startAngle, endAngle, segments, unpack_rgba(*color));
+  null0_draw_arc(centerX, centerY, radius, startAngle, endAngle, segments, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled round-rectangle on the screen
 static void wamr_null0_draw_rectangle_rounded(wasm_exec_env_t exec_env, int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, Null0WasmColor* color) {
-  null0_draw_rectangle_rounded(x, y, width, height, cornerRadius, unpack_rgba(*color));
+  null0_draw_rectangle_rounded(x, y, width, height, cornerRadius, color_from_wasm_to_pntr(*color));
 }
 
 // Draw an image on the screen
@@ -248,7 +250,7 @@ static void wamr_null0_draw_image(wasm_exec_env_t exec_env, uint32_t src, int32_
 
 // Draw a tinted image on the screen
 static void wamr_null0_draw_image_tint(wasm_exec_env_t exec_env, uint32_t src, int32_t posX, int32_t posY, Null0WasmColor* tint) {
-  null0_draw_image_tint(src, posX, posY, unpack_rgba(*tint));
+  null0_draw_image_tint(src, posX, posY, color_from_wasm_to_pntr(*tint));
 }
 
 // Draw an image, rotated, on the screen
@@ -268,7 +270,7 @@ static void wamr_null0_draw_image_scaled(wasm_exec_env_t exec_env, uint32_t src,
 
 // Draw some text on the screen
 static void wamr_null0_draw_text(wasm_exec_env_t exec_env, uint32_t font, char* text, int32_t posX, int32_t posY, Null0WasmColor* color) {
-  null0_draw_text(font, text, posX, posY, unpack_rgba(*color));
+  null0_draw_text(font, text, posX, posY, color_from_wasm_to_pntr(*color));
 }
 
 // Save an image to persistant storage
@@ -293,12 +295,12 @@ static void wamr_null0_image_scale(wasm_exec_env_t exec_env, uint32_t image, flo
 
 // Replace a color in an image, in-place
 static void wamr_null0_image_color_replace(wasm_exec_env_t exec_env, uint32_t image, Null0WasmColor* color, Null0WasmColor* replace) {
-  null0_image_color_replace(image, unpack_rgba(*color), unpack_rgba(*replace));
+  null0_image_color_replace(image, color_from_wasm_to_pntr(*color), color_from_wasm_to_pntr(*replace));
 }
 
 // Tint a color in an image, in-place
 static void wamr_null0_image_color_tint(wasm_exec_env_t exec_env, uint32_t image, Null0WasmColor* color) {
-  null0_image_color_tint(image, unpack_rgba(*color));
+  null0_image_color_tint(image, color_from_wasm_to_pntr(*color));
 }
 
 // Fade a color in an image, in-place
@@ -398,7 +400,7 @@ static uint32_t wamr_null0_image_rotate(wasm_exec_env_t exec_env, uint32_t image
 
 // Create a new image of a gradient
 static uint32_t wamr_null0_image_gradient(wasm_exec_env_t exec_env, int32_t width, int32_t height, Null0WasmColor* topLeft, Null0WasmColor* topRight, Null0WasmColor* bottomLeft, Null0WasmColor* bottomRight) {
-  return null0_image_gradient(width, height, unpack_rgba(*topLeft), unpack_rgba(*topRight), unpack_rgba(*bottomLeft), unpack_rgba(*bottomRight));
+  return null0_image_gradient(width, height, color_from_wasm_to_pntr(*topLeft), color_from_wasm_to_pntr(*topRight), color_from_wasm_to_pntr(*bottomLeft), color_from_wasm_to_pntr(*bottomRight));
 }
 
 // Unload an image
@@ -413,52 +415,52 @@ static void wamr_null0_unload_font(wasm_exec_env_t exec_env, uint32_t font) {
 
 // Clear an image
 static void wamr_null0_clear_on_image(wasm_exec_env_t exec_env, uint32_t destination, Null0WasmColor* color) {
-  null0_clear_on_image(destination, unpack_rgba(*color));
+  null0_clear_on_image(destination, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a single pixel on an image
 static void wamr_null0_draw_point_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t x, int32_t y, Null0WasmColor* color) {
-  null0_draw_point_on_image(destination, x, y, unpack_rgba(*color));
+  null0_draw_point_on_image(destination, x, y, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a line on an image
 static void wamr_null0_draw_line_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t startPosX, int32_t startPosY, int32_t endPosX, int32_t endPosY, Null0WasmColor* color) {
-  null0_draw_line_on_image(destination, startPosX, startPosY, endPosX, endPosY, unpack_rgba(*color));
+  null0_draw_line_on_image(destination, startPosX, startPosY, endPosX, endPosY, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled rectangle on an image
 static void wamr_null0_draw_rectangle_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t posX, int32_t posY, int32_t width, int32_t height, Null0WasmColor* color) {
-  null0_draw_rectangle_on_image(destination, posX, posY, width, height, unpack_rgba(*color));
+  null0_draw_rectangle_on_image(destination, posX, posY, width, height, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled triangle on an image
 static void wamr_null0_draw_triangle_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, Null0WasmColor* color) {
-  null0_draw_triangle_on_image(destination, x1, y1, x2, y2, x3, y3, unpack_rgba(*color));
+  null0_draw_triangle_on_image(destination, x1, y1, x2, y2, x3, y3, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled ellipse on an image
 static void wamr_null0_draw_ellipse_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, Null0WasmColor* color) {
-  null0_draw_ellipse_on_image(destination, centerX, centerY, radiusX, radiusY, unpack_rgba(*color));
+  null0_draw_ellipse_on_image(destination, centerX, centerY, radiusX, radiusY, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a circle on an image
 static void wamr_null0_draw_circle_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t centerX, int32_t centerY, int32_t radius, Null0WasmColor* color) {
-  null0_draw_circle_on_image(destination, centerX, centerY, radius, unpack_rgba(*color));
+  null0_draw_circle_on_image(destination, centerX, centerY, radius, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled polygon on an image
 static void wamr_null0_draw_polygon_on_image(wasm_exec_env_t exec_env, uint32_t destination, pntr_vector* points, int32_t numPoints, Null0WasmColor* color) {
-  null0_draw_polygon_on_image(destination, points, numPoints, unpack_rgba(*color));
+  null0_draw_polygon_on_image(destination, points, numPoints, color_from_wasm_to_pntr(*color));
 }
 
 // Draw several lines on an image
 static void wamr_null0_draw_polyline_on_image(wasm_exec_env_t exec_env, uint32_t destination, pntr_vector* points, int32_t numPoints, Null0WasmColor* color) {
-  null0_draw_polyline_on_image(destination, points, numPoints, unpack_rgba(*color));
+  null0_draw_polyline_on_image(destination, points, numPoints, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a filled round-rectangle on an image
 static void wamr_null0_draw_rectangle_rounded_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, Null0WasmColor* color) {
-  null0_draw_rectangle_rounded_on_image(destination, x, y, width, height, cornerRadius, unpack_rgba(*color));
+  null0_draw_rectangle_rounded_on_image(destination, x, y, width, height, cornerRadius, color_from_wasm_to_pntr(*color));
 }
 
 // Draw an image on an image
@@ -468,7 +470,7 @@ static void wamr_null0_draw_image_on_image(wasm_exec_env_t exec_env, uint32_t de
 
 // Draw a tinted image on an image
 static void wamr_null0_draw_image_tint_on_image(wasm_exec_env_t exec_env, uint32_t destination, uint32_t src, int32_t posX, int32_t posY, Null0WasmColor* tint) {
-  null0_draw_image_tint_on_image(destination, src, posX, posY, unpack_rgba(*tint));
+  null0_draw_image_tint_on_image(destination, src, posX, posY, color_from_wasm_to_pntr(*tint));
 }
 
 // Draw an image, rotated, on an image
@@ -488,72 +490,72 @@ static void wamr_null0_draw_image_scaled_on_image(wasm_exec_env_t exec_env, uint
 
 // Draw some text on an image
 static void wamr_null0_draw_text_on_image(wasm_exec_env_t exec_env, uint32_t destination, uint32_t font, char* text, int32_t posX, int32_t posY, Null0WasmColor* color) {
-  null0_draw_text_on_image(destination, font, text, posX, posY, unpack_rgba(*color));
+  null0_draw_text_on_image(destination, font, text, posX, posY, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined rectangle on the screen
 static void wamr_null0_draw_rectangle_outline(wasm_exec_env_t exec_env, int32_t posX, int32_t posY, int32_t width, int32_t height, Null0WasmColor* color) {
-  null0_draw_rectangle_outline(posX, posY, width, height, unpack_rgba(*color));
+  null0_draw_rectangle_outline(posX, posY, width, height, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined triangle on the screen
 static void wamr_null0_draw_triangle_outline(wasm_exec_env_t exec_env, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, Null0WasmColor* color) {
-  null0_draw_triangle_outline(x1, y1, x2, y2, x3, y3, unpack_rgba(*color));
+  null0_draw_triangle_outline(x1, y1, x2, y2, x3, y3, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined ellipse on the screen
 static void wamr_null0_draw_ellipse_outline(wasm_exec_env_t exec_env, int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, Null0WasmColor* color) {
-  null0_draw_ellipse_outline(centerX, centerY, radiusX, radiusY, unpack_rgba(*color));
+  null0_draw_ellipse_outline(centerX, centerY, radiusX, radiusY, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined circle on the screen
 static void wamr_null0_draw_circle_outline(wasm_exec_env_t exec_env, int32_t centerX, int32_t centerY, int32_t radius, Null0WasmColor* color) {
-  null0_draw_circle_outline(centerX, centerY, radius, unpack_rgba(*color));
+  null0_draw_circle_outline(centerX, centerY, radius, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined polygon on the screen
 static void wamr_null0_draw_polygon_outline(wasm_exec_env_t exec_env, pntr_vector* points, int32_t numPoints, Null0WasmColor* color) {
-  null0_draw_polygon_outline(points, numPoints, unpack_rgba(*color));
+  null0_draw_polygon_outline(points, numPoints, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined arc on the screen
 static void wamr_null0_draw_arc_outline(wasm_exec_env_t exec_env, int32_t centerX, int32_t centerY, float radius, float startAngle, float endAngle, int32_t segments, Null0WasmColor* color) {
-  null0_draw_arc_outline(centerX, centerY, radius, startAngle, endAngle, segments, unpack_rgba(*color));
+  null0_draw_arc_outline(centerX, centerY, radius, startAngle, endAngle, segments, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined round-rectangle on the screen
 static void wamr_null0_draw_rectangle_rounded_outline(wasm_exec_env_t exec_env, int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, Null0WasmColor* color) {
-  null0_draw_rectangle_rounded_outline(x, y, width, height, cornerRadius, unpack_rgba(*color));
+  null0_draw_rectangle_rounded_outline(x, y, width, height, cornerRadius, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined rectangle on an image
 static void wamr_null0_draw_rectangle_outline_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t posX, int32_t posY, int32_t width, int32_t height, Null0WasmColor* color) {
-  null0_draw_rectangle_outline_on_image(destination, posX, posY, width, height, unpack_rgba(*color));
+  null0_draw_rectangle_outline_on_image(destination, posX, posY, width, height, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined triangle on an image
 static void wamr_null0_draw_triangle_outline_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, Null0WasmColor* color) {
-  null0_draw_triangle_outline_on_image(destination, x1, y1, x2, y2, x3, y3, unpack_rgba(*color));
+  null0_draw_triangle_outline_on_image(destination, x1, y1, x2, y2, x3, y3, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined ellipse on an image
 static void wamr_null0_draw_ellipse_outline_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, Null0WasmColor* color) {
-  null0_draw_ellipse_outline_on_image(destination, centerX, centerY, radiusX, radiusY, unpack_rgba(*color));
+  null0_draw_ellipse_outline_on_image(destination, centerX, centerY, radiusX, radiusY, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined circle on an image
 static void wamr_null0_draw_circle_outline_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t centerX, int32_t centerY, int32_t radius, Null0WasmColor* color) {
-  null0_draw_circle_outline_on_image(destination, centerX, centerY, radius, unpack_rgba(*color));
+  null0_draw_circle_outline_on_image(destination, centerX, centerY, radius, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined polygon on an image
 static void wamr_null0_draw_polygon_outline_on_image(wasm_exec_env_t exec_env, uint32_t destination, pntr_vector* points, int32_t numPoints, Null0WasmColor* color) {
-  null0_draw_polygon_outline_on_image(destination, points, numPoints, unpack_rgba(*color));
+  null0_draw_polygon_outline_on_image(destination, points, numPoints, color_from_wasm_to_pntr(*color));
 }
 
 // Draw a 1px outlined round-rectangle on an image
 static void wamr_null0_draw_rectangle_rounded_outline_on_image(wasm_exec_env_t exec_env, uint32_t destination, int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, Null0WasmColor* color) {
-  null0_draw_rectangle_rounded_outline_on_image(destination, x, y, width, height, cornerRadius, unpack_rgba(*color));
+  null0_draw_rectangle_rounded_outline_on_image(destination, x, y, width, height, cornerRadius, color_from_wasm_to_pntr(*color));
 }
 
 // FILESYSTEM
@@ -587,37 +589,37 @@ static char** wamr_null0_file_list(wasm_exec_env_t exec_env, char* dir) {
 
 // Tint a color with another color
 static void wamr_null0_color_tint(wasm_exec_env_t exec_env, Null0WasmColor* colorOut, Null0WasmColor* color, Null0WasmColor* tint) {
-  pack_rgba(null0_color_tint(unpack_rgba(*color), unpack_rgba(*tint)), colorOut);
+  color_from_pntr_to_wasm(null0_color_tint(color_from_wasm_to_pntr(*color), color_from_wasm_to_pntr(*tint)), colorOut);
 }
 
 // Fade a color
 static void wamr_null0_color_fade(wasm_exec_env_t exec_env, Null0WasmColor* colorOut, Null0WasmColor* color, float alpha) {
-  pack_rgba(null0_color_fade(unpack_rgba(*color), alpha), colorOut);
+  color_from_pntr_to_wasm(null0_color_fade(color_from_wasm_to_pntr(*color), alpha), colorOut);
 }
 
 // Change the brightness of a color
 static void wamr_null0_color_brightness(wasm_exec_env_t exec_env, Null0WasmColor* colorOut, Null0WasmColor* color, float factor) {
-  pack_rgba(null0_color_brightness(unpack_rgba(*color), factor), colorOut);
+  color_from_pntr_to_wasm(null0_color_brightness(color_from_wasm_to_pntr(*color), factor), colorOut);
 }
 
 // Invert a color
 static void wamr_null0_color_invert(wasm_exec_env_t exec_env, Null0WasmColor* colorOut, Null0WasmColor* color) {
-  pack_rgba(null0_color_invert(unpack_rgba(*color)), colorOut);
+  color_from_pntr_to_wasm(null0_color_invert(color_from_wasm_to_pntr(*color)), colorOut);
 }
 
 // Blend 2 colors together
 static void wamr_null0_color_alpha_blend(wasm_exec_env_t exec_env, Null0WasmColor* colorOut, Null0WasmColor* dst, Null0WasmColor* src) {
-  pack_rgba(null0_color_alpha_blend(unpack_rgba(*dst), unpack_rgba(*src)), colorOut);
+  color_from_pntr_to_wasm(null0_color_alpha_blend(color_from_wasm_to_pntr(*dst), color_from_wasm_to_pntr(*src)), colorOut);
 }
 
 // color_contrast
 static void wamr_null0_color_contrast(wasm_exec_env_t exec_env, Null0WasmColor* colorOut, Null0WasmColor* color, float contrast) {
-  pack_rgba(null0_color_contrast(unpack_rgba(*color), contrast), colorOut);
+  color_from_pntr_to_wasm(null0_color_contrast(color_from_wasm_to_pntr(*color), contrast), colorOut);
 }
 
 // Interpolate colors
 static void wamr_null0_color_bilinear_interpolate(wasm_exec_env_t exec_env, Null0WasmColor* colorOut, Null0WasmColor* color00, Null0WasmColor* color01, Null0WasmColor* color10, Null0WasmColor* color11, float coordinateX, float coordinateY) {
-  pack_rgba(null0_color_bilinear_interpolate(unpack_rgba(*color00), unpack_rgba(*color01), unpack_rgba(*color10), unpack_rgba(*color11), coordinateX, coordinateY), colorOut);
+  color_from_pntr_to_wasm(null0_color_bilinear_interpolate(color_from_wasm_to_pntr(*color00), color_from_wasm_to_pntr(*color01), color_from_wasm_to_pntr(*color10), color_from_wasm_to_pntr(*color11), coordinateX, coordinateY), colorOut);
 }
 
 // TODO: generate this

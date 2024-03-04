@@ -1,4 +1,4 @@
-This combines ideas from [pntr_app_starter](https://github.com/RobLoach/pntr_app_starter) with [wamr](https://github.com/bytecodealliance/wasm-micro-runtime) to make null0 game-engine (native & libretro core.)
+This combines ideas from [pntr_app_starter](https://github.com/RobLoach/pntr_app_starter) with [wamr](https://github.com/bytecodealliance/wasm-micro-runtime) to make null0 game-engine (native runtime & libretro core.)
 
 ## building
 
@@ -57,23 +57,29 @@ cmake --build build
 
 ## todo
 
+### immediate
+
 - merge web into native as "runtime" and put lots of emscripten checks in a single entry-point
 - move null0_api to null0_core
-- add TTS libs & API functions
-- auto-generate more code from api defs
-- generate headers for other cart-lannguages (not just C)
 - test everything, maybe a full battery of wasm-side tests (every single function)
+- auto-generate more code from api defs
+- generate headers for other cart-languages (not just C)
 - update website with docs generated from the api defs
 
-### demos
-
-These demos need to be fixed up (pulled from old code)
+#### carts
 
 - filesystem is referencing removed `file_embed`, and needs some testing
 - hello is not doing `measure_text` right (probly needs wamr def fixed, see `color_`)
 - input needs event-handlers setup
 - sound segfaults
 
+
+### longterm
+
+- add TTS libs & API functions
+- setup a ESP32 host
+- AI? would be cool to embed llama, with a flag (disabled by default)
+- Networking? would be cool to at least do basic HTTP, with a flag (disabled by default)
 
 
 ## thanks
