@@ -39,21 +39,23 @@ pntr_color color_from_wasm_to_pntr(Null0WasmColor c) {
 
 // translate outgoing vector/dimensions value over wasm
 void vector_from_pntr_to_wasm(pntr_vector v, pntr_vector* vOut) {
-  vOut->x = v.x;
-  vOut->y = v.y;
+  memcpy(vOut, &v, sizeof(pntr_vector));
 }
 
 // translate outgoing rect value over wasm
 void rect_from_pntr_to_wasm(pntr_rect r, pntr_rect* rOut) {
-  rOut->x = r.x;
-  rOut->y = r.y;
-  rOut->h = r.h;
-  rOut->w = r.w;
+  memcpy(rOut, &r, sizeof(pntr_rect));
 }
 
-// TODO: translate outgoing FileInfo value over wasm 
-// TODO: translate outgoing SfxParams value over wasm 
+// translate outgoing FileInfo value over wasm
+void fileinfo_from_physfs_to_wasm(FileInfo f, FileInfo* fOut) {
+  memcpy(fOut, &f, sizeof(FileInfo));
+}
 
+// translate outgoing SfxParams value over wasm 
+void params_from_sfx_to_wasm(SfxParams s, SfxParams* sOut) {
+  memcpy(sOut, &s, sizeof(SfxParams));
+}
 
 // | GENERATED |
 
