@@ -12,6 +12,8 @@
 
 char** null0_file_list_array;
 
+char* null0_writable_dir;
+
 // intialize filesystem
 bool null0_init_filesystem(char* cart) {
   if (!PHYSFS_init("null0")) {
@@ -28,7 +30,7 @@ bool null0_init_filesystem(char* cart) {
   char pathname[134];
   snprintf(pathname, 134, "null0-%s", cartName);
 
-  const char* writeDir = PHYSFS_getPrefDir("null0", pathname);
+  null0_writable_dir = PHYSFS_getPrefDir("null0", pathname);
 
   if (!PHYSFS_mount(cart, NULL, 1)) {
     PHYSFS_deinit();
@@ -36,14 +38,14 @@ bool null0_init_filesystem(char* cart) {
     return false;
   }
 
-  // put writeDir at end of search-path (so user can overwrite any files)
-  if (!PHYSFS_mount(writeDir, NULL, 1)) {
+  // put null0_writable_dir at end of search-path (so user can overwrite any files)
+  if (!PHYSFS_mount(null0_writable_dir, NULL, 1)) {
     PHYSFS_deinit();
     printf("Could not mount write-dir.\n");
     return false;
   }
 
-  if (!PHYSFS_setWriteDir(writeDir)) {
+  if (!PHYSFS_setWriteDir(null0_writable_dir)) {
     PHYSFS_deinit();
     printf("Could not set write-dir.\n");
     return false;
@@ -103,4 +105,9 @@ bool null0_file_append(char* filename, unsigned char* data, uint32_t byteSize) {
 char** null0_file_list(char* dir) {
   null0_file_list_array = PHYSFS_enumerateFiles(dir);
   return null0_file_list_array;
+}
+
+// Get the user's writable dir (where file writes or appends go)
+char* null0_get_write_dir() {
+  return null0_writable_dir;
 }

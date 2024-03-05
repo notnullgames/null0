@@ -330,7 +330,7 @@ Color RAYWHITE = (Color){.r = 245, .g = 245, .b = 245, .a = 255};
 
 // max-size for trace messages
 #ifndef NULL0_TRACE_SIZE
-#define NULL0_TRACE_SIZE 1024 * 1024 * 1024
+#define NULL0_TRACE_SIZE 1024 * 1024
 #endif
 
 NULL0_IMPORT("trace")
@@ -786,6 +786,10 @@ FileInfo file_info(char* filename);
 // Get list of files in a directory
 NULL0_IMPORT("file_list")
 char** file_list(char* dir);
+
+// Get the user's writable dir (where file writes or appends go)
+NULL0_IMPORT("get_write_dir")
+char* get_write_dir();
 
 /////////// COLORS ///////////
 

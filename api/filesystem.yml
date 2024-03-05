@@ -3,7 +3,7 @@ file_read:
     filename: string
     bytesRead: u32*
   returns: bytes
-  description: Read a file from cart
+  description: Read a file from cart (or local persistant)
 
 file_write:
   args:
@@ -33,3 +33,7 @@ file_list:
   returns: string*
   description: Get list of files in a directory
 
+get_write_dir:
+  returns: string
+  args: {}
+  description: Get the user's writable dir (where file writes or appends go)

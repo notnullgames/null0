@@ -4,6 +4,13 @@
 
 import { getAPI, codeTemplate } from './shared.js'
 
+// functions with manual implementations
+// eventually I could automate
+const blocklist = [
+  'file_read',
+  'get_write_dir'
+]
+
 // maps args to WAMR callback input arg-types
 const getArgType = a => {
   switch (a) {
@@ -95,6 +102,8 @@ function generateWamrWrapper (name, description, returns, args) {
       r = 'uint32_t'
     } else if (returns === 'i32') {
       r = 'int32_t'
+    } else if (returns === 'string') {
+      r = 'char*'
     } else if (returns === 'string*') {
       r = 'char**'
     } else if (returns === 'bytes') {
@@ -191,6 +200,8 @@ function generateWasmSig (name, returns, args) {
     asa.unshift('*')
   } else if (['bytes', 'string*'].includes(returns)) {
     r = '*'
+  } else if (['string'].includes(returns)) {
+    r = 'i'
   } else {
     console.log(`Unhandled sig return: ${returns}`)
   }
@@ -199,7 +210,10 @@ function generateWasmSig (name, returns, args) {
 }
 
 const functions = []
-const wasmsigs = []
+const wasmsigs = [
+  '{"file_read", wamr_null0_file_read, "($*)i"}',
+  '{"get_write_dir", wamr_null0_get_write_dir, "()i"}'
+]
 
 const a = await getAPI()
 for (const apiName of Object.keys(a)) {
@@ -207,6 +221,9 @@ for (const apiName of Object.keys(a)) {
   functions.push('')
   functions.push(`// ${apiName.toUpperCase()}`)
   for (const name of Object.keys(api)) {
+    if (blocklist.includes(name)) {
+      continue
+    }
     functions.push(generateWamrWrapper(name, api[name].description, api[name].returns, api[name].args))
     wasmsigs.push(generateWasmSig(name, api[name].returns, api[name].args))
   }
