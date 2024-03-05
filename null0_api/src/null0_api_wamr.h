@@ -35,6 +35,12 @@ pntr_color color_from_wasm_to_pntr(Null0WasmColor c) {
   return pntr_new_color(c.r, c.g, c.b, c.a);
 }
 
+// util to help with vector
+void vector_from_pntr_to_wasm(pntr_vector v, pntr_vector* vOut) {
+  vOut->x = v.x;
+  vOut->y = v.y;
+}
+
 // UTILITIES
 
 // Log a string
@@ -329,13 +335,13 @@ static uint32_t wamr_null0_load_font_bmf_from_image(wasm_exec_env_t exec_env, ui
 }
 
 // Measure the size of some text
-static pntr_vector wamr_null0_measure_text(wasm_exec_env_t exec_env, uint32_t font, char* text) {
-  return null0_measure_text(font, text);
+static void wamr_null0_measure_text(wasm_exec_env_t exec_env, pntr_vector* vecOut, uint32_t font, char* text) {
+  vector_from_pntr_to_wasm(null0_measure_text(font, text), vecOut);
 }
 
 // Meaure an image (use 0 for screen)
-static pntr_vector wamr_null0_measure_image(wasm_exec_env_t exec_env, uint32_t image) {
-  return null0_measure_image(image);
+static void wamr_null0_measure_image(wasm_exec_env_t exec_env, pntr_vector* vecOut, uint32_t image) {
+  vector_from_pntr_to_wasm(null0_measure_image(image), vecOut);
 }
 
 // Load a TTY font from a file in cart
