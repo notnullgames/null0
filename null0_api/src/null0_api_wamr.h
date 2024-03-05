@@ -24,6 +24,7 @@ typedef struct {
   uint8_t a;
 } Null0WasmColor;
 
+// translate outgoing color value over wasm
 void color_from_pntr_to_wasm(pntr_color c, Null0WasmColor* colorOut) {
   colorOut->r = c.rgba.r;
   colorOut->g = c.rgba.g;
@@ -31,15 +32,31 @@ void color_from_pntr_to_wasm(pntr_color c, Null0WasmColor* colorOut) {
   colorOut->a = c.rgba.a;
 }
 
+// translate incoming color value over wasm
 pntr_color color_from_wasm_to_pntr(Null0WasmColor c) {
   return pntr_new_color(c.r, c.g, c.b, c.a);
 }
 
-// util to help with vector
+// translate outgoing vector/dimensions value over wasm
 void vector_from_pntr_to_wasm(pntr_vector v, pntr_vector* vOut) {
   vOut->x = v.x;
   vOut->y = v.y;
 }
+
+// translate outgoing rect value over wasm
+void rect_from_pntr_to_wasm(pntr_rect r, pntr_rect* rOut) {
+  rOut->x = r.x;
+  rOut->y = r.y;
+  rOut->h = r.h;
+  rOut->w = r.w;
+}
+
+// TODO: translate outgoing FileInfo value over wasm 
+// TODO: translate outgoing SfxParams value over wasm 
+
+
+// | GENERATED |
+
 
 // UTILITIES
 
@@ -747,6 +764,7 @@ static NativeSymbol null0_native_symbols[] = {
   {"color_bilinear_interpolate", wamr_null0_color_bilinear_interpolate, "(*****ff)"}    
 };
 
+// | END GENERATED |
 
 RuntimeInitArgs null0_init_args() {
   RuntimeInitArgs init_args;
