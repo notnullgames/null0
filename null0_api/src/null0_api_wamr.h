@@ -57,10 +57,6 @@ void params_from_sfx_to_wasm(SfxParams s, SfxParams* sOut) {
   memcpy(sOut, &s, sizeof(SfxParams));
 }
 
-
-
-
-
 // | GENERATED |
 
 
@@ -781,10 +777,6 @@ static NativeSymbol null0_wamr_callbacks[] = {
 };
 
 // | END GENERATED |
-
-
-
-
 
 RuntimeInitArgs null0_init_args() {
   RuntimeInitArgs init_args;

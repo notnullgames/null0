@@ -13,13 +13,11 @@ export async function getAPI () {
 }
 
 export async function codeTemplate (filename, code, write) {
-  const rCode = `
-// | GENERATED |
+  const rCode = `// | GENERATED |
 
 ${code}
 
-// | END GENERATED |
-`
+// | END GENERATED |`
   const newCode = (await readFile(filename, 'utf8')).replace(/\/\/ \| GENERATED \|[\s\S]*\/\/ \| END GENERATED \|/gm, rCode)
   if (write) {
     await writeFile(filename, newCode)

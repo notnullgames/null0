@@ -210,8 +210,10 @@ for (const apiName of Object.keys(a)) {
   }
 }
 
-await codeTemplate('null0_api/src/null0_api_wamr.h', `${functions.join('\n\n')}
+const code = `${functions.join('\n\n')}
 
 static NativeSymbol null0_wamr_callbacks[] = {
   ${wasmsigs.join(',\n  ')}
-};`, true)
+};`
+
+await codeTemplate('null0_api/src/null0_api_wamr.h', code, true)
