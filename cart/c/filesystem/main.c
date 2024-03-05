@@ -14,8 +14,10 @@ int main() {
   u32 bytesRead = 0;
   char* bytes = file_read("assets/cyber.txt", &bytesRead);
   trace("%u bytes read", bytesRead);
+  trace("cyber: %s", bytes);
 
-  trace("Bytes: %s", bytes);
+  bool ok = file_write("out.txt", "THIS IS A TEST.", 16);
+  trace("write: %s", ok ? "good" : "no");
 
   return 0;
 }
