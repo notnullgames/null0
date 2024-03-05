@@ -283,19 +283,19 @@ typedef enum SfxWaveType {
 } SfxWaveType;
 
 typedef enum FileType {
-  FILETYPE_REGULAR, /**< a normal file */
+  FILETYPE_REGULAR,   /**< a normal file */
   FILETYPE_DIRECTORY, /**< a directory */
-  FILETYPE_SYMLINK, /**< a symlink */
-  FILETYPE_OTHER /**< something completely different like a device */
+  FILETYPE_SYMLINK,   /**< a symlink */
+  FILETYPE_OTHER      /**< something completely different like a device */
 } FileType;
 
 typedef struct FileInfo {
-  i64 filesize; /**< size in bytes, -1 for non-files and unknown */
-  i64 modtime;  /**< last modification time */
-  i64 createtime; /**< like modtime, but for file creation time */
-  i64 accesstime; /**< like modtime, but for file access time */
+  i64 filesize;      /**< size in bytes, -1 for non-files and unknown */
+  i64 modtime;       /**< last modification time */
+  i64 createtime;    /**< like modtime, but for file creation time */
+  i64 accesstime;    /**< like modtime, but for file access time */
   FileType filetype; /**< File? Directory? Symlink? */
-  bool readonly; /**< non-zero if read only, zero if writable. */
+  bool readonly;     /**< non-zero if read only, zero if writable. */
 } FileInfo;
 
 #define WIDTH 320
@@ -330,7 +330,7 @@ Color RAYWHITE = (Color){.r = 245, .g = 245, .b = 245, .a = 255};
 
 // max-size for trace messages
 #ifndef NULL0_TRACE_SIZE
-#define NULL0_TRACE_SIZE 1024
+#define NULL0_TRACE_SIZE 1024 * 1024 * 1024
 #endif
 
 NULL0_IMPORT("trace")
@@ -783,11 +783,9 @@ bool file_append(char* filename, u8* data, u32 byteSize);
 NULL0_IMPORT("file_info")
 FileInfo file_info(char* filename);
 
-
 // Get list of files in a directory
 NULL0_IMPORT("file_list")
 char** file_list(char* dir);
-
 
 /////////// COLORS ///////////
 
