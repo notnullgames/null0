@@ -131,8 +131,8 @@ uint32_t null0_load_image(char* fileName) {
 }
 
 // Resize an image, in-place
-void null0_image_resize(uint32_t image, int32_t newWidth, int32_t newHeight, int32_t offsetX, int32_t offsetY, uint32_t fill) {
-  pntr_image_resize_canvas(null0_images[image], newWidth, newHeight, offsetX, offsetY, (pntr_color)fill);
+void null0_image_resize(uint32_t image, int32_t newWidth, int32_t newHeight, int32_t offsetX, int32_t offsetY, pntr_color fill) {
+  pntr_image_resize_canvas(null0_images[image], newWidth, newHeight, offsetX, offsetY, fill);
 }
 
 // Scale an image, in-place

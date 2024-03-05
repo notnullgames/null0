@@ -129,16 +129,15 @@ void null0_mutate_sfx(SfxParams* params, float range, uint32_t mask) {
 }
 
 // Create a new sound-effect from a .rfx file
-uint32_t null0_load_sfx(char* filename) {
+SfxParams null0_load_sfx(char* filename) {
   size_t s = sizeof(SfxParams);
   SfxParams* params = malloc(s);
   uint32_t bytesRead = 0;
   unsigned char* bytes = null0_file_read(filename, &bytesRead);
-  if (s != bytesRead) {
-    return 0;
+  if (s == bytesRead) {
+    memcpy(params, bytes, s);
+    return *params;
   }
-  memcpy(params, bytes, s);
-  return null0_new_sfx(params);
 }
 
 // Unload a sound

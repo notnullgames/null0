@@ -23,7 +23,8 @@ const getArgType = a => {
     case 'Color': return 'Null0WasmColor*'
     case 'SfxParams': return 'SfxParams*'
     case 'SfxParams*': return 'SfxParams*'
-    case 'Vector*': return 'Vector*'
+    case 'Vector': return 'pntr_vector*'
+    case 'Vector*': return 'pntr_vector*'
     case 'bytes': return 'unsigned char*'
     default:
       console.log(`Unhandled arg-type: ${a}`)
@@ -79,7 +80,7 @@ function generateWamrWrapper (name, description, returns, args) {
   // TODO: this will be wrapped with utils
   const argCallNames = Object.values(args).map((t, i) => {
     if (t === 'Color') {
-      return `color_from_wasm_to_pntr(${argNames[i]})`
+      return `color_from_wasm_to_pntr(*${argNames[i]})`
     }
     return argNames[i]
   })
@@ -117,7 +118,7 @@ function generateWamrWrapper (name, description, returns, args) {
     } else if (returns === 'Rectangle') {
       r = 'void'
       argNames.unshift('outRectangleValue')
-      argTypes.unshift('pntr_rect*')
+      argTypes.unshift('pntr_rectangle*')
       wrapRet = ['rect_from_pntr_to_wasm', 'outRectangleValue']
     } else if (['Vector', 'Dimensions'].includes(returns)) {
       r = 'void'
@@ -209,8 +210,8 @@ for (const apiName of Object.keys(a)) {
   }
 }
 
-console.log(await codeTemplate('null0_api/src/null0_api_wamr.h', `${functions.join('\n\n')}
+await codeTemplate('null0_api/src/null0_api_wamr.h', `${functions.join('\n\n')}
 
-static NativeSymbol null0_native_symbols[] = {
+static NativeSymbol null0_wamr_callbacks[] = {
   ${wasmsigs.join(',\n  ')}
-};`))
+};`, true)
