@@ -68,8 +68,7 @@ cmake --build build
 
 #### carts
 
-- filesystem is referencing removed `file_embed`, and needs some testing
-- hello is not doing `measure_text` right (probly needs wamr def fixed, see `color_`)
+- filesystem functions are not really working
 - input needs event-handlers setup
 - sound segfaults
 

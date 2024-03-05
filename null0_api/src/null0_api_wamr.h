@@ -596,7 +596,7 @@ static void wamr_null0_draw_rectangle_rounded_outline_on_image(wasm_exec_env_t e
 
 // Read a file from cart
 static char* wamr_null0_file_read(wasm_exec_env_t exec_env, char* filename, uint32_t* bytesRead) {
-  return null0_file_read(filename, bytesRead);
+  printf("file_read: %s\n", filename);
 }
 
 // Write a file to persistant storage

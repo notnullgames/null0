@@ -12,16 +12,6 @@ int main() {
   bytes1[bytesRead1] = 0;
   trace("cyber.txt (%d):\n%s", bytesRead1, (char*)bytes1);
 
-  // here is an embedded-file, also no special permissions
-  u32 bytesRead2;
-  bool ok = file_embed("hello.txt", (unsigned char *) &data, byteSize);
-  u8* bytes2 = file_read("hello.txt", &bytesRead2);
-  if (ok) {
-    trace("hello.txt (%d):\n%s", bytesRead2, (char*)bytes2);
-  } else {
-    trace("hello.txt not embedded.");
-  }
-
   // these require file_write permission in cart.yml
   u32 bytesRead3;
   bool ok2 = file_write("write/testwrite.txt", (unsigned char *) &data, byteSize);

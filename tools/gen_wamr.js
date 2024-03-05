@@ -1,5 +1,7 @@
 // this will generate null0_api/src/null0_api_wamr.h
 
+// TODO: fix file_read
+
 import { getAPI, codeTemplate } from './shared.js'
 
 // maps args to WAMR callback input arg-types

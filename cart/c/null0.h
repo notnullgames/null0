@@ -282,6 +282,22 @@ typedef enum SfxWaveType {
   SFX_PINK_NOISE
 } SfxWaveType;
 
+typedef enum FileType {
+  FILETYPE_REGULAR, /**< a normal file */
+  FILETYPE_DIRECTORY, /**< a directory */
+  FILETYPE_SYMLINK, /**< a symlink */
+  FILETYPE_OTHER /**< something completely different like a device */
+} FileType;
+
+typedef struct FileInfo {
+  i64 filesize; /**< size in bytes, -1 for non-files and unknown */
+  i64 modtime;  /**< last modification time */
+  i64 createtime; /**< like modtime, but for file creation time */
+  i64 accesstime; /**< like modtime, but for file access time */
+  FileType filetype; /**< File? Directory? Symlink? */
+  bool readonly; /**< non-zero if read only, zero if writable. */
+} FileInfo;
+
 #define WIDTH 320
 #define HEIGHT 240
 
@@ -330,6 +346,8 @@ void trace(const char* format, ...) {
   va_end(args);
   _null0_trace_real(null0_traceBuffer);
 }
+
+// | GENERATED |
 
 /////////// UTILITIES ///////////
 
@@ -757,9 +775,19 @@ u8* file_read(char* filename, u32* bytesRead);
 NULL0_IMPORT("file_write")
 bool file_write(char* filename, u8* data, u32 byteSize);
 
-// Embed memory as a file
-NULL0_IMPORT("file_embed")
-bool file_embed(char* filename, u8* data, u32 byteSize);
+// Write a file to persistant storage, appending to the end
+NULL0_IMPORT("file_append")
+bool file_append(char* filename, u8* data, u32 byteSize);
+
+// Get info about a single file
+NULL0_IMPORT("file_info")
+FileInfo file_info(char* filename);
+
+
+// Get list of files in a directory
+NULL0_IMPORT("file_list")
+char** file_list(char* dir);
+
 
 /////////// COLORS ///////////
 
@@ -790,3 +818,5 @@ Color color_contrast(Color color, f32 contrast);
 // Interpolate colors
 NULL0_IMPORT("color_bilinear_interpolate")
 Color color_bilinear_interpolate(Color color00, Color color01, Color color10, Color color11, f32 coordinateX, f32 coordinateY);
+
+// | END GENERATED |
