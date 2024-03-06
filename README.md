@@ -68,8 +68,6 @@ cmake --build build
 
 #### carts
 
-- filesystem functions are not really working
-- input needs event-handlers setup
 - sound segfaults
 
 
@@ -81,6 +79,7 @@ cmake --build build
 - AI? would be cool to embed llama, with a flag (disabled by default)
 - Networking? would be cool to at least do basic HTTP, with a flag (disabled by default)
 - standalone DLL for iwasm
+- add complete WASI support to hosts (instead of my IO wrappers, etc)
 
 
 ## thanks

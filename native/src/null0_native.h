@@ -15,7 +15,7 @@ bool null0_native_init(char* filename) {
 }
 
 void null0_native_event(pntr_app_event* event) {
-  // TODO: setup WAMR event
+  null0_event_wamr(event);
 }
 
 bool null0_native_update(pntr_app* app, pntr_image* screen) {

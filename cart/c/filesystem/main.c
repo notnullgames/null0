@@ -20,7 +20,7 @@ int main() {
 
   // write files, and tell the user where their files went
   bool ok = file_write("out.txt", "THIS IS A TEST.", 16);
-  trace("write file to %s: %s", get_write_dir(), ok ? "good" : "no");
+  trace("write file to %s: %s", get_write_dir(), ok ? "yes" : "no");
 
   return 0;
 }

@@ -114,9 +114,9 @@ void null0_preset_sfx(SfxParams* params, SfxPresetType type) {
     case SFX_HURT:
       return sfx_genHitHurt(params);
     case SFX_JUMP:
-      sfx_genJump(params);
+      return sfx_genJump(params);
     case SFX_SELECT:
-      sfx_genBlipSelect(params);
+      return sfx_genBlipSelect(params);
   }
 }
 

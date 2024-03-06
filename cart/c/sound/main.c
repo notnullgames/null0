@@ -5,6 +5,8 @@ u32 sfx;
 u32 apache;
 SfxParams* params;
 
+// TODO: sfx seem broke
+
 int main() {
   trace("Hello from sound.");
 
@@ -12,14 +14,13 @@ int main() {
   play_sound(apache, true);
 
   audioLogo = load_sound("assets/notnullgames.ogg");
-  
-  params = malloc(sizeof(SfxParams));
-  preset_sfx(params, SFX_POWERUP);
-  sfx = new_sfx(params);
+
+  // params = malloc(sizeof(SfxParams));
+  // preset_sfx(params, SFX_POWERUP);
+  // sfx = new_sfx(params);
 
   return 0;
 }
-
 
 NULL0_EXPORT("update")
 void update() {
@@ -35,22 +36,22 @@ void buttonDown(GamepadButton button) {
   if (button == GAMEPAD_BUTTON_A) {
     play_sound(audioLogo, false);
   }
-  if (button == GAMEPAD_BUTTON_B) {
-    unload_sound(sfx);
-    preset_sfx(params, SFX_POWERUP);
-    sfx = new_sfx(params);
-    play_sound(sfx, false);
-  }
-  if (button == GAMEPAD_BUTTON_X) {
-    unload_sound(sfx);
-    preset_sfx(params, SFX_COIN);
-    sfx = new_sfx(params);
-    play_sound(sfx, false);
-  }
-  if (button == GAMEPAD_BUTTON_Y) {
-    unload_sound(sfx);
-    preset_sfx(params, SFX_HURT);
-    sfx = new_sfx(params);
-    play_sound(sfx, false);
-  }
+  // if (button == GAMEPAD_BUTTON_B) {
+  //   unload_sound(sfx);
+  //   preset_sfx(params, SFX_POWERUP);
+  //   sfx = new_sfx(params);
+  //   play_sound(sfx, false);
+  // }
+  // if (button == GAMEPAD_BUTTON_X) {
+  //   unload_sound(sfx);
+  //   preset_sfx(params, SFX_COIN);
+  //   sfx = new_sfx(params);
+  //   play_sound(sfx, false);
+  // }
+  // if (button == GAMEPAD_BUTTON_Y) {
+  //   unload_sound(sfx);
+  //   preset_sfx(params, SFX_HURT);
+  //   sfx = new_sfx(params);
+  //   play_sound(sfx, false);
+  // }
 }
