@@ -2,7 +2,6 @@
 
 #define PNTR_IMPLEMENTATION
 #define PNTR_APP_IMPLEMENTATION
-#define PNTR_PIXELFORMAT_ARGB
 
 #include "pntr_app.h"
 

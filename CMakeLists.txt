@@ -18,8 +18,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake")
 # These options will change what is built, and what libraries are used
 
 option(LIBRETRO "Build Null0 libretro Host" FALSE)
-option(SDL "Use SDL in hosts (Choose SDL or RAYLIB)" TRUE)
-option(RAYLIB "Use Raylib in hosts (Choose SDL or RAYLIB)" FALSE)
+option(SDL "Use SDL in hosts (Choose SDL or RAYLIB)" FALSE)
+option(RAYLIB "Use Raylib in hosts (Choose SDL or RAYLIB)" TRUE)
 option(CARTS "Build Demo Null0 Carts" TRUE)
 option(TESTS "Unit tests" TRUE)
 
@@ -42,17 +42,6 @@ endif()
 
 if (LIBRETRO)
   set(PNTR_APP_LIBRETRO ON)
-endif()
-
-if (SDL)
-  find_package(SDL2 REQUIRED)
-  include_directories(${SDL2_INCLUDE_DIRS})
-  add_definitions(-DPNTR_APP_SDL)
-endif()
-
-if (RAYLIB)
-  find_package(raylib REQUIRED)
-  add_definitions(-DPNTR_APP_RAYLIB)
 endif()
 
 # wamr is used in libretro & native runtimes
@@ -84,6 +73,59 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/null0_api/src)
 
 # core API will be built with any runtime
 if (EMSCRIPTEN OR LIBRETRO OR NATIVE OR TESTS)
+  if (SDL)
+    
+    # SDL
+    set(SDL_SHARED FALSE)
+    set(SDL2_SHARED FALSE)
+    set(SDL_STATIC TRUE)
+    set(SDL_TEST FALSE)
+    set(SDL_TESTS FALSE)
+    set(INTERFACE_SDL2_SHARED false)
+    set(SDL2_DISABLE_UNINSTALL TRUE)
+    set(SDL2_DISABLE_INSTALL TRUE)
+    set(SDL_INSTALL_TESTS FALSE)
+    set(SDL2_LIBRARIES SDL2::SDL2-static)
+    #set(SDL2_LIBRARIES SDL2::SDL2 SDL2::SDL2main)
+
+    # SDL_mixer
+    set(SDL2MIXER_VORBIS STB)
+    set(SDL2MIXER_INSTALL OFF)
+    set(SDL2MIXER_DEPS_SHARED OFF)
+    set(SDL2MIXER_VENDORED OFF)
+    set(SDL2MIXER_SAMPLES OFF)
+    set(SDL2MIXER_CMD OFF)
+    set(SDL2MIXER_FLAC OFF)
+    set(SDL2MIXER_MOD OFF)
+    set(SDL2MIXER_MP3 OFF)
+    set(SDL2MIXER_MIDI_NATIVE OFF)
+    set(SDL2MIXER_OPUS OFF)
+    set(SDL2MIXER_OPUS_SHARED OFF)
+    set(SDL2MIXER_MIDI_FLUIDSYNTH OFF)
+    set(SDL2MIXER_MP3_MPG123 OFF)
+    set(SDL2MIXER_MP3_DRMP3 OFF)
+    set(SDL2MIXER_MOD_XMP OFF)
+    set(SDL2MIXER_MOD_MODPLUG OFF)
+    set(SDL2MIXER_FLAC_DRFLAC OFF)
+    set(SDL2MIXER_FLAC_LIBFLAC OFF)
+    set(SDL2MIXER_VORBIS_VORBISFILE OFF)
+    set(SDL2MIXER_SAMPLES_INSTALL OFF)
+    set(SDL2MIXER_BUILD_SHARED_LIBS OFF)
+    set(SDL2_LIBRARIES ${SDL2_LIBRARIES} SDL2_mixer::SDL2_mixer-static)
+    #set(SDL2_LIBRARIES ${SDL2_LIBRARIES} SDL2_mixer)
+
+    find_package(SDL2 REQUIRED)
+    find_package(SDL2_mixer REQUIRED)
+
+    add_definitions(-DPNTR_APP_SDL -DPNTR_PIXELFORMAT_ARGB)
+    include_directories(${SDL2_INCLUDE_DIR}/..)
+  endif()
+
+  if (RAYLIB)
+    find_package(raylib REQUIRED)
+    add_definitions(-DPNTR_APP_RAYLIB -DPNTR_PIXELFORMAT_RGBA)
+  endif()
+
   find_package(pntr REQUIRED)
   find_package(pntr_app REQUIRED)
   find_package(physfs REQUIRED)

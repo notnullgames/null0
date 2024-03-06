@@ -14,7 +14,6 @@ bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize);
 #define PNTR_LOAD_FILE null0_file_read
 #define PNTR_SAVE_FILE null0_file_write
 
-#define PNTR_PIXELFORMAT_ARGB
 #define PNTR_ENABLE_MATH
 #define PNTR_ENABLE_JPEG
 // #define PNTR_NO_STB_IMAGE_IMPLEMENTATION
