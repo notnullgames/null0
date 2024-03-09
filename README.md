@@ -68,7 +68,8 @@ cmake --build build
 
 #### carts
 
-- sound segfaults
+- sound initial sfx segfaults. it seems to work ok without calling it
+- rework flappybird assets. There are some [nice ones](https://flappybird.io/). [this](https://studio.code.org/flappy) has nice backgrounds. nice ideas [here](https://youtu.be/3IdOCxHGMIo?list=PLhQjrBD2T383Vx9-4vJYFsJbvZ_D17Qzh)
 
 
 ### longterm
@@ -80,7 +81,6 @@ cmake --build build
 - Networking? would be cool to at least do basic HTTP, with a flag (disabled by default)
 - standalone DLL for iwasm
 - add complete WASI support to hosts (instead of my IO wrappers, etc)
-
 
 ## thanks
 

@@ -18,7 +18,7 @@ int main() {
   params = malloc(sizeof(SfxParams));
   sfx = new_sfx(params);
 
-  // this segfaults, but all wokrs without it
+  // this segfaults, but all works without it
   // preset_sfx(params, SFX_POWERUP);
 
   return 0;
