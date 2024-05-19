@@ -179,11 +179,6 @@ static bool wamr_null0_gamepad_button_released(wasm_exec_env_t exec_env, int32_t
   return null0_gamepad_button_released(gamepad, button);
 }
 
-// Is the button currently up?
-static bool wamr_null0_gamepad_button_up(wasm_exec_env_t exec_env, int32_t gamepad, int32_t button) {
-  return null0_gamepad_button_up(gamepad, button);
-}
-
 // Get current position of mouse
 static void wamr_null0_mouse_position(wasm_exec_env_t exec_env, pntr_vector* outVectorValue) {
   vector_from_pntr_to_wasm(null0_mouse_position(), outVectorValue);
@@ -678,7 +673,6 @@ static NativeSymbol null0_wamr_callbacks[] = {
     {"gamepad_button_pressed", wamr_null0_gamepad_button_pressed, "(ii)i"},
     {"gamepad_button_down", wamr_null0_gamepad_button_down, "(ii)i"},
     {"gamepad_button_released", wamr_null0_gamepad_button_released, "(ii)i"},
-    {"gamepad_button_up", wamr_null0_gamepad_button_up, "(ii)i"},
     {"mouse_position", wamr_null0_mouse_position, "(*)"},
     {"mouse_button_pressed", wamr_null0_mouse_button_pressed, "(i)i"},
     {"mouse_button_down", wamr_null0_mouse_button_down, "(i)i"},
@@ -832,11 +826,11 @@ bool null0_init_wamr() {
 
   exec_env = wasm_runtime_create_exec_env(module_inst, stack_size);
 
-  cart_update = wasm_runtime_lookup_function(module_inst, "update", NULL);
-  cart_buttonUp = wasm_runtime_lookup_function(module_inst, "buttonUp", NULL);
-  cart_buttonDown = wasm_runtime_lookup_function(module_inst, "buttonDown", NULL);
-  cart_keyUp = wasm_runtime_lookup_function(module_inst, "keyUp", NULL);
-  cart_keyDown = wasm_runtime_lookup_function(module_inst, "keyDown", NULL);
+  cart_update = wasm_runtime_lookup_function(module_inst, "update");
+  cart_buttonUp = wasm_runtime_lookup_function(module_inst, "buttonUp");
+  cart_buttonDown = wasm_runtime_lookup_function(module_inst, "buttonDown");
+  cart_keyUp = wasm_runtime_lookup_function(module_inst, "keyUp");
+  cart_keyDown = wasm_runtime_lookup_function(module_inst, "keyDown");
 
   wasm_application_execute_main(module_inst, 0, NULL);
 

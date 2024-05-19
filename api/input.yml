@@ -43,13 +43,6 @@ gamepad_button_released:
   returns: bool
   description: Has the button been released? (tracks press/read correctly)
 
-gamepad_button_up:
-  args:
-    gamepad: i32
-    button: GamepadButton
-  returns: bool
-  description: Is the button currently up?
-
 mouse_position:
   args: {}
   returns: Vector

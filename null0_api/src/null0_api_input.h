@@ -37,11 +37,6 @@ bool null0_gamepad_button_released(int32_t gamepad, pntr_app_gamepad_button butt
   return pntr_app_gamepad_button_released(null0_app, gamepad, button);
 }
 
-// Is the button currently up?
-bool null0_gamepad_button_up(int32_t gamepad, pntr_app_gamepad_button button) {
-  return pntr_app_gamepad_button_up(null0_app, gamepad, button);
-}
-
 // Get current position of mouse
 pntr_vector null0_mouse_position() {
   pntr_vector r = {
