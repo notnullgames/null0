@@ -1,6 +1,6 @@
 // this is the entrypoint for native WAMR host
 
-#include "null0_native.h"
+#include "null0_api_wamr.h"
 
 // global that tracks the cart-name
 char* filename = NULL;
@@ -9,19 +9,27 @@ bool Init(pntr_app* app) {
   if (!filename) {
     return false;
   }
-  return null0_native_init(filename);
+
+  // setup main null0 runtime
+  if (!null0_init(filename)) {
+    return false;
+  }
+
+  // setup WAMR specific host using /main.wasm
+  return null0_init_wamr();
 }
 
 bool Update(pntr_app* app, pntr_image* screen) {
-  return null0_native_update(app, screen);
+  if (!null0_update(app, screen)) {
+    return false;
+  }
+  return null0_update_wamr();
 }
 
-void Close(pntr_app* app) {
-  null0_native_unload();
-}
+void Close(pntr_app* app) {}
 
 void Event(pntr_app* app, pntr_app_event* event) {
-  null0_native_event(event);
+  null0_event_wamr(event);
 }
 
 pntr_app Main(int argc, char* argv[]) {
