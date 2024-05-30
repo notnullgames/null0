@@ -1,6 +1,12 @@
 // this is the entrypoint for native WAMR host
 
+#ifndef EMSCRIPTEN
 #include "null0_api_wamr.h"
+#endif
+
+#ifdef EMSCRIPTEN
+#include "null0_api_web.h"
+#endif
 
 // global that tracks the cart-name
 char* filename = NULL;
@@ -15,21 +21,35 @@ bool Init(pntr_app* app) {
     return false;
   }
 
-  // setup WAMR specific host using /main.wasm
+#ifndef EMSCRIPTEN
   return null0_init_wamr();
+#endif
+#ifdef EMSCRIPTEN
+  return null0_init_web();
+#endif
 }
 
 bool Update(pntr_app* app, pntr_image* screen) {
   if (!null0_update(app, screen)) {
     return false;
   }
+#ifndef EMSCRIPTEN
   return null0_update_wamr();
+#endif
+#ifdef EMSCRIPTEN
+  return null0_update_web();
+#endif
 }
 
 void Close(pntr_app* app) {}
 
 void Event(pntr_app* app, pntr_app_event* event) {
+#ifndef EMSCRIPTEN
   null0_event_wamr(event);
+#endif
+#ifdef EMSCRIPTEN
+  null0_event_web(event);
+#endif
 }
 
 pntr_app Main(int argc, char* argv[]) {

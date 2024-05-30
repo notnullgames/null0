@@ -12,17 +12,25 @@ set(FETCHCONTENT_QUIET 0)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(BUILD_SHARED_LIBS OFF)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake")
 
 # These options will change what is built, and what libraries are used
 
-option(LIBRETRO "Build Null0 libretro Host" FALSE)
-option(SDL "Use SDL in hosts (Choose SDL or RAYLIB)" FALSE)
-option(RAYLIB "Use Raylib in hosts (Choose SDL or RAYLIB)" TRUE)
-option(CARTS "Build Demo Null0 Carts" TRUE)
-option(TESTS "Unit tests" TRUE)
+if(EMSCRIPTEN)
+  option(SDL "Use SDL in hosts (Choose SDL or RAYLIB)" TRUE)
+  option(RAYLIB "Use Raylib in hosts (Choose SDL or RAYLIB)" FALSE)
+  option(CARTS "Build Demo Null0 Carts" FALSE)
+else()
+  option(SDL "Use SDL in hosts (Choose SDL or RAYLIB)" FALSE)
+  option(RAYLIB "Use Raylib in hosts (Choose SDL or RAYLIB)" TRUE)
+  option(CARTS "Build Demo Null0 Carts" TRUE)
+endif()
 
+option(TESTS "Unit tests" FALSE)
+option(LIBRETRO "Build Null0 libretro Host" FALSE)
+option(HOST "Build Null0 Host" TRUE)
 
 # this is used to output options
 macro(message_bool _NAME _VALUE)
@@ -33,31 +41,19 @@ macro(message_bool _NAME _VALUE)
   endif()
 endmacro()
 
-# set some defaults for if this is running in emcmake or cmake
-if (EMSCRIPTEN)
-  option(NATIVE "Build Null0 NATIVE Host" FALSE)
-else()
-  option(NATIVE "Build Null0 NATIVE Host" TRUE)
-endif()
-
 if (LIBRETRO)
   set(PNTR_APP_LIBRETRO ON)
 endif()
 
 # wamr is used in libretro & native runtimes
-if (NATIVE OR LIBRETRO)
+if ((HOST OR LIBRETRO) AND NOT EMSCRIPTEN)
   find_package(wamr REQUIRED)
 endif()
 
 # check some invalid combos
 
-if(EMSCRIPTEN)
-  if (LIBRETRO)
-    message(FATAL_ERROR "Do not build libretro core in emscripten. It will not turn out right.")
-  endif()
-  if (NATIVE)
-    message(FATAL_ERROR "Do not build web runtime in emscripten. A web host will be built for you, if you disable NATIVE.")
-  endif()
+if(EMSCRIPTEN AND LIBRETRO)
+  message(FATAL_ERROR "Do not build libretro core in emscripten. It will not turn out right.")
 endif()
 
 if (NOT (SDL OR RAYLIB))
@@ -72,7 +68,7 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/null0_api/src)
 
 # core API will be built with any runtime
-if (EMSCRIPTEN OR LIBRETRO OR NATIVE OR TESTS)
+if (LIBRETRO OR HOST OR TESTS)
   if (SDL)
     
     # SDL
@@ -109,10 +105,9 @@ if (EMSCRIPTEN OR LIBRETRO OR NATIVE OR TESTS)
     set(SDL2MIXER_FLAC_DRFLAC OFF)
     set(SDL2MIXER_FLAC_LIBFLAC OFF)
     set(SDL2MIXER_VORBIS_VORBISFILE OFF)
+    set(SDL2MIXER_WAVPACK OFF)
     set(SDL2MIXER_SAMPLES_INSTALL OFF)
     set(SDL2MIXER_BUILD_SHARED_LIBS OFF)
-    set(SDL2_LIBRARIES ${SDL2_LIBRARIES} SDL2_mixer::SDL2_mixer-static)
-    #set(SDL2_LIBRARIES ${SDL2_LIBRARIES} SDL2_mixer)
 
     find_package(SDL2 REQUIRED)
     find_package(SDL2_mixer REQUIRED)
@@ -132,12 +127,8 @@ if (EMSCRIPTEN OR LIBRETRO OR NATIVE OR TESTS)
   add_subdirectory(null0_api)
 endif()
 
-if (EMSCRIPTEN)
-  add_subdirectory(web)
-endif()
-
-if (NATIVE)
-  add_subdirectory(native)
+if (HOST)
+  add_subdirectory(host)
 endif()
 
 if (CARTS)
@@ -150,8 +141,8 @@ endif()
 
 
 message(STATUS "Null0 will built with the following options:")
-message_bool("Web host" EMSCRIPTEN)
-message_bool("Native host" NATIVE)
+message_bool("Web host" HOST AND EMSCRIPTEN)
+message_bool("Native host" HOST AND (NOT EMSCRIPTEN))
 message_bool("Libretro host" LIBRETRO)
 message_bool("Example carts" CARTS)
 message_bool("Unit tests" TESTS)

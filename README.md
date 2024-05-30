@@ -11,6 +11,9 @@ cmake -B build
 # build runtime
 cmake --build build
 
+# run with cart
+./build/host/null0 ./build/cart/c/input.null0
+
 # configure for web
 emcmake cmake -B wbuild
 
@@ -24,8 +27,8 @@ These cmake-flags will effect the build:
 // Build Null0 libretro Host (don't do this in web-build)
 LIBRETRO:BOOL=OFF
 
-// Build Null0 NATIVE Host (don't do this in web-build)
-NATIVE:BOOL=ON
+// Build Null0 Host (web or native)
+HOST:BOOL=ON
 
 // Use SDL in hosts
 SDL:BOOL=ON
@@ -46,11 +49,11 @@ You can set them like this:
 # don't build demo carts, use defaults
 cmake -B build -DCARTS=0
 
-# don't buid anything but the carts (since LIBRETRO is off by default)
-cmake -B build -DNATIVE=0
+# don't buid anything but the carts (since LIBRETRO and TESTS is off by default)
+cmake -B build -DHOST=0
 
 # just build unit-tests
-cmake -B build -DNATIVE=0 -DTESTS=1 -DCARTS=0
+cmake -B build -DHOST=0 -DTESTS=1 -DCARTS=0
 cmake --build build
 ./build/test/test_colors
 ```
