@@ -1,365 +1,579 @@
-interface utilities {
-  // Log a string
-  trace: func(str: string) -> void;
+package notnull:null0@0.0.1;
 
-  // Get system-time (ms) since unix epoch
-  current-time: func() -> u64;
+interface types {
+  record vector2 {
+    x: s32,
+    y: s32,
+  }
 
-  // Get the change in time (seconds) since the last update run
-  delta-time: func() -> f32;
+  record rect {
+    x: s32,
+    y: s32,
+    w: u32,
+    h: u32,
+  }
 
-  // Get a random integer between 2 numbers
-  random-int: func(min: i32, max: i32) -> i32;
+  record color {
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8,
+  }
+
+  enum filtertype {
+    NEARESTNEIGHBOR,
+    BILINEAR,
+    SMOOTH,
+  }
+
+  record sfxparams {
+    randseed: u32,
+    wavetype: sfxwave,
+    attacktime: f32,
+    sustaintime: f32,
+    sustainpunch: f32,
+    decaytime: f32,
+    startfrequency: f32,
+    minfrequency: f32,
+    slide: f32,
+    deltaslide: f32,
+    vibratodepth: f32,
+    vibratospeed: f32,
+    changeamount: f32,
+    changespeed: f32,
+    squareduty: f32,
+    dutysweep: f32,
+    repeatspeed: f32,
+    phaseroffset: f32,
+    phasersweep: f32,
+    lpfcutoff: f32,
+    lpfcutoffsweep: f32,
+    lpfresonance: f32,
+    hpfcutoff: f32,
+    hpfcutoffsweep: f32,
+  }
+
+  enum sfxpreset {
+    COIN,
+    LASER,
+    EXPLOSION,
+    POWERUP,
+    HURT,
+    JUMP,
+    SELECT,
+  }
+
+  enum sfxwave {
+    SQUARE,
+    SAW,
+    SINE,
+    NOISE,
+    TRIANGLE,
+    PINK,
+  }
+
+  enum key {
+    INVALID,
+    SPACE,
+    APOSTROPHE,
+    COMMA,
+    MINUS,
+    PERIOD,
+    SLASH,
+    N0,
+    N1,
+    N2,
+    N3,
+    N4,
+    N5,
+    N6,
+    N7,
+    N8,
+    N9,
+    SEMICOLON,
+    EQUAL,
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+    J,
+    K,
+    L,
+    M,
+    N,
+    O,
+    P,
+    Q,
+    R,
+    S,
+    T,
+    U,
+    V,
+    W,
+    X,
+    Y,
+    Z,
+    LEFT-BRACKET,
+    BACKSLASH,
+    RIGHT-BRACKET,
+    GRAVE-ACCENT,
+    WORLD1,
+    WORLD2,
+    ESCAPE,
+    ENTER,
+    TAB,
+    BACKSPACE,
+    INSERT,
+    DELETE,
+    RIGHT,
+    LEFT,
+    DOWN,
+    UP,
+    PAGE-UP,
+    PAGE-DOWN,
+    HOME,
+    END,
+    CAPS-LOCK,
+    SCROLL-LOCK,
+    NUM-LOCK,
+    PRINT-SCREEN,
+    PAUSE,
+    F1,
+    F2,
+    F3,
+    F4,
+    F5,
+    F6,
+    F7,
+    F8,
+    F9,
+    F10,
+    F11,
+    F12,
+    F13,
+    F14,
+    F15,
+    F16,
+    F17,
+    F18,
+    F19,
+    F20,
+    F21,
+    F22,
+    F23,
+    F24,
+    F25,
+    KP-N0,
+    KP-N1,
+    KP-N2,
+    KP-N3,
+    KP-N4,
+    KP-N5,
+    KP-N6,
+    KP-N7,
+    KP-N8,
+    KP-N9,
+    KP-DECIMAL,
+    KP-DIVIDE,
+    KP-MULTIPLY,
+    KP-SUBTRACT,
+    KP-ADD,
+    KP-ENTER,
+    KP-EQUAL,
+    LEFT-SHIFT,
+    LEFT-CONTROL,
+    LEFT-ALT,
+    LEFT-SUPER,
+    RIGHT-SHIFT,
+    RIGHT-CONTROL,
+    RIGHT-ALT,
+    RIGHT-SUPER,
+    MENU,
+  }
+
+  enum mousebutton {
+    UNKNOWN,
+    LEFT,
+    RIGHT,
+    MIDDLE,
+  }
+
+  enum gamepadbutton {
+    UNKNOWN,
+    UP,
+    RIGHT,
+    DOWN,
+    LEFT,
+    Y,
+    B,
+    A,
+    X,
+    LEFTSHOULDER,
+    LEFTTRIGGER,
+    RIGHTSHOULDER,
+    RIGHTTRIGGER,
+    SELECT,
+    MENU,
+    START,
+    LEFTTHUMB,
+    RIGHTTHUMB,
+  }
 }
 
+
 interface sound {
+  use types.{sfxparams,sfxpreset};
+
   // Load a sound from a file in cart
-  load-sound: func(filename: string) -> Sound;
+  load-sound: func(filename: string) -> u32;
 
   // Play a sound
-  play-sound: func(sound: Sound, loop: bool) -> void;
+  play-sound: func(sound: u32, loop: bool);
 
   // Stop a sound
-  stop-sound: func(sound: Sound) -> void;
+  stop-sound: func(sound: u32);
 
   // Create a new sound-effect from some sfxr params
-  new-sfx: func(params: SfxParams*) -> Sound;
+  new-sfx: func(params: sfxparams) -> u32;
 
   // Generate randomized preset sfxr params
-  preset-sfx: func(params: SfxParams*, type: SfxPresetType) -> void;
-
-  // Randomize sfxr params
-  randomize-sfx: func(params: SfxParams*, waveType: SfxWaveType) -> void;
-
-  // Randomly mutate sfxr params
-  mutate-sfx: func(params: SfxParams*, range: f32, mask: u32) -> void;
+  preset-sfx: func(params: sfxparams, preset: sfxpreset);
 
   // Create a new sfxr from a .rfx file
-  load-sfx: func(filename: string) -> SfxParams;
+  load-sfx: func(filename: string) -> sfxparams;
 
   // Unload a sound
-  unload-sound: func(sound: Sound) -> void;
+  unload-sound: func(sound: u32);
 }
 
 interface input {
+  use types.{key,gamepadbutton,mousebutton,vector2};
+
   // Has the key been pressed? (tracks unpress/read correctly)
-  key-pressed: func(key: Key) -> bool;
+  key-pressed: func(key: key) -> bool;
 
   // Is the key currently down?
-  key-down: func(key: Key) -> bool;
+  key-down: func(key: key) -> bool;
 
   // Has the key been released? (tracks press/read correctly)
-  key-released: func(key: Key) -> bool;
+  key-released: func(key: key) -> bool;
 
   // Is the key currently up?
-  key-up: func(key: Key) -> bool;
+  key-up: func(key: key) -> bool;
 
   // Has the button been pressed? (tracks unpress/read correctly)
-  gamepad-button-pressed: func(gamepad: i32, button: GamepadButton) -> bool;
+  gamepad-button-pressed: func(gamepad: s32, button: gamepadbutton) -> bool;
 
   // Is the button currently down?
-  gamepad-button-down: func(gamepad: i32, button: GamepadButton) -> bool;
+  gamepad-button-down: func(gamepad: s32, button: gamepadbutton) -> bool;
 
   // Has the button been released? (tracks press/read correctly)
-  gamepad-button-released: func(gamepad: i32, button: GamepadButton) -> bool;
+  gamepad-button-released: func(gamepad: s32, button: gamepadbutton) -> bool;
 
   // Get current position of mouse
-  mouse-position: func() -> Vector;
+  mouse-position: func() -> vector2;
 
   // Has the button been pressed? (tracks unpress/read correctly)
-  mouse-button-pressed: func(button: MouseButton) -> bool;
+  mouse-button-pressed: func(button: mousebutton) -> bool;
 
   // Is the button currently down?
-  mouse-button-down: func(button: MouseButton) -> bool;
+  mouse-button-down: func(button: mousebutton) -> bool;
 
   // Has the button been released? (tracks press/read correctly)
-  mouse-button-released: func(button: MouseButton) -> bool;
+  mouse-button-released: func(button: mousebutton) -> bool;
 
   // Is the button currently up?
-  mouse-button-up: func(button: MouseButton) -> bool;
+  mouse-button-up: func(button: mousebutton) -> bool;
 }
 
 interface graphics {
+  use types.{color,vector2,rect,filtertype};
+
   // Create a new blank image
-  new-image: func(width: i32, height: i32, color: Color) -> Image;
+  new-image: func(width: s32, height: s32, color: color) -> u32;
 
   // Copy an image to a new image
-  image-copy: func(image: Image) -> Image;
+  image-copy: func(image: u32) -> u32;
 
   // Create an image from a region of another image
-  image-subimage: func(image: Image, x: i32, y: i32, width: i32, height: i32) -> Image;
+  image-subimage: func(image: u32, region: rect) -> u32;
 
   // Clear the screen
-  clear: func(color: Color) -> void;
+  clear: func(color: color);
 
   // Draw a single pixel on the screen
-  draw-point: func(x: i32, y: i32, color: Color) -> void;
+  point: func(x: s32, y: s32, color: color);
 
   // Draw a line on the screen
-  draw-line: func(startPosX: i32, startPosY: i32, endPosX: i32, endPosY: i32, color: Color) -> void;
+  line: func(start:vector2, end:vector2, color: color);
 
   // Draw a filled rectangle on the screen
-  draw-rectangle: func(posX: i32, posY: i32, width: i32, height: i32, color: Color) -> void;
+  rectangle: func(rect: rect, color: color);
 
   // Draw a filled triangle on the screen
-  draw-triangle: func(x1: i32, y1: i32, x2: i32, y2: i32, x3: i32, y3: i32, color: Color) -> void;
+  triangle: func(pt1: vector2, pt2: vector2, pt3: vector2, color: color);
 
   // Draw a filled ellipse on the screen
-  draw-ellipse: func(centerX: i32, centerY: i32, radiusX: i32, radiusY: i32, color: Color) -> void;
+  ellipse: func(center: vector2, radius: vector2, color: color);
 
   // Draw a filled circle on the screen
-  draw-circle: func(centerX: i32, centerY: i32, radius: i32, color: Color) -> void;
+  circle: func(center: vector2, radius: s32, color: color);
 
   // Draw a filled polygon on the screen
-  draw-polygon: func(points: Vector*, numPoints: i32, color: Color) -> void;
+  polygon: func(points: list<vector2>, color: color);
 
   // Draw several lines on the screen
-  draw-polyline: func(points: Vector*, numPoints: i32, color: Color) -> void;
+  polyline: func(points: list<vector2>, color: color);
 
   // Draw a filled arc on the screen
-  draw-arc: func(centerX: i32, centerY: i32, radius: f32, startAngle: f32, endAngle: f32, segments: i32, color: Color) -> void;
+  arc: func(center:vector2, radius: s32, startangle: f32, endangle: f32, segments: s32, color: color);
 
   // Draw a filled round-rectangle on the screen
-  draw-rectangle-rounded: func(x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, color: Color) -> void;
+  rectangle-rounded: func(rect: rect, radius: s32, color: color);
 
   // Draw an image on the screen
-  draw-image: func(src: Image, posX: i32, posY: i32) -> void;
+  draw-image: func(src: u32, pos: vector2);
 
   // Draw a tinted image on the screen
-  draw-image-tint: func(src: Image, posX: i32, posY: i32, tint: Color) -> void;
+  draw-image-tinted: func(src: u32, pos:vector2, tint: color);
 
   // Draw an image, rotated, on the screen
-  draw-image-rotated: func(src: Image, posX: i32, posY: i32, degrees: f32, offsetX: f32, offsetY: f32, filter: ImageFilter) -> void;
+  draw-image-rotated: func(src: u32, pos: vector2, degrees: f32, offset: vector2, filter: filtertype);
 
   // Draw an image, flipped, on the screen
-  draw-image-flipped: func(src: Image, posX: i32, posY: i32, flipHorizontal: bool, flipVertical: bool, flipDiagonal: bool) -> void;
+  draw-image-flipped: func(src: u32, pos: vector2, fliphorizontal: bool, flipvertical: bool, flipdiagonal: bool);
 
   // Draw an image, scaled, on the screen
-  draw-image-scaled: func(src: Image, posX: i32, posY: i32, scaleX: f32, scaleY: f32, offsetX: f32, offsetY: f32, filter: ImageFilter) -> void;
+  draw-image-scaled: func(src: u32, pos: vector2, scale: vector2, offset: vector2, filter: filtertype);
 
   // Draw some text on the screen
-  draw-text: func(font: Font, text: string, posX: i32, posY: i32, color: Color) -> void;
+  text: func(font: u32, text: string, pos: vector2, color: color);
 
   // Save an image to persistant storage
-  save-image: func(image: Image, filename: string) -> void;
+  save-image: func(image: u32, filename: string);
 
   // Load an image from a file in cart
-  load-image: func(filename: string) -> Image;
+  load-image: func(filename: string) -> u32;
 
   // Resize an image, in-place
-  image-resize: func(image: Image, newWidth: i32, newHeight: i32, offsetX: i32, offsetY: i32, fill: Color) -> void;
+  image-resize: func(image: u32, rect: rect, fill: color);
 
   // Scale an image, in-place
-  image-scale: func(image: Image, scaleX: f32, scaleY: f32, filter: ImageFilter) -> void;
+  image-scale: func(image: u32, scale: vector2, filter: filtertype);
 
   // Replace a color in an image, in-place
-  image-color-replace: func(image: Image, color: Color, replace: Color) -> void;
+  image-replace: func(image: u32, color: color, replace: color);
 
   // Tint a color in an image, in-place
-  image-color-tint: func(image: Image, color: Color) -> void;
+  image-tint: func(image: u32, color: color);
 
   // Fade a color in an image, in-place
-  image-color-fade: func(image: Image, alpha: f32) -> void;
+  image-fade: func(image: u32, alpha: f32);
 
   // Copy a font to a new font
-  font-copy: func(font: Font) -> Font;
+  font-copy: func(font: u32) -> u32;
 
   // Scale a font, return a new font
-  font-scale: func(font: Font, scaleX: f32, scaleY: f32, filter: ImageFilter) -> Font;
+  font-scale: func(font: u32, scale: vector2, filter: filtertype) -> u32;
 
   // Load a BMF font from a file in cart
-  load-font-bmf: func(filename: string, characters: string) -> Font;
+  load-font-bmf: func(filename: string, characters: string) -> u32;
 
   // Load a BMF font from an image
-  load-font-bmf-from-image: func(image: Image, characters: string) -> Font;
+  load-font-bmf-from-image: func(image: u32, characters: string) -> u32;
 
   // Measure the size of some text
-  measure-text: func(font: Font, text: string) -> Dimensions;
+  measure-text: func(font: u32, text: string) -> vector2;
 
-  // Meaure an image (use 0 for screen)
-  measure-image: func(image: Image) -> Dimensions;
+  // Measure an image (use 0 for screen)
+  measure-image: func(image: u32) -> vector2;
 
   // Load a TTY font from a file in cart
-  load-font-tty: func(filename: string, glyphWidth: i32, glyphHeight: i32, characters: string) -> Font;
+  load-font-tty: func(filename: string, glyphsize: vector2, characters: string) -> u32;
 
   // Load a TTY font from an image
-  load-font-tty-from-image: func(image: Image, glyphWidth: i32, glyphHeight: i32, characters: string) -> Font;
+  load-font-tty-from-image: func(image: u32, glyphsize: vector2, characters: string) -> u32;
 
   // Load a TTF font from a file in cart
-  load-font-ttf: func(filename: string, fontSize: i32) -> Font;
+  load-font-ttf: func(filename: string, fontsize: s32) -> u32;
 
   // Invert the colors in an image, in-place
-  image-color-invert: func(image: Image) -> void;
+  image-invert: func(image: u32);
 
   // Calculate a rectangle representing the available alpha border in an image
-  image-alpha-border: func(image: Image, threshold: f32) -> Rectangle;
+  image-alpha-border: func(image: u32, threshold: f32) -> rect;
 
   // Crop an image, in-place
-  image-crop: func(image: Image, x: i32, y: i32, width: i32, height: i32) -> void;
+  image-crop: func(image: u32, rect: rect);
 
   // Crop an image based on the alpha border, in-place
-  image-alpha-crop: func(image: Image, threshold: f32) -> void;
+  image-alpha-crop: func(image: u32, threshold: f32);
 
   // Adjust the brightness of an image, in-place
-  image-color-brightness: func(image: Image, factor: f32) -> void;
+  image-brightness: func(image: u32, factor: f32);
 
   // Flip an image, in-place
-  image-flip: func(image: Image, horizontal: bool, vertical: bool) -> void;
+  image-flip: func(image: u32, horizontal: bool, vertical: bool);
 
   // Change the contrast of an image, in-place
-  image-color-contrast: func(image: Image, contrast: f32) -> void;
+  image-contrast: func(image: u32, contrast: f32);
 
   // Use an image as an alpha-mask on another image
-  image-alpha-mask: func(image: Image, alphaMask: Image, posX: i32, posY: i32) -> void;
+  image-alpha-mask: func(image: u32, alphamask: u32, pos: vector2);
 
   // Create a new image, rotating another image
-  image-rotate: func(image: Image, degrees: f32, filter: ImageFilter) -> Image;
+  image-rotate: func(image: u32, degrees: f32, filter: filtertype) -> u32;
 
   // Create a new image of a gradient
-  image-gradient: func(width: i32, height: i32, topLeft: Color, topRight: Color, bottomLeft: Color, bottomRight: Color) -> Image;
+  image-gradient: func(size: vector2, topleft: color, topright: color, bottomleft: color, bottomright: color) -> u32;
 
   // Unload an image
-  unload-image: func(image: Image) -> void;
+  unload-image: func(image: u32);
 
   // Unload a font
-  unload-font: func(font: Font) -> void;
+  unload-font: func(font: u32);
 
   // Clear an image
-  clear-on-image: func(destination: Image, color: Color) -> void;
+  clear-on-image: func(destination: u32, color: color);
 
   // Draw a single pixel on an image
-  draw-point-on-image: func(destination: Image, x: i32, y: i32, color: Color) -> void;
+  point-on-image: func(destination: u32, x: s32, y: s32, color: color);
 
   // Draw a line on an image
-  draw-line-on-image: func(destination: Image, startPosX: i32, startPosY: i32, endPosX: i32, endPosY: i32, color: Color) -> void;
+  line-on-image: func(destination: u32, start: vector2, end: vector2, color: color);
 
   // Draw a filled rectangle on an image
-  draw-rectangle-on-image: func(destination: Image, posX: i32, posY: i32, width: i32, height: i32, color: Color) -> void;
+  rectangle-on-image: func(destination: u32, rect: rect, color: color);
 
   // Draw a filled triangle on an image
-  draw-triangle-on-image: func(destination: Image, x1: i32, y1: i32, x2: i32, y2: i32, x3: i32, y3: i32, color: Color) -> void;
+  triangle-on-image: func(destination: u32, pt1: vector2, pt2: vector2, pt3: vector2, color: color);
 
   // Draw a filled ellipse on an image
-  draw-ellipse-on-image: func(destination: Image, centerX: i32, centerY: i32, radiusX: i32, radiusY: i32, color: Color) -> void;
+  ellipse-on-image: func(destination: u32, center: vector2, radius: vector2, color: color);
 
   // Draw a circle on an image
-  draw-circle-on-image: func(destination: Image, centerX: i32, centerY: i32, radius: i32, color: Color) -> void;
+  circle-on-image: func(destination: u32, center: vector2, radius: s32, color: color);
 
   // Draw a filled polygon on an image
-  draw-polygon-on-image: func(destination: Image, points: Vector*, numPoints: i32, color: Color) -> void;
+  polygon-on-image: func(destination: u32, points: list<vector2>, color: color);
 
   // Draw several lines on an image
-  draw-polyline-on-image: func(destination: Image, points: Vector*, numPoints: i32, color: Color) -> void;
+  polyline-on-image: func(destination: u32, points: list<vector2>, color: color);
 
   // Draw a filled round-rectangle on an image
-  draw-rectangle-rounded-on-image: func(destination: Image, x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, color: Color) -> void;
+  rectangle-rounded-on-image: func(destination: u32, rect: rect, radius: s32, color: color);
 
   // Draw an image on an image
-  draw-image-on-image: func(destination: Image, src: Image, posX: i32, posY: i32) -> void;
+  image-on-image: func(destination: u32, src: u32, pos: vector2);
 
   // Draw a tinted image on an image
-  draw-image-tint-on-image: func(destination: Image, src: Image, posX: i32, posY: i32, tint: Color) -> void;
+  image-tint-on-image: func(destination: u32, src: u32, pos: vector2, tint: color);
 
   // Draw an image, rotated, on an image
-  draw-image-rotated-on-image: func(destination: Image, src: Image, posX: i32, posY: i32, degrees: f32, offsetX: f32, offsetY: f32, filter: ImageFilter) -> void;
+  image-rotated-on-image: func(destination: u32, src: u32, pos: vector2, degrees: f32, offset: vector2, filter: filtertype);
 
   // Draw an image, flipped, on an image
-  draw-image-flipped-on-image: func(destination: Image, src: Image, posX: i32, posY: i32, flipHorizontal: bool, flipVertical: bool, flipDiagonal: bool) -> void;
+  image-flipped-on-image: func(destination: u32, src: u32, pos: vector2, fliphorizontal: bool, flipvertical: bool, flipdiagonal: bool);
 
   // Draw an image, scaled, on an image
-  draw-image-scaled-on-image: func(destination: Image, src: Image, posX: i32, posY: i32, scaleX: f32, scaleY: f32, offsetX: f32, offsetY: f32, filter: ImageFilter) -> void;
+  image-scaled-on-image: func(destination: u32, src: u32, pos: vector2, scale: vector2, offset: vector2, filter: filtertype);
 
   // Draw some text on an image
-  draw-text-on-image: func(destination: Image, font: Font, text: string, posX: i32, posY: i32, color: Color) -> void;
+  text-on-image: func(destination: u32, font: u32, text: string, pos: vector2, color: color);
 
   // Draw a 1px outlined rectangle on the screen
-  draw-rectangle-outline: func(posX: i32, posY: i32, width: i32, height: i32, color: Color) -> void;
+  rectangle-outline: func(pos: vector2, width: s32, height: s32, color: color);
 
   // Draw a 1px outlined triangle on the screen
-  draw-triangle-outline: func(x1: i32, y1: i32, x2: i32, y2: i32, x3: i32, y3: i32, color: Color) -> void;
+  triangle-outline: func(pt1: vector2, pt2: vector2, pt3: vector2, color: color);
 
   // Draw a 1px outlined ellipse on the screen
-  draw-ellipse-outline: func(centerX: i32, centerY: i32, radiusX: i32, radiusY: i32, color: Color) -> void;
+  ellipse-outline: func(center: vector2, radius: vector2, color: color);
 
   // Draw a 1px outlined circle on the screen
-  draw-circle-outline: func(centerX: i32, centerY: i32, radius: i32, color: Color) -> void;
+  circle-outline: func(center: vector2, radius: s32, color: color);
 
   // Draw a 1px outlined polygon on the screen
-  draw-polygon-outline: func(points: Vector*, numPoints: i32, color: Color) -> void;
+  polygon-outline: func(points: list<vector2>, color: color);
 
   // Draw a 1px outlined arc on the screen
-  draw-arc-outline: func(centerX: i32, centerY: i32, radius: f32, startAngle: f32, endAngle: f32, segments: i32, color: Color) -> void;
+  arc-outline: func(center: vector2, radius: f32, startangle: f32, endangle: f32, segments: s32, color: color);
 
   // Draw a 1px outlined round-rectangle on the screen
-  draw-rectangle-rounded-outline: func(x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, color: Color) -> void;
+  rectangle-rounded-outline: func(rect: rect, radius: s32, color: color);
 
   // Draw a 1px outlined rectangle on an image
-  draw-rectangle-outline-on-image: func(destination: Image, posX: i32, posY: i32, width: i32, height: i32, color: Color) -> void;
+  rectangle-outline-on-image: func(destination: u32, pos: vector2, width: s32, height: s32, color: color);
 
   // Draw a 1px outlined triangle on an image
-  draw-triangle-outline-on-image: func(destination: Image, x1: i32, y1: i32, x2: i32, y2: i32, x3: i32, y3: i32, color: Color) -> void;
+  triangle-outline-on-image: func(destination: u32, pt1: vector2, pt2: vector2, pt3: vector2, color: color);
 
   // Draw a 1px outlined ellipse on an image
-  draw-ellipse-outline-on-image: func(destination: Image, centerX: i32, centerY: i32, radiusX: i32, radiusY: i32, color: Color) -> void;
+  ellipse-outline-on-image: func(destination: u32, center: vector2, radius: vector2, color: color);
 
   // Draw a 1px outlined circle on an image
-  draw-circle-outline-on-image: func(destination: Image, centerX: i32, centerY: i32, radius: i32, color: Color) -> void;
+  circle-outline-on-image: func(destination: u32, center: vector2, radius: s32, color: color);
 
   // Draw a 1px outlined polygon on an image
-  draw-polygon-outline-on-image: func(destination: Image, points: Vector*, numPoints: i32, color: Color) -> void;
+  polygon-outline-on-image: func(destination: u32, points: list<vector2>, color: color);
 
   // Draw a 1px outlined round-rectangle on an image
-  draw-rectangle-rounded-outline-on-image: func(destination: Image, x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, color: Color) -> void;
-}
-
-interface filesystem {
-  // Read a file from cart (or local persistant)
-  file-read: func(filename: string, bytesRead: u32*) -> bytes;
-
-  // Write a file to persistant storage
-  file-write: func(filename: string, data: bytes, byteSize: u32) -> bool;
-
-  // Write a file to persistant storage, appending to the end
-  file-append: func(filename: string, data: bytes, byteSize: u32) -> bool;
-
-  // Get info about a single file
-  file-info: func(filename: string) -> FileInfo;
-
-  // Get list of files in a directory
-  file-list: func(dir: string) -> string*;
-
-  // Get the user's writable dir (where file writes or appends go)
-  get-write-dir: func() -> string;
+  rectangle-rounded-outline-on-image: func(destination: u32, rect: rect, radius: s32, color: color);
 }
 
 interface colors {
+  use types.{color,vector2};
+
   // Tint a color with another color
-  color-tint: func(color: Color, tint: Color) -> Color;
+  tint: func(color: color, tint: color) -> color;
 
   // Fade a color
-  color-fade: func(color: Color, alpha: f32) -> Color;
+  fade: func(color: color, alpha: f32) -> color;
 
   // Change the brightness of a color
-  color-brightness: func(color: Color, factor: f32) -> Color;
+  brightness: func(color: color, factor: f32) -> color;
 
   // Invert a color
-  color-invert: func(color: Color) -> Color;
+  invert: func(color: color) -> color;
 
   // Blend 2 colors together
-  color-alpha-blend: func(dst: Color, src: Color) -> Color;
+  alpha-blend: func(dst: color, src: color) -> color;
 
   // color_contrast
-  color-contrast: func(color: Color, contrast: f32) -> Color;
+  contrast: func(color: color, contrast: f32) -> color;
 
   // Interpolate colors
-  color-bilinear-interpolate: func(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32) -> Color;
+  bilinear-interpolate: func(color00: color, color01: color, color10: color, color11: color, coordinate: vector2) -> color;
 }
 
-default world null0 {
-  import utilities;
+interface callbacks {
+  use types.{gamepadbutton};
+
+  // called on cart load
+  load: func();
+
+  // called on cart unload
+  unload: func();
+
+  // called on every frame
+  update: func();
+
+  // called when a mapped input is triggered
+  button-down: func(button: gamepadbutton);
+
+  // called when a mapped input is triggered
+  button-up: func(button: gamepadbutton);
+}
+
+world null0 {
   import sound;
   import input;
   import graphics;
-  import filesystem;
   import colors;
+  export callbacks;
 }
