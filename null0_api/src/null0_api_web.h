@@ -2,16 +2,19 @@
 
 #include "null0_api.h"
 
-bool null0_init_web() {
+bool null0_init() {
   return true;
 }
 
-bool null0_update_web() {
+// call cart's update
+bool null0_update() {
   return true;
 }
 
-void null0_unload_web() {
+// call cart's unload
+void null0_unload() {
 }
 
-void null0_event_web(pntr_app_event* event) {
+// call cart's event callbacks
+void null0_event(pntr_app_event* event) {
 }

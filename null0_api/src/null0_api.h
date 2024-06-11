@@ -83,7 +83,7 @@ int null0_button_map_key(int key) {
 }
 
 // call this in your own host's init function to setup basic frame of things
-bool null0_init(char* filename) {
+bool null0_engine_init(char* filename) {
   if (filename != NULL) {
     if (!null0_init_filesystem(filename)) {
       return false;
@@ -100,14 +100,14 @@ bool null0_init(char* filename) {
 }
 
 // call this in your own host's update function to update things
-bool null0_update(pntr_app* app, pntr_image* screen) {
+bool null0_engine_update(pntr_app* app, pntr_image* screen) {
   null0_app = app;
   null0_screen = screen;
   return true;
 }
 
 // call this in your own host's unload funciton on exit
-void null0_unload() {
+void null0_engine_unload() {
   null0_unload_filesystem();
   // TODO: unload all resources
 }

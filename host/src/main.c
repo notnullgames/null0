@@ -1,4 +1,4 @@
-// this is the entrypoint for native WAMR host
+// this is the entrypoint for hosts
 
 #ifndef EMSCRIPTEN
 #include "null0_api_wamr.h"
@@ -17,39 +17,23 @@ bool Init(pntr_app* app) {
   }
 
   // setup main null0 runtime
-  if (!null0_init(filename)) {
+  if (!null0_engine_init(filename)) {
     return false;
   }
-
-#ifndef EMSCRIPTEN
-  return null0_init_wamr();
-#endif
-#ifdef EMSCRIPTEN
-  return null0_init_web();
-#endif
+  return null0_init();
 }
 
 bool Update(pntr_app* app, pntr_image* screen) {
-  if (!null0_update(app, screen)) {
-    return false;
-  }
-#ifndef EMSCRIPTEN
-  return null0_update_wamr();
-#endif
-#ifdef EMSCRIPTEN
-  return null0_update_web();
-#endif
+  return null0_engine_update(app, screen) && null0_update();
 }
 
-void Close(pntr_app* app) {}
+void Close(pntr_app* app) {
+  null0_unload();
+  null0_engine_unload();
+}
 
 void Event(pntr_app* app, pntr_app_event* event) {
-#ifndef EMSCRIPTEN
-  null0_event_wamr(event);
-#endif
-#ifdef EMSCRIPTEN
-  null0_event_web(event);
-#endif
+  null0_event(event);
 }
 
 pntr_app Main(int argc, char* argv[]) {

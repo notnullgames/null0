@@ -16,7 +16,7 @@ char* null0_writable_dir;
 
 // intialize filesystem
 bool null0_init_filesystem(char* cart) {
-  if (!PHYSFS_init("null0")) {
+  if (!PHYSFS_init("/")) {
     printf("Could not init filesystem.\n");
     return false;
   }

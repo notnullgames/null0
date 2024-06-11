@@ -788,7 +788,7 @@ RuntimeInitArgs null0_init_args() {
 }
 
 // setup WAMR host
-bool null0_init_wamr() {
+bool null0_init() {
   unsigned int bytesRead = 0;
   unsigned char* wasmBytes;
 
@@ -838,7 +838,7 @@ bool null0_init_wamr() {
 }
 
 // call cart's update
-bool null0_update_wamr() {
+bool null0_update() {
   if (cart_update != NULL) {
     if (!wasm_runtime_call_wasm(exec_env, cart_update, 0, NULL)) {
       printf("%s\n", wasm_runtime_get_exception(module_inst));
@@ -848,17 +848,16 @@ bool null0_update_wamr() {
 }
 
 // call cart's unload
-void null0_unload_wamr() {
+void null0_unload() {
   if (cart_unload != NULL) {
     if (!wasm_runtime_call_wasm(exec_env, cart_unload, 0, NULL)) {
       printf("%s\n", wasm_runtime_get_exception(module_inst));
     }
   }
-  null0_unload();
 }
 
 // call cart's event callbacks
-void null0_event_wamr(pntr_app_event* event) {
+void null0_event(pntr_app_event* event) {
   uint32_t argv[1];
   if (cart_keyDown) {
     if (event->type == PNTR_APP_EVENTTYPE_KEY_DOWN) {

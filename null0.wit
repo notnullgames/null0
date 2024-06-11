@@ -1,5 +1,3 @@
-package notnull:null0@0.0.1;
-
 interface types {
   record vector2 {
     x: s32,
