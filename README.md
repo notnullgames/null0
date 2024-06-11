@@ -56,6 +56,11 @@ cmake -B build -DHOST=0
 cmake -B build -DHOST=0 -DTESTS=1 -DCARTS=0
 cmake --build build
 ./build/test/test_colors
+
+
+# just build carts
+cmake -B build -DHOST=0 -DTESTS=0 -DCARTS=1
+cmake --build build
 ```
 
 ## todo

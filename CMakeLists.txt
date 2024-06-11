@@ -19,8 +19,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake")
 # These options will change what is built, and what libraries are used
 
 if(EMSCRIPTEN)
-  option(SDL "Use SDL in hosts (Choose SDL or RAYLIB)" TRUE)
-  option(RAYLIB "Use Raylib in hosts (Choose SDL or RAYLIB)" FALSE)
   option(CARTS "Build Demo Null0 Carts" FALSE)
 else()
   option(SDL "Use SDL in hosts (Choose SDL or RAYLIB)" TRUE)
@@ -56,7 +54,7 @@ if(EMSCRIPTEN AND LIBRETRO)
   message(FATAL_ERROR "Do not build libretro core in emscripten. It will not turn out right.")
 endif()
 
-if (NOT (SDL OR RAYLIB))
+if (NOT EMSCRIPTEN AND (NOT (SDL OR RAYLIB)))
   message(FATAL_ERROR "You must set SDL or RAYLIB.")
 endif()
 
@@ -119,6 +117,10 @@ if (LIBRETRO OR HOST OR TESTS)
   if (RAYLIB)
     find_package(raylib REQUIRED)
     add_definitions(-DPNTR_APP_RAYLIB -DPNTR_PIXELFORMAT_RGBA)
+  endif()
+
+  if (EMSCRIPTEN)
+    add_definitions(-DPNTR_APP_WEB -DPNTR_PIXELFORMAT_RGBA)
   endif()
 
   set(PHYSFS_ARCHIVE_7Z FALSE)

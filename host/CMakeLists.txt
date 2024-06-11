@@ -8,7 +8,7 @@ endif()
 if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".mjs")
   target_link_options(${PROJECT_NAME} PRIVATE -sEXPORTED_FUNCTIONS=@${CMAKE_CURRENT_SOURCE_DIR}/functions.txt)
-  target_link_options(${PROJECT_NAME} PRIVATE -sEXPORTED_RUNTIME_METHODS=cwrap,wasmMemory,FS)
+  target_link_options(${PROJECT_NAME} PRIVATE -sEXPORTED_RUNTIME_METHODS=FS)
   target_link_options(${PROJECT_NAME} PRIVATE -sFORCE_FILESYSTEM)
 endif()
 
