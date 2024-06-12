@@ -1,6 +1,7 @@
 import loadCart from '@null0/browser'
 import { unzip } from 'unzipit'
 import memhelpers from 'cmem_helpers'
+import wireCartToHost from './null0_wasm.js'
 
 export async function getHost (cartUrl, canvas = document.body.appendChild(document.createElement('canvas'))) {
   const host = await loadCart({
@@ -20,71 +21,15 @@ export async function getHost (cartUrl, canvas = document.body.appendChild(docum
 export async function setupCart (url, canvas = document.body.appendChild(document.createElement('canvas'))) {
   const host = await getHost(url, canvas)
   const out = { host }
-  let cart = {}
-
-  const copy_bytes_from_cart = (cartPtr, size) => {
-    const hostPtr = host._malloc(size)
-    let h = hostPtr
-    for (let b = cartPtr; b < (cartPtr + size); b++) {
-      host.HEAPU8[h] = cart.memory.buffer[b]
-      h++
-    }
-    return hostPtr
-  }
+  const cart = {}
 
   canvas.width = 320
   canvas.height = 240
 
   const imports = {
-    null0: {
-      trace (strPtr) {
-        console.log(cart.getString(strPtr))
-      },
+    null0: wireCartToHost(host, cart),
 
-      load_image (filenamePtr) {
-        const index = host.load_image(cart.getString(filenamePtr))
-        return index
-      },
-
-      image_gradient () {
-
-      },
-
-      clear (colorPtr) {
-        const hostColorPtr = copy_bytes_from_cart(colorPtr, 4)
-        host._null0_clear(hostColorPtr)
-        host._free(hostColorPtr)
-      },
-
-      draw_ellipse (centerX, centerY, radiusX, radiusY, colorPtr) {
-        const hostColorPtr = copy_bytes_from_cart(colorPtr, 4)
-        host._null0_draw_ellipse(centerX, centerY, radiusX, radiusY, hostColorPtr)
-        host._free(hostColorPtr)
-      },
-
-      draw_triangle (x1, y1, x2, y2, x3, y3, colorPtr) {
-        const hostColorPtr = copy_bytes_from_cart(colorPtr, 4)
-        host._null0_draw_triangle(x1, y1, x2, y2, x3, y3, hostColorPtr)
-        host._free(hostColorPtr)
-      },
-
-      draw_circle () {},
-
-      draw_rectangle () {},
-
-      draw_rectangle_outline () {},
-
-      draw_circle_outline () {},
-
-      draw_point () {},
-
-      draw_line () {},
-
-      draw_image (src, posX, posy) {
-        host.draw_image(src, posX, posy)
-      }
-    },
-
+    // minimal WASI that only allows console logging
     wasi_snapshot_preview1: {
       fd_write (fd, iovsPtr, iovsLength, bytesWrittenPtr) {
         const iovs = new Uint32Array(cart.memory.buffer, iovsPtr, iovsLength * 2)
@@ -134,7 +79,12 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
   if (entries['main.wasm']) {
     const wasmBytes = await entries['main.wasm'].arrayBuffer()
     const cartMod = await WebAssembly.compile(wasmBytes)
-    cart = { ...(await WebAssembly.instantiate(cartMod, imports)).exports }
+    const { exports } = await WebAssembly.instantiate(cartMod, imports)
+
+    for (const k of Object.keys(exports)) {
+      cart[k] = exports[k]
+    }
+
     const helpers = memhelpers(cart.memory.buffer, cart.malloc)
     cart.getString = helpers.getString
     cart.setString = helpers.setString
