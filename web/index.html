@@ -13,6 +13,21 @@
 }
 </script>
 
+<style>
+  html, body {
+    margin: 0;
+  }
+  body {
+    background: black;
+    height: 100vh;
+    display:flex;
+    align-items: center;
+  }
+  canvas {
+    width: 100vw;
+  }
+</style>
+
 <script type="module">
 import { setupCart } from './null0.js'
 const cart = await setupCart('/cart/draw.null0')
