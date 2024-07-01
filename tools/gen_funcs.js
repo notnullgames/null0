@@ -1,3 +1,5 @@
+// this will generate the host/functions.txt that is used for emscripten build
+
 import { getAPI } from './shared.js'
 import { writeFile } from 'fs/promises'
 

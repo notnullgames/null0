@@ -3,27 +3,31 @@
 const MAX_STRING_LEN = 1024 * 20
 
 export default function wireCartToHost (host, cart) {
+  let cartMem
+
   const copyBytesFromCart = (cartPtr, size, retPtr) => {
+    cartMem ||= new Uint8Array(cart.memory.buffer)
     const hostPtr = retPtr || host._malloc(size)
-    const buf = cart.memory.buffer.slice(cartPtr, cartPtr + size)
-    const pointerHeap = new Uint8Array(host.HEAPU8.buffer, hostPtr, size)
-    pointerHeap.set(new Uint8Array(buf))
+    for (let b = 0; b < size; b++) {
+      host.HEAPU8[hostPtr + b] = cartMem[cartPtr + b]
+    }
     return hostPtr
   }
 
   const copyBytesToCart = (hostPtr, size, retPtr) => {
+    cartMem ||= new Uint8Array(cart.memory.buffer)
     const cartPtr = retPtr || cart.malloc(size)
-    const buf = host.HEAPU8.buffer.slice(hostPtr, hostPtr + size)
-    const pointerHeap = new Uint8Array(cart.memory.buffer)
-    pointerHeap.set(new Uint8Array(buf), cartPtr, size)
+    for (let b = 0; b < size; b++) {
+      cartMem[cartPtr + b] = host.HEAPU8[hostPtr + b]
+    }
     return cartPtr
   }
 
   const cartStrlen = (pointer) => {
+    cartMem ||= new Uint8Array(cart.memory.buffer)
     let end = pointer
-    const buf = new Uint8Array(cart.memory.buffer)
     while (end < (pointer + MAX_STRING_LEN)) {
-      if (buf[end] === 0) {
+      if (cartMem[end] === 0) {
         break
       }
       end++
@@ -33,9 +37,8 @@ export default function wireCartToHost (host, cart) {
 
   const hostStrlen = (pointer) => {
     let end = pointer
-    const buf = new Uint8Array(host.HEAPU8.buffer)
     while (end < (pointer + MAX_STRING_LEN)) {
-      if (buf[end] === 0) {
+      if (host.HEAPU8[end] === 0) {
         break
       }
       end++
@@ -65,6 +68,10 @@ export default function wireCartToHost (host, cart) {
       const hostColorPtr = copyBytesFromCart(colorPtr, 4)
       host._null0_clear(hostColorPtr)
       host._free(hostColorPtr)
+    },
+
+    current_time() {
+      return BigInt(Date.now())
     },
 
     draw_ellipse (centerX, centerY, radiusX, radiusY, colorPtr) {
@@ -162,6 +169,17 @@ export default function wireCartToHost (host, cart) {
       return index
     },
 
+    // u32 load_font_tty(char* filename, i32 glyphWidth, i32 glyphHeight, char* characters);
+
+    load_font_tty(filenamePtr, glyphWidth, glyphHeight, charactersPtr){
+      const filenameHostPtr = copyBytesFromCart(filenamePtr, cartStrlen(filenamePtr) + 1)
+      const charactersHostPtr = copyBytesFromCart(charactersPtr, cartStrlen(charactersPtr) + 1)
+      const index = host._null0_load_font_tty(filenameHostPtr, glyphWidth, glyphHeight, charactersHostPtr)
+      host._free(filenameHostPtr)
+      host._free(charactersHostPtr)
+      return index
+    },
+
     load_sound (filenamePtr) {
       const filenameHostPtr = copyBytesFromCart(filenamePtr, cartStrlen(filenamePtr) + 1)
       const index = host._null0_load_sound(filenameHostPtr)
@@ -216,10 +234,17 @@ export default function wireCartToHost (host, cart) {
     },
 
     new_sfx (paramsPtr) {
-      // return id
+      const paramsHostPtr = copyBytesFromCart(paramsPtr, 48)
+      const ret = host._null0_new_sfx(paramsHostPtr)
+      host._free(paramsHostPtr)
+      return ret
     },
 
     preset_sfx (paramsPtr, type) {
+      const paramsHostPtr = copyBytesFromCart(paramsPtr, 48)
+      host._null0_new_sfx(paramsHostPtr, type)
+      copyBytesToCart(paramsPtr, 48, paramsHostPtr)
+      host._free(paramsHostPtr)
     }
   }
 }

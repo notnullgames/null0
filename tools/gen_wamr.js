@@ -1,6 +1,5 @@
 // this will generate null0_api/src/null0_api_wamr.h
-
-// TODO: fix file_read
+// which is used for native host
 
 import { getAPI, codeTemplate } from './shared.js'
 
