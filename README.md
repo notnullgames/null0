@@ -4,6 +4,20 @@ This combines ideas from [pntr_app_starter](https://github.com/RobLoach/pntr_app
 
 In order to build carts, you will need the [wasi-sdk](https://github.com/WebAssembly/wasi-sdk/releases) installed. You can set `WASI_SDK_PREFIX` to the location, if it's not `/opt/wasi-sdk`
 
+Common taks have been wrapped with npm scripts:
+
+```sh
+npm run build:carts # build just the carts
+npm run build:host  # build the native host
+npm run build:web   # build the web-host
+```
+
+You will need cmake, ninja, emscripten, and wasi-sdk installed.
+
+### more on cmake
+
+You can tune how you build things by using cmake directly:
+
 ```
 # config
 cmake -B build
