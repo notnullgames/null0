@@ -2,6 +2,8 @@
 
 const MAX_STRING_LEN = 1024 * 20
 
+const td = new TextDecoder()
+
 export default function wireCartToHost (host, cart) {
   let cartMem
 
@@ -46,9 +48,12 @@ export default function wireCartToHost (host, cart) {
     return end - pointer
   }
 
+  const cartStr = (pointer) => td.decode(cart.memory.buffer.slice(pointer, pointer + cartStrlen(pointer)))
+  const hostStr = (pointer) => td.decode(host.HEAPU8.slice(pointer, pointer + hostStrlen(pointer)))
+
   return {
     trace (strPtr) {
-      console.log(cart.getString(strPtr))
+      console.log(cartStr(strPtr))
     },
 
     image_gradient (width, height, topLeftPtr, topRightPtr, bottomLeftPtr, bottomRightPtr) {

@@ -27,11 +27,11 @@ file_info:
   returns: FileInfo
   description: Get info about a single file
 
-file_list:
-  args:
-    dir: string
-  returns: string*
-  description: Get list of files in a directory
+# file_list:
+#   args:
+#     dir: string
+#   returns: string*
+#   description: Get list of files in a directory
 
 get_write_dir:
   returns: string
