@@ -22,20 +22,20 @@ typedef uint32_t u32;
 typedef uint64_t u64;
 typedef float f32;
 
-NULL0_EXPORT("malloc")
-void* _null0_malloc(size_t size) {
-  return malloc(size);
-}
+// NULL0_EXPORT("malloc")
+// void* _null0_malloc(size_t size) {
+//   return malloc(size);
+// }
 
-NULL0_EXPORT("alloca")
-void* _null0_alloca(size_t size) {
-  return __builtin_alloca(size);
-}
+// NULL0_EXPORT("alloca")
+// void* _null0_alloca(size_t size) {
+//   return __builtin_alloca(size);
+// }
 
-NULL0_EXPORT("free")
-void _null0_free(void* ptr) {
-  free(ptr);
-}
+// NULL0_EXPORT("free")
+// void _null0_free(void* ptr) {
+//   free(ptr);
+// }
 
 typedef struct {
   u32 width;
@@ -328,21 +328,15 @@ Color BLANK = (Color){.r = 0, .g = 0, .b = 0, .a = 0};
 Color MAGENTA = (Color){.r = 255, .g = 0, .b = 255, .a = 255};
 Color RAYWHITE = (Color){.r = 245, .g = 245, .b = 245, .a = 255};
 
-// max-size for trace messages
-#ifndef NULL0_TRACE_SIZE
-#define NULL0_TRACE_SIZE 1024 * 1024
-#endif
-
 NULL0_IMPORT("trace")
 void _null0_trace_real(char* str);
 
-char null0_traceBuffer[NULL0_TRACE_SIZE];
-
 // Log a string (using printf-style)
 void trace(const char* format, ...) {
+  char* null0_traceBuffer = NULL;
   va_list args;
   va_start(args, format);
-  vsnprintf(null0_traceBuffer, NULL0_TRACE_SIZE, format, args);
+  vsnprintf(null0_traceBuffer, strlen(format) * 2, format, args);
   va_end(args);
   _null0_trace_real(null0_traceBuffer);
 }

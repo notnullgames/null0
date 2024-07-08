@@ -37,6 +37,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".wasm")
 
 function(BUILDCART name)
   add_executable(${name} ${name}/main.c)
+  target_link_options(${name} PRIVATE -Wl,--initial-memory=512229376 -Wl,--import-memory)
   add_custom_command(
     TARGET ${name}
     POST_BUILD
@@ -52,5 +53,4 @@ BUILDCART("hello")
 BUILDCART("input")
 BUILDCART("justlog")
 BUILDCART("sound")
-BUILDCART("tracker")
 BUILDCART("flappybird")

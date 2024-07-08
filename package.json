@@ -8,7 +8,10 @@
     "test": "cmake -B build -DNATIVE=0 -DTESTS=1 -DCARTS=0 && cmake --build build && ./build/test/test_colors",
     "gen:wamr": "node tools/gen_wamr.js",
     "gen:funcs": "node tools/gen_funcs.js",
-    "start": "live-server --mount=/wasm:./wbuild/host --mount=/cart:./build/cart/c web"
+    "start": "npm run build && live-server --mount=/wasm:./wbuild/host --mount=/cart:./build/cart/c web",
+    "build:web": "emcmake cmake -G Ninja -B wbuild -DPLATFORM=Web && cmake --build wbuild",
+    "build:native": "cmake -G Ninja -B build && cmake --build build",
+    "build": "npm run build:web && npm run build:native"
   },
   "keywords": [],
   "author": "David Konsumer <konsumer@jetboystudio.com>",
