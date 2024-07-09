@@ -170,7 +170,7 @@ export default function wireCartToHost (host, cart) {
     draw_arc(centerX, centerY, radius, startAngle, endAngle, segments, color) {},
     draw_rectangle_rounded(x, y, width, height, cornerRadius, color) {},
     draw_image(src, posX, posY) {
-      host._null0_draw_image(src, posX, posy)
+      host._null0_draw_image(src, posX, posY)
     },
     draw_image_tint(src, posX, posY, tint) {},
     draw_image_rotated(src, posX, posY, degrees, offsetX, offsetY, filter) {},
