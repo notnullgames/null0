@@ -330,7 +330,7 @@ Color RAYWHITE = (Color){.r = 245, .g = 245, .b = 245, .a = 255};
 
 // max-size for trace messages
 #ifndef NULL0_TRACE_SIZE
-#define NULL0_TRACE_SIZE 1024 * 1024
+#define NULL0_TRACE_SIZE 1024 * 1024 * 1024
 #endif
 
 NULL0_IMPORT("trace")

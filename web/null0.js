@@ -1,30 +1,6 @@
 import loadCart from '@null0/browser'
-import { unzip } from 'unzipit'
 import memhelpers from 'cmem_helpers'
 import wireCartToHost from './null0_wasm.js'
-
-/*
-typedef enum GamepadButton {
-  GAMEPAD_BUTTON_UNKNOWN = 0,     // Unknown button, just for error checking
-  GAMEPAD_BUTTON_UP = 1,          // Gamepad left DPAD up button
-  GAMEPAD_BUTTON_RIGHT = 2,           // Gamepad left DPAD right button
-  GAMEPAD_BUTTON_DOWN = 3,            // Gamepad left DPAD down button
-  GAMEPAD_BUTTON_LEFT = 4,            // Gamepad left DPAD left button
-  GAMEPAD_BUTTON_Y = 5,               // Gamepad right button up (i.e. PS3: Triangle, Xbox: Y)
-  GAMEPAD_BUTTON_B = 6,               // Gamepad right button right (i.e. PS3: Square, Xbox: X)
-  GAMEPAD_BUTTON_A = 7,               // Gamepad right button down (i.e. PS3: Cross, Xbox: A)
-  GAMEPAD_BUTTON_X = 8,               // Gamepad right button left (i.e. PS3: Circle, Xbox: B)
-  GAMEPAD_BUTTON_LEFT_SHOULDER = 9,   // Gamepad top/back trigger left (first), it could be a trailing button
-  GAMEPAD_BUTTON_LEFT_TRIGGER = 10,    // Gamepad top/back trigger left (second), it could be a trailing button
-  GAMEPAD_BUTTON_RIGHT_SHOULDER = 11,  // Gamepad top/back trigger right (one), it could be a trailing button
-  GAMEPAD_BUTTON_RIGHT_TRIGGER = 12,   // Gamepad top/back trigger right (second), it could be a trailing button
-  GAMEPAD_BUTTON_SELECT = 13,          // Gamepad center buttons, left one (i.e. PS3: Select)
-  GAMEPAD_BUTTON_MENU = 14,            // Gamepad center buttons, middle one (i.e. PS3: PS, Xbox: XBOX)
-  GAMEPAD_BUTTON_START = 15,           // Gamepad center buttons, right one (i.e. PS3: Start)
-  GAMEPAD_BUTTON_LEFT_THUMB = 16,      // Gamepad joystick pressed button left
-  GAMEPAD_BUTTON_RIGHT_THUMB = 17,     // Gamepad joystick pressed button right
-} GamepadButton;
-*/
 
 export const Buttons = {
   A: 7,
@@ -42,13 +18,15 @@ export const Buttons = {
 }
 
 export async function getHost (cartUrl, canvas = document.body.appendChild(document.createElement('canvas'))) {
+  const cartname = cartUrl.split('/').pop().split('.')[0]
+
   const host = await loadCart({
     canvas,
     preRun: async function ({ FS }) {
-      await FS.createPreloadedFile('/', 'cart', cartUrl, true, false)
+      await FS.createPreloadedFile('/', cartname, cartUrl, true, false)
     },
     // for some reason it strips off .null0
-    arguments: ['/cart']
+    arguments: [`/${cartname}`]
   })
 
   const helpers = memhelpers(host.HEAPU8, host._malloc)
@@ -110,24 +88,28 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
     }
   }
 
-  const { entries } = await unzip(url)
-
-  // cart could be a plain zip file for js filesystem
-  if (entries['main.wasm']) {
-    const wasmBytes = await entries['main.wasm'].arrayBuffer()
-    const cartMod = await WebAssembly.compile(wasmBytes)
-    const { exports } = await WebAssembly.instantiate(cartMod, imports)
-
-    for (const k of Object.keys(exports)) {
-      cart[k] = exports[k]
-    }
-
-    const helpers = memhelpers(cart.memory.buffer, cart.malloc)
-    cart.getString = helpers.getString
-    cart.setString = helpers.setString
-    cart.struct = helpers.struct
-    cart.view = new DataView(cart.memory.buffer)
+  // read a file from loaded cart
+  function getCartFile(filename) {
+    const filenamePtr = host._malloc(filename.length + 1)
+    host.stringToUTF8(filename, filenamePtr, filename.length + 1)
+    const bytesHostPtr = host._malloc(4)
+    const retPtr = host._null0_file_read(filenamePtr, bytesHostPtr)
+    return host.HEAPU8.slice(retPtr, retPtr + host.HEAPU32[bytesHostPtr / 4])
   }
+
+  const wasmBytes = getCartFile('main.wasm')
+  const cartMod = await WebAssembly.compile(wasmBytes)
+  const { exports } = await WebAssembly.instantiate(cartMod, imports)
+
+  for (const k of Object.keys(exports)) {
+    cart[k] = exports[k]
+  }
+
+  const helpers = memhelpers(cart.memory.buffer, cart.malloc)
+  cart.getString = helpers.getString
+  cart.setString = helpers.setString
+  cart.struct = helpers.struct
+  cart.view = new DataView(cart.memory.buffer)
 
   out.cart = cart
 

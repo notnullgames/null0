@@ -5,57 +5,82 @@ import { writeFile } from 'fs/promises'
 
 const api = await getAPI()
 
-const typeSizes = {
-  Dimensions: 8,
-  Vector: 8,
-  Rectangle: 16,
-  SfxParams: 96,
-  Color: 4,
-  FileInfo: 40
+const out = [
+`// Null0 host interface for web
+
+const MAX_STRING_LEN = 1024 * 20
+
+const td = new TextDecoder()
+
+export default function wireCartToHost (host, cart) {
+  let cartMem
+
+  const copyBytesFromCart = (cartPtr, size, retPtr) => {
+    cartMem ||= new Uint8Array(cart.memory.buffer)
+    const hostPtr = retPtr || host._malloc(size)
+    for (let b = 0; b < size; b++) {
+      host.HEAPU8[hostPtr + b] = cartMem[cartPtr + b]
+    }
+    return hostPtr
+  }
+
+  const copyBytesToCart = (hostPtr, size, retPtr) => {
+    cartMem ||= new Uint8Array(cart.memory.buffer)
+    const cartPtr = retPtr || cart.malloc(size)
+    for (let b = 0; b < size; b++) {
+      cartMem[cartPtr + b] = host.HEAPU8[hostPtr + b]
+    }
+    return cartPtr
+  }
+
+  const cartStrlen = (pointer) => {
+    cartMem ||= new Uint8Array(cart.memory.buffer)
+    let end = pointer
+    while (end < (pointer + MAX_STRING_LEN)) {
+      if (cartMem[end] === 0) {
+        break
+      }
+      end++
+    }
+    return end - pointer
+  }
+
+  const hostStrlen = (pointer) => {
+    let end = pointer
+    while (end < (pointer + MAX_STRING_LEN)) {
+      if (host.HEAPU8[end] === 0) {
+        break
+      }
+      end++
+    }
+    return end - pointer
+  }
+
+  return {`
+]
+
+const funcs = []
+
+const poterRets = [
+    'SfxParams',
+    'Vector',
+    'Dimensions', 'Rectangle',
+    'bytes',      'FileInfo',
+    'Color'
+  ]
+
+
+for (const cat of Object.values(api)) {
+  for (const fname of Object.keys(cat)) {
+    const al = Object.keys(cat[fname].args)
+    if (poterRets.includes(cat[fname].returns)) {
+      al.unshift('retPtr')
+    }
+    funcs.push(`${fname}(${al.join(', ')}) {}`)
+  }
 }
 
+out.push(funcs.map(f => `    ${f}`).join(',\n'))
+out.push(`  }\n}`)
 
-function outputFunction(name, {args, returns, description}) {
-  const out = []
-
-  const a = Object.keys(args)
-  let retPtr
-  if (['Color', 'Dimensions', 'FileInfo', 'Rectangle', 'Vector', 'SfxParams'].includes(returns)) {
-    a.unshift('retPtr')
-    retPtr = true
-  }
-
-  out.push(`// ${description}`)
-  out.push(`${name}(${a.join(', ')}) {`)
-
-  const preCode = []
-  const postCode = []
-
-  if (retPtr) {
-    preCode.push(`  const hostRetPtr = host._malloc(${typeSizes[returns]})`)
-    postCode.push(`  copyBytesToCart(hostRetPtr, ${typeSizes[returns]}, retPtr)`)
-    postCode.push('  host._free(hostRetPtr)')
-  }
-
-
-  if (preCode.length) {
-    out.push(...preCode)
-  }
-
-  if (postCode.length) {
-    out.push(...postCode)
-  }
-
-  out.push(`}`)
-
-  return out.join('\n')
-}
-
-
-// console.log(outputFunction('image_gradient', api.graphics.image_gradient))
-
-for (const funcs of Object.values(await getAPI())) {
-  for (const fname of Object.keys(funcs)) {
-    console.log(outputFunction(fname, funcs[fname]))
-  }
-}
+await writeFile('web/null0_wasm.js', out.join('\n'))
