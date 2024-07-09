@@ -94,7 +94,11 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
     host.stringToUTF8(filename, filenamePtr, filename.length + 1)
     const bytesHostPtr = host._malloc(4)
     const retPtr = host._null0_file_read(filenamePtr, bytesHostPtr)
-    return host.HEAPU8.slice(retPtr, retPtr + host.HEAPU32[bytesHostPtr / 4])
+    const r = host.HEAPU8.slice(retPtr, retPtr + host.HEAPU32[bytesHostPtr / 4])
+    host._free(bytesHostPtr)
+    host._free(filenamePtr)
+    host._free(retPtr)
+    return r
   }
 
   const wasmBytes = getCartFile('main.wasm')
