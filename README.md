@@ -43,6 +43,8 @@ const {host, cart} = await setupCart('mycart.null0')
 </script>
 ```
 
+2nd param is `canvas`, if you want to force it to use your existing canvas.
+
 ## building
 
 In order to build carts, you will need the [wasi-sdk](https://github.com/WebAssembly/wasi-sdk/releases) installed. You can set `WASI_SDK_PREFIX` to the location, if it's not `/opt/wasi-sdk`
