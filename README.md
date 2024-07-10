@@ -83,22 +83,20 @@ cmake --build build
 
 ### immediate
 
-- merge web into native as "runtime" and put lots of emscripten checks in a single entry-point
-- move null0_api to null0_core
 - test everything, maybe a full battery of wasm-side tests (every single function)
-- auto-generate more code from api defs
 - generate headers for other cart-languages (not just C)
 - update website with docs generated from the api defs
+- add web-component & carts from this repo's gh-pages to main-docs
+- libretro core
+- switch sfx to use pntr_sfx. it's currently broke on web
 
 #### carts
 
-- sound initial sfx segfaults. it seems to work ok without calling it
 - rework flappybird assets. There are some [nice ones](https://flappybird.io/). [this](https://studio.code.org/flappy) has nice backgrounds. nice ideas [here](https://youtu.be/3IdOCxHGMIo?list=PLhQjrBD2T383Vx9-4vJYFsJbvZ_D17Qzh)
 
 
 ### longterm
 
-- libretro core
 - add TTS libs & API functions
 - setup a ESP32 host
 - AI? would be cool to embed llama, with a flag (disabled by default)
