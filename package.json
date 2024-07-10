@@ -6,10 +6,6 @@
   "main": "node/index.js",
   "scripts": {
     "clean": "rimraf build wbuild docs/cart docs/wasm",
-    "test": "cmake -B build -DNATIVE=0 -DTESTS=1 -DCARTS=0 && cmake --build build && ./build/test/test_colors",
-    "gen:wamr": "node tools/gen_wamr.js",
-    "gen:funcs": "node tools/gen_funcs.js",
-    "gen:web": "node tools/gen_web.js",
     "start": "npm run build:site && live-server docs",
     "build:retro": "cmake -GNinja -B build -DLIBRETRO=1 -DHOST=0 -DTESTS=0 -DCARTS=0 && cmake --build build",
     "build:carts": "cmake -GNinja -B build -DLIBRETRO=0 -DHOST=0 -DTESTS=0 -DCARTS=1 && cmake --build build",

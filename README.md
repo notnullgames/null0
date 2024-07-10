@@ -54,6 +54,7 @@ Common tasks have been wrapped with npm scripts:
 ```sh
 npm run build:site # build website in docs
 npm run start      # run local dev-server
+npm run clean      # delete all built files
 
 npm run build:carts # build just the demo-carts
 npm run build:host  # build just the native host
