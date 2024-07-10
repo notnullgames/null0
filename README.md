@@ -126,7 +126,6 @@ cmake --build build
 
 ### immediate
 
-- test everything, maybe a full battery of wasm-side tests (every single function)
 - generate headers for other cart-languages (not just C)
 - update website with docs generated from the api defs
 - add web-component & carts from this repo's gh-pages to main-docs
@@ -140,6 +139,7 @@ cmake --build build
 
 ### longterm
 
+- test everything, maybe a full battery of wasm-side tests (every single function)
 - add TTS libs & API functions
 - setup a ESP32 host
 - AI? would be cool to embed llama, with a flag (disabled by default)
