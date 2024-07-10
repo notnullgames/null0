@@ -1,6 +1,47 @@
 This combines ideas from [pntr_app_starter](https://github.com/RobLoach/pntr_app_starter) with [wamr](https://github.com/bytecodealliance/wasm-micro-runtime) to make null0 game-engine (native runtime & libretro core.)
 
-You can see a simple webn-demo [here](https://notnullgames.github.io/null0) or [read the docs](https://notnullgames.vercel.app/null0).
+You can see a simple web-demo [here](https://notnullgames.github.io/null0) or [read the docs](https://notnullgames.vercel.app/null0).
+
+## native
+
+After you have the `null0` runtime built or [downloaded](https://github.com/notnullgames/null0/releases), you can run it like this:
+
+```sh
+./null0 yourcart.null0
+```
+
+## web
+
+You don't need to build anything to use null0 in your own page.
+
+### web-component
+
+This is easiest, and will insert your cart as a running game.
+
+Put this anywhere in your page:
+
+```html
+<script type="module" src="https://notnullgames.github.io/null0/null0_wc.js"></script>
+```
+
+Now, you can use it like this:
+
+```html
+<null0-cart src="https://notnullgames.github.io/null0/cart/input.null0"></null0-cart>
+```
+
+You can use any cart-url in `src`.
+
+### js
+
+You can also use it without a web-componment, if you want:
+
+```html
+<script type="module">
+import { setupCart } from 'https://notnullgames.github.io/null0/null0.js'
+const {host, cart} = await setupCart('mycart.null0')
+</script>
+```
 
 ## building
 
@@ -9,7 +50,7 @@ In order to build carts, you will need the [wasi-sdk](https://github.com/WebAsse
 Common tasks have been wrapped with npm scripts:
 
 ```sh
-npm run build:carts # build just the carts
+npm run build:carts # build just the demo-carts
 npm run build:host  # build the native host
 npm run build:web   # build the web-host
 ```
