@@ -1,5 +1,4 @@
-import loadCart from '@null0/browser'
-import memhelpers from 'cmem_helpers'
+import loadCart from '@null0/wasm'
 import wireCartToHost from './null0_wasm.js'
 
 export const Buttons = {
@@ -28,9 +27,7 @@ export async function getHost (cartUrl, canvas = document.body.appendChild(docum
     // for some reason it strips off .null0
     arguments: [`/${cartname}`]
   })
-
-  const helpers = memhelpers(host.HEAPU8, host._malloc)
-  return { helpers, ...host }
+  return host
 }
 
 export async function setupCart (url, canvas = document.body.appendChild(document.createElement('canvas'))) {
@@ -108,12 +105,6 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
   for (const k of Object.keys(exports)) {
     cart[k] = exports[k]
   }
-
-  const helpers = memhelpers(cart.memory.buffer, cart.malloc)
-  cart.getString = helpers.getString
-  cart.setString = helpers.setString
-  cart.struct = helpers.struct
-  cart.view = new DataView(cart.memory.buffer)
 
   out.cart = cart
 
