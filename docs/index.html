@@ -16,14 +16,14 @@
   }
 </style>
 
+<!-- here is how to do it without the web-component 
 <script type="module">
-import './null0_wc.js'
-
-// here is how to do it without the web-component
-// import { setupCart } from './null0.js'
-// const cart = await setupCart('cart/input.null0')
+import { setupCart } from 'https://notnullgames.github.io/null0/null0.js'
+const cart = await setupCart('cart/input.null0')
 </script>
+-->
 
+  <script type="module" src="./null0_wc.js"></script>
   </head>
   <body> 
     <p>Here are some example carts:</p>
