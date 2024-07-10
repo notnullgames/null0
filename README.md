@@ -55,6 +55,7 @@ Common tasks have been wrapped with npm scripts:
 npm run build:carts # build just the demo-carts
 npm run build:host  # build the native host
 npm run build:web   # build the web-host
+npm run build:retro # build the libretro core that can load null0 files
 ```
 
 You will need cmake, ninja & emscripten installed.
@@ -146,6 +147,7 @@ cmake --build build
 - Networking? would be cool to at least do basic HTTP, with a flag (disabled by default)
 - standalone DLL for iwasm
 - add complete WASI support to hosts (instead of my IO wrappers, etc)
+- more games! maybe have a game-contest or something.
 
 ## thanks
 

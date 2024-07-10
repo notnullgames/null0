@@ -10,9 +10,10 @@
     "gen:funcs": "node tools/gen_funcs.js",
     "gen:web": "node tools/gen_web.js",
     "start": "npm run build:web && npm run build:carts && live-server docs",
-    "build:carts": "cmake -GNinja -B build -DHOST=0 -DTESTS=0 -DCARTS=1 && cmake --build build",
-    "build:host": "cmake -GNinja -B build -DHOST=1 -DTESTS=0 -DCARTS=0 && cmake --build build",
-    "build:web": "emcmake cmake -DHOST=1 -DTESTS=0 -DCARTS=0 -GNinja -B wbuild && cmake --build wbuild && mkdir -p docs/wasm docs/cart && cp wbuild/host/null0.* docs/wasm && cp build/cart/c/*.null0 docs/cart"
+    "build:retro": "cmake -GNinja -B build -DLIBRETRO=1 -DHOST=0 -DTESTS=0 -DCARTS=0 && cmake --build build",
+    "build:carts": "cmake -GNinja -B build -DLIBRETRO=0 -DHOST=0 -DTESTS=0 -DCARTS=1 && cmake --build build",
+    "build:host": "cmake -GNinja -B build -DLIBRETRO=0 -DHOST=1 -DTESTS=0 -DCARTS=0 && cmake --build build",
+    "build:web": "emcmake cmake -DLIBRETRO=0 -DHOST=1 -DTESTS=0 -DCARTS=0 -GNinja -B wbuild && cmake --build wbuild && mkdir -p docs/wasm docs/cart && cp wbuild/host/null0.* docs/wasm && cp build/cart/c/*.null0 docs/cart"
   },
   "keywords": [],
   "author": "David Konsumer <konsumer@jetboystudio.com>",
