@@ -83,4 +83,4 @@ for (const cat of Object.values(api)) {
 out.push(funcs.map(f => `    ${f}`).join(',\n'))
 out.push(`  }\n}`)
 
-await writeFile('web/null0_wasm.js', out.join('\n'))
+await writeFile('docs/null0_wasm.js', out.join('\n'))

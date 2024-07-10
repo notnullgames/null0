@@ -1,4 +1,4 @@
-import loadCart from '@null0/wasm'
+import loadCart from './wasm/null0.mjs'
 import wireCartToHost from './null0_wasm.js'
 
 export const Buttons = {
@@ -16,6 +16,7 @@ export const Buttons = {
   RIGHT: 2
 }
 
+// get just the null0 wasm-host (emscripten)
 export async function getHost (cartUrl, canvas = document.body.appendChild(document.createElement('canvas'))) {
   const cartname = cartUrl.split('/').pop().split('.')[0]
 
@@ -27,9 +28,24 @@ export async function getHost (cartUrl, canvas = document.body.appendChild(docum
     // for some reason it strips off .null0
     arguments: [`/${cartname}`]
   })
+
+  // read a file from inside the cart
+  host.readCartFile = (filename) => {
+    const filenamePtr = host._malloc(filename.length + 1)
+    host.stringToUTF8(filename, filenamePtr, filename.length + 1)
+    const bytesHostPtr = host._malloc(4)
+    const retPtr = host._null0_file_read(filenamePtr, bytesHostPtr)
+    const r = host.HEAPU8.slice(retPtr, retPtr + host.HEAPU32[bytesHostPtr / 4])
+    host._free(bytesHostPtr)
+    host._free(filenamePtr)
+    host._free(retPtr)
+    return r
+  }
+
   return host
 }
 
+// setup a cart with engine
 export async function setupCart (url, canvas = document.body.appendChild(document.createElement('canvas'))) {
   const host = await getHost(url, canvas)
   const out = { host }
@@ -85,20 +101,7 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
     }
   }
 
-  // read a file from loaded cart
-  function getCartFile(filename) {
-    const filenamePtr = host._malloc(filename.length + 1)
-    host.stringToUTF8(filename, filenamePtr, filename.length + 1)
-    const bytesHostPtr = host._malloc(4)
-    const retPtr = host._null0_file_read(filenamePtr, bytesHostPtr)
-    const r = host.HEAPU8.slice(retPtr, retPtr + host.HEAPU32[bytesHostPtr / 4])
-    host._free(bytesHostPtr)
-    host._free(filenamePtr)
-    host._free(retPtr)
-    return r
-  }
-
-  const wasmBytes = getCartFile('main.wasm')
+  const wasmBytes = host.readCartFile('main.wasm')
   const cartMod = await WebAssembly.compile(wasmBytes)
   const { exports } = await WebAssembly.instantiate(cartMod, imports)
 

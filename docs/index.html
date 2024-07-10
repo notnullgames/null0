@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <title>Null0</title>
+
+<style>
+  body {
+    margin: auto;
+    margin-top: 20px;
+    width: 1024px;
+    background: black;
+    color: white;
+    font-family: sans-serif;
+  }
+  null0-cart {
+    margin: 10px;
+  }
+</style>
+
+<script type="module">
+import './null0_wc.js'
+
+// here is how to do it without the web-component
+// import { setupCart } from './null0.js'
+// const cart = await setupCart('cart/input.null0')
+</script>
+
+  </head>
+  <body> 
+    <p>Here are some example carts:</p>
+
+    <null0-cart src="cart/input.null0"></null0-cart>
+    <null0-cart src="cart/colorbars.null0"></null0-cart>
+    <null0-cart src="cart/draw.null0"></null0-cart>
+    <!-- <null0-cart src="cart/filesystem.null0"></null0-cart> -->
+    <!-- <null0-cart src="cart/flappybird.null0"></null0-cart> -->
+    <null0-cart src="cart/hello.null0"></null0-cart>
+    <!-- <null0-cart src="cart/justlog.null0"></null0-cart> -->
+  </body> 
+</html>
