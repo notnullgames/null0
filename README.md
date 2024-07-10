@@ -52,10 +52,13 @@ In order to build carts, you will need the [wasi-sdk](https://github.com/WebAsse
 Common tasks have been wrapped with npm scripts:
 
 ```sh
+npm run build:site # build website in docs
+npm run start      # run local dev-server
+
 npm run build:carts # build just the demo-carts
-npm run build:host  # build the native host
-npm run build:web   # build the web-host
-npm run build:retro # build the libretro core that can load null0 files
+npm run build:host  # build just the native host
+npm run build:web   # build just the web-host
+npm run build:retro # build just the libretro core that can load null0 files
 ```
 
 You will need cmake, ninja & emscripten installed.
