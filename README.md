@@ -66,14 +66,14 @@ You will need cmake, ninja & emscripten installed.
 
 ### more on cmake
 
-I like ninja, in the tasks above, because it builds a bit faster, but it's optional, if yuou use cmake directly.
+I like ninja, in the tasks above, because it builds a bit faster, but it's optional, if you use cmake directly.
 
-Essentially, there are 2 options:
+Essentially, there are 2 cmake defines that effect build:
 
 - `CARTS` - Should carts be built? 
 - `HOST_TYPE` - What sort of host are you building (OFF/WEB/RAYLIB/SDL/RETRO)
 
-You can only build 1 `HOST_TYPE` at a time. `CARTS` can be paired with any `HOST_TYPE`, but not `WEB`, and `WEB` requires emscripten (and should probably be built in a seperate root.)
+You can only build 1 `HOST_TYPE` at a time. `CARTS` can be paired with any `HOST_TYPE`, `WEB` requires emscripten (and should probably be built in a seperate root.)
 
 #### examples
 
@@ -109,26 +109,31 @@ cmake --build wbuild
 
 ### immediate
 
+- libretro core (it's working, but colors are off)
+- switch sfx to use pntr_sfx. it's currently broke on web & segfaults on libretro
 - generate headers for other cart-languages (not just C)
 - update website with docs generated from the api defs
 - add web-component & carts from this repo's gh-pages to main-docs
-- libretro core
-- switch sfx to use pntr_sfx. it's currently broke on web
+- implement streaming audio in pntr_app for better samples and generating audio on the fly
+- add complete WASI support to hosts (instead of my IO wrappers, etc)
 
 #### carts
 
-- rework flappybird assets. There are some [nice ones](https://flappybird.io/). [this](https://studio.code.org/flappy) has nice backgrounds. nice ideas [here](https://youtu.be/3IdOCxHGMIo?list=PLhQjrBD2T383Vx9-4vJYFsJbvZ_D17Qzh)
+- flappybird - needs some improvements. maybe new assets? There are some [nice ones](https://flappybird.io/). [this](https://studio.code.org/flappy) has nice backgrounds. nice ideas [here](https://youtu.be/3IdOCxHGMIo?list=PLhQjrBD2T383Vx9-4vJYFsJbvZ_D17Qzh)
+- tetris - this would be a good basic game to implement that wouldn't need any assets
+- pong - another nice basic game. implement simple AI like [here](https://konsumer.js.org/raylib-wasm/#games/pong)
+- tracker - I need to get a basic tracker for samples & sfx made, as a starting point. it would be cool to implement SFX param-changes on the fly, but maybe just pre-load to start (no streaming-audio needed)
+- 
 
 
 ### longterm
 
 - test everything, maybe a full battery of wasm-side tests (every single function)
-- add TTS libs & API functions
+- add TTS
 - setup a ESP32 host
-- AI? would be cool to embed llama, with a flag (disabled by default)
+- AI? would be cool to embed llama in host, with a flag (disabled by default)
 - Networking? would be cool to at least do basic HTTP, with a flag (disabled by default)
 - standalone DLL for iwasm
-- add complete WASI support to hosts (instead of my IO wrappers, etc)
 - more games! maybe have a game-contest or something.
 - web-based editor/compiler - I think no installation would be really nice, anmd I could setup editor-environments for specific languages, and even add other editors (like basic tilemap/sprite stuff.)
 
