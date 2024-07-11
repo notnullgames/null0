@@ -1,6 +1,6 @@
 #include <null0.h>
 
-Color colors[27];
+Color colors[26];
 
 int main() {
   colors[0] = LIGHTGRAY;
@@ -26,9 +26,9 @@ int main() {
   colors[20] = DARKBROWN;
   colors[21] = WHITE;
   colors[22] = BLACK;
-  colors[24] = BLANK;
-  colors[25] = MAGENTA;
-  colors[26] = RAYWHITE;
+  colors[23] = BLANK;
+  colors[24] = MAGENTA;
+  colors[25] = RAYWHITE;
 
   Color c = color_tint(RED, GREEN);
   trace("Null0 Tint RED with GREEN: (%u, %u, %u, %u)\n", c.r, c.g, c.b, c.a);
