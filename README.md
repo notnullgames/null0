@@ -130,6 +130,7 @@ cmake --build wbuild
 - standalone DLL for iwasm
 - add complete WASI support to hosts (instead of my IO wrappers, etc)
 - more games! maybe have a game-contest or something.
+- web-based editor/compiler - I think no installation would be really nice, anmd I could setup editor-environments for specific languages, and even add other editors (like basic tilemap/sprite stuff.)
 
 ## thanks
 
