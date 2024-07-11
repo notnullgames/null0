@@ -53,6 +53,10 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
 
   canvas.width = 320
   canvas.height = 240
+  canvas.setAttribute('tabindex', 0)
+  canvas.addEventListener('click', () => canvas.focus())
+
+  // TODO: focus/unfocus handlers for sound
 
   const imports = {
     null0: wireCartToHost(host, cart),
@@ -120,7 +124,7 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
   }
 
   if (cart.buttonDown) {
-    window.addEventListener('keydown', ({key}) => {
+    canvas.addEventListener('keydown', ({key}) => {
       if (key === 'z') {
         cart.buttonDown(Buttons.B)
       }
@@ -161,7 +165,7 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
   }
 
   if (cart.buttonUp) {
-    window.addEventListener('keyup', ({key}) => {
+    canvas.addEventListener('keyup', ({key}) => {
       if (key === 'z') {
         cart.buttonUp(Buttons.B)
       }
@@ -201,13 +205,17 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
     })
   }
 
-  if (cart.update) {
-    const cartUpdate = () => {
+
+  const cartUpdate = () => {
+    if (cart.update) {
       cart.update()
-      window.requestAnimationFrame(cartUpdate)
     }
     window.requestAnimationFrame(cartUpdate)
+    if (cart.frameCallback) {
+      cart.frameCallback()
+    }
   }
+  window.requestAnimationFrame(cartUpdate)
 
   return out
 }

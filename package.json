@@ -6,12 +6,21 @@
   "main": "node/index.js",
   "scripts": {
     "clean": "rimraf build wbuild docs/cart docs/wasm",
-    "start": "npm run build:site && live-server docs",
+    "start:server": "live-server docs",
     "build:retro": "cmake -GNinja -B build -DCARTS=OFF -DHOST_TYPE=RETRO && cmake --build build",
     "build:carts": "cmake -GNinja -B build -DCARTS=ON -DHOST_TYPE=OFF && cmake --build build",
     "build:host": "cmake -GNinja -B build  -DCARTS=OFF -DHOST_TYPE=RAYLIB && cmake --build build",
     "build:web": "emcmake cmake -GNinja -B wbuild && cmake --build wbuild",
-    "build:site": "npm run build:carts && npm run build:web && mkdir -p docs/wasm docs/cart && cp wbuild/host/null0.* docs/wasm && cp build/cart/c/*.null0 docs/cart"
+    "build:site": "mkdir -p docs/wasm docs/cart && emcmake cmake -GNinja -B wbuild -DCARTS=ON && cmake --build wbuild && cp wbuild/host/null0.* docs/wasm && cp wbuild/cart/c/*.null0 docs/cart",
+    "watch:site": "npm-watch build:site",
+    "start": "run-p watch:site  start:server"
+  },
+  "watch": {
+    "build:site":  {
+      "patterns": ["cart", "host"],
+      "extensions": "js,html,c,h,png",
+      "legacyWatch": true
+    }
   },
   "keywords": [],
   "author": "David Konsumer <konsumer@jetboystudio.com>",
@@ -19,6 +28,8 @@
   "devDependencies": {
     "glob": "^10.3.10",
     "live-server": "^1.2.0",
+    "npm-run-all": "^4.1.5",
+    "npm-watch": "^0.13.0",
     "rimraf": "^6.0.1",
     "yaml": "^2.4.0"
   }

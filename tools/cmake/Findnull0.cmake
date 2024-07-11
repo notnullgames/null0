@@ -5,7 +5,7 @@
 if(EMSCRIPTEN)
   set(HOST_TYPE  "WEB")
   set(NULL0_HOST_TYPE_WEB  ON)
-  set(CARTS OFF)
+  # set(CARTS OFF)
 else()
   set(NULL0_HOST_TYPE_WEB  OFF)
   option(CARTS "Build demo-carts" ON)
