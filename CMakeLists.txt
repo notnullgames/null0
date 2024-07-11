@@ -7,18 +7,21 @@ project(null0
   LANGUAGES C
 )
 
-include(FetchContent)
-# set(FETCHCONTENT_QUIET OFF)
+# options:
+
+# CARTS=ON/OFF
+# HOST_TYPE=OFF/WEB/RAYLIB/SDL/RETRO
 
 set(CMAKE_BUILD_TYPE Release)
 cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0135 NEW)
 
-set(BUILD_SHARED_LIBS OFF)
+# everyone wants to make an "uninstall" target
+set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
+
+include(FetchContent)
+# set(FETCHCONTENT_QUIET OFF)
+
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake")
-
-# CARTS=ON/OFF
-# HOST_TYPE=OFF/WEB/RAYLIB/SDL/RETRO
-
 find_package(null0 REQUIRED)
