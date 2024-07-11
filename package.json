@@ -5,7 +5,7 @@
   "type": "module",
   "main": "node/index.js",
   "scripts": {
-    "clean": "rimraf build wbuild docs/cart docs/wasm",
+    "clean": "rimraf build wbuild",
     "start:server": "live-server docs",
     "build:retro": "cmake -GNinja -B build -DCARTS=OFF -DHOST_TYPE=RETRO && cmake --build build",
     "build:carts": "cmake -GNinja -B build -DCARTS=ON -DHOST_TYPE=OFF && cmake --build build",
@@ -13,7 +13,7 @@
     "build:web": "emcmake cmake -GNinja -B wbuild && cmake --build wbuild",
     "build:site": "mkdir -p docs/wasm docs/cart && emcmake cmake -GNinja -B wbuild -DCARTS=ON && cmake --build wbuild && cp wbuild/host/null0.* docs/wasm && cp wbuild/cart/c/*.null0 docs/cart",
     "watch:site": "npm-watch build:site",
-    "start": "run-p watch:site  start:server"
+    "start": "run-p watch:site start:server"
   },
   "watch": {
     "build:site":  {

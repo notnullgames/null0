@@ -1,5 +1,5 @@
 if (NULL0_HOST_TYPE_RETRO)
-  add_library(${PROJECT_NAME}_libretro src/main.c)
+  add_library(${PROJECT_NAME}_libretro SHARED src/main.c)
   find_package(libretrocommon QUIET)
   target_link_libraries(${PROJECT_NAME}_libretro
     null0_api
