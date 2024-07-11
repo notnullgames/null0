@@ -7,10 +7,10 @@
   "scripts": {
     "clean": "rimraf build wbuild docs/cart docs/wasm",
     "start": "npm run build:site && live-server docs",
-    "build:retro": "cmake -GNinja -B build -DLIBRETRO=1 -DHOST=0 -DTESTS=0 -DCARTS=0 && cmake --build build",
-    "build:carts": "cmake -GNinja -B build -DLIBRETRO=0 -DHOST=0 -DTESTS=0 -DCARTS=1 && cmake --build build",
-    "build:host": "cmake -GNinja -B build -DLIBRETRO=0 -DHOST=1 -DTESTS=0 -DCARTS=0 && cmake --build build",
-    "build:web": "emcmake cmake -DLIBRETRO=0 -DHOST=1 -DTESTS=0 -DCARTS=0 -GNinja -B wbuild && cmake --build wbuild",
+    "build:retro": "cmake -GNinja -B build -DCARTS=OFF -DHOST_TYPE=RETRO && cmake --build build",
+    "build:carts": "cmake -GNinja -B build -DCARTS=ON -DHOST_TYPE=OFF && cmake --build build",
+    "build:host": "cmake -GNinja -B build  -DCARTS=OFF -DHOST_TYPE=RAYLIB && cmake --build build",
+    "build:web": "emcmake cmake -GNinja -B wbuild && cmake --build wbuild",
     "build:site": "npm run build:carts && npm run build:web && mkdir -p docs/wasm docs/cart && cp wbuild/host/null0.* docs/wasm && cp build/cart/c/*.null0 docs/cart"
   },
   "keywords": [],

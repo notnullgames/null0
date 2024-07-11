@@ -1,10 +1,6 @@
-# SDL2
-include(FetchContent)
-FetchContent_Declare(
-    SDL2Source
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-2.30.2
-    GIT_SHALLOW 1
+FetchContent_Declare(SDL2Source
+  URL https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.30.5.zip
 )
+
 FetchContent_MakeAvailable(SDL2Source)
 #include_directories(${SDL2Source_SOURCE_DIR})

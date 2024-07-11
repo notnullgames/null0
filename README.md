@@ -66,66 +66,44 @@ You will need cmake, ninja & emscripten installed.
 
 ### more on cmake
 
-You can tune how you build things by using cmake directly:
+I like ninja, in the tasks above, because it builds a bit faster, but it's optional, if yuou use cmake directly.
 
-```
-# config
-cmake -B build
+Essentially, there are 2 options:
 
-# build runtime
+- `CARTS` - Should carts be built? 
+- `HOST_TYPE` - What sort of host are you building (OFF/WEB/RAYLIB/SDL/RETRO)
+
+You can only build 1 `HOST_TYPE` at a time. `CARTS` can be paired with any `HOST_TYPE`, but not `WEB`, and `WEB` requires emscripten (and should probably be built in a seperate root.)
+
+#### examples
+
+There are 2 steps: configure & build.
+
+```sh
+# configure without ninja (plain make) build only carts
+cmake -B build -DCARTS=ON -DHOST_TYPE=OFF
+
+# configure for ninja, build only carts
+cmake -GNinja -B build -DCARTS=ON -DHOST_TYPE=OFF
+
+# configure for ninja, build only raylib host
+cmake -GNinja -B build -DCARTS=OFF -DHOST_TYPE=RAYLIB
+
+# configure for ninja, build only SDL host
+cmake -GNinja -B build -DCARTS=OFF -DHOST_TYPE=SDL
+
+# configure for ninja, build only libretro-core
+cmake -GNinja -B build -DCARTS=OFF -DHOST_TYPE=RETRO
+
+# configure for ninja, build only web-host (in wbuild/)
+emcmake cmake -GNinja -B wbuild
+
+# after configure, build build
 cmake --build build
 
-# run with cart
-./build/host/null0 ./build/cart/c/input.null0
+# after configure, build wbuild (for web)
+cmake --build wbuild
 
-# configure for web
-emcmake cmake -B wbuild
-
-# build web runtime
-emmake make -C wbuild
-```
-
-These cmake-flags will effect the build:
-
-```
-// Build Null0 libretro Host (don't do this in web-build)
-LIBRETRO:BOOL=OFF
-
-// Build Null0 Host (web or native)
-HOST:BOOL=ON
-
-// Use SDL in hosts
-SDL:BOOL=ON
-
-// Build Null0 raylib Host
-RAYLIB:BOOL=OFF
-
-// Build Demo Null0 Carts
-CARTS:BOOL=ON
-
-// Unit tests
-TESTS:BOOL=OFF
-```
-
-You can set them like this:
-
-```
-# don't build demo carts, use defaults
-cmake -B build -DCARTS=0
-
-# don't buid anything but the carts (since LIBRETRO and TESTS is off by default)
-cmake -B build -DHOST=0
-
-# just build unit-tests
-cmake -B build -DHOST=0 -DTESTS=1 -DCARTS=0
-cmake --build build
-./build/test/test_colors
-
-
-# just build carts
-cmake -B build -DHOST=0 -DTESTS=0 -DCARTS=1
-cmake --build build
-```
 
 ## todo
 

@@ -1,12 +1,8 @@
-# raylib
-include(FetchContent)
-FetchContent_Declare(
-    raylib
-    GIT_REPOSITORY https://github.com/raysan5/raylib.git
-    GIT_TAG 5.0
-    GIT_SHALLOW 1
+FetchContent_Declare(raylib
+  URL https://github.com/raysan5/raylib/archive/refs/tags/5.0.zip
 )
-FetchContent_GetProperties(raylib)
+FetchContent_MakeAvailable(raylib)
+
 if (NOT raylib_POPULATED)
     set(FETCHCONTENT_QUIET NO)
     FetchContent_Populate(raylib)
