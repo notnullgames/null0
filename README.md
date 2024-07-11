@@ -123,7 +123,6 @@ cmake --build wbuild
 - tetris - this would be a good basic game to implement that wouldn't need any assets
 - pong - another nice basic game. implement simple AI like [here](https://konsumer.js.org/raylib-wasm/#games/pong)
 - tracker - I need to get a basic tracker for samples & sfx made, as a starting point. it would be cool to implement SFX param-changes on the fly, but maybe just pre-load to start (no streaming-audio needed)
-- 
 
 
 ### longterm
