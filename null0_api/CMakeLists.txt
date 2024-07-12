@@ -1,4 +1,4 @@
-add_library(null0_api src/main.c src/sfx_gen.c)
+add_library(null0_api src/main.c)
 
 if (NULL0_HOST_TYPE_RAYLIB)
   target_link_libraries(null0_api raylib pntr pntr_app physfs-static)

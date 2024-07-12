@@ -144,6 +144,7 @@ if(HOST_TYPE)
 
   find_package(pntr REQUIRED)
   find_package(pntr_app REQUIRED)
+  find_package(pntr_app_sfx REQUIRED)
   find_package(physfs REQUIRED)
 
   add_subdirectory(null0_api)

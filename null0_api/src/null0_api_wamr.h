@@ -123,7 +123,7 @@ static void wamr_null0_preset_sfx(wasm_exec_env_t exec_env, SfxParams* params, S
 }
 
 // Randomize sfxr params
-static void wamr_null0_randomize_sfx(wasm_exec_env_t exec_env, SfxParams* params, SfxWaveType waveType) {
+static void wamr_null0_randomize_sfx(wasm_exec_env_t exec_env, SfxParams* params, enum SfxWaveType waveType) {
   null0_randomize_sfx(params, waveType);
 }
 

@@ -270,7 +270,8 @@ typedef enum SfxPresetType {
   SFX_POWERUP,
   SFX_HURT,
   SFX_JUMP,
-  SFX_SELECT
+  SFX_SELECT,
+  SFX_SYNTH
 } SfxPresetType;
 
 typedef enum SfxWaveType {
