@@ -1,0 +1,4 @@
+- [soundfont](https://github.com/schellingb/TinySoundFont) (once streaming audio is setup)
+- use sfx (with dynamic param changes, once streaming audio is setup)
+- [faust](https://faust.grame.fr/) would be really neat for sound-processing. If I could load dsp files directly, that would be sick, but precompiled might be ok for most things. Also, their gui functions are inspiring.
+- [cmajor](https://cmajor.dev/) is also nice for instruments/effects, seems a bit simpler, and can interop with faust.
