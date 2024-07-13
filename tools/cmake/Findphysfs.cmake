@@ -1,5 +1,7 @@
 FetchContent_Declare(physfs
-  URL https://github.com/icculus/physfs/archive/refs/heads/master.zip
+  # PhysFS fork with libretro VFS support
+  # https://github.com/icculus/physfs/pull/83
+  URL https://github.com/RobLoach/physfs/archive/refs/heads/libretro-support.zip
 )
 FetchContent_MakeAvailable(physfs)
 

@@ -11,8 +11,8 @@
 unsigned char* null0_file_read(char* filename, uint32_t* bytesRead);
 bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize);
 
-#define PNTR_LOAD_FILE null0_file_read
-#define PNTR_SAVE_FILE null0_file_write
+#define PNTR_PHYSFS_IMPLEMENTATION
+#include <pntr_physfs.h>
 
 #define PNTR_ENABLE_MATH
 #define PNTR_ENABLE_JPEG
@@ -83,11 +83,9 @@ int null0_button_map_key(int key) {
 }
 
 // call this in your own host's init function to setup basic frame of things
-bool null0_engine_init(char* filename) {
-  if (filename != NULL) {
-    if (!null0_init_filesystem(filename)) {
-      return false;
-    }
+bool null0_engine_init(pntr_app* app) {
+  if (!null0_init_filesystem(app)) {
+    return false;
   }
 
   // default font is 0

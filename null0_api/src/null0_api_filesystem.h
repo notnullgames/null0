@@ -10,45 +10,70 @@
 #include <string.h>
 #include "physfs.h"
 
+#ifdef PNTR_APP_LIBRETRO
+// TODO: Wrap this into a pntr_app_libretro_environ_cb() function.
+extern static retro_environment_t environ_cb;
+#endif
+
 char** null0_file_list_array;
 
-char* null0_writable_dir;
+const char* null0_writable_dir;
 
 // intialize filesystem
-bool null0_init_filesystem(char* cart) {
-  if (!PHYSFS_init("/")) {
+bool null0_init_filesystem(pntr_app* app) {
+  #ifdef PNTR_APP_LIBRETRO
+  if (!PHYSFS_init(environ_cb)) {
+  #else
+  if (!PHYSFS_init(app->argv != NULL ? app->argv[0] : NULL)) {
+  #endif
     printf("Could not init filesystem.\n");
     return false;
   }
-  char* cartName = strtok(basename(cart), ".");
 
-  if (strlen(cartName) > 127) {
-    printf("Name is too long.\n");
-    return false;
+  // Mount the current working directory, so that we're able to load the app->argv[1] file.
+  PHYSFS_mount(".", NULL, 1);
+
+  unsigned int size;
+  void* cart_data = pntr_app_load_arg_file(app, &size);
+
+  if (app->argc > 0) {
+    // TODO: Find the base directory of the app->argv[0] current file.
+    null0_writable_dir = app->argv[0];
+  }
+  else {
+    null0_writable_dir = PHYSFS_getBaseDir();
   }
 
-  char pathname[134];
-  snprintf(pathname, 134, "null0-%s", cartName);
+  printf("Stuff: %s\n", app->argv[0]);
 
-  null0_writable_dir = PHYSFS_getPrefDir("null0", pathname);
-
-  if (!PHYSFS_mount(cart, NULL, 1)) {
-    PHYSFS_deinit();
-    printf("Could not mount filesystem.\n");
-    return false;
+  if (cart_data == NULL) {
+    // Mount the directory itself.
+    if (!PHYSFS_mount(app->argv[0], NULL, 0)) {
+      PHYSFS_deinit();
+      printf("Could not mount directory.\n");
+      return false;
+    }
+  }
+  else {
+    // Mount the cart data.
+    int success = PHYSFS_mountMemory(cart_data, size, NULL, "cart.zip", NULL, 0);
+    pntr_unload_memory(cart_data);
+    if (success == 0) {
+      PHYSFS_deinit();
+      printf("Could not mount cart data.\n");
+      return false;
+    }
   }
 
   // put null0_writable_dir at end of search-path (so user can overwrite any files)
   if (!PHYSFS_mount(null0_writable_dir, NULL, 1)) {
-    PHYSFS_deinit();
     printf("Could not mount write-dir.\n");
-    return false;
+    // Don't error out, just report the error.
   }
 
   if (!PHYSFS_setWriteDir(null0_writable_dir)) {
-    PHYSFS_deinit();
     printf("Could not set write-dir.\n");
-    return false;
+    // Don't error out, just report the error
   }
 
   return true;
@@ -69,25 +94,12 @@ PHYSFS_Stat null0_file_info(char* filename) {
 
 // Read a file from cart
 unsigned char* null0_file_read(char* filename, uint32_t* bytesRead) {
-  PHYSFS_File* f = PHYSFS_openRead(filename);
-  PHYSFS_Stat i = null0_file_info(filename);
-
-  unsigned char* b = (unsigned char*)malloc(i.filesize);
-  PHYSFS_sint64 br = PHYSFS_readBytes(f, b, i.filesize);
-  *bytesRead = br;
-  PHYSFS_close(f);
-  return b;
+  return pntr_physfs_load_file((const char*)filename, bytesRead);
 }
 
 // Write a file to persistant storage
 bool null0_file_write(char* filename, unsigned char* data, uint32_t byteSize) {
-  PHYSFS_File* f = PHYSFS_openWrite(filename);
-  PHYSFS_sint64 bytesWritten = PHYSFS_writeBytes(f, data, byteSize);
-  PHYSFS_close(f);
-  if (byteSize != bytesWritten) {
-    return false;
-  }
-  return true;
+  return pntr_physfs_save_file((const char*)filename, data, byteSize);
 }
 
 // Write a file to persistant storage, appending to the end
@@ -108,6 +120,6 @@ char** null0_file_list(char* dir) {
 }
 
 // Get the user's writable dir (where file writes or appends go)
-char* null0_get_write_dir() {
+const char* null0_get_write_dir() {
   return null0_writable_dir;
 }
