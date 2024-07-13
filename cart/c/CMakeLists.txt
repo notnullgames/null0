@@ -11,7 +11,7 @@ set(triple wasm32-wasi)
 
 # When building from source, WASI_SDK_PREFIX represents the generated directory
 if(NOT WASI_SDK_PREFIX)
-    set(WASI_SDK_PREFIX /opt/wasi-sdk)
+    set(WASI_SDK_PREFIX /home/rob/.asdf/installs/wasi-sdk/23/wasi-sdk)
 endif()
 
 set(CMAKE_C_COMPILER ${WASI_SDK_PREFIX}/bin/clang${WASI_HOST_EXE_SUFFIX})

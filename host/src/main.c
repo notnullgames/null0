@@ -8,16 +8,9 @@
 #include "null0_api_web.h"
 #endif
 
-// global that tracks the cart-name
-char* filename = NULL;
-
 bool Init(pntr_app* app) {
-  if (!filename) {
-    return false;
-  }
-
   // setup main null0 runtime
-  if (!null0_engine_init(filename)) {
+  if (!null0_engine_init(app)) {
     return false;
   }
   return null0_init();
@@ -37,14 +30,6 @@ void Event(pntr_app* app, pntr_app_event* event) {
 }
 
 pntr_app Main(int argc, char* argv[]) {
-  if (argc != 2) {
-    printf("Usage: null0 <CART>\n");
-  } else {
-    filename = argv[1];
-  }
-
-  printf("Pixel format: %d\n", PNTR_PIXELFORMAT);
-
 #ifdef PNTR_APP_RAYLIB
   SetTraceLogLevel(LOG_WARNING);
 #endif

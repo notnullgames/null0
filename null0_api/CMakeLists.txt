@@ -1,15 +1,15 @@
 add_library(null0_api src/main.c)
 
 if (NULL0_HOST_TYPE_RAYLIB)
-  target_link_libraries(null0_api raylib pntr pntr_app physfs-static)
+  target_link_libraries(null0_api raylib pntr pntr_app pntr_physfs physfs-static)
 endif()
 
 if (NULL0_HOST_TYPE_SDL)
-  target_link_libraries(null0_api ${SDL2_LIBRARIES} pntr pntr_app physfs-static)
+  target_link_libraries(null0_api ${SDL2_LIBRARIES} pntr pntr_app pntr_physfs physfs-static)
 endif()
 
 if (NULL0_HOST_TYPE_WEB)
-  target_link_libraries(null0_api pntr pntr_app physfs-static)
+  target_link_libraries(null0_api pntr pntr_app pntr_physfs physfs-static)
 endif()
 
 if (NULL0_HOST_TYPE_RETRO)
@@ -24,10 +24,16 @@ if (NULL0_HOST_TYPE_RETRO)
   target_link_libraries(null0_api
     pntr
     pntr_app
+    pntr_physfs
     physfs-static
     libretro-audio
   )
   target_include_directories(null0_api PRIVATE
     ${libretrocommon_SOURCE_DIR}/include
+  )
+
+  target_compile_definitions(physfs-static PRIVATE
+    -DPHYSFS_PLATFORM_LIBRETRO_NO_THREADS
+    -D__LIBRETRO__
   )
 endif()

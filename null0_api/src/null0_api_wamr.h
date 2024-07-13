@@ -65,7 +65,7 @@ static uint32_t wamr_null0_file_read(wasm_exec_env_t exec_env, char* filename, u
 
 // Get the user's writable dir (where file writes or appends go)
 static uint32_t wamr_null0_get_write_dir(wasm_exec_env_t exec_env) {
-  char* d = null0_get_write_dir();
+  char* d = (char*)null0_get_write_dir();
   int s = strlen(d);
   d[s] = 0;
   return wasm_runtime_module_dup_data(module_inst, d, s + 1);
