@@ -20,7 +20,12 @@ bool null0_init_filesystem(char* cart) {
     printf("Could not init filesystem.\n");
     return false;
   }
-  char* cartName = strtok(basename(cart), ".");
+
+  // this gets around weird bug where it modifies cart var, in-place.
+  char sname[134];
+  strncpy(sname, cart, strlen(cart));
+  char* bname = basename(sname);
+  char* cartName = strtok(bname, ".");
 
   if (strlen(cartName) > 127) {
     printf("Name is too long.\n");
@@ -34,14 +39,14 @@ bool null0_init_filesystem(char* cart) {
 
   if (!PHYSFS_mount(cart, NULL, 1)) {
     PHYSFS_deinit();
-    printf("Could not mount filesystem.\n");
+    printf("Could not mount filesystem from %s.\n", cart);
     return false;
   }
 
   // put null0_writable_dir at end of search-path (so user can overwrite any files)
   if (!PHYSFS_mount(null0_writable_dir, NULL, 1)) {
     PHYSFS_deinit();
-    printf("Could not mount write-dir.\n");
+    printf("Could not mount %s as write-dir.\n", null0_writable_dir);
     return false;
   }
 

@@ -14,7 +14,7 @@ project(null0
 
 set(CMAKE_BUILD_TYPE Release)
 cmake_policy(SET CMP0077 NEW)
-cmake_policy(SET CMP0135 NEW)
+# cmake_policy(SET CMP0135 NEW)
 
 # everyone wants to make an "uninstall" target
 set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
