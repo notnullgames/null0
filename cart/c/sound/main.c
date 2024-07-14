@@ -11,15 +11,13 @@ int main() {
   trace("Hello from sound.");
 
   apache = load_sound("assets/apache.ogg");
-  play_sound(apache, true);
+  // play_sound(apache, true);
 
   audioLogo = load_sound("assets/notnullgames.ogg");
 
   params = malloc(sizeof(SfxParams));
   sfx = new_sfx(params);
-
-  // this segfaults, but all works without it
-  // preset_sfx(params, SFX_POWERUP);
+  preset_sfx(params, SFX_POWERUP);
 
   return 0;
 }

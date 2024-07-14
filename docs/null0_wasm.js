@@ -83,8 +83,9 @@ export default function wireCartToHost (host, cart) {
     },
     preset_sfx(params, type) {
       const paramsHostPtr = copyBytesFromCart(params, 96)
-      host._null0_new_sfx(paramsHostPtr, type)
+      host._null0_preset_sfx(paramsHostPtr, type)
       copyBytesToCart(params, 96, paramsHostPtr)
+      // console.log('preset_sfx (js)', host.HEAPU8.slice(paramsHostPtr, paramsHostPtr + 96))
       host._free(paramsHostPtr)
     },
     randomize_sfx(params, waveType) {

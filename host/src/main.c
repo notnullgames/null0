@@ -43,8 +43,6 @@ pntr_app Main(int argc, char* argv[]) {
     filename = argv[1];
   }
 
-  printf("Pixel format: %d\n", PNTR_PIXELFORMAT);
-
 #ifdef PNTR_APP_RAYLIB
   SetTraceLogLevel(LOG_WARNING);
 #endif
