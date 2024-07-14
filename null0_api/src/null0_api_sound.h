@@ -18,10 +18,9 @@ typedef enum SfxPresetType {
   SFX_SYNTH
 } SfxPresetType;
 
-void print_sfx(pntr_app* app, SfxParams sfx_params) {
-  char code[1024];
-  snprintf(code, 1024,
-      "(SfxParams) {\n\
+// debug function to print a SfxParams
+void print_sfx(SfxParams sfx_params) {
+  printf("(SfxParams) {\n\
   .randSeed=%lu,\n\
   .waveType=%d,\n\
   .attackTime=%ff,\n\
@@ -48,10 +47,6 @@ void print_sfx(pntr_app* app, SfxParams sfx_params) {
   .hpfCutoffSweep=%ff \n\
 }\n",
       (unsigned long)sfx_params.randSeed, sfx_params.waveType, sfx_params.attackTime, sfx_params.sustainTime, sfx_params.sustainPunch, sfx_params.decayTime, sfx_params.startFrequency, sfx_params.minFrequency, sfx_params.slide, sfx_params.deltaSlide, sfx_params.vibratoDepth, sfx_params.vibratoSpeed, sfx_params.changeAmount, sfx_params.changeSpeed, sfx_params.squareDuty, sfx_params.dutySweep, sfx_params.repeatSpeed, sfx_params.phaserOffset, sfx_params.phaserSweep, sfx_params.lpfCutoff, sfx_params.lpfCutoffSweep, sfx_params.lpfResonance, sfx_params.hpfCutoff, sfx_params.hpfCutoffSweep);
-
-  // Export it to the clipboard and the logs.
-  pntr_app_set_clipboard(app, code, 0);
-  printf("%s\n", code);
 }
 
 uint32_t null0_add_sound(pntr_sound* sound) {
@@ -82,8 +77,11 @@ void null0_unload_sound(uint32_t sound) {
 
 // Create a new sound-effect from some sfxr params
 uint32_t null0_new_sfx(SfxParams* params) {
-  printf("null0_new_sfx\n");
-  return null0_add_sound(pntr_app_sfx_sound(null0_app, params));
+  uint32_t o = null0_add_sound(pntr_app_sfx_sound(null0_app, params));
+  params->randSeed = 0.5f;
+  printf("null0_new_sfx - %u\n", o);
+  print_sfx(*params);
+  return o;
 }
 
 void null0_preset_sfx(SfxParams* params, SfxPresetType type) {
@@ -123,22 +121,26 @@ void null0_preset_sfx(SfxParams* params, SfxPresetType type) {
     default:
       printf("null0_preset_sfx: no type!\n");
   }
-
-  print_sfx(null0_app, *params);
-  
+  print_sfx(*params);
 }
 
 void null0_randomize_sfx(SfxParams* params, enum SfxWaveType waveType) {
   pntr_app_sfx_gen_randomize(null0_app, params, waveType);
+  printf("null0_randomize_sfx: %d\n", waveType);
+  print_sfx(*params);
 }
 
 void null0_mutate_sfx(SfxParams* params, float range, uint32_t mask) {
   pntr_app_sfx_mutate(null0_app, params, range, mask);
+  printf("null0_mutate_sfx: %f %u\n", range, mask);
+  print_sfx(*params);
 }
 
 // Create a new sound-effect from a .rfx file
 SfxParams null0_load_sfx(char* filename) {
   SfxParams params = {0};
   pntr_app_sfx_load_params(&params, filename);
+  printf("null0_load_sfx: %s\n", filename);
+  print_sfx(params);
   return params;
 }
