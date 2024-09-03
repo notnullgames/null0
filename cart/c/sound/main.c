@@ -82,10 +82,10 @@ int main() {
 
   // load a SFX from a file
   // currently this is broke
-  SfxParams* fileloaded = malloc(96);
-  load_sfx(fileloaded, "assets/sound.rfx");
-  fileloaded_sfx = new_sfx(fileloaded);
-  print_sfx(*fileloaded);
+  // SfxParams* fileloaded = malloc(96);
+  // load_sfx(fileloaded, "assets/sound.rfx");
+  // fileloaded_sfx = new_sfx(fileloaded);
+  // print_sfx(*fileloaded);
 
   return 0;
 }
@@ -98,7 +98,7 @@ void update() {
   draw_text(0, "Press X for coin sound.", 65, HEIGHT / 2 - 20, RAYWHITE);
   draw_text(0, "Press Y for hurt sound.", 65, HEIGHT / 2, RAYWHITE);
   draw_text(0, "Press START for hardcoded sfx struct", 18, HEIGHT / 2 + 20, RAYWHITE);
-  draw_text(0, "Press SELECT for file sfx", 45, HEIGHT / 2 + 40, RAYWHITE);
+  // draw_text(0, "Press SELECT for file sfx", 45, HEIGHT / 2 + 40, RAYWHITE);
 }
 
 NULL0_EXPORT("buttonDown")
@@ -133,7 +133,7 @@ void buttonDown(GamepadButton button) {
     play_sound(preloaded_sfx, false);
   }
 
-  if (button == GAMEPAD_BUTTON_SELECT) {
-    play_sound(fileloaded_sfx, false);
-  }
+  // if (button == GAMEPAD_BUTTON_SELECT) {
+  //   play_sound(fileloaded_sfx, false);
+  // }
 }

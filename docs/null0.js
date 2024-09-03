@@ -113,6 +113,10 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
     cart[k] = exports[k]
   }
 
+  const d = new TextDecoder()
+  cart.getString = (offset, length) => d.decode(exports.memory.buffer.slice(offset, offset + length))
+  cart.view = new DataView(exports.memory.buffer)
+
   out.cart = cart
 
   if (cart._start) {
@@ -124,7 +128,7 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
   }
 
   if (cart.buttonDown) {
-    canvas.addEventListener('keydown', ({key}) => {
+    canvas.addEventListener('keydown', ({ key }) => {
       if (key === 'z') {
         cart.buttonDown(Buttons.B)
       }
@@ -165,7 +169,7 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
   }
 
   if (cart.buttonUp) {
-    canvas.addEventListener('keyup', ({key}) => {
+    canvas.addEventListener('keyup', ({ key }) => {
       if (key === 'z') {
         cart.buttonUp(Buttons.B)
       }
@@ -204,7 +208,6 @@ export async function setupCart (url, canvas = document.body.appendChild(documen
       }
     })
   }
-
 
   const cartUpdate = () => {
     if (cart.update) {
