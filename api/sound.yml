@@ -48,7 +48,7 @@ mutate_sfx:
 load_sfx:
   args:
     filename: string
-  returns: SfxParams
+  returns: SfxParams*
   description: Create a new sfxr from a .rfx file
 
 unload_sound:

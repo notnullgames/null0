@@ -396,7 +396,7 @@ void mutate_sfx(SfxParams* params, f32 range, u32 mask);
 
 // Create a new sfxr from a .rfx file
 NULL0_IMPORT("load_sfx")
-SfxParams load_sfx(char* filename);
+SfxParams* load_sfx(char* filename);
 
 // Unload a sound
 NULL0_IMPORT("unload_sound")
