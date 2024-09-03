@@ -133,8 +133,11 @@ static void wamr_null0_mutate_sfx(wasm_exec_env_t exec_env, SfxParams* params, f
 }
 
 // Create a new sfxr from a .rfx file
-static void wamr_null0_load_sfx(wasm_exec_env_t exec_env, SfxParams* outSfxParamsValue, char* filename) {
-  params_from_sfx_to_wasm(null0_load_sfx(filename), outSfxParamsValue);
+static void wamr_null0_load_sfx(wasm_exec_env_t exec_env, SfxParams* params, char* filename) {
+  SfxParams* hostRet = malloc(96);
+  null0_load_sfx(hostRet, filename);
+  memcpy(params, hostRet, 96);
+  free(hostRet);
 }
 
 // Unload a sound
@@ -679,7 +682,7 @@ static NativeSymbol null0_wamr_callbacks[] = {
     {"mouse_button_released", wamr_null0_mouse_button_released, "(i)i"},
     {"mouse_button_up", wamr_null0_mouse_button_up, "(i)i"},
     {"new_image", wamr_null0_new_image, "(ii*)i"},
-    {"image_copy", wamr_null0_image_copy, "(i)i"},
+    {"image_copy", wamr_null0_image_copy, "(i)i"}, 
     {"image_subimage", wamr_null0_image_subimage, "(iiiii)i"},
     {"clear", wamr_null0_clear, "(*)"},
     {"draw_point", wamr_null0_draw_point, "(ii*)"},

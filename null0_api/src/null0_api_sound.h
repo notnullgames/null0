@@ -90,8 +90,6 @@ void null0_mutate_sfx(SfxParams* params, float range, uint32_t mask) {
 }
 
 // Create a new sound-effect from a .rfx file
-SfxParams* null0_load_sfx(char* filename) {
-  SfxParams* params = malloc(96);
+void null0_load_sfx(SfxParams* params, char* filename) {
   pntr_app_sfx_load_params(params, filename);
-  return params;
 }

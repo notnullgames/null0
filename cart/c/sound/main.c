@@ -6,6 +6,7 @@ u32 apache;
 SfxParams* params;
 
 u32 preloaded_sfx;
+u32 fileloaded_sfx;
 
 // debug function to print a SfxParams
 void print_sfx(SfxParams sfx_params) {
@@ -79,17 +80,25 @@ int main() {
   };
   preloaded_sfx = new_sfx(&preloaded);
 
+  // load a SFX from a file
+  // currently this is broke
+  SfxParams* fileloaded = malloc(96);
+  load_sfx(fileloaded, "assets/sound.rfx");
+  fileloaded_sfx = new_sfx(fileloaded);
+  print_sfx(*fileloaded);
+
   return 0;
 }
 
 NULL0_EXPORT("update")
 void update() {
   clear(BLACK);
-  draw_text(0, "Press A for our name. (ogg file)", 40, HEIGHT / 2 - 40, RAYWHITE);
-  draw_text(0, "Press B for powerup sound.", 60, HEIGHT / 2 - 20, RAYWHITE);
-  draw_text(0, "Press X for coin sound.", 65, HEIGHT / 2, RAYWHITE);
-  draw_text(0, "Press Y for hurt sound.", 65, HEIGHT / 2 + 20, RAYWHITE);
-  draw_text(0, "Press START for hardcoded sfx struct", 18, HEIGHT / 2 + 40, RAYWHITE);
+  draw_text(0, "Press A for our name. (ogg file)", 40, HEIGHT / 2 - 60, RAYWHITE);
+  draw_text(0, "Press B for powerup sound.", 60, HEIGHT / 2 - 40, RAYWHITE);
+  draw_text(0, "Press X for coin sound.", 65, HEIGHT / 2 - 20, RAYWHITE);
+  draw_text(0, "Press Y for hurt sound.", 65, HEIGHT / 2, RAYWHITE);
+  draw_text(0, "Press START for hardcoded sfx struct", 18, HEIGHT / 2 + 20, RAYWHITE);
+  draw_text(0, "Press SELECT for file sfx", 45, HEIGHT / 2 + 40, RAYWHITE);
 }
 
 NULL0_EXPORT("buttonDown")
@@ -103,24 +112,28 @@ void buttonDown(GamepadButton button) {
     preset_sfx(params, SFX_POWERUP);
     sfx = new_sfx(params);
     play_sound(sfx, false);
-    print_sfx(*params);
+    // print_sfx(*params);
   }
   if (button == GAMEPAD_BUTTON_X) {
     unload_sound(sfx);
     preset_sfx(params, SFX_COIN);
     sfx = new_sfx(params);
     play_sound(sfx, false);
-    print_sfx(*params);
+    // print_sfx(*params);
   }
   if (button == GAMEPAD_BUTTON_Y) {
     unload_sound(sfx);
     preset_sfx(params, SFX_HURT);
     sfx = new_sfx(params);
     play_sound(sfx, false);
-    print_sfx(*params);
+    // print_sfx(*params);
   }
 
   if (button == GAMEPAD_BUTTON_START) {
     play_sound(preloaded_sfx, false);
+  }
+
+  if (button == GAMEPAD_BUTTON_SELECT) {
+    play_sound(fileloaded_sfx, false);
   }
 }
