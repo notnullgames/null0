@@ -54,48 +54,50 @@ typedef struct {
   i32 height;
 } Rectangle;
 
-typedef struct {
+// Sound parameters (96 bytes matching rFXGen WaveParams)
+typedef struct SfxParams {
   // Random seed used to generate the wave
-  u32 randSeed;
+  uint32_t randSeed;
 
   // Wave type (square, sawtooth, sine, noise)
-  i32 waveType;
+  int waveType;
 
   // Wave envelope parameters
-  f32 attackTime;
-  f32 sustainTime;
-  f32 sustainPunch;
-  f32 decayTime;
+  float attackTime;
+  float sustainTime;
+  float sustainPunch;
+  float decayTime;
 
   // Frequency parameters
-  f32 startFrequency;
-  f32 minFrequency;
-  f32 slide;
-  f32 deltaSlide;
-  f32 vibratoDepth;
-  f32 vibratoSpeed;
+  float startFrequency;
+  float minFrequency;
+  float slide;
+  float deltaSlide;
+  float vibratoDepth;
+  float vibratoSpeed;
+  // float vibratoPhaseDelay;      // Unused in sfxr code.
 
   // Tone change parameters
-  f32 changeAmount;
-  f32 changeSpeed;
+  float changeAmount;
+  float changeSpeed;
 
   // Square wave parameters
-  f32 squareDuty;
-  f32 dutySweep;
+  float squareDuty;
+  float dutySweep;
 
   // Repeat parameters
-  f32 repeatSpeed;
+  float repeatSpeed;
 
   // Phaser parameters
-  f32 phaserOffset;
-  f32 phaserSweep;
+  float phaserOffset;
+  float phaserSweep;
 
   // Filter parameters
-  f32 lpfCutoff;
-  f32 lpfCutoffSweep;
-  f32 lpfResonance;
-  f32 hpfCutoff;
-  f32 hpfCutoffSweep;
+  float lpfCutoff;
+  float lpfCutoffSweep;
+  float lpfResonance;
+  float hpfCutoff;
+  float hpfCutoffSweep;
 } SfxParams;
 
 typedef struct {
