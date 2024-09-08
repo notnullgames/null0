@@ -46,9 +46,9 @@ int main() {
   preloaded_sfx = new_sfx(&preloaded);
 
   // load a SFX from a file
-  SfxParams* fileloaded = malloc(96);
-  load_sfx(fileloaded, "assets/sound.rfx");
-  fileloaded_sfx = new_sfx(fileloaded);
+  SfxParams fileloaded = {};
+  load_sfx(&fileloaded, "assets/sound.rfx");
+  fileloaded_sfx = new_sfx(&fileloaded);
 
   return 0;
 }
