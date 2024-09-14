@@ -16,8 +16,11 @@
     "start": "run-p watch:site start:server"
   },
   "watch": {
-    "build:site":  {
-      "patterns": ["cart", "host"],
+    "build:site": {
+      "patterns": [
+        "cart",
+        "host"
+      ],
       "extensions": "js,html,c,h,png",
       "legacyWatch": true
     }
@@ -26,11 +29,11 @@
   "author": "David Konsumer <konsumer@jetboystudio.com>",
   "license": "ZLIB",
   "devDependencies": {
-    "glob": "^10.3.10",
+    "glob": "latest",
     "live-server": "^1.2.0",
-    "npm-run-all": "^4.1.5",
-    "npm-watch": "^0.13.0",
-    "rimraf": "^6.0.1",
-    "yaml": "^2.4.0"
+    "npm-run-all": "latest",
+    "npm-watch": "latest",
+    "rimraf": "latest",
+    "yaml": "latest"
   }
 }

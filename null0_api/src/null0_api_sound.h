@@ -47,7 +47,6 @@ void null0_unload_sound(uint32_t sound) {
 // Create a new sound-effect from some sfxr params
 uint32_t null0_new_sfx(SfxParams* params) {
   uint32_t o = null0_add_sound(pntr_app_sfx_sound(null0_app, params));
-  params->randSeed = 0.5f;
   return o;
 }
 
