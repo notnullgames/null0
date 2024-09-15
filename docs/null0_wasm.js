@@ -46,8 +46,7 @@ export default function wireCartToHost(host, cart) {
     return end - pointer;
   };
 
-  const cartStr = (pointer) =>
-    td.decode(cart.memory.buffer.slice(pointer, pointer + cartStrlen(pointer)));
+  const cartStr = (pointer) => cart.getString(pointer, cartStrlen(pointer));
 
   return {
     trace(str) {

@@ -1,6 +1,6 @@
 // called when the cart is loaded
 export function load(): void {
-  trace("hello");
+  trace("hello from AS");
 }
 
 // called on every frame

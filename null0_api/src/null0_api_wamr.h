@@ -796,14 +796,14 @@ bool null0_init() {
   wasmBytes = null0_file_read("/main.wasm", &bytesRead);
 
   if (wasmBytes == NULL) {
-    printf("Could not read main.wasm\n");
+    fprintf(stderr, "ERROR: Could not read main.wasm\n");
     return false;
   }
 
   RuntimeInitArgs init_args = null0_init_args();
 
   if (!wasm_runtime_full_init(&init_args)) {
-    printf("Init runtime environment failed.\n");
+    fprintf(stderr, "ERROR: Init runtime environment failed.\n");
     return false;
   }
 
@@ -812,14 +812,14 @@ bool null0_init() {
   char error_buf[128];
 
   error_buf[0] = 0;
-  wasm_module_t module = wasm_runtime_load(wasmBytes, wasmSize, error_buf, sizeof(error_buf));
+  wasm_module_t module = wasm_runtime_load(wasmBytes, wasmSize, error_buf, 128);
   if (error_buf[0] != 0) {
     fprintf(stderr, "ERROR: load - %s\n", error_buf);
     return false;
   }
 
   error_buf[0] = 0;
-  module_inst = wasm_runtime_instantiate(module, stack_size, heap_size, error_buf, sizeof(error_buf));
+  module_inst = wasm_runtime_instantiate(module, stack_size, heap_size, error_buf, 128);
   if (error_buf[0] != 0) {
     fprintf(stderr, "ERROR: instantiate - %s\n", error_buf);
     return false;
@@ -842,6 +842,7 @@ bool null0_init() {
 bool null0_update() {
   if (cart_update != NULL) {
     if (!wasm_runtime_call_wasm(exec_env, cart_update, 0, NULL)) {
+      // not fatal, but this will help with troubleshooting
       printf("%s\n", wasm_runtime_get_exception(module_inst));
     }
   }
@@ -852,6 +853,7 @@ bool null0_update() {
 void null0_unload() {
   if (cart_unload != NULL) {
     if (!wasm_runtime_call_wasm(exec_env, cart_unload, 0, NULL)) {
+      // not fatal, but this will help with troubleshooting
       printf("%s\n", wasm_runtime_get_exception(module_inst));
     }
   }

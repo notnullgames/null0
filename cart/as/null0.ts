@@ -1,3 +1,6 @@
+// include this in your null0 cart
+// asc src/index.ts  --target release --use trace=_null0_trace --use abort=_null0_abort --use seed=_null0_seed --lib ./null0.ts
+
 // log a string
 @external("null0", "trace")
 declare function _null0_real_trace(text: ArrayBuffer): void
