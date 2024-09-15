@@ -134,6 +134,10 @@ export async function setupCart(
 
   out.cart = cart;
 
+  if (cart._null0_init) {
+    cart._null0_init();
+  }
+
   if (cart._start) {
     cart._start();
   }

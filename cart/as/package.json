@@ -2,7 +2,7 @@
   "name": "@null0/example-as",
   "version": "0.0.0",
   "scripts": {
-    "build": "asc src/index.ts  --target release --use trace=_null0_trace --use abort=_null0_abort --use seed=_null0_seed --lib ./null0.ts && mkdir -p build/cart/assets && cp build/main.wasm build/cart && cp src/assets/* build/cart/assets && cd build/cart && zip -r ../example.null0 .",
+    "build": "asc src/index.ts --exportStart=_null0_init  --target release --use trace=_null0_trace --use abort=_null0_abort --use seed=_null0_seed --lib ./null0.ts && mkdir -p build/cart/assets && cp build/main.wasm build/cart && cp src/assets/* build/cart/assets && cd build/cart && zip -r ../example.null0 .",
     "start": "../../build/host/null0  ./build/example.null0",
     "prestart": "npm run build"
   },

@@ -833,6 +833,16 @@ bool null0_init() {
   cart_keyUp = wasm_runtime_lookup_function(module_inst, "keyUp");
   cart_keyDown = wasm_runtime_lookup_function(module_inst, "keyDown");
 
+  // this is for AS, since it needs a seperate function called
+  wasm_function_inst_t cart_init = NULL;
+  cart_init = wasm_runtime_lookup_function(module_inst, "_null0_init");
+  if (cart_init != NULL) {
+    if (!wasm_runtime_call_wasm(exec_env, cart_init, 0, NULL)) {
+      // not fatal, but this will help with troubleshooting
+      printf("init: %s\n", wasm_runtime_get_exception(module_inst));
+    }
+  }
+
   wasm_application_execute_main(module_inst, 0, NULL);
 
   return true;
@@ -843,7 +853,7 @@ bool null0_update() {
   if (cart_update != NULL) {
     if (!wasm_runtime_call_wasm(exec_env, cart_update, 0, NULL)) {
       // not fatal, but this will help with troubleshooting
-      printf("%s\n", wasm_runtime_get_exception(module_inst));
+      printf("update: %s\n", wasm_runtime_get_exception(module_inst));
     }
   }
   return true;
@@ -854,7 +864,7 @@ void null0_unload() {
   if (cart_unload != NULL) {
     if (!wasm_runtime_call_wasm(exec_env, cart_unload, 0, NULL)) {
       // not fatal, but this will help with troubleshooting
-      printf("%s\n", wasm_runtime_get_exception(module_inst));
+      printf("unload: %s\n", wasm_runtime_get_exception(module_inst));
     }
   }
 }
