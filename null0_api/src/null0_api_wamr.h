@@ -833,13 +833,13 @@ bool null0_init() {
   cart_keyUp = wasm_runtime_lookup_function(module_inst, "keyUp");
   cart_keyDown = wasm_runtime_lookup_function(module_inst, "keyDown");
 
-  // this is for AS, since it needs a seperate function called
+  // this is for hosts that seperate init
   wasm_function_inst_t cart_init = NULL;
-  cart_init = wasm_runtime_lookup_function(module_inst, "_null0_init");
+  cart_init = wasm_runtime_lookup_function(module_inst, "load");
   if (cart_init != NULL) {
     if (!wasm_runtime_call_wasm(exec_env, cart_init, 0, NULL)) {
       // not fatal, but this will help with troubleshooting
-      printf("init: %s\n", wasm_runtime_get_exception(module_inst));
+      printf("load: %s\n", wasm_runtime_get_exception(module_inst));
     }
   }
 

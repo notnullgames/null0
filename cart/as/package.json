@@ -1,13 +1,16 @@
 {
-  "name": "@null0/example-as",
+  "name": "example-as",
+  "private": true,
   "version": "0.0.0",
   "scripts": {
-    "build": "asc src/index.ts --exportStart=_null0_init  --target release --use trace=_null0_trace --use abort=_null0_abort --use seed=_null0_seed --lib ./null0.ts && mkdir -p build/cart/assets && cp build/main.wasm build/cart && cp src/assets/* build/cart/assets && cd build/cart && zip -r ../example.null0 .",
-    "start": "../../build/host/null0  ./build/example.null0",
+    "build": "asc --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json --lib ./null0.ts --optimizeLevel 3 --outFile build/cart/main.wasm src/main.ts",
+    "postbuild": "mkdir -p build/cart/assets && cp src/assets/* build/cart/assets && cd build/cart && zip -r ../${npm_package_name}.null0 . && cp ../${npm_package_name}.null0 ../../../../docs/cart/",
+    "start": "../../build/host/null0  ./build/${npm_package_name}.null0",
     "prestart": "npm run build"
   },
   "license": "MIT",
   "devDependencies": {
+    "@assemblyscript/wasi-shim": "^0.1.0",
     "assemblyscript": "^0.27.29"
   },
   "type": "module",
