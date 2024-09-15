@@ -785,7 +785,6 @@ RuntimeInitArgs null0_init_args() {
   init_args.n_native_symbols = sizeof(null0_wamr_callbacks) / sizeof(NativeSymbol);
   init_args.native_module_name = "null0";
   init_args.native_symbols = null0_wamr_callbacks;
-
   return init_args;
 }
 
@@ -815,14 +814,14 @@ bool null0_init() {
   error_buf[0] = 0;
   wasm_module_t module = wasm_runtime_load(wasmBytes, wasmSize, error_buf, sizeof(error_buf));
   if (error_buf[0] != 0) {
-    printf("load - %s\n", error_buf);
+    fprintf(stderr, "ERROR: load - %s\n", error_buf);
     return false;
   }
 
   error_buf[0] = 0;
   module_inst = wasm_runtime_instantiate(module, stack_size, heap_size, error_buf, sizeof(error_buf));
   if (error_buf[0] != 0) {
-    printf("instantiate - %s\n", error_buf);
+    fprintf(stderr, "ERROR: instantiate - %s\n", error_buf);
     return false;
   }
 
