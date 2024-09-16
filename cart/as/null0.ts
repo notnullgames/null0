@@ -1,5 +1,7 @@
 // include this in your null0 cart
-// asc --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json --lib ./null0.ts src/main.ts
+// asc --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json --lib ./null0.ts yourcart.ts
+
+// pointers: changetype<usize>(obj) |  obj = changetype<Obj>(ptr)
 
 export class Color {
   constructor(r:u8 = 0, g:u8 = 0, b:u8 = 0, a:u8 = 0) {
@@ -23,12 +25,8 @@ export class Dimensions {
   height: u32;
 }
 
-export const HEIGHT:f32 = 240.0;
-export const WIDTH:f32 = 320.0;
-
-export const RED = new Color(230, 41, 55, 255);
-export const BLUE = new Color(0, 121, 241, 255);
-export const BLACK = new Color(0, 0, 0, 255);
+export const HEIGHT: f32 = 240.0;
+export const WIDTH: f32 = 320.0;
 
 @external("null0", "load_sound")
 declare function _null0_load_sound(filename: ArrayBuffer): u32

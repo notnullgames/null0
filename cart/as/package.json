@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "build": "asc --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json --lib ./null0.ts --optimizeLevel 3 --outFile build/cart/main.wasm src/main.ts",
+    "build": "asc --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json --lib ./null0.ts --optimizeLevel 3 --outFile build/cart/main.wasm --path src src/main.ts",
     "postbuild": "mkdir -p build/cart/assets && cp src/assets/* build/cart/assets && cd build/cart && zip -r ../${npm_package_name}.null0 . && cp ../${npm_package_name}.null0 ../../../../docs/cart/",
     "start": "../../build/host/null0  ./build/${npm_package_name}.null0",
     "prestart": "npm run build"
