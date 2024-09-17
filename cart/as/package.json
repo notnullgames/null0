@@ -3,15 +3,18 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "build": "asc --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json --lib ./null0.ts --optimizeLevel 3 --outFile build/cart/main.wasm --path src src/main.ts",
-    "postbuild": "mkdir -p build/cart/assets && cp src/assets/* build/cart/assets && cd build/cart && zip -r ../${npm_package_name}.null0 . && cp ../${npm_package_name}.null0 ../../../../docs/cart/",
-    "start": "../../build/host/null0  ./build/${npm_package_name}.null0",
+    "build": "node tools/build.mjs",
+    "start": "../../build/host/null0 ./build/${npm_package_name}.null0",
     "prestart": "npm run build"
   },
   "license": "MIT",
   "devDependencies": {
     "@assemblyscript/wasi-shim": "^0.1.0",
-    "assemblyscript": "^0.27.29"
+    "archiver": "^7.0.1",
+    "assemblyscript": "^0.27.29",
+    "fs-extra": "^11.2.0",
+    "pretty-bytes": "^6.1.1",
+    "tmp": "^0.2.3"
   },
   "type": "module",
   "exports": {

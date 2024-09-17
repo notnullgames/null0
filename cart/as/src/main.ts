@@ -1,5 +1,3 @@
-import { RED, BLUE, BLACK } from "../colors";
-
 let audioLogo: u32 = 0;
 let w: i32 = 95;
 
