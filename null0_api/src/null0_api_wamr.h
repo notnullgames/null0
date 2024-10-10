@@ -54,7 +54,7 @@ void fileinfo_from_physfs_to_wasm(PHYSFS_Stat f, PHYSFS_Stat* fOut) {
 
 // translate outgoing SfxParams value over wasm
 void params_from_sfx_to_wasm(SfxParams* s, SfxParams* sOut) {
-  memcpy(sOut, s, 96);
+  memcpy(sOut, s, sizeof(SfxParams));
 }
 
 // Read a file from cart (or local persistant)
