@@ -1,5 +1,20 @@
 // this code will be injected at the top of your cart-code
 
+// expose memory-management
+// this might not be strictly needed, since host passes return pointers as param
+// but I include it for use in this header, so I can wrap pointers here
+
+export function malloc(size: usize, id: u32 = 0): usize {
+   const pout = __new(size, id)
+  __pin(pout)
+  return pout
+}
+
+export function free(pointer:usize): void {
+  __unpin(pointer)
+}
+
+
 // classes
 
 class Color {
@@ -9,6 +24,7 @@ class Color {
     this.b = b;
     this.a = a;
   }
+  
   r: u8;
   g: u8;
   b: u8;
@@ -20,6 +36,7 @@ class Dimensions {
     this.width = width;
     this.height = height;
   }
+
   width: u32;
   height: u32;
 }
@@ -64,21 +81,21 @@ function load_sound(filename: String):u32 {
 }
 
 @external("null0", "play_sound")
-declare function play_sound(sound: u32, loop: bool):void;
+declare function play_sound(sound: u32, loop: bool):void
 
 @external("null0", "measure_text")
-declare function _null0_measure_text(ret:Dimensions, font: u32, text: ArrayBuffer): void;
+declare function _null0_measure_text(ret:usize, font: u32, text: ArrayBuffer): void;
 function measure_text(font: u32, text: String): Dimensions {
-  const ret = new Dimensions();
-  _null0_measure_text(ret, font, String.UTF8.encode(text, true));
-  return ret;
+  const r = new Dimensions()
+  _null0_measure_text(changetype<usize>(r), font, String.UTF8.encode(text, true))
+  return r
 }
 
 @external("null0", "clear")
-declare function clear(color: Color): void;
+declare function clear(color: Color): void
 
 @external("null0", "draw_text")
-declare function _null0_draw_text(font: u32, text: ArrayBuffer, posX: i32, posY: i32, color: Color): void;
+declare function _null0_draw_text(font: u32, text: ArrayBuffer, posX: i32, posY: i32, color: Color): void
 function draw_text(font: u32, text: String, posX: i32, posY: i32, color: Color): void {
-  _null0_draw_text(font, String.UTF8.encode(text, true), posX, posY, color);
+  _null0_draw_text(font, String.UTF8.encode(text, true), posX, posY, color)
 }
