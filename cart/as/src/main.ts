@@ -1,16 +1,18 @@
-let audioLogo: u32 = 0;
-let w: i32 = 95;
+let x:u32 = 0
+let y:u32 = 0
 
 // called when the cart is loaded
 export function load(): void {
-  console.log("Hello from assemblyscript");
-  // audioLogo = load_sound("assets/notnullgames.ogg");
-  // play_sound(audioLogo, false);
+  console.log("Hello from assemblyscript")
+  const d = measure_text(0, " Hello from null0")
+  console.log(`Text-size: ${d.width.toString()}x${d.height.toString()}`)
+  x = 160 - (d.width/2)
+  y = 120 - (d.height/2)
 }
 
 // called on every frame
 export function update(): void {
-  clear(BLACK);
-  draw_text(0, "Hello from null0", w, i32(HEIGHT) / 2 + 1, BLUE);
-  draw_text(0, "Hello from null0", w, i32(HEIGHT) / 2, RED);
+  clear(BLACK)
+  draw_text(0, "Hello from null0", x+1, y+1, BLUE)
+  draw_text(0, "Hello from null0", x, y, RED)
 }
