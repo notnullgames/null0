@@ -37,7 +37,7 @@ color_contrast:
     color: Color
     contrast: f32
   returns: Color
-  description: color_contrast
+  description: Change contrast of a color
 
 color_bilinear_interpolate:
   args:

@@ -884,7 +884,7 @@ function color_alpha_blend(dst: Color, src: Color): Color {
   return r
 }
 
-// color_contrast
+// Change contrast of a color
 @external("null0", "color_contrast")
 declare function _null0_color_contrast(ret:usize, color: Color, contrast: f32): void
 function color_contrast(color: Color, contrast: f32):Color {
