@@ -190,6 +190,13 @@ enum FileType {
 
 // STRUCTS
 
+class UsizePointer {
+  constructor(){
+    this.value = 0
+  }
+  value:usize
+}
+
 class Color {
   constructor(r:u8 = 0, g:u8 = 0, b:u8 = 0, a:u8 = 0) {
     this.r = r
@@ -239,7 +246,7 @@ class Rectangle {
 }
 
 class FileInfo {
-  constructor(filesize:i64 = 0, modtime:i64 = 0, createtime:i64 = 0, accesstime:i64 = 0, filetype:FileType, readonly:booleanean=false) {
+  constructor(filesize:i64 = 0, modtime:i64 = 0, createtime:i64 = 0, accesstime:i64 = 0, filetype:FileType = FILETYPE_REGULAR, readonly:boolean=false) {
     this.filesize = filesize
     this.modtime = modtime
     this.createtime = createtime
@@ -253,7 +260,7 @@ class FileInfo {
   createtime:i64
   accesstime:i64
   filetype:FileType
-  readonly:booleanean
+  readonly:boolean
 }
 
 class SfxParams {
@@ -395,9 +402,9 @@ declare function mutate_sfx(params: SfxParams, range: f32, mask: u32): void
 
 // Create a new sfxr from a .rfx file
 @external("null0", "load_sfx")
-declare function _null0_load_sfx(params: usize, filename: ArrayBuffer): void
+declare function _null0_load_sfx(params: SfxParams, filename: ArrayBuffer): void
 function load_sfx(params: SfxParams, filename: String):void {
-  _null0_load_sfx(changetype<usize>(params), String.UTF8.encode(filename, true))
+  _null0_load_sfx(params, String.UTF8.encode(filename, true))
 }
 
 // Unload a sound
@@ -436,10 +443,10 @@ declare function gamepad_button_released(gamepad: i32, button: GamepadButton): b
 
 // Get current position of mouse
 @external("null0", "mouse_position")
-declare function _null0_mouse_position(ret:usize): void
+declare function _null0_mouse_position(ret:Vector): void
 function mouse_position():Vector {
   const r = new Vector()
-  _null0_mouse_position(changetype<usize>(r))
+  _null0_mouse_position(r)
   return r
 }
 
@@ -599,10 +606,10 @@ function load_font_bmf_from_image(image: u32, characters: string): u32 {
 
 // Measure the size of some text
 @external("null0", "measure_text")
-declare function _null0_measure_text(ret:usize, font: u32, text: ArrayBuffer): void
+declare function _null0_measure_text(ret:Dimensions, font: u32, text: ArrayBuffer): void
 function measure_text(font: u32, text: String): Dimensions {
   const r = new Dimensions()
-  _null0_measure_text(changetype<usize>(r), font, String.UTF8.encode(text, true))
+  _null0_measure_text(r, font, String.UTF8.encode(text, true))
   return r
 }
 
@@ -637,10 +644,10 @@ declare function image_color_invert(image: u32): void
 
 // Calculate a rectangle representing the available alpha border in an image
 @external("null0", "image_alpha_border")
-declare function _null0_image_alpha_border(ret:usize, image: u32, threshold: f32): void
+declare function _null0_image_alpha_border(ret:Rectangle, image: u32, threshold: f32): void
 function image_alpha_border(ret:usize, image: u32, threshold: f32): Rectangle {
   const r = new Rectangle()
-  _null0_image_alpha_border(changetype<usize>(r), image, threshold)
+  _null0_image_alpha_border(r, image, threshold)
   return r
 }
 
@@ -805,7 +812,16 @@ declare function draw_rectangle_rounded_outline_on_image(destination: u32, x: i3
 // Read a file from cart (or local persistant)
 @external("null0", "file_read")
 declare function _null0_file_read(filename: ArrayBuffer, bytesRead: usize): ArrayBuffer
-// TODO: function file_read(filename:string):ArrayBuffer
+function file_read(filename: string): ArrayBuffer {
+  const b = new UsizePointer()
+  const d = _null0_file_read(String.UTF8.encode(filename, true), changetype<usize>(b))
+  
+  // TODO: do I really need to copy to get it the right length?
+  const o = new ArrayBuffer(b.value)
+  memory.copy(changetype<usize>(o), changetype<usize>(d), b.value)
+  
+  return o
+}
 
 // Write a file to persistant storage
 @external("null0", "file_write")
@@ -823,10 +839,10 @@ function file_append(filename: string, data: ArrayBuffer): boolean {
 
 // Get info about a single file
 @external("null0", "file_info")
-declare function _null0_file_info(ret:usize, filename: ArrayBuffer): void
+declare function _null0_file_info(ret:FileInfo, filename: ArrayBuffer): void
 function file_info(): FileInfo {
   const r = new FileInfo()
-  _null0_file_info(changetype<usize>(r), String.UTF8.encode(filename, true))
+  _null0_file_info(r, String.UTF8.encode(filename, true))
   return r
 }
 
@@ -841,64 +857,64 @@ function get_write_dir(): string {
 
 // Tint a color with another color
 @external("null0", "color_tint")
-declare function _null0_color_tint(ret:usize, color: Color, tint: Color): void
+declare function _null0_color_tint(ret:Color, color: Color, tint: Color): void
 function color_tint(color: Color, tint: Color): Color {
   const r = new Color()
-  _null0_color_tint(changetype<usize>(r), color, tint)
+  _null0_color_tint(r, color, tint)
   return r
 }
 
 // Fade a color
 @external("null0", "color_fade")
-declare function _null0_color_fade(ret:usize, color: Color, alpha: f32): void
+declare function _null0_color_fade(ret:Color, color: Color, alpha: f32): void
 function color_fade(color: Color, alpha: f32):Color {
   const r = new Color()
-  _null0_color_fade(changetype<usize>(r), color, alpha)
+  _null0_color_fade(r, color, alpha)
   return r
 }
 
 // Change the brightness of a color
 @external("null0", "color_brightness")
-declare function _null0_color_brightness(ret:usize, color: Color, factor: f32): void
+declare function _null0_color_brightness(ret:Color, color: Color, factor: f32): void
 function color_brightness(color: Color, factor: f32):Color {
   const r = new Color()
-  _null0_color_brightness(changetype<usize>(r), color, factor)
+  _null0_color_brightness(r, color, factor)
   return r
 }
 
 // Invert a color
 @external("null0", "color_invert")
-declare function _null0_color_invert(ret:usize, color: Color): void
+declare function _null0_color_invert(ret:Color, color: Color): void
 function color_invert(color: Color):Color {
   const r = new Color()
-  _null0_color_invert(changetype<usize>(r), color)
+  _null0_color_invert(r, color)
   return r
 }
 
 // Blend 2 colors together
 @external("null0", "color_alpha_blend")
-declare function _null0_color_alpha_blend(ret:usize, dst: Color, src: Color): void
+declare function _null0_color_alpha_blend(ret:Color, dst: Color, src: Color): void
 function color_alpha_blend(dst: Color, src: Color): Color {
   const r = new Color()
-  _null0_color_alpha_blend(changetype<usize>(r), dst, src)
+  _null0_color_alpha_blend(r, dst, src)
   return r
 }
 
 // Change contrast of a color
 @external("null0", "color_contrast")
-declare function _null0_color_contrast(ret:usize, color: Color, contrast: f32): void
+declare function _null0_color_contrast(ret:Color, color: Color, contrast: f32): void
 function color_contrast(color: Color, contrast: f32):Color {
   const r = new Color()
-  _null0_color_contrast(changetype<usize>(r), color, contrast)
+  _null0_color_contrast(r, color, contrast)
   return r
 }
 
 // Interpolate colors
 @external("null0", "color_bilinear_interpolate")
-declare function _null0_color_bilinear_interpolate(ret:usize, color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32): void
+declare function _null0_color_bilinear_interpolate(ret:Color, color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32): void
 function color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32): Color {
   const r = new Color()
-  _null0_color_bilinear_interpolate(changetype<usize>(r), color00, color01, color10, color11, coordinateX, coordinateY)
+  _null0_color_bilinear_interpolate(r, color00, color01, color10, color11, coordinateX, coordinateY)
   return r
 }
 

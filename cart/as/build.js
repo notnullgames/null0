@@ -18,7 +18,9 @@ await writeFile('build/tmp.ts', (await readFile('null0.ts')) + '\n// user-code:\
 
 const { error, stdout, stderr, stats } = await asc.main([
   'build/tmp.ts',
-  '--lowMemoryLimit',
+  // '--lowMemoryLimit',
+  '--initialMemory', '512',
+  '--maximumMemory', '512',
   '--runtime', 'stub',
   '--config', './node_modules/@assemblyscript/wasi-shim/asconfig.json',
   '--optimizeLevel', '3',
@@ -30,10 +32,14 @@ const { error, stdout, stderr, stats } = await asc.main([
 ], {})
 await unlink('build/tmp.ts')
 
-console.log(`Creating build/${npm_package_name}.null0`)
-await copy('src/assets', `build/${npm_package_name}/assets`)
-const output = createWriteStream(`build/${npm_package_name}.null0`)
-archive.pipe(output)
-archive.directory(`build/${npm_package_name}`, false)
-await archive.finalize()
-await copy(`build/${npm_package_name}.null0`, `../../build/cart/${npm_package_name}.null0`)
+if (error) {
+  console.error(stderr.toString())
+}else {
+  console.log(`Creating build/${npm_package_name}.null0`)
+  await copy('src/assets', `build/${npm_package_name}/assets`)
+  const output = createWriteStream(`build/${npm_package_name}.null0`)
+  archive.pipe(output)
+  archive.directory(`build/${npm_package_name}`, false)
+  await archive.finalize()
+  await copy(`build/${npm_package_name}.null0`, `../../build/cart/${npm_package_name}.null0`)
+}
