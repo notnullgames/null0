@@ -1,20 +1,5 @@
 // this code will be injected at the top of your cart-code
 
-// expose memory-management
-// this might not be strictly needed, since host passes return pointers as param
-// but I include it for use in this header, so I can wrap pointers here
-
-export function malloc(size: usize, id: u32 = 0): usize {
-   const pout = __new(size, id)
-  __pin(pout)
-  return pout
-}
-
-export function free(pointer:usize): void {
-  __unpin(pointer)
-}
-
-
 // classes
 
 class Color {
