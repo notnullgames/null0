@@ -4,7 +4,7 @@ let y:u32 = 0
 // called when the cart is loaded
 export function load(): void {
   console.log("Hello from assemblyscript")
-  const d = measure_text(0, " Hello from null0")
+  const d = measure_text(0, "Hello from null0")
   console.log(`Text-size: ${d.width.toString()}x${d.height.toString()}`)
   x = 160 - (d.width/2)
   y = 120 - (d.height/2)
