@@ -8,7 +8,7 @@
     "clean": "rimraf build wbuild",
     "start:server": "live-server docs",
     "build:retro": "cmake -GNinja -B build -DCARTS=OFF -DHOST_TYPE=RETRO && cmake --build build",
-    "build:carts": "cmake -GNinja -B build -DCARTS=ON -DHOST_TYPE=OFF && cmake --build build && cd cart/as && npm run build",
+    "build:carts": "cmake -GNinja -B build -DCARTS=ON -DHOST_TYPE=OFF && cmake --build build && cd cart/as && npm ci && npm run build",
     "build:host": "cmake -GNinja -B build  -DCARTS=OFF -DHOST_TYPE=RAYLIB && cmake --build build",
     "build:web": "emcmake cmake -GNinja -B wbuild && cmake --build wbuild",
     "build:site": "mkdir -p docs/wasm docs/cart && npm run build:web && npm run build:carts && cp build/cart/*.null0 build/cart/c/*.null0 docs/cart && cp wbuild/host/null0.* docs/wasm",
