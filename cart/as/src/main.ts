@@ -8,10 +8,10 @@ export function load(): void {
   console.log(`Text-size: ${d.width.toString()}x${d.height.toString()}`)
   x = 160 - (d.width/2)
   y = 120 - (d.height/2)
-  const t = file_read("assets/cyber.txt")
   
-  // TODO: this currently spits out a bunch of extra bytes
-  console.log(String.UTF8.decode(t))
+  const t = file_read("assets/cyber.txt")
+  trace(t.byteLength.toString())
+  trace(String.UTF8.decode(t))
 }
 
 // called on every frame

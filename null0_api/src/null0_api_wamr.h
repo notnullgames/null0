@@ -775,7 +775,7 @@ RuntimeInitArgs null0_init_args() {
   RuntimeInitArgs init_args;
   memset(&init_args, 0, sizeof(RuntimeInitArgs));
 
-  static char global_heap_buf[512 * 1024];
+  static char global_heap_buf[8092 * 8];
   init_args.mem_alloc_type = Alloc_With_Pool;
   init_args.mem_alloc_option.pool.heap_buf = global_heap_buf;
   init_args.mem_alloc_option.pool.heap_size = sizeof(global_heap_buf);
