@@ -8,6 +8,8 @@ wasm_exec_env_t exec_env;
 wasm_module_inst_t module_inst;
 
 // these callbacks are from the cart
+wasm_function_inst_t cart_malloc_real = NULL;
+wasm_function_inst_t cart_free_real = NULL;
 wasm_function_inst_t cart_update = NULL;
 wasm_function_inst_t cart_unload = NULL;
 wasm_function_inst_t cart_buttonUp = NULL;
@@ -58,9 +60,11 @@ void params_from_sfx_to_wasm(SfxParams* s, SfxParams* sOut) {
 }
 
 // Read a file from cart (or local persistant)
-static uint32_t wamr_null0_file_read(wasm_exec_env_t exec_env, char* filename, uint32_t* bytesRead) {
-  char* bytes = null0_file_read(filename, bytesRead);
-  return wasm_runtime_module_dup_data(module_inst, bytes, *bytesRead);
+static void wamr_null0_file_read(wasm_exec_env_t exec_env, char* filename, uint32_t* bytesRead, char* retBytes) {
+  char* bytesHost = null0_file_read(filename, bytesRead);
+  memcpy(retBytes, bytesHost, *bytesRead);
+  printf("HOST bytesRead: %u\n", *bytesRead);
+  free(bytesHost);
 }
 
 // Get the user's writable dir (where file writes or appends go)
@@ -653,7 +657,7 @@ static void wamr_null0_color_bilinear_interpolate(wasm_exec_env_t exec_env, Null
 }
 
 static NativeSymbol null0_wamr_callbacks[] = {
-    {"file_read", wamr_null0_file_read, "($*)i"},
+    {"file_read", wamr_null0_file_read, "($**)"},
     {"get_write_dir", wamr_null0_get_write_dir, "()i"},
     {"trace", wamr_null0_trace, "($)"},
     {"current_time", wamr_null0_current_time, "()I"},
@@ -824,6 +828,9 @@ bool null0_init() {
   }
 
   exec_env = wasm_runtime_create_exec_env(module_inst, stack_size);
+
+  cart_malloc_real = wasm_runtime_lookup_function(module_inst, "malloc");
+  cart_free_real = wasm_runtime_lookup_function(module_inst, "free");
 
   cart_update = wasm_runtime_lookup_function(module_inst, "update");
   cart_buttonUp = wasm_runtime_lookup_function(module_inst, "buttonUp");

@@ -1,5 +1,15 @@
 // this code will be injected at the top of your cart-code
 
+export function malloc(size: usize, id: u32 = 0): usize {
+   const pout = __new(size, id)
+  __pin(pout)
+  return pout
+}
+
+export function free(pointer:usize): void {
+  __unpin(pointer)
+}
+
 // ENUMS
 
 enum ImageFilter {
@@ -246,7 +256,7 @@ class Rectangle {
 }
 
 class FileInfo {
-  constructor(filesize:i64 = 0, modtime:i64 = 0, createtime:i64 = 0, accesstime:i64 = 0, filetype:FileType = FILETYPE_REGULAR, readonly:boolean=false) {
+  constructor(filesize:i64 = 0, modtime:i64 = 0, createtime:i64 = 0, accesstime:i64 = 0, filetype:FileType = FileType.FILETYPE_REGULAR, readonly:boolean=false) {
     this.filesize = filesize
     this.modtime = modtime
     this.createtime = createtime
@@ -811,16 +821,13 @@ declare function draw_rectangle_rounded_outline_on_image(destination: u32, x: i3
 
 // Read a file from cart (or local persistant)
 @external("null0", "file_read")
-declare function _null0_file_read(filename: ArrayBuffer, bytesRead: usize): ArrayBuffer
+declare function _null0_file_read(filename: ArrayBuffer, byteSize:UsizePointer, retBytes:ArrayBuffer): void
 function file_read(filename: string): ArrayBuffer {
+  const i = file_info(filename)
+  const ret = new ArrayBuffer(<i32>i.filesize)
   const b = new UsizePointer()
-  const d = _null0_file_read(String.UTF8.encode(filename, true), changetype<usize>(b))
-  
-  // TODO: do I really need to copy to get it the right length?
-  const o = new ArrayBuffer(b.value)
-  memory.copy(changetype<usize>(o), changetype<usize>(d), b.value)
-  
-  return o
+  _null0_file_read(String.UTF8.encode(filename, true), b, ret)
+  return ret
 }
 
 // Write a file to persistant storage
@@ -840,7 +847,7 @@ function file_append(filename: string, data: ArrayBuffer): boolean {
 // Get info about a single file
 @external("null0", "file_info")
 declare function _null0_file_info(ret:FileInfo, filename: ArrayBuffer): void
-function file_info(): FileInfo {
+function file_info(filename:string): FileInfo {
   const r = new FileInfo()
   _null0_file_info(r, String.UTF8.encode(filename, true))
   return r

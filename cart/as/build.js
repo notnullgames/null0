@@ -19,7 +19,7 @@ await writeFile('build/tmp.ts', (await readFile('null0.ts')) + '\n// user-code:\
 const { error, stdout, stderr, stats } = await asc.main([
   'build/tmp.ts',
   // '--lowMemoryLimit',
-  '--stackSize', '8092',
+  '--stackSize', '2097152',
   '--runtime', 'stub',
   '--config', './node_modules/@assemblyscript/wasi-shim/asconfig.json',
   '--optimizeLevel', '3',

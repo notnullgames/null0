@@ -770,9 +770,19 @@ void draw_rectangle_rounded_outline_on_image(u32 destination, i32 x, i32 y, i32 
 
 /////////// FILESYSTEM ///////////
 
+// Get info about a single file
+NULL0_IMPORT("file_info")
+FileInfo file_info(char* filename);
+
 // Read a file from cart
 NULL0_IMPORT("file_read")
-u8* file_read(char* filename, u32* bytesRead);
+void _null0_file_read(char* filename, u32* bytesRead, u8* ret);
+u8* file_read(char* filename, u32* bytesRead) {
+  FileInfo i = file_info(filename);
+  u8* ret = malloc(i.filesize);
+  _null0_file_read(filename, bytesRead, ret);
+  return ret;
+}
 
 // Write a file to persistant storage
 NULL0_IMPORT("file_write")
@@ -781,10 +791,6 @@ bool file_write(char* filename, u8* data, u32 byteSize);
 // Write a file to persistant storage, appending to the end
 NULL0_IMPORT("file_append")
 bool file_append(char* filename, u8* data, u32 byteSize);
-
-// Get info about a single file
-NULL0_IMPORT("file_info")
-FileInfo file_info(char* filename);
 
 // Get list of files in a directory
 NULL0_IMPORT("file_list")
