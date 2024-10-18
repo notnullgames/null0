@@ -60,6 +60,7 @@ void params_from_sfx_to_wasm(SfxParams* s, SfxParams* sOut) {
 }
 
 // Read a file from cart (or local persistant)
+// currently having issues in AS, so maybe try https://github.com/bytecodealliance/wasm-micro-runtime/issues/2751
 static void wamr_null0_file_read(wasm_exec_env_t exec_env, char* filename, uint32_t* bytesRead, char* retBytes) {
   char* bytesHost = null0_file_read(filename, bytesRead);
   memcpy(retBytes, bytesHost, *bytesRead);
