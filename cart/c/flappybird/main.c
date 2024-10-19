@@ -24,14 +24,15 @@ const u16 landTop = 180;
 i32 score = 0;
 char scoreText[6] = "0";
 
+// this is the current game-state
 typedef enum {
   GAME_INTRO,
   GAME_PLAY,
   GAME_DEAD
 } GameMode;
-
 GameMode currentMode = GAME_INTRO;
 
+// this tracks the grund moving
 i32 m = 0;
 
 typedef struct {
