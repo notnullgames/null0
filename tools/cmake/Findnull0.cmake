@@ -124,6 +124,7 @@ if(HOST_TYPE)
 
   if (NULL0_HOST_TYPE_RETRO)
     add_definitions(-DPNTR_APP_LIBRETRO -DPNTR_PIXELFORMAT_ARGB)
+    find_package(libretrocommon)
   endif()
 
   set(PHYSFS_ARCHIVE_7Z CACHE INTERNAL FALSE)
