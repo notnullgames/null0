@@ -18,13 +18,6 @@ u32 swooshing;
 u32 wing;
 u32 music[3];
 
-float d = 0;
-u64 t = 0;
-i32 m = 0;
-
-float fps = 0;
-char* fpsText;
-
 // the location of land
 const u16 landTop = 180;
 
@@ -38,6 +31,8 @@ typedef enum {
 } GameMode;
 
 GameMode currentMode = GAME_INTRO;
+
+i32 m = 0;
 
 typedef struct {
   u32 images[3];
@@ -121,37 +116,13 @@ void parallax(u32 image, u32 x, u32 y, u32 w) {
 }
 
 // update current state of bird and draw it
-void draw_bird(Bird bird, float delta) {
-  bird.animTimer += delta;
-
-  if (bird.animTimer > 0.12f) {
-    bird.animTimer = 0;
-    bird.animationSlide += 1;
-    if (bird.animationSlide > 3) {
-      bird.animationSlide = 3;
-    }
-  }
-
-  bird.ySpeed += bird.yGravity * delta;
-  bird.y += bird.ySpeed * (delta * 10);
-
-  if ((bird.y + bird.height / 2.0f) - bird.collisionPadding > landTop) {
-    currentMode = GAME_DEAD;
-    play_sound(die, false);
-  }
-
-  // bird.angle = atan2(bird.ySpeed, bird.speed) * -20;
-  bird.angle = radToDeg(atan2(bird.ySpeed, bird.speed) * -20);
-
-  // trace("time: %f, angle: %f, speed: %f, ySpeed: %f", bird.animTimer, bird.angle, bird.speed, bird.ySpeed);
-
+void draw_bird(Bird bird, u64 t) {
   draw_image_rotated(bird.images[(t / 100) % 3], bird.x, bird.y, bird.angle, bird.ox, bird.oy, FILTER_NEARESTNEIGHBOR);
 }
 
 NULL0_EXPORT("update")
 void update() {
-  t = current_time();
-  d = delta_time() / 1000;
+  u64 t = current_time();
 
   if (currentMode != GAME_DEAD) {
     m = t / 10;
@@ -160,14 +131,18 @@ void update() {
   parallax(sky, m / 10, 0, 457);
   parallax(land, m, landTop, 320);
 
+  draw_bird(bird, t);
+
   if (currentMode == GAME_INTRO) {
-    draw_bird(bird, 0);
     draw_image(logo, 60, 30);
   }
 
   if (currentMode == GAME_PLAY) {
-    draw_bird(bird, d);
     sprintf(scoreText, "%d", score);
     draw_text(font_bignumbers, scoreText, 145 - ((strlen(scoreText) - 1) * 12), 30, WHITE);
+    if ((bird.y + bird.height / 2.0f) - bird.collisionPadding > landTop) {
+      currentMode = GAME_DEAD;
+      play_sound(die, false);
+    }
   }
 }
