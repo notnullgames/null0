@@ -890,23 +890,19 @@ export default function wireCartToHost (host, cart) {
       // copy filename from cart to host
       const filenameHostPtr = copyBytesFromCart(filename, cartStrlen(filename) + 1)
 
-      // get size of file
-      const fileInfoHostPtr = host._malloc(40)
-      host._null0_file_info(fileInfoHostPtr, filenameHostPtr)
-      const filesize = host.HEAPU32[fileInfoHostPtr / 4]
-
-      // setup cart-pointer for bytesRead/ret
+      // return stuff by copying into cart-memory
       const bytesReadHostPtr = host._malloc(4)
-      const retPtr = host._malloc(filesize)
+      const retHostPtr = host._null0_file_read(filenameHostPtr, bytesReadHostPtr)
+      const filesize = host.HEAPU32[bytesReadHostPtr / 4]
+      copyBytesToCart(bytesReadHostPtr, 4, wasmBytesReadPtr)
+      copyBytesToCart(retHostPtr, filesize, wasmRetPtr)
 
-      host._null0_file_read(filenameHostPtr, bytesReadHostPtr, retPtr)
-      copyBytesToCart(retPtr, wasmRetPtr, filesize)
+      host._free(bytesReadHostPtr)
+      host._free(retHostPtr)
+      host._free(filenameHostPtr)
     },
     file_write (filename, data, byteSize) {
-      const filenameHostPtr = copyBytesFromCart(
-        filename,
-        cartStrlen(filename) + 1
-      )
+      const filenameHostPtr = copyBytesFromCart(filename, cartStrlen(filename) + 1)
       const bytesHostPtr = copyBytesFromCart(data, byteSize)
       copyBytesFromCart(bytesHostPtr, byteSize, data)
       const r = host._null0_file_write(filenameHostPtr, bytesHostPtr, byteSize)
@@ -915,10 +911,7 @@ export default function wireCartToHost (host, cart) {
       return r
     },
     file_append (filename, data, byteSize) {
-      const filenameHostPtr = copyBytesFromCart(
-        filename,
-        cartStrlen(filename) + 1
-      )
+      const filenameHostPtr = copyBytesFromCart(filename, cartStrlen(filename) + 1)
       const bytesHostPtr = copyBytesFromCart(data, byteSize)
       copyBytesFromCart(bytesHostPtr, byteSize, data)
       const r = host._null0_file_append(

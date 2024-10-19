@@ -10,8 +10,8 @@ export function load(): void {
   y = 120 - (d.height/2)
   
   const t = file_read("assets/cyber.txt")
-  trace(`WASM ArrayBuffer size: ${t.byteLength.toString()}`)
-  trace(String.UTF8.decode(t, false))
+  console.log(`WASM ArrayBuffer size: ${t.byteLength.toString()}`)
+  console.log(String.UTF8.decode(t, false))
 }
 
 // called on every frame
