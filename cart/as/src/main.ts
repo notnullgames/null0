@@ -11,7 +11,7 @@ export function load(): void {
   
   const t = file_read("assets/cyber.txt")
   trace(`WASM ArrayBuffer size: ${t.byteLength.toString()}`)
-  trace(String.UTF8.decode(t))
+  trace(String.UTF8.decode(t, false))
 }
 
 // called on every frame

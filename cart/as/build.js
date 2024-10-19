@@ -18,9 +18,7 @@ await writeFile('build/tmp.ts', (await readFile('null0.ts')) + '\n// user-code:\
 
 const { error, stdout, stderr, stats } = await asc.main([
   'build/tmp.ts',
-  // '--lowMemoryLimit',
-  '--stackSize', '2097152',
-  '--runtime', 'stub',
+  '--runtime', 'minimal',
   '--config', './node_modules/@assemblyscript/wasi-shim/asconfig.json',
   '--optimizeLevel', '3',
   '--shrinkLevel', '2',
@@ -33,7 +31,7 @@ await unlink('build/tmp.ts')
 
 if (error) {
   console.error(stderr.toString())
-}else {
+} else {
   console.log(`Creating build/${npm_package_name}.null0`)
   await copy('src/assets', `build/${npm_package_name}/assets`)
   const output = createWriteStream(`build/${npm_package_name}.null0`)
