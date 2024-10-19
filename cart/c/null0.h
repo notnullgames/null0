@@ -27,11 +27,6 @@ void* _null0_malloc(size_t size) {
   return malloc(size);
 }
 
-NULL0_EXPORT("alloca")
-void* _null0_alloca(size_t size) {
-  return __builtin_alloca(size);
-}
-
 NULL0_EXPORT("free")
 void _null0_free(void* ptr) {
   free(ptr);

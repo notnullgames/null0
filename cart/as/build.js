@@ -18,8 +18,14 @@ await writeFile('build/tmp.ts', (await readFile('null0.ts')) + '\n// user-code:\
 
 const { error, stdout, stderr, stats } = await asc.main([
   'build/tmp.ts',
-  '--debug',
+
+  // only minimal seems to work in WAMR
   '--runtime', 'minimal',
+  // '--runtime', 'incremental',
+  // '--runtime', 'stub',
+
+  // '--debug',
+  // '--exportRuntime',
   '--config', './node_modules/@assemblyscript/wasi-shim/asconfig.json',
   '--optimizeLevel', '3',
   '--shrinkLevel', '2',
