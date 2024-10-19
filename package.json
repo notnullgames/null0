@@ -11,7 +11,7 @@
     "build:carts": "cmake -GNinja -B build -DCARTS=ON -DHOST_TYPE=OFF && cmake --build build && cd cart/as && npm ci && npm run build",
     "build:host": "cmake -GNinja -B build  -DCARTS=OFF -DHOST_TYPE=RAYLIB && cmake --build build",
     "build:web": "emcmake cmake -GNinja -B wbuild && cmake --build wbuild",
-    "build:site": "mkdir -p docs/wasm docs/cart && npm run build:web && npm run build:carts && cp build/cart/*.null0 build/cart/c/*.null0 docs/cart && cp wbuild/host/null0.* docs/wasm",
+    "build:site": "mkdir -p docs/wasm && npm run build:web && npm run build:carts && cp wbuild/host/null0.* docs/wasm",
     "watch:site": "npm-watch build:site",
     "start": "run-p watch:site start:server"
   },
