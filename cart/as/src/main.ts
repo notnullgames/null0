@@ -10,7 +10,6 @@ export function load(): void {
   y = 120 - (d.height/2)
   
   const t = file_read("assets/cyber.txt")
-  console.log(`WASM ArrayBuffer size: ${t.byteLength.toString()}`)
   console.log(String.UTF8.decode(t, false))
 }
 

@@ -825,10 +825,8 @@ declare function _null0_file_read(filename: ArrayBuffer, byteSize:UsizePointer, 
 function file_read(filename: string): ArrayBuffer {
   const i = file_info(filename)
   const ret = new ArrayBuffer(<i32>i.filesize)
-  console.log(`in AS: ${i.filesize.toString()} ${ret.byteLength.toString()}`)
   const b = new UsizePointer()
   _null0_file_read(String.UTF8.encode(filename, true), b, ret)
-  console.log(`in AS, from read: ${b.value.toString()}`)
   return ret
 }
 

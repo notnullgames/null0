@@ -92,10 +92,12 @@ export async function setupCart (
 
           // not exactly right, since it will add newlines, but this covers printf and stuff
           text = text.replace(/\n*$/, '')
-          if (fd === 1) {
-            console.log(text)
-          } else {
-            console.error(text)
+          if (text.trim() !== '') {
+            if (fd === 1) {
+              console.log(text)
+            } else {
+              console.error(text)
+            }
           }
         }
         return 0
