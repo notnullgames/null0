@@ -71,6 +71,7 @@ export async function setupCart (
     null0: wireCartToHost(host, cart),
 
     // minimal WASI that only allows console logging
+    // TODO: make this work with zip fs directly, and fill in much more WASI
     wasi_snapshot_preview1: {
       fd_write (fd, iovsPtr, iovsLength, bytesWrittenPtr) {
         const iovs = new Uint32Array(
