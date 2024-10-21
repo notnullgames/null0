@@ -90,8 +90,8 @@ export async function setupCart (
           }
           cart.view.setInt32(bytesWrittenPtr, totalBytesWritten, true)
 
-          // not exactly right, since it will add newlines, but this covers printf and stuff
-          text = text.replace(/\n*$/, '')
+          // not exactly right, since it will add newlines, but this covers common printf and AS console.log
+          text = text.replace(/\n$/, '')
           if (text.trim() !== '') {
             if (fd === 1) {
               console.log(text)
