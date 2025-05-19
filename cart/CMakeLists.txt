@@ -46,5 +46,7 @@ function(BUILDCART name)
 endfunction()
 
 BUILDCART("example")
+BUILDCART("colorbars")
+BUILDCART("input")
 
 add_custom_target(carts ALL DEPENDS ${CART_TARGETS})

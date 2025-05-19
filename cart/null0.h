@@ -202,8 +202,10 @@ typedef enum MouseButton {
   MOUSE_BUTTON_MIDDLE = 3,
 } MouseButton;
 
+#define SCREEN 0
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
+#define FONT_DEFAULT 0
 
 Color LIGHTGRAY = (Color){.r = 200, .g = 200, .b = 200, .a = 255};
 Color GRAY = (Color){.r = 130, .g = 130, .b = 130, .a = 255};
