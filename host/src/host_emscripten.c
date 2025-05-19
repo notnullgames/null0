@@ -16,11 +16,6 @@ EM_JS(bool, cart_update, (void), {
   return true;
 });
 
-void cart_event(pntr_app_event *event) {
-  // TODO: map events to cart function-cals
-  printf("event\n");
-}
-
 bool cart_close() {
   // close doesn't really do anything, in emscripten-host
   return true;
@@ -54,6 +49,48 @@ EM_JS(unsigned int, cart_strlen, (unsigned int cart_pointer), {
     }
   }
   return 0;
+});
+
+EM_JS(void, cart_buttonDown, (pntr_app_gamepad_button button, unsigned int player), {
+  if (Module?.cart?.buttonDown){
+    Module.cart.buttonDown(button, player)
+  }
+});
+
+EM_JS(void, cart_buttonUp, (pntr_app_gamepad_button button, unsigned int player), {
+  if (Module?.cart?.buttonUp){
+    Module.cart.buttonUp(button, player)
+  }
+});
+
+EM_JS(void, cart_keyDown, (pntr_app_key key), {
+  if (Module?.cart?.keyDown){
+    Module.cart.keyDown(key)
+  }
+});
+
+EM_JS(void, cart_keyUp, (pntr_app_key key), {
+  if (Module?.cart?.keyUp){
+    Module.cart.keyUp(key)
+  }
+});
+
+EM_JS(void, cart_mouseDown, (pntr_app_mouse_button button), {
+  if (Module?.cart?.mouseDown){
+    Module.cart.mouseDown(button)
+  }
+});
+
+EM_JS(void, cart_mouseUp, (pntr_app_mouse_button button), {
+  if (Module?.cart?.mouseUp){
+    Module.cart.mouseUp(button)
+  }
+});
+
+EM_JS(void, cart_mouseMoved, (float x, float y), {
+  if (Module?.cart?.mouseMoved){
+    Module.cart.mouseMoved(x, y)
+  }
 });
 
 #endif // EMSCRIPTEN

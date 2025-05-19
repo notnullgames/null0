@@ -1,6 +1,7 @@
 // this implements shared filesystem functions
 
-#pragma once
+#ifndef NULL0_FS_H_
+#define NULL0_FS_H_
 
 #include <libgen.h>
 #include <stdbool.h>
@@ -65,3 +66,5 @@ char *fs_get_cart_name(const char *filename);
 
 // Get info about a file from native filesystem
 PHYSFS_Stat fs_file_info(const char *filename);
+
+#endif // NULL0_FS_H_

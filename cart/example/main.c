@@ -1,15 +1,18 @@
 #include "../null0.h"
 
 u32 logo;
+Dimensions *logodim;
 int i = 0;
 
 int main() {
   printf("hello\n");
   logo = image_load("assets/logo.png");
+
   if (logo == 0) {
     printf("failed to load logo: %u\n", logo);
   } else {
-    printf("logo loaded: %u\n", logo);
+    logodim = image_measure(logo);
+    printf("logo loaded: %u %ux%u\n", logo, logodim->width, logodim->height);
   }
   return 0;
 }
@@ -29,5 +32,5 @@ void update() {
   draw_circle(0, 320, 240, 85, 4, VIOLET);
   draw_circle(0, 320, 240, 80, 0, BLUE);
 
-  draw_image_rotated(0, logo, (640 / 2), (480 / 2), i++, 135.0 / 2, 135.0 / 2, FILTER_NEARESTNEIGHBOR);
+  draw_image_rotated(0, logo, (SCREEN_WIDTH / 2), (SCREEN_HEIGHT / 2), i++, (float)logodim->width / 2, (float)logodim->height / 2, FILTER_NEARESTNEIGHBOR);
 }

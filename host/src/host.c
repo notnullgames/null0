@@ -4,11 +4,6 @@
 
 // TODO: add more error checking/reporting
 
-// The macro for wamr uses this
-#ifndef EMSCRIPTEN
-cvector_vector_type(NativeSymbol) null0_native_symbols = NULL;
-#endif
-
 static cvector_vector_type(pntr_image *) images;
 static cvector_vector_type(pntr_font *) fonts;
 
@@ -61,6 +56,83 @@ unsigned int add_font(pntr_font *font) {
   unsigned int id = cvector_size(fonts);
   cvector_push_back(fonts, font);
   return id;
+}
+
+// process events and call host-specific implemntation
+
+// cart input-specific callbacks
+
+// this maps keys to joystick buttons (for non-libretro)
+static pntr_app_gamepad_button cart_map_key(pntr_app_key key) {
+  switch (key) {
+  case PNTR_APP_KEY_UP:
+    return PNTR_APP_GAMEPAD_BUTTON_UP;
+  case PNTR_APP_KEY_DOWN:
+    return PNTR_APP_GAMEPAD_BUTTON_DOWN;
+  case PNTR_APP_KEY_LEFT:
+    return PNTR_APP_GAMEPAD_BUTTON_LEFT;
+  case PNTR_APP_KEY_RIGHT:
+    return PNTR_APP_GAMEPAD_BUTTON_RIGHT;
+  case PNTR_APP_KEY_Q:
+    return PNTR_APP_GAMEPAD_BUTTON_LEFT_SHOULDER;
+  case PNTR_APP_KEY_W:
+    return PNTR_APP_GAMEPAD_BUTTON_RIGHT_SHOULDER;
+  case PNTR_APP_KEY_Z:
+    return PNTR_APP_GAMEPAD_BUTTON_B;
+  case PNTR_APP_KEY_X:
+    return PNTR_APP_GAMEPAD_BUTTON_A;
+  case PNTR_APP_KEY_A:
+    return PNTR_APP_GAMEPAD_BUTTON_Y;
+  case PNTR_APP_KEY_S:
+    return PNTR_APP_GAMEPAD_BUTTON_X;
+  case PNTR_APP_KEY_LEFT_SHIFT:
+    return PNTR_APP_GAMEPAD_BUTTON_SELECT;
+  case PNTR_APP_KEY_RIGHT_SHIFT:
+    return PNTR_APP_GAMEPAD_BUTTON_SELECT;
+  case PNTR_APP_KEY_ENTER:
+    return PNTR_APP_GAMEPAD_BUTTON_START;
+  default:
+    return PNTR_APP_GAMEPAD_BUTTON_UNKNOWN;
+  }
+}
+
+void cart_event(pntr_app_event *event) {
+  // TODO: it would be cool to handle wheel, DnD, cheat & save events as well
+  if (event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN) {
+    cart_mouseDown(event->mouseButton);
+  }
+  if (event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_UP) {
+    cart_mouseUp(event->mouseButton);
+  }
+  if (event->type == PNTR_APP_EVENTTYPE_MOUSE_MOVE) {
+    cart_mouseMoved(event->mouseX, event->mouseY);
+  }
+  if (event->type == PNTR_APP_EVENTTYPE_GAMEPAD_BUTTON_DOWN) {
+    cart_buttonDown(event->gamepadButton, event->gamepad);
+  }
+  if (event->type == PNTR_APP_EVENTTYPE_GAMEPAD_BUTTON_UP) {
+    cart_buttonUp(event->gamepadButton, event->gamepad);
+  }
+
+  // these are fired & also mapped to button-events
+  if (event->type == PNTR_APP_EVENTTYPE_KEY_DOWN) {
+    cart_keyDown(event->key);
+#ifndef PNTR_APP_LIBRETRO
+    pntr_app_gamepad_button b = cart_map_key(event->key);
+    if (b != PNTR_APP_GAMEPAD_BUTTON_UNKNOWN) {
+      cart_buttonDown(b, 9999);
+    }
+#endif
+  }
+  if (event->type == PNTR_APP_EVENTTYPE_KEY_UP) {
+    cart_keyUp(event->key);
+#ifndef PNTR_APP_LIBRETRO
+    pntr_app_gamepad_button b = cart_map_key(event->key);
+    if (b != PNTR_APP_GAMEPAD_BUTTON_UNKNOWN) {
+      cart_buttonUp(b, 9999);
+    }
+#endif
+  }
 }
 
 /// these are shared host-functions:

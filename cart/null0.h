@@ -202,8 +202,8 @@ typedef enum MouseButton {
   MOUSE_BUTTON_MIDDLE = 3,
 } MouseButton;
 
-#define WIDTH 640
-#define HEIGHT 480
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
 
 Color LIGHTGRAY = (Color){.r = 200, .g = 200, .b = 200, .a = 255};
 Color GRAY = (Color){.r = 130, .g = 130, .b = 130, .a = 255};
@@ -260,11 +260,11 @@ void unload();
 
 // mapped controller callback
 NULL0_EXPORT("buttonUp")
-void buttonUp(GamepadButton button);
+void buttonUp(GamepadButton button, unsigned int player);
 
 // mapped controller callback
 NULL0_EXPORT("buttonDown")
-void buttonDown(GamepadButton button);
+void buttonDown(GamepadButton button, unsigned int player);
 
 // called when keys are unpressed
 NULL0_EXPORT("keyUp")
@@ -273,6 +273,18 @@ void keyUp(Key key);
 // called when keys are pressed
 NULL0_EXPORT("keyDown")
 void keyDown(Key key);
+
+// called when mouse-button is pressed
+NULL0_EXPORT("mouseDown")
+void mouseDown(unsigned int button);
+
+// called when mouse-button is released
+NULL0_EXPORT("mouseUp")
+void mouseUp(unsigned int button);
+
+// called when mouse is moved
+NULL0_EXPORT("mouseMoved")
+void mouseMoved(float x, float y);
 
 // DRAW: IMAGE
 
@@ -346,7 +358,7 @@ u32 image_load(char *filename);
 
 // Meaure an image (use 0 for screen)
 NULL0_IMPORT("image_measure")
-Dimensions image_measure(u32 image);
+Dimensions *image_measure(u32 image);
 
 // Create a new blank image
 NULL0_IMPORT("image_new")

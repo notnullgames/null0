@@ -1,6 +1,7 @@
 // this is the API for each null0 host to implement
 
-#pragma once
+#ifndef NULL0_HOST_H_
+#define NULL0_HOST_H_
 
 #include "fs.h"
 #include "pntr_app.h"
@@ -71,6 +72,15 @@ pntr_color copy_color_from_cart(unsigned int colorPtr);
 // set cart-color
 unsigned intcopy_color_to_cart(pntr_color color);
 
+// cart input-specific callbacks
+void cart_buttonDown(pntr_app_gamepad_button button, unsigned int player);
+void cart_buttonUp(pntr_app_gamepad_button button, unsigned int player);
+void cart_keyDown(pntr_app_key key);
+void cart_keyUp(pntr_app_key key);
+void cart_mouseDown(pntr_app_mouse_button button);
+void cart_mouseUp(pntr_app_mouse_button button);
+void cart_mouseMoved(float x, float y);
+
 /// host-specific macro for each host-type
 
 #ifdef EMSCRIPTEN
@@ -81,11 +91,18 @@ unsigned intcopy_color_to_cart(pntr_color color);
 #endif // EMSCRIPTEN
 
 #ifndef EMSCRIPTEN
+extern cvector_vector_type(NativeSymbol) null0_native_symbols;
+
 #define EXPAND_PARAMS(...) , ##__VA_ARGS__
 #define HOST_FUNCTION(ret_type, name, params, ...)                                       \
   ret_type host_##name(wasm_exec_env_t exec_env EXPAND_PARAMS params){                   \
     __VA_ARGS__};                                                                        \
   static void __attribute__((constructor)) _register_##name() {                          \
+    if (null0_native_symbols == NULL) {                                                  \
+      null0_native_symbols = NULL; /* Initialize if needed */                            \
+    }                                                                                    \
     cvector_push_back(null0_native_symbols, ((NativeSymbol){#name, host_##name, NULL})); \
   }
-#endif // !EMSCRIPTEN
+#endif
+
+#endif // NULL0_HOST_H_
