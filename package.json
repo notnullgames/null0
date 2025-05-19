@@ -1,39 +1,19 @@
 {
   "name": "null0",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "wasm-based game-engine",
   "type": "module",
-  "main": "node/index.js",
-  "scripts": {
-    "clean": "rimraf build wbuild",
-    "start:server": "live-server docs",
-    "build:retro": "cmake -GNinja -B build -DCARTS=OFF -DHOST_TYPE=RETRO && cmake --build build",
-    "build:carts": "cmake -GNinja -B build -DCARTS=ON -DHOST_TYPE=OFF && cmake --build build && cd cart/as && npm ci && npm run build",
-    "build:host": "cmake -GNinja -B build  -DCARTS=OFF -DHOST_TYPE=RAYLIB && cmake --build build",
-    "build:web": "emcmake cmake -GNinja -B wbuild && cmake --build wbuild",
-    "build:site": "mkdir -p docs/wasm && npm run build:web && npm run build:carts && cp wbuild/host/null0.* docs/wasm",
-    "watch:site": "npm-watch build:site",
-    "start": "run-p watch:site start:server"
-  },
-  "watch": {
-    "build:site": {
-      "patterns": [
-        "cart",
-        "host"
-      ],
-      "extensions": "js,html,c,h,png",
-      "legacyWatch": true
-    }
-  },
   "keywords": [],
   "author": "David Konsumer <konsumer@jetboystudio.com>",
   "license": "ZLIB",
-  "devDependencies": {
-    "glob": "latest",
-    "live-server": "^1.2.0",
-    "npm-run-all": "latest",
-    "npm-watch": "latest",
-    "rimraf": "latest",
-    "yaml": "latest"
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "pretest": "npm run build:web",
+    "start": "npx -y live-server --mount=/cart:./build/cart --mount=/host:./wbuild/host webroot",
+    "prestart": "npm run build:web && npm run build:carts",
+    "build:web": "emcmake cmake -G Ninja -B wbuild -DCMAKE_BUILD_TYPE=Release && cmake --build wbuild --target null0",
+    "build:native": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --target null0",
+    "build:carts": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --target example",
+    "clean": "rm -rf build wbuild"
   }
 }

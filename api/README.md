@@ -1,1 +1,0 @@
-This directory contains YAML description of the null0 API.

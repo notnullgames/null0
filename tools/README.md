@@ -1,1 +1,0 @@
-This directory has cmake library-setup scripts, and any lil scripts I used to generate other source or whatever.

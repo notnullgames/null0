@@ -1,59 +1,113 @@
-// this is the entrypoint for hosts
+#define PNTR_APP_IMPLEMENTATION
+#define PNTR_ENABLE_DEFAULT_FONT
+#define PNTR_ENABLE_VARGS
+#define PNTR_ENABLE_TTF
+#define PNTR_ENABLE_UTF8
+#define PNTR_ENABLE_MATH
+#define PNTR_ENABLE_JPEG
+#define PNTR_PIXELFORMAT_RGBA
+#define PNTR_LOAD_FILE fs_load_file
+#define PNTR_SAVE_FILE fs_save_file
 
-#ifndef EMSCRIPTEN
-#include "null0_api_wamr.h"
-#endif
+#include "host.h"
 
-#ifdef EMSCRIPTEN
-#include "null0_api_web.h"
-#endif
+// global app-object for pntr_app stuff
+pntr_app *null0_app;
 
-// global that tracks the cart-name
-char* filename = NULL;
-
-bool Init(pntr_app* app) {
-  if (!filename) {
+bool Init(pntr_app *app) {
+  if (app == NULL) {
+    pntr_app_log(PNTR_APP_LOG_ERROR, "app not set.");
     return false;
   }
 
-  // setup main null0 runtime
-  if (!null0_engine_init(filename)) {
+  null0_app = app;
+
+  if (app->argFile == NULL || app->argFile[0] == '\0') {
+    pntr_app_log(PNTR_APP_LOG_ERROR, "Usage: null <CART>");
     return false;
   }
-  return null0_init();
-}
 
-bool Update(pntr_app* app, pntr_image* screen) {
-  return null0_engine_update(app, screen) && null0_update();
-}
+  unsigned int cartSize = 0;
+  unsigned char *cartBytes = fs_load_file_real(app->argFile, &cartSize);
 
-void Close(pntr_app* app) {
-  null0_unload();
-  null0_engine_unload();
-}
+  if (cartBytes == NULL || cartSize == 0) {
+    pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load cart.");
+    return false;
+  }
 
-void Event(pntr_app* app, pntr_app_event* event) {
-  null0_event(event);
-}
+  if (!PHYSFS_init("/")) {
+    pntr_app_log(PNTR_APP_LOG_ERROR, "Could not start filesystem.");
+    return false;
+  }
 
-pntr_app Main(int argc, char* argv[]) {
-  if (argc != 2) {
-    printf("Usage: null0 <CART>\n");
+  DetectFileType cartType = fs_parse_magic_bytes(*(uint32_t *)cartBytes);
+
+  unsigned int wasmSize = 0;
+  unsigned char *wasmBytes = NULL;
+
+  if (cartType == FILE_TYPE_ZIP) {
+    if (!PHYSFS_mountMemory(cartBytes, cartSize, NULL, "cart.zip", NULL, 1)) {
+      PHYSFS_deinit();
+      pntr_unload_memory(cartBytes);
+      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not mount cart.");
+      return false;
+    }
+    wasmBytes = fs_load_file("main.wasm", &wasmSize);
+    if (wasmSize == 0) {
+      pntr_unload_memory(cartBytes);
+      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load main.wasm.");
+      return false;
+    }
+  } else if (cartType == FILE_TYPE_WASM) {
+    wasmSize = cartSize;
+    wasmBytes = cartBytes;
   } else {
-    filename = argv[1];
+    pntr_unload_memory(cartBytes);
+    pntr_app_log(PNTR_APP_LOG_ERROR, "Only wasm/zip cart-files are supported.");
+    return false;
   }
 
+  // screen is image:0
+  add_image(app->screen);
+
+  // default is font:0
+  add_font(pntr_load_font_default());
+
+  if (!cart_init(wasmBytes, wasmSize)) {
+    pntr_unload_memory(cartBytes);
+    pntr_app_log(PNTR_APP_LOG_ERROR, "Could not start cart.");
+    return 1;
+  }
+  pntr_unload_memory(cartBytes);
+  pntr_unload_memory(wasmBytes);
+
+  return true;
+}
+
+bool Update(pntr_app *app, pntr_image *screen) {
+  cart_update();
+  return true;
+}
+
+void Event(pntr_app *app, pntr_app_event *event) {
+  cart_event(event);
+}
+
+void Close(pntr_app *app) {
+  cart_close();
+}
+
+pntr_app Main(int argc, char *argv[]) {
 #ifdef PNTR_APP_RAYLIB
   SetTraceLogLevel(LOG_WARNING);
 #endif
-
   return (pntr_app){
-      .width = 320,
-      .height = 240,
-      .title = "null0",
-      .init = Init,
-      .update = Update,
-      .close = Close,
-      .event = Event,
-      .fps = 60};
+    .width = 640,
+    .height = 480,
+    .title = "null0",
+    .init = Init,
+    .update = Update,
+    .event = Event,
+    .close = Close,
+    .fps = 60};
 }

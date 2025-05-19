@@ -7,14 +7,23 @@ project(null0
   LANGUAGES C
 )
 
-# options:
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+  set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+endif()
 
-# CARTS=ON/OFF
-# HOST_TYPE=OFF/WEB/RAYLIB/SDL/RETRO
+if(POLICY CMP0077)
+  cmake_policy(SET CMP0077 NEW)
+  set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+endif()
 
-set(CMAKE_BUILD_TYPE Release)
-cmake_policy(SET CMP0077 NEW)
-# cmake_policy(SET CMP0135 NEW)
+if(POLICY CMP0169)
+  cmake_policy(SET CMP0169 NEW)
+  set(CMAKE_POLICY_DEFAULT_CMP0169 NEW)
+endif()
+
+# enable colors for ninja
+set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 # everyone wants to make an "uninstall" target
 set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
@@ -22,6 +31,7 @@ set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
 include(FetchContent)
 # set(FETCHCONTENT_QUIET OFF)
 
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake")
-find_package(null0 REQUIRED)
+add_subdirectory(host)
+add_subdirectory(cart)

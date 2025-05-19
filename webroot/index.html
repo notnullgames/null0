@@ -1,0 +1,19 @@
+<html>
+  <head>
+    <title>null0</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "@easywasm/wasi": "https://esm.sh/@easywasm/wasi"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script type="module">
+      import loadCart from "./null0.js";
+      await loadCart("cart/example.null0", document.getElementById("canvas"));
+    </script>
+  </body>
+</html>
