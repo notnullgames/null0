@@ -61,10 +61,10 @@ void buttonUp(GamepadButton button, unsigned int player) {
 
 void update() {
   draw_image(SCREEN, bg, 0, 0);
-  draw_image_scaled(SCREEN, images[0], 0, 94, 2, 2, 0, 0, FILTER_NEARESTNEIGHBOR);
+  draw_image(SCREEN, images[0], 0, 94);
   for (int i = 1; i < 16; i++) {
     if (buttons[i]) {
-      draw_image_scaled(SCREEN, images[i], 0, 0, 2, 2, 0, 0, FILTER_NEARESTNEIGHBOR);
+      draw_image(SCREEN, images[i], 0, 0);
     }
   }
 }
