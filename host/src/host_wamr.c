@@ -6,9 +6,6 @@
 
 cvector_vector_type(NativeSymbol) null0_native_symbols = NULL;
 
-static wasm_exec_env_t exec_env;
-static wasm_module_inst_t module_inst;
-
 static uint32_t stack_size = 1024 * 1024 * 10; // 10 MB
 static uint32_t heap_size = 1024 * 1024 * 10;  // 10 MB
 
@@ -29,77 +26,98 @@ static int callback_args[2];
 static float callback_float_args[2];
 
 bool cart_init(unsigned char *wasmBytes, unsigned int wasmSize) {
-  char error_buf[128];
 
-  RuntimeInitArgs init_args;
-  memset(&init_args, 0, sizeof(RuntimeInitArgs));
-  init_args.mem_alloc_type = Alloc_With_System_Allocator;
-  init_args.max_thread_num = 1;
+    char error_buf[128];
 
-  // Initialize the WAMR runtime
-  if (!wasm_runtime_full_init(&init_args)) {
-    pntr_app_log(PNTR_APP_LOG_ERROR, "init: runtime");
-    return false;
-  }
+    RuntimeInitArgs init_args = {0};
 
-  if (!wasm_runtime_register_natives("null0", null0_native_symbols, cvector_size(null0_native_symbols))) {
-    pntr_app_log(PNTR_APP_LOG_ERROR, "init: register");
-    return false;
-  }
-
-  // Load WASM module
-  module = wasm_runtime_load(wasmBytes, wasmSize, error_buf, sizeof(error_buf));
-  if (!module) {
-    pntr_app_log(PNTR_APP_LOG_ERROR, error_buf);
-    wasm_runtime_destroy();
-    return false;
-  }
-
-  // Instantiate the module
-  module_inst = wasm_runtime_instantiate(module, stack_size, heap_size, error_buf, sizeof(error_buf));
-  if (!module_inst) {
-    pntr_app_log(PNTR_APP_LOG_ERROR, error_buf);
-
-    wasm_runtime_unload(module);
-    wasm_runtime_destroy();
-    return false;
-  }
-
-  // Create execution environment
-  exec_env = wasm_runtime_create_exec_env(module_inst, stack_size);
-  if (!exec_env) {
-    pntr_app_log(PNTR_APP_LOG_ERROR, wasm_runtime_get_exception(module_inst));
-
-    wasm_runtime_deinstantiate(module_inst);
-    wasm_runtime_unload(module);
-    wasm_runtime_destroy();
-    return false;
-  }
-
-  wasm_function_inst_t cart_callback_load = wasm_runtime_lookup_function(module_inst, "load");
-  cart_callback_unload = wasm_runtime_lookup_function(module_inst, "unload");
-  cart_callback_update = wasm_runtime_lookup_function(module_inst, "update");
-  cart_callback_buttonDown = wasm_runtime_lookup_function(module_inst, "buttonDown");
-  cart_callback_buttonUp = wasm_runtime_lookup_function(module_inst, "buttonUp");
-  cart_callback_keyDown = wasm_runtime_lookup_function(module_inst, "keyDown");
-  cart_callback_keyUp = wasm_runtime_lookup_function(module_inst, "keyUp");
-  cart_callback_mouseDown = wasm_runtime_lookup_function(module_inst, "mouseDown");
-  cart_callback_mouseUp = wasm_runtime_lookup_function(module_inst, "mouseUp");
-  cart_callback_mouseMoved = wasm_runtime_lookup_function(module_inst, "mouseMoved");
-
-  wasm_application_execute_main(module_inst, 0, NULL);
-
-  if (cart_callback_load != NULL) {
-    if (!wasm_runtime_call_wasm(exec_env, cart_callback_load, 0, NULL)) {
-      // not fatal, but this will help with troubleshooting
-      pntr_app_log(PNTR_APP_LOG_ERROR, wasm_runtime_get_exception(module_inst));
+    void* heap_buf = malloc(16 * 1024 * 1024);
+    if (!heap_buf) {
+        pntr_app_log(PNTR_APP_LOG_ERROR, "Failed to allocate heap buffer");
+        return false;
     }
-  }
 
-  // TODO: setup WASI?
+    init_args.mem_alloc_type = Alloc_With_Pool;
+    init_args.mem_alloc_option.pool.heap_buf = heap_buf;
+    init_args.mem_alloc_option.pool.heap_size = 16 * 1024 * 1024;
+    init_args.max_thread_num = 1;
 
-  return true;
+        if (!wasm_runtime_full_init(&init_args)) {
+        pntr_app_log(PNTR_APP_LOG_ERROR, "init: runtime");
+        free(heap_buf);
+        return false;
+    }
+
+    // Register native symbols
+        if (!wasm_runtime_register_natives("null0", null0_native_symbols, cvector_size(null0_native_symbols))) {
+        pntr_app_log(PNTR_APP_LOG_ERROR, "init: register");
+        return false;
+    }
+
+    // Load WASM module
+        module = wasm_runtime_load(wasmBytes, wasmSize, error_buf, sizeof(error_buf));
+    if (!module) {
+        pntr_app_log(PNTR_APP_LOG_ERROR, error_buf);
+        wasm_runtime_destroy();
+        return false;
+    }
+
+    // Instantiate the module
+        module_inst = wasm_runtime_instantiate(module, stack_size, heap_size, error_buf, sizeof(error_buf));
+    if (!module_inst) {
+        pntr_app_log(PNTR_APP_LOG_ERROR, error_buf);
+        wasm_runtime_unload(module);
+        wasm_runtime_destroy();
+        return false;
+    }
+
+    // Create execution environment
+        exec_env = wasm_runtime_create_exec_env(module_inst, stack_size);
+    if (!exec_env) {
+        pntr_app_log(PNTR_APP_LOG_ERROR, wasm_runtime_get_exception(module_inst));
+        wasm_runtime_deinstantiate(module_inst);
+        wasm_runtime_unload(module);
+        wasm_runtime_destroy();
+        return false;
+    }
+
+    // Try to find the _start function (which might be the actual entry point)
+        wasm_function_inst_t start_func = wasm_runtime_lookup_function(module_inst, "_start");
+    if (start_func) {
+                if (!wasm_runtime_call_wasm(exec_env, start_func, 0, NULL)) {
+                    }
+    }
+
+    // Look for main function
+    wasm_function_inst_t main_func = wasm_runtime_lookup_function(module_inst, "main");
+    if (main_func) {
+                if (!wasm_runtime_call_wasm(exec_env, main_func, 0, NULL)) {
+                    }
+    }
+
+        wasm_function_inst_t cart_callback_load = wasm_runtime_lookup_function(module_inst, "load");
+    cart_callback_unload = wasm_runtime_lookup_function(module_inst, "unload");
+    cart_callback_update = wasm_runtime_lookup_function(module_inst, "update");
+    cart_callback_buttonDown = wasm_runtime_lookup_function(module_inst, "buttonDown");
+    cart_callback_buttonUp = wasm_runtime_lookup_function(module_inst, "buttonUp");
+    cart_callback_keyDown = wasm_runtime_lookup_function(module_inst, "keyDown");
+    cart_callback_keyUp = wasm_runtime_lookup_function(module_inst, "keyUp");
+    cart_callback_mouseDown = wasm_runtime_lookup_function(module_inst, "mouseDown");
+    cart_callback_mouseUp = wasm_runtime_lookup_function(module_inst, "mouseUp");
+    cart_callback_mouseMoved = wasm_runtime_lookup_function(module_inst, "mouseMoved");
+
+
+    if (cart_callback_load != NULL) {
+                if (!wasm_runtime_call_wasm(exec_env, cart_callback_load, 0, NULL)) {
+            const char* error = wasm_runtime_get_exception(module_inst);
+            pntr_app_log(PNTR_APP_LOG_ERROR, error);
+                    }
+    }
+
+    return true;
 }
+
+
 
 bool cart_update() {
   if (cart_callback_update != NULL) {

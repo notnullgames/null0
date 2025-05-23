@@ -71,10 +71,10 @@ unsigned int copy_string_to_cart(char *host_pointer);
 pntr_image *get_image(unsigned int id);
 
 // set a cart image from host
-unsigned int add_image(pntr_image *image, const char* name);
+unsigned int add_image(pntr_image *image);
 
 // set a cart font from host
-unsigned int add_font(pntr_font *font, const char* name);
+unsigned int add_font(pntr_font *font);
 
 // get a color from cart
 pntr_color copy_color_from_cart(unsigned int colorPtr);

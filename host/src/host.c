@@ -41,11 +41,8 @@ pntr_image *get_image(unsigned int id) {
   return images[id];
 }
 
-unsigned int add_image(pntr_image *image, const char* name) {
+unsigned int add_image(pntr_image *image) {
   if (image == NULL) {
-    char buf[512];
-    sprintf(buf, "add_image: %s: %s", name, pntr_get_error());
-    pntr_app_log(PNTR_APP_LOG_ERROR, buf);
     return 0;
   }
   unsigned int id = cvector_size(images);
@@ -57,11 +54,8 @@ pntr_font *get_font(unsigned int id) {
   return fonts[id];
 }
 
-unsigned int add_font(pntr_font *font, const char* name) {
+unsigned int add_font(pntr_font *font) {
   if (font == NULL) {
-    char buf[512];
-    sprintf(buf, "add_font: %s: %s", name, pntr_get_error());
-    pntr_app_log(PNTR_APP_LOG_ERROR, buf);
     return 0;
   }
   unsigned int id = cvector_size(fonts);
@@ -319,9 +313,7 @@ HOST_FUNCTION(void, image_color_tint, (uint32_t imagePtr, uint32_t colorPtr), {
 // Copy an image to a new image
 HOST_FUNCTION(uint32_t, image_copy, (uint32_t imagePtr), {
   pntr_image *image = images[imagePtr];
-  char buf[30];
-  sprintf(buf, "copy %d", imagePtr);
-  return add_image(pntr_image_copy(image), buf);
+  return add_image(pntr_image_copy(image));
 })
 
 // Crop an image, in-place
@@ -342,15 +334,13 @@ HOST_FUNCTION(uint32_t, image_gradient, (int32_t width, int32_t height, uint32_t
   pntr_color topRight = copy_color_from_cart(topRightPtr);
   pntr_color bottomLeft = copy_color_from_cart(bottomLeftPtr);
   pntr_color bottomRight = copy_color_from_cart(bottomRightPtr);
-  char buf[30];
-  sprintf(buf, "gradient %dx%d: %u,%u,%u,%u", width, height, topLeftPtr, topRightPtr, bottomLeftPtr, bottomRightPtr);
-  return add_image(pntr_gen_image_gradient(width, height, topLeft, topRight, bottomLeft, bottomRight), buf);
+  return add_image(pntr_gen_image_gradient(width, height, topLeft, topRight, bottomLeft, bottomRight));
 })
 
 HOST_FUNCTION(uint32_t, image_load, (uint32_t filenamePtr), {
   uint32_t out = 0;
   char *filename = copy_string_from_cart(filenamePtr);
-  return add_image(pntr_load_image(filename), filename);
+  return add_image(pntr_load_image(filename));
 })
 
 // Meaure an image (use 0 for screen)
@@ -363,9 +353,7 @@ HOST_FUNCTION(uint32_t, image_measure, (uint32_t imagePtr), {
 // Create a new blank image
 HOST_FUNCTION(uint32_t, image_new, (int32_t width, int32_t height, uint32_t colorPtr), {
   pntr_color color = copy_color_from_cart(colorPtr);
-  char buf[30];
-  sprintf(buf, "new %dx%d: %u", width, height, colorPtr);
-  return add_image(pntr_gen_image_color(width, height, color), buf);
+  return add_image(pntr_gen_image_color(width, height, color));
 })
 
 // Resize an image, in-place
@@ -378,9 +366,7 @@ HOST_FUNCTION(void, image_resize, (uint32_t imagePtr, int32_t newWidth, int32_t 
 // Create a new image, rotating another image
 HOST_FUNCTION(uint32_t, image_rotate, (uint32_t imagePtr, float degrees, uint32_t filter), {
   pntr_image *image = images[imagePtr];
-  char buf[30];
-  sprintf(buf, "rotate %d %f (%u)", imagePtr, degrees, filter);
-  return add_image(pntr_image_rotate(image, degrees, filter), buf);
+  return add_image(pntr_image_rotate(image, degrees, filter));
 })
 
 // Save an image to persistant storage
@@ -399,69 +385,53 @@ HOST_FUNCTION(void, image_unload, (uint32_t imagePtr), {
 // Create an image from a region of another image
 HOST_FUNCTION(uint32_t, subimage, (uint32_t imagePtr, int32_t x, int32_t y, int32_t width, int32_t height), {
   pntr_image *image = images[imagePtr];
-  char buf[30];
-  sprintf(buf, "sub %dx%d %dx%d", x, y, width, height);
-  return add_image(pntr_image_subimage(image, x, y, width, height), buf);
+  return add_image(pntr_image_subimage(image, x, y, width, height));
 })
 
 // Copy a font to a new font
 HOST_FUNCTION(uint32_t, font_copy, (uint32_t fontPtr), {
   pntr_font *font = fonts[fontPtr];
-  char buf[30];
-  sprintf(buf, "copy %f", fontPtr);
-  return add_font(pntr_font_copy(font), buf);
+  return add_font(pntr_font_copy(font));
 })
 
 // Load a BMF font from a file in cart
 HOST_FUNCTION(uint32_t, font_load_bmf, (uint32_t filenamePtr, uint32_t charactersPtr), {
   char *filename = copy_string_from_cart(filenamePtr);
   char *characters = copy_string_from_cart(charactersPtr);
-  char buf[512];
-  sprintf(buf, "load_bmf %s %s", filename, characters);
-  return add_font(pntr_load_font_bmf(filename, characters), buf);
+  return add_font(pntr_load_font_bmf(filename, characters));
 })
 
 // Load a BMF font from an image
 HOST_FUNCTION(uint32_t, font_load_bmf_from_image, (uint32_t imagePtr, uint32_t charactersPtr), {
   pntr_image *image = images[imagePtr];
   char *characters = copy_string_from_cart(charactersPtr);
-  char buf[512];
-  sprintf(buf, "load_bmf_from_image %u %s", imagePtr, characters);
-  return add_font(pntr_load_font_bmf_from_image(image, characters), buf);
+  return add_font(pntr_load_font_bmf_from_image(image, characters));
 })
 
 // Load a TTF font from a file in cart
 HOST_FUNCTION(uint32_t, font_load_ttf, (uint32_t filenamePtr, int32_t fontSize), {
   char *filename = copy_string_from_cart(filenamePtr);
-  char buf[30];
-  sprintf(buf, "load_ttf %s %d", filename, fontSize);
-  return add_font(pntr_load_font_ttf(filename, fontSize), buf);
+  return add_font(pntr_load_font_ttf(filename, fontSize));
 })
 
 // Load a TTY font from a file in cart
 HOST_FUNCTION(uint32_t, font_load_tty, (uint32_t filenamePtr, int32_t glyphWidth, int32_t glyphHeight, uint32_t charactersPtr), {
   char *filename = copy_string_from_cart(filenamePtr);
   char *characters = copy_string_from_cart(charactersPtr);
-  char buf[512];
-  sprintf(buf, "load_tty %s %dx%d %s", filename,  glyphWidth, glyphHeight, characters);
-  return add_font(pntr_load_font_tty(filename, glyphWidth, glyphHeight, characters), buf);
+  return add_font(pntr_load_font_tty(filename, glyphWidth, glyphHeight, characters));
 })
 
 // Load a TTY font from an image
 HOST_FUNCTION(uint32_t, font_load_tty_from_image, (uint32_t imagePtr, int32_t glyphWidth, int32_t glyphHeight, uint32_t charactersPtr), {
   pntr_image *image = images[imagePtr];
   char *characters = copy_string_from_cart(charactersPtr);
-  char buf[512];
-  sprintf(buf, "load_tty_from_image %d %dx%d %s", imagePtr,  glyphWidth, glyphHeight, characters);
-  return add_font(pntr_load_font_tty_from_image(image, glyphWidth, glyphHeight, characters), buf);
+  return add_font(pntr_load_font_tty_from_image(image, glyphWidth, glyphHeight, characters));
 })
 
 // Scale a font, return a new font
 HOST_FUNCTION(uint32_t, font_scale, (uint32_t fontPtr, float scaleX, float scaleY, uint32_t filter), {
   pntr_font *font = fonts[fontPtr];
-  char buf[30];
-  sprintf(buf, "scale %d %fx%f %d", fontPtr,  scaleX, scaleY, filter);
-  return add_font(pntr_font_scale(font, scaleX, scaleY, filter), buf);
+  return add_font(pntr_font_scale(font, scaleX, scaleY, filter));
 })
 
 // Unload a font

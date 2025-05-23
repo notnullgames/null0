@@ -57,10 +57,10 @@ bool Init(pntr_app *app) {
   }
 
   // screen is image:0
-  add_image(app->screen, "screen");
+  add_image(app->screen);
 
   // default is font:0
-  add_font(pntr_load_font_default(), "default");
+  add_font(pntr_load_font_default());
 
   if (!cart_init(wasmBytes, wasmSize)) {
     pntr_unload_memory(cartBytes);
