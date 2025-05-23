@@ -48,5 +48,6 @@ endfunction()
 BUILDCART("example")
 BUILDCART("colorbars")
 BUILDCART("input")
+BUILDCART("gradient")
 
 add_custom_target(carts ALL DEPENDS ${CART_TARGETS})

@@ -1,14 +1,3 @@
-#define PNTR_APP_IMPLEMENTATION
-#define PNTR_ENABLE_DEFAULT_FONT
-#define PNTR_ENABLE_VARGS
-#define PNTR_ENABLE_TTF
-#define PNTR_ENABLE_UTF8
-#define PNTR_ENABLE_MATH
-#define PNTR_ENABLE_JPEG
-#define PNTR_PIXELFORMAT_RGBA
-#define PNTR_LOAD_FILE fs_load_file
-#define PNTR_SAVE_FILE fs_save_file
-
 #include "host.h"
 
 // global app-object for pntr_app stuff
@@ -68,10 +57,10 @@ bool Init(pntr_app *app) {
   }
 
   // screen is image:0
-  add_image(app->screen);
+  add_image(app->screen, "screen");
 
   // default is font:0
-  add_font(pntr_load_font_default());
+  add_font(pntr_load_font_default(), "default");
 
   if (!cart_init(wasmBytes, wasmSize)) {
     pntr_unload_memory(cartBytes);

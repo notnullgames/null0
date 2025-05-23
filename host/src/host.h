@@ -3,6 +3,16 @@
 #ifndef NULL0_HOST_H_
 #define NULL0_HOST_H_
 
+#define PNTR_ENABLE_DEFAULT_FONT
+#define PNTR_ENABLE_VARGS
+#define PNTR_ENABLE_TTF
+#define PNTR_ENABLE_UTF8
+#define PNTR_ENABLE_MATH
+#define PNTR_ENABLE_JPEG
+#define PNTR_PIXELFORMAT_RGBA
+#define PNTR_LOAD_FILE fs_load_file
+#define PNTR_SAVE_FILE fs_save_file
+
 #include "fs.h"
 #include "pntr_app.h"
 #include <stdbool.h>
@@ -61,10 +71,10 @@ unsigned int copy_string_to_cart(char *host_pointer);
 pntr_image *get_image(unsigned int id);
 
 // set a cart image from host
-unsigned int add_image(pntr_image *image);
+unsigned int add_image(pntr_image *image, const char* name);
 
 // set a cart font from host
-unsigned int add_font(pntr_font *font);
+unsigned int add_font(pntr_font *font, const char* name);
 
 // get a color from cart
 pntr_color copy_color_from_cart(unsigned int colorPtr);
