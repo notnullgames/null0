@@ -5,7 +5,7 @@
 
 bool buttons[] = {
   false,
-  false, // GAMEPAD_BUTTON_UP = 1,          // Gamepad left DPAD up button
+  false, // GAMEPAD_BUTTON_UP,              // Gamepad left DPAD up button
   false, // GAMEPAD_BUTTON_RIGHT,           // Gamepad left DPAD right button
   false, // GAMEPAD_BUTTON_DOWN,            // Gamepad left DPAD down button
   false, // GAMEPAD_BUTTON_LEFT,            // Gamepad left DPAD left button
@@ -51,10 +51,12 @@ int main() {
 
 void buttonDown(GamepadButton button, unsigned int player) {
   buttons[button] = true;
+  printf("down: %d\n", button);
 }
 
 void buttonUp(GamepadButton button, unsigned int player) {
   buttons[button] = false;
+  printf("up: %d\n", button);
 }
 
 void update() {
@@ -62,7 +64,6 @@ void update() {
   if (images[0]) {
     draw_image(SCREEN, images[0], 0, 0);
   }
-
   for (int i = 1; i < 16; i++) {
     if (buttons[i] && images[i]) {
       draw_image(SCREEN, images[i], 0, 0);

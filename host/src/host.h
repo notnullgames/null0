@@ -80,7 +80,7 @@ unsigned int add_font(pntr_font *font);
 pntr_color copy_color_from_cart(unsigned int colorPtr);
 
 // set cart-color
-unsigned intcopy_color_to_cart(pntr_color color);
+unsigned int copy_color_to_cart(pntr_color color);
 
 // cart input-specific callbacks
 void cart_buttonDown(pntr_app_gamepad_button button, unsigned int player);

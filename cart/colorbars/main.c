@@ -36,8 +36,6 @@ int main() {
 
   // it doesn't change, so just draw it once
 
-  clear(SCREEN, BLACK);
-
   int d = SCREEN_HEIGHT / 4;
   int i = 0;
   while (d) {
