@@ -153,9 +153,17 @@ WASI_FUNCTION(wasi_errno_t, proc_exit, (wasi_exitcode_t rval), {
 WASI_FUNCTION(wasi_errno_t, proc_raise, (wasi_signal_t sig), {
   return WASI_ESUCCESS;
 })
-WASI_FUNCTION(wasi_errno_t, random_get, (void *buf, wasi_size_t buf_len), {
+
+WASI_FUNCTION(wasi_errno_t, random_get, (uint32_t buf_cp, uint32_t buf_len), {
+  unsigned char *bytes = malloc(buf_len);
+  for (size_t i = 0; i < buf_len; ++i) {
+    bytes[i] = rand() % 256;
+  }
+  copy_memory_to_cart_pointer(buf_cp, bytes, buf_len);
+  free(bytes);
   return WASI_ESUCCESS;
 })
+
 WASI_FUNCTION(wasi_errno_t, sched_yield, (), {
   return WASI_ESUCCESS;
 })
