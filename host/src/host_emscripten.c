@@ -21,12 +21,24 @@ bool cart_close() {
   return true;
 }
 
-EM_JS(unsigned int, copy_memory_to_cart, (void *host_pointer, unsigned int size), {
-  const ret = Module.cart.malloc(size);
+EM_JS(void, copy_memory_to_cart_pointer, (unsigned int ret, void *host_pointer, unsigned int size), {
   const cartMem = new Uint8Array(Module.cart.memory.buffer);
   cartMem.set(Module.HEAPU8.subarray(host_pointer, host_pointer + size), ret);
-  return ret;
 });
+
+EM_JS(void, copy_memory_from_cart_pointer, (unsigned int ret, void *host_pointer, unsigned int size), {
+                                                                                                        // TODO
+                                                                                                      });
+
+EM_JS(unsigned int, cart_malloc, (unsigned int size), {
+  return Module.cart.malloc(size);
+});
+
+unsigned int copy_memory_to_cart(void *host_pointer, unsigned int size) {
+  unsigned int = ret = cart_malloc(size);
+  copy_memory_to_cart_pointer(ret, host_pointer, size);
+  return ret;
+}
 
 EM_JS(void, emscripten_copy_memory_from_cart, (unsigned int cart_pointer, void *ret, unsigned int size), {
   const mem = new Uint8Array(Module.cart.memory.buffer).subarray(cart_pointer, cart_pointer + size);

@@ -53,6 +53,12 @@ void cart_event(pntr_app_event *event);
 // returns cart-pointer (unsigned int) for a host-pointer
 unsigned int copy_memory_to_cart(void *host_pointer, unsigned int size);
 
+// copy to an existing pointer in cart
+void copy_memory_to_cart_pointer(unsigned int ret, void *host_pointer, unsigned int size);
+
+// copy from an existing pointer in cart
+void copy_memory_from_cart_pointer(unsigned int ret, void *host_pointer, unsigned int size);
+
 // returns host-pointer for a cart-pointer
 void *copy_memory_from_cart(unsigned int cart_pointer, unsigned int size);
 
@@ -98,20 +104,28 @@ void cart_mouseMoved(float x, float y);
   EMSCRIPTEN_KEEPALIVE ret_type host_##name params { \
     __VA_ARGS__                                      \
   }
+#define WASI_FUNCTION(ret_type, name, params, ...)   \
+  EMSCRIPTEN_KEEPALIVE ret_type wasi_##name params { \
+    __VA_ARGS__                                      \
+  }
 #endif // EMSCRIPTEN
 
 #ifndef EMSCRIPTEN
 extern cvector_vector_type(NativeSymbol) null0_native_symbols;
+extern cvector_vector_type(NativeSymbol) wasi_native_symbols;
 
 #define EXPAND_PARAMS(...) , ##__VA_ARGS__
 #define HOST_FUNCTION(ret_type, name, params, ...)                                       \
   ret_type host_##name(wasm_exec_env_t exec_env EXPAND_PARAMS params){                   \
     __VA_ARGS__};                                                                        \
   static void __attribute__((constructor)) _register_##name() {                          \
-    if (null0_native_symbols == NULL) {                                                  \
-      null0_native_symbols = NULL; /* Initialize if needed */                            \
-    }                                                                                    \
     cvector_push_back(null0_native_symbols, ((NativeSymbol){#name, host_##name, NULL})); \
+  }
+#define WASI_FUNCTION(ret_type, name, params, ...)                                      \
+  ret_type wasi_##name(wasm_exec_env_t exec_env EXPAND_PARAMS params){                  \
+    __VA_ARGS__};                                                                       \
+  static void __attribute__((constructor)) _register_##name() {                         \
+    cvector_push_back(wasi_native_symbols, ((NativeSymbol){#name, wasi_##name, NULL})); \
   }
 #endif
 

@@ -50,7 +50,11 @@ bool cart_init(unsigned char *wasmBytes, unsigned int wasmSize) {
 
   // Register native symbols
   if (!wasm_runtime_register_natives("null0", null0_native_symbols, cvector_size(null0_native_symbols))) {
-    pntr_app_log(PNTR_APP_LOG_ERROR, "init: register");
+    pntr_app_log(PNTR_APP_LOG_ERROR, "null0: register");
+    return false;
+  }
+  if (!wasm_runtime_register_natives("wasi_snapshot_preview1", wasi_native_symbols, cvector_size(wasi_native_symbols))) {
+    pntr_app_log(PNTR_APP_LOG_ERROR, "wasi: register");
     return false;
   }
 
@@ -166,9 +170,18 @@ static void cart_free(uint32_t ptr) {
 
 unsigned int copy_memory_to_cart(void *hostPtr, unsigned int size) {
   unsigned int cartPtr = cart_malloc(size);
-  void *cartHostPtr = wasm_runtime_addr_app_to_native(module_inst, (uint64_t)cartPtr);
-  memcpy(cartHostPtr, hostPtr, size);
+  copy_memory_to_cart_pointer(cartPtr, hostPtr, size);
   return cartPtr;
+}
+
+void copy_memory_to_cart_pointer(unsigned int ret, void *host_pointer, unsigned int size) {
+  void *cartHostPtr = wasm_runtime_addr_app_to_native(module_inst, (uint64_t)ret);
+  memcpy(cartHostPtr, host_pointer, size);
+}
+
+void copy_memory_from_cart_pointer(unsigned int ret, void *host_pointer, unsigned int size) {
+  void *cartHostPtr = wasm_runtime_addr_app_to_native(module_inst, (uint64_t)ret);
+  memcpy(host_pointer, cartHostPtr, size);
 }
 
 void *copy_memory_from_cart(unsigned int cartPtr, unsigned int size) {
