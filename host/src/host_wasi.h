@@ -1,6 +1,8 @@
 #ifndef HOST_WASI_H_
 #define HOST_WASI_H_
 
+// TODO: inline more of this in host_wasi.c, use less special types
+
 #include "host.h"
 
 #include <stddef.h>
