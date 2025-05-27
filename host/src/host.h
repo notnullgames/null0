@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define CVECTOR_LOGARITHMIC_GROWTH
 #include "cvector.h"

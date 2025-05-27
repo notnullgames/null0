@@ -62,6 +62,9 @@ bool Init(pntr_app *app) {
   // default is font:0
   add_font(pntr_load_font_default());
 
+  // seed random with time
+  srand((unsigned int)time(NULL));
+
   if (!cart_init(wasmBytes, wasmSize)) {
     pntr_unload_memory(cartBytes);
     pntr_app_log(PNTR_APP_LOG_ERROR, "Could not start cart.");
