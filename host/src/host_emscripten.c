@@ -35,7 +35,7 @@ EM_JS(unsigned int, cart_malloc, (unsigned int size), {
 });
 
 unsigned int copy_memory_to_cart(void *host_pointer, unsigned int size) {
-  unsigned int = ret = cart_malloc(size);
+  unsigned int ret = cart_malloc(size);
   copy_memory_to_cart_pointer(ret, host_pointer, size);
   return ret;
 }
