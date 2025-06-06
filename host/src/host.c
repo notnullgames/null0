@@ -337,11 +337,29 @@ HOST_FUNCTION(uint32_t, image_gradient, (int32_t width, int32_t height, uint32_t
   return add_image(pntr_gen_image_gradient(width, height, topLeft, topRight, bottomLeft, bottomRight));
 })
 
+// HOST_FUNCTION(uint32_t, image_load, (uint32_t filenamePtr), {
+//   char *filename = copy_string_from_cart(filenamePtr);
+//   pntr_image* p = pntr_load_image(filename);
+//   char* err = pntr_get_error();
+//   if (err != NULL) {
+//     fprintf(stderr, "Error: %s\n", err);
+//   }
+//   return add_image(p);
+// })
+
+
 HOST_FUNCTION(uint32_t, image_load, (uint32_t filenamePtr), {
-  uint32_t out = 0;
   char *filename = copy_string_from_cart(filenamePtr);
-  return add_image(pntr_load_image(filename));
+  unsigned int bytesRead = 0;
+  const unsigned char* fileData = pntr_load_file(filename, &bytesRead);
+  if (fileData != NULL) {
+    pntr_image_type type = pntr_get_file_image_type(filename);
+    pntr_image* output = pntr_load_image_from_memory(type, fileData, bytesRead);
+    pntr_unload_file((unsigned char*)fileData);
+    return add_image(output);
+  }
 })
+
 
 // Meaure an image (use 0 for screen)
 HOST_FUNCTION(uint32_t, image_measure, (uint32_t imagePtr), {

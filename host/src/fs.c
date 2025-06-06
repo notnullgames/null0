@@ -36,11 +36,17 @@ unsigned char *fs_load_file_real(const char *filename, unsigned int *bytesRead) 
 
 // load a file from physfs filesystem
 unsigned char *fs_load_file(const char *filename, uint32_t *bytesRead) {
-  PHYSFS_File *f = PHYSFS_openRead(filename);
-  PHYSFS_Stat i = fs_file_info(filename);
+  PHYSFS_Stat stat = {};
+  PHYSFS_stat(filename, &stat);
+  if (stat.filesize == 0 || stat.filetype != PHYSFS_FILETYPE_REGULAR ) {
+    *bytesRead = 0;
+    fprintf(stderr, "Could not load file %s (size: %llu type: %d)\n", filename, stat.filesize, stat.filetype);
+    return NULL;
+  }
 
-  unsigned char *b = (unsigned char *)malloc(i.filesize);
-  PHYSFS_sint64 br = PHYSFS_readBytes(f, b, i.filesize);
+  PHYSFS_File *f = PHYSFS_openRead(filename);
+  unsigned char *b = (unsigned char *)malloc(stat.filesize);
+  PHYSFS_sint64 br = PHYSFS_readBytes(f, b, stat.filesize);
   *bytesRead = br;
   PHYSFS_close(f);
   return b;
@@ -179,11 +185,4 @@ DetectFileType fs_detect_type(const char *filename) {
   }
   PHYSFS_close(f);
   return fs_parse_magic_bytes(magic_number);
-}
-
-// Get info about a file from native filesystem
-PHYSFS_Stat fs_file_info(const char *filename) {
-  PHYSFS_Stat stat;
-  PHYSFS_stat(filename, &stat);
-  return stat;
 }

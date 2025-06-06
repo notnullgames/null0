@@ -64,7 +64,4 @@ DetectFileType fs_detect_type(const char *filename);
 // get the short-name of cart, using filename
 char *fs_get_cart_name(const char *filename);
 
-// Get info about a file from native filesystem
-PHYSFS_Stat fs_file_info(const char *filename);
-
 #endif // NULL0_FS_H_
