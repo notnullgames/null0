@@ -38,6 +38,9 @@ EM_JS(void, cart_mouseMoved, (float x, float y), {
    Module?.cart?.mouseMoved && Module.cart.mouseMoved(x, y);
 });
 
+EM_JS(void, host_close, (), {
+   Module?.cart?.unload && Module.cart.unload();
+});
 
 EM_JS(uint32_t, cart_malloc, (size_t size), {
   return Module.cart.malloc(size);

@@ -51,27 +51,21 @@ int main() {
 
 void buttonDown(GamepadButton button, unsigned int player) {
   buttons[button] = true;
-  printf("down: %d\n", button);
 }
 
 void buttonUp(GamepadButton button, unsigned int player) {
   buttons[button] = false;
-  printf("up: %d\n", button);
 }
 
 void update() {
   draw_image(SCREEN, bg, 0, 0);
   if (images[0]) {
     draw_image(SCREEN, images[0], 0, 96);
-  } else {
-    printf("wanted to draw 0, but it's not set\n");
   }
   for (int i = 1; i < 16; i++) {
     if (buttons[i]) {
       if (images[i]) {
         draw_image(SCREEN, images[i], 0, 0);
-      }else {
-        printf("wanted to draw %d, but it's not set\n", i);
       }
     }
   }

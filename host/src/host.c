@@ -206,9 +206,6 @@ void host_event(pntr_app_event *event) {
   }
 }
 
-void host_close() {
-}
-
 // HOST API FOR CARTS
 
 

@@ -117,6 +117,14 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
   return true;
 }
 
+void host_close() {
+  if (!wasm_runtime_call_wasm(exec_env, cart_callback_unload, 0, NULL)) {
+    // not fatal, but warn about it
+    pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+  }
+  // TODO: do I need to cleanup any WAMR stuff?
+}
+
 
 void cart_update() {
   if (cart_callback_update != NULL) {
@@ -128,9 +136,9 @@ void cart_update() {
 }
 
 void cart_buttonDown(pntr_app_gamepad_button button, unsigned int player) {
-  callback_args[0] = button;
-  callback_args[1] = player;
   if (cart_callback_buttonDown != NULL) {
+    callback_args[0] = button;
+    callback_args[1] = player;
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_buttonDown, 2, callback_args)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
@@ -139,9 +147,9 @@ void cart_buttonDown(pntr_app_gamepad_button button, unsigned int player) {
 }
 
 void cart_buttonUp(pntr_app_gamepad_button button, unsigned int player) {
-  callback_args[0] = button;
-  callback_args[1] = player;
   if (cart_callback_buttonUp != NULL) {
+    callback_args[0] = button;
+    callback_args[1] = player;
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_buttonUp, 2, callback_args)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
