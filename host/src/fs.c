@@ -18,7 +18,7 @@ unsigned char *fs_load_file_real(const char *filename, unsigned int *bytesRead) 
     return NULL;
   }
 
-  unsigned char *data = (unsigned char *)pntr_load_memory(size * sizeof(unsigned char));
+  unsigned char *data = (unsigned char *)malloc(size * sizeof(unsigned char));
   if (data == NULL) {
     fclose(file);
     *bytesRead = 0;

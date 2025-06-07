@@ -1,46 +1,9 @@
-// This is the shared implementation of host-functions
-
-#define PNTR_APP_IMPLEMENTATION
-
 #include "host.h"
-
-// TODO: add more error checking/reporting
 
 static cvector_vector_type(pntr_image *) images;
 static cvector_vector_type(pntr_font *) fonts;
 
-char *copy_string_from_cart(unsigned int cart_pointer) {
-  unsigned int size = cart_strlen(cart_pointer) + 1;
-  return (char *)copy_memory_from_cart(cart_pointer, size);
-}
-
-unsigned int copy_string_to_cart(char *host_pointer) {
-  unsigned int size = strlen(host_pointer) + 1;
-  return copy_memory_to_cart((void *)host_pointer, size);
-}
-
-pntr_color copy_color_from_cart(unsigned int colorPtr) {
-  CartColor *c = copy_memory_from_cart(colorPtr, sizeof(CartColor));
-  pntr_color ret = pntr_new_color(c->r, c->g, c->b, c->a);
-  free(c);
-  return ret;
-}
-
-unsigned int copy_color_to_cart(pntr_color color) {
-  CartColor *c = malloc(sizeof(CartColor));
-  c->r = color.rgba.r;
-  c->g = color.rgba.g;
-  c->b = color.rgba.b;
-  c->a = color.rgba.a;
-  return copy_memory_to_cart(c, sizeof(CartColor));
-}
-
-// These helpers make it easier to use the static appData elsewhere
-
-pntr_image *get_image(unsigned int id) {
-  return images[id];
-}
-
+// add an image to loaded images
 unsigned int add_image(pntr_image *image) {
   if (image == NULL) {
     return 0;
@@ -50,10 +13,7 @@ unsigned int add_image(pntr_image *image) {
   return id;
 }
 
-pntr_font *get_font(unsigned int id) {
-  return fonts[id];
-}
-
+// add a font to loaded fonts
 unsigned int add_font(pntr_font *font) {
   if (font == NULL) {
     return 0;
@@ -63,9 +23,115 @@ unsigned int add_font(pntr_font *font) {
   return id;
 }
 
-// process events and call host-specific implemntation
+// copy a string from cart to host
+char *copy_string_from_cart(unsigned int cart_pointer) {
+  unsigned int size = cart_strlen(cart_pointer) + 1;
+  char* ret = malloc(size);
+  mem_from_cart(ret, cart_pointer, size);
+  return ret;
+}
 
-// cart input-specific callbacks
+// copy a string from host to cart
+unsigned int copy_string_to_cart(char *host_pointer) {
+  unsigned int size = strlen(host_pointer) + 1;
+  unsigned int ret = cart_malloc(size);
+  mem_to_cart(ret, (void *)host_pointer, size);
+  return ret;
+}
+
+// copy a color from cart to host
+pntr_color copy_color_from_cart(unsigned int colorPtr) {
+  CartColor c = {};
+  mem_from_cart(&c, colorPtr, sizeof(CartColor));
+  pntr_color ret = pntr_new_color(c.r, c.g, c.b, c.a);
+  return ret;
+}
+
+// copy a color form host to cart
+unsigned int copy_color_to_cart(pntr_color color) {
+  CartColor* c = malloc(sizeof(CartColor));
+  c->r = color.rgba.r;
+  c->g = color.rgba.g;
+  c->b = color.rgba.b;
+  c->a = color.rgba.a;
+  unsigned int ret = cart_malloc(sizeof(CartColor));
+  mem_to_cart(ret, c, sizeof(CartColor));
+}
+
+// Allocate & copy memory from cart to host
+void *copy_memory_from_cart(unsigned int src, unsigned int size) {
+  void* dest = malloc(size);
+  mem_from_cart(dest, src, size);
+  return dest;
+}
+
+// Allocate & copy memory from host to cart
+unsigned int copy_memory_to_cart(void *src, unsigned int size) {
+  uint32_t dest = cart_malloc(size);
+  mem_to_cart(dest, src, size);
+  return dest;
+}
+
+bool host_init(pntr_app *app) {
+  if (!app->argFile) {
+    pntr_app_log(PNTR_APP_LOG_ERROR, "Usage: null <CART>");
+    return false;
+  }
+
+  unsigned int cartSize = 0;
+  unsigned char *cartBytes = fs_load_file_real(app->argFile, &cartSize);
+
+  if (!cartSize) {
+    if (cartBytes){
+      free(cartBytes);
+    }
+    pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load cart.");
+    return false;
+  }
+
+  if (!PHYSFS_init("/")) {
+    pntr_app_log(PNTR_APP_LOG_ERROR, "Could not start filesystem.");
+    return false;
+  }
+
+  DetectFileType cartType = fs_parse_magic_bytes(*(uint32_t *)cartBytes);
+  unsigned int wasmSize = 0;
+  unsigned char *wasmBytes = NULL;
+
+  if (cartType == FILE_TYPE_ZIP) {
+    if (!PHYSFS_mountMemory(cartBytes, cartSize, NULL, "cart.zip", NULL, 1)) {
+      PHYSFS_deinit();
+      free(cartBytes);
+      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not mount cart.");
+      return false;
+    }
+    wasmBytes = fs_load_file("main.wasm", &wasmSize);
+    if (wasmSize == 0) {
+      free(cartBytes);
+      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load main.wasm.");
+      return false;
+    }
+  } else if (cartType == FILE_TYPE_WASM) {
+    wasmSize = cartSize;
+    wasmBytes = cartBytes;
+  } else {
+    free(cartBytes);
+    pntr_app_log(PNTR_APP_LOG_ERROR, "Only wasm/zip cart-files are supported.");
+    return false;
+  }
+
+  add_image(app->screen);
+  add_font(pntr_load_font_default());
+
+  bool ret = cart_init(app, wasmBytes, wasmSize);
+  free(wasmBytes);
+  return ret;
+}
+
+bool host_update(pntr_app *app) {
+  cart_update();
+  return true;
+}
 
 // this maps keys to joystick buttons (for non-libretro)
 static pntr_app_gamepad_button cart_map_key(pntr_app_key key) {
@@ -101,7 +167,7 @@ static pntr_app_gamepad_button cart_map_key(pntr_app_key key) {
   }
 }
 
-void cart_event(pntr_app_event *event) {
+void host_event(pntr_app_event *event) {
   // TODO: it would be cool to handle wheel, DnD, cheat & save events as well
   if (event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN) {
     cart_mouseDown(event->mouseButton);
@@ -140,7 +206,11 @@ void cart_event(pntr_app_event *event) {
   }
 }
 
-/// these are shared host-functions:
+void host_close() {
+}
+
+// HOST API FOR CARTS
+
 
 // Clear an image
 HOST_FUNCTION(void, clear, (uint32_t imageID, uint32_t colorPtr), {
@@ -337,29 +407,15 @@ HOST_FUNCTION(uint32_t, image_gradient, (int32_t width, int32_t height, uint32_t
   return add_image(pntr_gen_image_gradient(width, height, topLeft, topRight, bottomLeft, bottomRight));
 })
 
-// HOST_FUNCTION(uint32_t, image_load, (uint32_t filenamePtr), {
-//   char *filename = copy_string_from_cart(filenamePtr);
-//   pntr_image* p = pntr_load_image(filename);
-//   char* err = pntr_get_error();
-//   if (err != NULL) {
-//     fprintf(stderr, "Error: %s\n", err);
-//   }
-//   return add_image(p);
-// })
-
-
 HOST_FUNCTION(uint32_t, image_load, (uint32_t filenamePtr), {
   char *filename = copy_string_from_cart(filenamePtr);
-  unsigned int bytesRead = 0;
-  const unsigned char* fileData = pntr_load_file(filename, &bytesRead);
-  if (fileData != NULL) {
-    pntr_image_type type = pntr_get_file_image_type(filename);
-    pntr_image* output = pntr_load_image_from_memory(type, fileData, bytesRead);
-    pntr_unload_file((unsigned char*)fileData);
-    return add_image(output);
-  }
+  pntr_image* p = pntr_load_image(filename);
+  // char* err = pntr_get_error();
+  // if (err != NULL) {
+  //   fprintf(stderr, "Error: %s\n", err);
+  // }
+  return add_image(p);
 })
-
 
 // Meaure an image (use 0 for screen)
 HOST_FUNCTION(uint32_t, image_measure, (uint32_t imagePtr), {

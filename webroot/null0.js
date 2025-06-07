@@ -1,8 +1,8 @@
-import { WasiPreview1 } from '@easywasm/wasi'
-
-// this is the emscripten-exported function for host
-import loadHost from './host/null0.mjs'
+import WasiPreview1 from '@easywasm/wasi'
 import PhysFS from './PhysFS.js'
+
+// this is output from emscripten
+import loadHost from './wbuild/host/null0.mjs'
 
 const debug = false
 
@@ -14,11 +14,12 @@ export default async function loadCart(cartUrl, canvas) {
     preRun(h) {
       h.FS.createPreloadedFile('', cartName, cartUrl, true, false)
 
+      const fs = new PhysFS()
+
       // this is called at startup by emscripten-code
       h.cart_callback_init = (wasmBytesPtr, wasmSize) => {
         const wasmBytes = h.HEAPU8.subarray(wasmBytesPtr, wasmBytesPtr + wasmSize)
 
-        const fs = new PhysFS()
         const wasi_snapshot_preview1 = new WasiPreview1({ fs })
         const imports = { wasi_snapshot_preview1, null0: {} }
 

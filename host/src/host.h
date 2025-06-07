@@ -1,5 +1,3 @@
-// this is the API for each null0 host to implement
-
 #ifndef NULL0_HOST_H_
 #define NULL0_HOST_H_
 
@@ -23,13 +21,6 @@
 #define CVECTOR_LOGARITHMIC_GROWTH
 #include "cvector.h"
 
-// these are specifric to each host-type
-#ifdef EMSCRIPTEN
-#include <emscripten.h>
-#else
-#include <wasm_export.h>
-#endif
-
 typedef struct {
   unsigned char r;
   unsigned char g;
@@ -37,59 +28,16 @@ typedef struct {
   unsigned char a;
 } CartColor;
 
-/// these are specific to each host (wamr/emscripten)
 
-// Initialize a cart
-bool cart_init(unsigned char *wasmBytes, unsigned int wasmSize);
+// These are wrappers around the lifecycle of host
+bool host_init(pntr_app *app);
+bool host_update(pntr_app *app);
+void host_event(pntr_app_event *event);
+void host_close();
 
-// Update a cart
-bool cart_update();
-
-// Close a cart
-bool cart_close();
-
-// process an event (keyboard/mouse/joystick)
-void cart_event(pntr_app_event *event);
-
-// returns cart-pointer (unsigned int) for a host-pointer
-unsigned int copy_memory_to_cart(void *host_pointer, unsigned int size);
-
-// copy to an existing pointer in cart
-void copy_memory_to_cart_pointer(unsigned int ret, void *host_pointer, unsigned int size);
-
-// copy from an existing pointer in cart
-void copy_memory_from_cart_pointer(unsigned int ret, void *host_pointer, unsigned int size);
-
-// returns host-pointer for a cart-pointer
-void *copy_memory_from_cart(unsigned int cart_pointer, unsigned int size);
-
-// get length of string in cart
-unsigned int cart_strlen(unsigned int cart_pointer);
-
-/// these are derived (implemented in host.c)
-
-// copy a string from cart to host, returns host-pointer
-char *copy_string_from_cart(unsigned int cart_pointer);
-
-// copy a string from host to cart, returns cart-pointer
-unsigned int copy_string_to_cart(char *host_pointer);
-
-// get an image
-pntr_image *get_image(unsigned int id);
-
-// set a cart image from host
-unsigned int add_image(pntr_image *image);
-
-// set a cart font from host
-unsigned int add_font(pntr_font *font);
-
-// get a color from cart
-pntr_color copy_color_from_cart(unsigned int colorPtr);
-
-// set cart-color
-unsigned int copy_color_to_cart(pntr_color color);
-
-// cart input-specific callbacks
+// These are callbacks in user's cart
+bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize);
+void cart_update();
 void cart_buttonDown(pntr_app_gamepad_button button, unsigned int player);
 void cart_buttonUp(pntr_app_gamepad_button button, unsigned int player);
 void cart_keyDown(pntr_app_key key);
@@ -98,9 +46,49 @@ void cart_mouseDown(pntr_app_mouse_button button);
 void cart_mouseUp(pntr_app_mouse_button button);
 void cart_mouseMoved(float x, float y);
 
-/// host-specific macro for each host-type
+// Free memory in cart
+void cart_free(uint32_t ptr);
+
+// Allocate memory in cart
+uint32_t cart_malloc(size_t size);
+
+// Using pointer, copy memory to cart from host
+void mem_to_cart(uint32_t dest, void* src, size_t size);
+
+// Using pointer, copy memory from cart to host
+void mem_from_cart(void* dest, uint32_t src, size_t size);
+
+// Get the length of a string in cart-memory
+size_t cart_strlen(uint32_t ptr);
+
+// copy a string from cart to host
+char *copy_string_from_cart(unsigned int cart_pointer);
+
+// Copy a string from host to cart
+unsigned int copy_string_to_cart(char *host_pointer);
+
+// Copy a color from cart to host
+pntr_color copy_color_from_cart(unsigned int colorPtr);
+
+// Copy a color form host to cart
+unsigned int copy_color_to_cart(pntr_color color);
+
+// Returns host-pointer for a cart-pointer
+void *copy_memory_from_cart(unsigned int cart_pointer, unsigned int size);
+
+// Returns cart-pointer (unsigned int) for a host-pointer
+unsigned int copy_memory_to_cart(void *host_pointer, unsigned int size);
+
+// Add an image to loaded images
+unsigned int add_image(pntr_image *image);
+
+// Add a font to loaded fonts
+unsigned int add_font(pntr_font *font);
+
 
 #ifdef EMSCRIPTEN
+#include <emscripten.h>
+
 #define HOST_FUNCTION(ret_type, name, params, ...)   \
   EMSCRIPTEN_KEEPALIVE ret_type host_##name params { \
     __VA_ARGS__                                      \
@@ -111,7 +99,10 @@ void cart_mouseMoved(float x, float y);
   }
 #endif // EMSCRIPTEN
 
+
 #ifndef EMSCRIPTEN
+#include <wasm_export.h>
+
 extern cvector_vector_type(NativeSymbol) null0_native_symbols;
 extern cvector_vector_type(NativeSymbol) wasi_native_symbols;
 
@@ -129,5 +120,6 @@ extern cvector_vector_type(NativeSymbol) wasi_native_symbols;
     cvector_push_back(wasi_native_symbols, ((NativeSymbol){#name, wasi_##name, NULL})); \
   }
 #endif
+
 
 #endif // NULL0_HOST_H_

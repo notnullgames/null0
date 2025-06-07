@@ -31,7 +31,5 @@ set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
 include(FetchContent)
 # set(FETCHCONTENT_QUIET OFF)
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
 add_subdirectory(host)
-add_subdirectory(cart)
+add_subdirectory(carts)

@@ -1,7 +1,6 @@
 // this implements shared filesystem functions
 
-#ifndef NULL0_FS_H_
-#define NULL0_FS_H_
+#pragma once
 
 #include <libgen.h>
 #include <stdbool.h>
@@ -13,8 +12,6 @@
 #include <unistd.h>
 
 #include "physfs.h"
-
-#include "pntr.h" // for pntr_load_memory
 
 // these are the supported filetypes we can detect
 // see fs_parse_magic_bytes()
@@ -63,5 +60,3 @@ DetectFileType fs_detect_type(const char *filename);
 
 // get the short-name of cart, using filename
 char *fs_get_cart_name(const char *filename);
-
-#endif // NULL0_FS_H_

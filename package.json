@@ -1,19 +1,17 @@
 {
   "name": "null0",
-  "version": "0.0.1",
-  "description": "wasm-based game-engine",
-  "type": "module",
-  "keywords": [],
-  "author": "David Konsumer <konsumer@jetboystudio.com>",
-  "license": "ZLIB",
+  "version": "0.0.0",
   "scripts": {
-    "test": "node --test test/*.test.js",
-    "pretest": "npm run build:web",
-    "start": "npx -y live-server --mount=/cart:./build/cart --mount=/host:./wbuild/host webroot",
-    "prestart": "npm run build:web && npm run build:carts",
-    "build:web": "emcmake cmake -G Ninja -B wbuild -DCMAKE_BUILD_TYPE=Release && cmake --build wbuild --target null0",
-    "build:native": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --target null0",
-    "build:carts": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --target carts",
-    "clean": "rm -rf build wbuild"
+    "configure:native": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release",
+    "prebuild:native": "npm run configure:native",
+    "build:native": "cmake --build build --target host",
+    "configure:web": "emcmake cmake -G Ninja -B wbuild -DCMAKE_BUILD_TYPE=Release",
+    "prebuild:web": "npm run configure:web",
+    "build:web": "cmake --build wbuild --target host",
+    "prebuild:carts": "npm run configure:native",
+    "build:carts": "cmake --build build --target carts",
+    "clean": "rm -rf build",
+    "start": "npx -y live-server --mount=/carts:./build/carts --mount=/wbuild:./wbuild webroot",
+    "prestart": "npm run build:web && npm run build:carts"
   }
 }
