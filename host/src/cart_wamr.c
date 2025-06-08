@@ -118,11 +118,12 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
 }
 
 void host_close() {
-  // TODO: this causes unhandled SIGSEGV, si_addr: 0x0  
-  // if (!wasm_runtime_call_wasm(exec_env, cart_callback_unload, 0, NULL)) {
-  //   // not fatal, but warn about it
-  //   pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
-  // }
+  if (cart_callback_unload != NULL) {
+    if (!wasm_runtime_call_wasm(exec_env, cart_callback_unload, 0, NULL)) {
+      // not fatal, but warn about it
+      pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+    }
+  }
   // TODO: do I need to cleanup any WAMR stuff?
 }
 
