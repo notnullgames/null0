@@ -8,12 +8,10 @@
         }
       }
     </script>
+    <script type="module" src="null0-cart.js"></script>
   </head>
   <body>
-    <canvas id="canvas"></canvas>
-    <script type="module">
-      import loadCart from './null0.js'
-      await loadCart('/carts/input.null0', document.getElementById('canvas'))
-    </script>
+    <null0-cart src="carts/example.null0"></null0-cart>
+    <null0-cart src="carts/input.null0"></null0-cart>
   </body>
 </html>
