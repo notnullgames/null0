@@ -60,3 +60,6 @@ DetectFileType fs_detect_type(const char *filename);
 
 // get the short-name of cart, using filename
 char *fs_get_cart_name(const char *filename);
+
+// get the real location of write-dir
+char *fs_get_write_dir();

@@ -1,6 +1,7 @@
 {
   "name": "null0",
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "configure:native": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release",
     "prebuild:native": "npm run configure:native",
@@ -12,6 +13,12 @@
     "build:carts": "cmake --build build --target carts",
     "clean": "rm -rf build",
     "start": "npx -y live-server --mount=/carts:./build/carts --mount=/wbuild:./wbuild webroot",
-    "prestart": "npm run build:web && npm run build:carts"
+    "prestart": "npm run build:web && npm run build:carts",
+    "gen:host": "node tools/gen_host.js",
+    "gen:cart_c": "node tools/gen_cart_c.js"
+  },
+  "devDependencies": {
+    "glob": "^11.0.3",
+    "yaml": "^2.8.0"
   }
 }

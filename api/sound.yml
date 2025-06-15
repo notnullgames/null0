@@ -1,0 +1,24 @@
+load_sound:
+  args:
+    filename: string
+  returns: Sound
+  description: Load a sound from a file in cart
+
+play_sound:
+  args:
+    sound: Sound
+    loop: bool
+  returns: void
+  description: Play a sound
+
+stop_sound:
+  args:
+    sound: Sound
+  returns: void
+  description: Stop a sound
+
+unload_sound:
+  args:
+    sound: Sound
+  returns: void
+  description: Unload a sound

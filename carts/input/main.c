@@ -30,19 +30,19 @@ u32 bg;
 int main() {
   printf("Hello from input.\n");
 
-  images[0] = image_load("assets/bg.png");
-  images[GAMEPAD_BUTTON_UP] = image_load("assets/up.png");
-  images[GAMEPAD_BUTTON_RIGHT] = image_load("assets/right.png");
-  images[GAMEPAD_BUTTON_DOWN] = image_load("assets/down.png");
-  images[GAMEPAD_BUTTON_LEFT] = image_load("assets/left.png");
-  images[GAMEPAD_BUTTON_Y] = image_load("assets/y.png");
-  images[GAMEPAD_BUTTON_B] = image_load("assets/b.png");
-  images[GAMEPAD_BUTTON_A] = image_load("assets/a.png");
-  images[GAMEPAD_BUTTON_X] = image_load("assets/x.png");
-  images[GAMEPAD_BUTTON_LEFT_SHOULDER] = image_load("assets/l1.png");
-  images[GAMEPAD_BUTTON_RIGHT_SHOULDER] = image_load("assets/r1.png");
-  images[GAMEPAD_BUTTON_SELECT] = image_load("assets/select.png");
-  images[GAMEPAD_BUTTON_START] = image_load("assets/start.png");
+  images[0] = load_image("assets/bg.png");
+  images[GAMEPAD_BUTTON_UP] = load_image("assets/up.png");
+  images[GAMEPAD_BUTTON_RIGHT] = load_image("assets/right.png");
+  images[GAMEPAD_BUTTON_DOWN] = load_image("assets/down.png");
+  images[GAMEPAD_BUTTON_LEFT] = load_image("assets/left.png");
+  images[GAMEPAD_BUTTON_Y] = load_image("assets/y.png");
+  images[GAMEPAD_BUTTON_B] = load_image("assets/b.png");
+  images[GAMEPAD_BUTTON_A] = load_image("assets/a.png");
+  images[GAMEPAD_BUTTON_X] = load_image("assets/x.png");
+  images[GAMEPAD_BUTTON_LEFT_SHOULDER] = load_image("assets/l1.png");
+  images[GAMEPAD_BUTTON_RIGHT_SHOULDER] = load_image("assets/r1.png");
+  images[GAMEPAD_BUTTON_SELECT] = load_image("assets/select.png");
+  images[GAMEPAD_BUTTON_START] = load_image("assets/start.png");
 
   bg = image_gradient(SCREEN_WIDTH, SCREEN_HEIGHT, BLUE, BLUE, GREEN, GREEN);
 
@@ -58,14 +58,14 @@ void buttonUp(GamepadButton button, unsigned int player) {
 }
 
 void update() {
-  draw_image(SCREEN, bg, 0, 0);
+  draw_image(bg, 0, 0);
   if (images[0]) {
-    draw_image(SCREEN, images[0], 0, 96);
+    draw_image(images[0], 0, 96);
   }
   for (int i = 1; i < 16; i++) {
     if (buttons[i]) {
       if (images[i]) {
-        draw_image(SCREEN, images[i], 0, 0);
+        draw_image(images[i], 0, 0);
       }
     }
   }

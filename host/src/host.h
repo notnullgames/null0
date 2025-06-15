@@ -16,7 +16,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #define CVECTOR_LOGARITHMIC_GROWTH
 #include "cvector.h"
@@ -27,7 +26,6 @@ typedef struct {
   unsigned char b;
   unsigned char a;
 } CartColor;
-
 
 // These are wrappers around the lifecycle of host
 bool host_init(pntr_app *app);
@@ -53,10 +51,10 @@ void cart_free(uint32_t ptr);
 uint32_t cart_malloc(size_t size);
 
 // Using pointer, copy memory to cart from host
-void mem_to_cart(uint32_t dest, void* src, size_t size);
+void mem_to_cart(uint32_t dest, void *src, size_t size);
 
 // Using pointer, copy memory from cart to host
-void mem_from_cart(void* dest, uint32_t src, size_t size);
+void mem_from_cart(void *dest, uint32_t src, size_t size);
 
 // Get the length of a string in cart-memory
 size_t cart_strlen(uint32_t ptr);
@@ -85,7 +83,6 @@ unsigned int add_image(pntr_image *image);
 // Add a font to loaded fonts
 unsigned int add_font(pntr_font *font);
 
-
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
 
@@ -98,7 +95,6 @@ unsigned int add_font(pntr_font *font);
     __VA_ARGS__                                      \
   }
 #endif // EMSCRIPTEN
-
 
 #ifndef EMSCRIPTEN
 #include <wasm_export.h>
@@ -120,6 +116,5 @@ extern cvector_vector_type(NativeSymbol) wasi_native_symbols;
     cvector_push_back(wasi_native_symbols, ((NativeSymbol){#name, wasi_##name, NULL})); \
   }
 #endif
-
 
 #endif // NULL0_HOST_H_

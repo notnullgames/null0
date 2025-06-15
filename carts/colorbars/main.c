@@ -39,16 +39,16 @@ int main() {
   int d = SCREEN_HEIGHT / 4;
   int i = 0;
   while (d) {
-    draw_circle(SCREEN, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, d -= bar_width, 0, i++ % 2 ? WHITE : RED);
+    draw_circle(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, d -= bar_width, i++ % 2 ? WHITE : RED);
   }
 
   int x;
   for (x = 0; x < 26; x++) {
-    draw_rectangle(SCREEN, margin + (x * (bar_width + margin)), margin, bar_width, bar_height, 0, colors[x]);
+    draw_rectangle(margin + (x * (bar_width + margin)), margin, bar_width, bar_height, colors[x]);
     if (x == 0) {
-      draw_rectangle(SCREEN, margin + (x * (bar_width + margin)), margin, bar_width, bar_height, 1, WHITE);
+      draw_rectangle_outline(margin + (x * (bar_width + margin)), margin, bar_width, bar_height, 1, WHITE);
     } else {
-      draw_rectangle(SCREEN, margin + (x * (bar_width + margin)), margin, bar_width, bar_height, 1, LIGHTGRAY);
+      draw_rectangle_outline(margin + (x * (bar_width + margin)), margin, bar_width, bar_height, 1, LIGHTGRAY);
     }
   }
 

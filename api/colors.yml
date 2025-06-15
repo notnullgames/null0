@@ -1,0 +1,51 @@
+color_tint:
+  args:
+    color: Color
+    tint: Color
+  returns: Color
+  description: Tint a color with another color
+
+color_fade:
+  args:
+    color: Color
+    alpha: f32
+  returns: Color
+  description: Fade a color
+
+color_brightness:
+  args:
+    color: Color
+    factor: f32
+  returns: Color
+  description: Change the brightness of a color
+
+color_invert:
+  args:
+    color: Color
+  returns: Color
+  description: Invert a color
+
+color_alpha_blend:
+  args:
+    dst: Color
+    src: Color
+  returns: Color
+  description: Blend 2 colors together
+
+color_contrast:
+  args:
+    color: Color
+    contrast: f32
+  returns: Color
+  description: Change contrast of a color
+
+color_bilinear_interpolate:
+  args:
+    color00: Color
+    color01: Color
+    color10: Color
+    color11: Color
+    coordinateX: f32
+    coordinateY: f32
+  returns: Color
+  description: Interpolate colors

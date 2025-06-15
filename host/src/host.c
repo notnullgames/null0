@@ -1,567 +1,664 @@
-#include "host.h"
+#include "host_header.h"
 
-static cvector_vector_type(pntr_image *) images;
-static cvector_vector_type(pntr_font *) fonts;
+// UTILITIES
 
-// add an image to loaded images
-unsigned int add_image(pntr_image *image) {
-  if (image == NULL) {
-    return 0;
-  }
-  unsigned int id = cvector_size(images);
-  cvector_push_back(images, image);
-  return id;
-}
-
-// add a font to loaded fonts
-unsigned int add_font(pntr_font *font) {
-  if (font == NULL) {
-    return 0;
-  }
-  unsigned int id = cvector_size(fonts);
-  cvector_push_back(fonts, font);
-  return id;
-}
-
-// copy a string from cart to host
-char *copy_string_from_cart(unsigned int cart_pointer) {
-  unsigned int size = cart_strlen(cart_pointer) + 1;
-  char* ret = malloc(size);
-  mem_from_cart(ret, cart_pointer, size);
-  return ret;
-}
-
-// copy a string from host to cart
-unsigned int copy_string_to_cart(char *host_pointer) {
-  unsigned int size = strlen(host_pointer) + 1;
-  unsigned int ret = cart_malloc(size);
-  mem_to_cart(ret, (void *)host_pointer, size);
-  return ret;
-}
-
-// copy a color from cart to host
-pntr_color copy_color_from_cart(unsigned int colorPtr) {
-  CartColor c = {};
-  mem_from_cart(&c, colorPtr, sizeof(CartColor));
-  pntr_color ret = pntr_new_color(c.r, c.g, c.b, c.a);
-  return ret;
-}
-
-// copy a color form host to cart
-unsigned int copy_color_to_cart(pntr_color color) {
-  CartColor* c = malloc(sizeof(CartColor));
-  c->r = color.rgba.r;
-  c->g = color.rgba.g;
-  c->b = color.rgba.b;
-  c->a = color.rgba.a;
-  unsigned int ret = cart_malloc(sizeof(CartColor));
-  mem_to_cart(ret, c, sizeof(CartColor));
-}
-
-// Allocate & copy memory from cart to host
-void *copy_memory_from_cart(unsigned int src, unsigned int size) {
-  void* dest = malloc(size);
-  mem_from_cart(dest, src, size);
-  return dest;
-}
-
-// Allocate & copy memory from host to cart
-unsigned int copy_memory_to_cart(void *src, unsigned int size) {
-  uint32_t dest = cart_malloc(size);
-  mem_to_cart(dest, src, size);
-  return dest;
-}
-
-bool host_init(pntr_app *app) {
-  if (!app->argFile) {
-    pntr_app_log(PNTR_APP_LOG_ERROR, "Usage: null <CART>");
-    return false;
-  }
-
-  unsigned int cartSize = 0;
-  unsigned char *cartBytes = fs_load_file_real(app->argFile, &cartSize);
-
-  if (!cartSize) {
-    if (cartBytes){
-      free(cartBytes);
-    }
-    pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load cart.");
-    return false;
-  }
-
-  if (!PHYSFS_init("/")) {
-    pntr_app_log(PNTR_APP_LOG_ERROR, "Could not start filesystem.");
-    return false;
-  }
-
-  DetectFileType cartType = fs_parse_magic_bytes(*(uint32_t *)cartBytes);
-  unsigned int wasmSize = 0;
-  unsigned char *wasmBytes = NULL;
-
-  if (cartType == FILE_TYPE_ZIP) {
-    if (!PHYSFS_mountMemory(cartBytes, cartSize, NULL, "cart.zip", NULL, 1)) {
-      PHYSFS_deinit();
-      free(cartBytes);
-      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not mount cart.");
-      return false;
-    }
-    wasmBytes = fs_load_file("main.wasm", &wasmSize);
-    if (wasmSize == 0) {
-      free(cartBytes);
-      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load main.wasm.");
-      return false;
-    }
-  } else if (cartType == FILE_TYPE_WASM) {
-    wasmSize = cartSize;
-    wasmBytes = cartBytes;
-  } else {
-    free(cartBytes);
-    pntr_app_log(PNTR_APP_LOG_ERROR, "Only wasm/zip cart-files are supported.");
-    return false;
-  }
-
-  add_image(app->screen);
-  add_font(pntr_load_font_default());
-
-  bool ret = cart_init(app, wasmBytes, wasmSize);
-  free(wasmBytes);
-  return ret;
-}
-
-bool host_update(pntr_app *app) {
-  cart_update();
-  return true;
-}
-
-// this maps keys to joystick buttons (for non-libretro)
-static pntr_app_gamepad_button cart_map_key(pntr_app_key key) {
-  switch (key) {
-  case PNTR_APP_KEY_UP:
-    return PNTR_APP_GAMEPAD_BUTTON_UP;
-  case PNTR_APP_KEY_DOWN:
-    return PNTR_APP_GAMEPAD_BUTTON_DOWN;
-  case PNTR_APP_KEY_LEFT:
-    return PNTR_APP_GAMEPAD_BUTTON_LEFT;
-  case PNTR_APP_KEY_RIGHT:
-    return PNTR_APP_GAMEPAD_BUTTON_RIGHT;
-  case PNTR_APP_KEY_Q:
-    return PNTR_APP_GAMEPAD_BUTTON_LEFT_SHOULDER;
-  case PNTR_APP_KEY_W:
-    return PNTR_APP_GAMEPAD_BUTTON_RIGHT_SHOULDER;
-  case PNTR_APP_KEY_Z:
-    return PNTR_APP_GAMEPAD_BUTTON_B;
-  case PNTR_APP_KEY_X:
-    return PNTR_APP_GAMEPAD_BUTTON_A;
-  case PNTR_APP_KEY_A:
-    return PNTR_APP_GAMEPAD_BUTTON_Y;
-  case PNTR_APP_KEY_S:
-    return PNTR_APP_GAMEPAD_BUTTON_X;
-  case PNTR_APP_KEY_LEFT_SHIFT:
-    return PNTR_APP_GAMEPAD_BUTTON_SELECT;
-  case PNTR_APP_KEY_RIGHT_SHIFT:
-    return PNTR_APP_GAMEPAD_BUTTON_SELECT;
-  case PNTR_APP_KEY_ENTER:
-    return PNTR_APP_GAMEPAD_BUTTON_START;
-  default:
-    return PNTR_APP_GAMEPAD_BUTTON_UNKNOWN;
-  }
-}
-
-void host_event(pntr_app_event *event) {
-  // TODO: it would be cool to handle wheel, DnD, cheat & save events as well
-  if (event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN) {
-    cart_mouseDown(event->mouseButton);
-  }
-  if (event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_UP) {
-    cart_mouseUp(event->mouseButton);
-  }
-  if (event->type == PNTR_APP_EVENTTYPE_MOUSE_MOVE) {
-    cart_mouseMoved(event->mouseX, event->mouseY);
-  }
-  if (event->type == PNTR_APP_EVENTTYPE_GAMEPAD_BUTTON_DOWN) {
-    cart_buttonDown(event->gamepadButton, event->gamepad);
-  }
-  if (event->type == PNTR_APP_EVENTTYPE_GAMEPAD_BUTTON_UP) {
-    cart_buttonUp(event->gamepadButton, event->gamepad);
-  }
-
-  // these are fired & also mapped to button-events
-  if (event->type == PNTR_APP_EVENTTYPE_KEY_DOWN) {
-    cart_keyDown(event->key);
-#ifndef PNTR_APP_LIBRETRO
-    pntr_app_gamepad_button b = cart_map_key(event->key);
-    if (b != PNTR_APP_GAMEPAD_BUTTON_UNKNOWN) {
-      cart_buttonDown(b, 9999);
-    }
-#endif
-  }
-  if (event->type == PNTR_APP_EVENTTYPE_KEY_UP) {
-    cart_keyUp(event->key);
-#ifndef PNTR_APP_LIBRETRO
-    pntr_app_gamepad_button b = cart_map_key(event->key);
-    if (b != PNTR_APP_GAMEPAD_BUTTON_UNKNOWN) {
-      cart_buttonUp(b, 9999);
-    }
-#endif
-  }
-}
-
-// HOST API FOR CARTS
-
-
-// Clear an image
-HOST_FUNCTION(void, clear, (uint32_t imageID, uint32_t colorPtr), {
-  pntr_clear_background(images[imageID], copy_color_from_cart(colorPtr));
+// Get system-time (ms) since unix epoch
+HOST_FUNCTION(uint64_t, current_time, (), {
+ uint64_t retHost = null0_current_time();
+ return retHost;
 })
 
-// Draw an arc on an image. Set thickness to 0 for "fill".
-HOST_FUNCTION(void, draw_arc, (uint32_t imageID, int32_t centerX, int32_t centerY, float radius, float startAngle, float endAngle, int32_t segments, uint32_t thickness, uint32_t colorPtr), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  if (thickness != 0) {
-    pntr_draw_arc_thick(images[imageID], centerX, centerY, radius, startAngle, endAngle, segments, thickness, color);
-  } else {
-    pntr_draw_arc_fill(images[imageID], centerX, centerY, radius, startAngle, endAngle, segments, color);
-  }
+// Get the change in time (seconds) since the last update run
+HOST_FUNCTION(float, delta_time, (), {
+ float retHost = pntr_app_delta_time(null0_app);
+ return retHost;
 })
 
-// Draw a circle on an image. Set thickness to 0 for "fill".
-HOST_FUNCTION(void, draw_circle, (uint32_t imageID, int32_t centerX, int32_t centerY, int32_t radius, uint32_t thickness, uint32_t colorPtr), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  if (thickness != 0) {
-    pntr_draw_circle_thick(images[imageID], centerX, centerY, radius, thickness, color);
-  } else {
-    pntr_draw_circle_fill(images[imageID], centerX, centerY, radius, color);
-  }
+// Get a random integer between 2 numbers
+HOST_FUNCTION(int32_t, random_int, (int32_t min, int32_t max), {
+ int32_t retHost = pntr_app_random(null0_app, min, max);
+ return retHost;
 })
 
-// Draw an ellipse on an image. Set thickness to 0 for "fill".
-HOST_FUNCTION(void, draw_ellipse, (uint32_t imageID, int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, uint32_t thickness, uint32_t colorPtr), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  if (thickness != 0) {
-    pntr_draw_ellipse_thick(images[imageID], centerX, centerY, radiusX, radiusY, thickness, color);
-  } else {
-    pntr_draw_ellipse_fill(images[imageID], centerX, centerY, radiusX, radiusY, color);
-  }
+// Get the random-seed
+HOST_FUNCTION(uint64_t, random_seed_get, (), {
+ uint64_t retHost = pntr_app_random_seed(null0_app);
+ return retHost;
 })
 
-// Draw a line on an image.
-HOST_FUNCTION(void, draw_line, (uint32_t imageID, int32_t startPosX, int32_t startPosY, int32_t endPosX, int32_t endPosY, uint32_t thickness, uint32_t colorPtr), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  if (thickness != 0) {
-    pntr_draw_line_thick(images[imageID], startPosX, startPosY, endPosX, endPosY, thickness, color);
-  } else {
-    pntr_draw_line(images[imageID], startPosX, startPosY, endPosX, endPosY, color);
-  }
+// Set the random-seed
+HOST_FUNCTION(void, random_seed_set, (uint64_t seed), {
+ pntr_app_random_set_seed(null0_app, seed);
 })
 
-// Draw a single pixel on an image
-HOST_FUNCTION(void, draw_point, (uint32_t imageID, int32_t x, int32_t y, uint32_t colorPtr), {
-  pntr_draw_point(images[imageID], x, y, copy_color_from_cart(colorPtr));
+
+// SOUND
+
+// Load a sound from a file in cart
+HOST_FUNCTION(uint32_t, load_sound, (uint32_t filename), {
+ char* filenameHost = copy_string_from_cart(filename);
+ uint32_t retHost = add_sound(pntr_load_sound(filenameHost));
+ free(filenameHost);
+ return retHost;
 })
 
-// Draw a rectangle on an image. Set thickness to 0 for "fill".
-HOST_FUNCTION(void, draw_rectangle, (uint32_t imageID, int32_t posX, int32_t posY, int32_t width, int32_t height, uint32_t thickness, uint32_t colorPtr), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  if (thickness != 0) {
-    pntr_draw_rectangle_thick(images[imageID], posX, posY, width, height, thickness, color);
-  } else {
-    pntr_draw_rectangle_fill(images[imageID], posX, posY, width, height, color);
-  }
+// Play a sound
+HOST_FUNCTION(void, play_sound, (uint32_t sound, bool loop), {
+ pntr_play_sound(sounds[sound], loop);
 })
 
-// Draw a filled round-rectangle on an image. Set thickness to 0 for "fill".
-HOST_FUNCTION(void, draw_rectangle_rounded, (uint32_t imageID, int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, uint32_t thickness, uint32_t colorPtr), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  if (thickness != 0) {
-    pntr_draw_rectangle_thick_rounded(images[imageID], x, y, width, height, cornerRadius, cornerRadius, cornerRadius, cornerRadius, thickness, color);
-  } else {
-    pntr_draw_rectangle_rounded_fill(images[imageID], x, y, width, height, cornerRadius, color);
-  }
+// Stop a sound
+HOST_FUNCTION(void, stop_sound, (uint32_t sound), {
+ pntr_stop_sound(sounds[sound]);
 })
 
-// Draw text on an image
-HOST_FUNCTION(void, draw_text, (uint32_t imageID, uint32_t fontID, uint32_t textPtr, int32_t posX, int32_t posY, uint32_t colorPtr), {
-  char *text = copy_string_from_cart(textPtr);
-  pntr_draw_text(images[imageID], fonts[fontID], text, posX, posY, copy_color_from_cart(colorPtr));
-  free(text);
+// Unload a sound
+HOST_FUNCTION(void, unload_sound, (uint32_t sound), {
+ pntr_unload_sound(sounds[sound]);
 })
 
-// Draw a triangle on an image. Set thickness to 0 for "fill".
-HOST_FUNCTION(void, draw_triangle, (uint32_t imageID, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t thickness, uint32_t colorPtr), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  if (thickness != 0) {
-    pntr_draw_triangle_thick(images[imageID], x1, y1, x2, y2, x3, y3, thickness, color);
-  } else {
-    pntr_draw_triangle_fill(images[imageID], x1, y1, x2, y2, x3, y3, color);
-  }
+
+// INPUT
+
+// Has the key been pressed? (tracks unpress/read correctly)
+HOST_FUNCTION(bool, key_pressed, (pntr_app_key key), {
+ bool retHost = pntr_app_key_pressed(null0_app, key);
+ return retHost;
 })
 
-HOST_FUNCTION(void, draw_image, (uint32_t destinationPtr, uint32_t srcPtr, int32_t posX, int32_t posY), {
-  pntr_image *destination = images[destinationPtr];
-  pntr_image *src = images[srcPtr];
-  pntr_draw_image(destination, src, posX, posY);
+// Is the key currently down?
+HOST_FUNCTION(bool, key_down, (pntr_app_key key), {
+ bool retHost = pntr_app_key_down(null0_app, key);
+ return retHost;
 })
 
-// Draw an image, flipped, on an image
-HOST_FUNCTION(void, draw_image_flipped, (uint32_t destinationPtr, uint32_t srcPtr, int32_t posX, int32_t posY, bool flipHorizontal, bool flipVertical, bool flipDiagonal), {
-  pntr_image *destination = images[destinationPtr];
-  pntr_image *src = images[srcPtr];
-  pntr_draw_image_flipped(destination, src, posX, posY, flipHorizontal, flipVertical, flipDiagonal);
+// Has the key been released? (tracks press/read correctly)
+HOST_FUNCTION(bool, key_released, (pntr_app_key key), {
+ bool retHost = pntr_app_key_released(null0_app, key);
+ return retHost;
 })
 
-// Draw an image, rotated, on an image
-HOST_FUNCTION(void, draw_image_rotated, (uint32_t destinationPtr, uint32_t srcPtr, int32_t posX, int32_t posY, float degrees, float offsetX, float offsetY, uint32_t filter), {
-  pntr_image *destination = images[destinationPtr];
-  pntr_image *src = images[srcPtr];
-  pntr_draw_image_rotated(destination, src, posX, posY, degrees, offsetX, offsetY, filter);
+// Is the key currently up?
+HOST_FUNCTION(bool, key_up, (pntr_app_key key), {
+ bool retHost = pntr_app_key_up(null0_app, key);
+ return retHost;
 })
 
-// Draw an image, scaled, on an image
-HOST_FUNCTION(void, draw_image_scaled, (uint32_t destinationPtr, uint32_t srcPtr, int32_t posX, int32_t posY, float scaleX, float scaleY, float offsetX, float offsetY, uint32_t filter), {
-  pntr_image *destination = images[destinationPtr];
-  pntr_image *src = images[srcPtr];
-  pntr_draw_image_scaled(destination, src, posX, posY, scaleX, scaleY, offsetX, offsetY, filter);
+// Has the button been pressed? (tracks unpress/read correctly)
+HOST_FUNCTION(bool, gamepad_button_pressed, (int32_t gamepad, pntr_app_gamepad_button button), {
+ bool retHost = pntr_app_gamepad_button_pressed(null0_app, gamepad, button);
+ return retHost;
 })
 
-// Draw a tinted image on an image
-HOST_FUNCTION(void, draw_image_tint, (uint32_t destinationPtr, uint32_t srcPtr, int32_t posX, int32_t posY, uint32_t tintPtr), {
-  pntr_image *destination = images[destinationPtr];
-  pntr_image *src = images[srcPtr];
-  pntr_color tint = copy_color_from_cart(tintPtr);
-  pntr_draw_image_tint(destination, src, posX, posY, tint);
+// Is the button currently down?
+HOST_FUNCTION(bool, gamepad_button_down, (int32_t gamepad, pntr_app_gamepad_button button), {
+ bool retHost = pntr_app_gamepad_button_down(null0_app, gamepad, button);
+ return retHost;
 })
 
-// Use an image as an alpha-mask on another image
-HOST_FUNCTION(void, image_alpha_mask, (uint32_t imagePtr, uint32_t alphaMaskPtr, int32_t posX, int32_t posY), {
-  pntr_image *image = images[imagePtr];
-  pntr_image *alphaMask = images[alphaMaskPtr];
-  pntr_image_alpha_mask(image, alphaMask, posX, posY);
+// Has the button been released? (tracks press/read correctly)
+HOST_FUNCTION(bool, gamepad_button_released, (int32_t gamepad, pntr_app_gamepad_button button), {
+ bool retHost = pntr_app_gamepad_button_released(null0_app, gamepad, button);
+ return retHost;
 })
 
-// Adjust the brightness of an image, in-place
-HOST_FUNCTION(void, image_color_brightness, (uint32_t imagePtr, float factor), {
-  pntr_image *image = images[imagePtr];
-  pntr_image_color_brightness(image, factor);
+// Get current position of mouse
+HOST_FUNCTION(uint32_t, mouse_position, (), {
+ pntr_vector retHostVal = null0_mouse_position();
+ uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(pntr_vector));
+ return retHost;
 })
 
-// Change the contrast of an image, in-place
-HOST_FUNCTION(void, image_color_contrast, (uint32_t imagePtr, float contrast), {
-  pntr_image *image = images[imagePtr];
-  pntr_image_color_contrast(image, contrast);
+// Has the button been pressed? (tracks unpress/read correctly)
+HOST_FUNCTION(bool, mouse_button_pressed, (pntr_app_mouse_button button), {
+ bool retHost = pntr_app_mouse_button_pressed(null0_app, button);
+ return retHost;
 })
 
-// Fade a color in an image, in-place
-HOST_FUNCTION(void, image_color_fade, (uint32_t imagePtr, float alpha), {
-  pntr_image *image = images[imagePtr];
-  pntr_image_color_fade(image, alpha);
+// Is the button currently down?
+HOST_FUNCTION(bool, mouse_button_down, (pntr_app_mouse_button button), {
+ bool retHost = pntr_app_mouse_button_down(null0_app, button);
+ return retHost;
 })
 
-// Invert the colors in an image, in-place
-HOST_FUNCTION(void, image_color_invert, (uint32_t imagePtr), {
-  pntr_image *image = images[imagePtr];
-  pntr_image_color_invert(image);
+// Has the button been released? (tracks press/read correctly)
+HOST_FUNCTION(bool, mouse_button_released, (pntr_app_mouse_button button), {
+ bool retHost = pntr_app_mouse_button_released(null0_app, button);
+ return retHost;
 })
 
-// Replace a color in an image, in-place
-HOST_FUNCTION(void, image_color_replace, (uint32_t imagePtr, uint32_t colorPtr, uint32_t replacePtr), {
-  pntr_image *image = images[imagePtr];
-  pntr_color color = copy_color_from_cart(colorPtr);
-  pntr_color replace = copy_color_from_cart(replacePtr);
-  pntr_image_color_replace(image, color, replace);
+// Is the button currently up?
+HOST_FUNCTION(bool, mouse_button_up, (pntr_app_mouse_button button), {
+ bool retHost = pntr_app_mouse_button_up(null0_app, button);
+ return retHost;
 })
 
-// Tint a color in an image, in-place
-HOST_FUNCTION(void, image_color_tint, (uint32_t imagePtr, uint32_t colorPtr), {
-  pntr_image *image = images[imagePtr];
-  pntr_color color = copy_color_from_cart(colorPtr);
-  pntr_image_color_tint(image, color);
+
+// GRAPHICS
+
+// Create a new blank image
+HOST_FUNCTION(uint32_t, new_image, (int32_t width, int32_t height, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ uint32_t retHost = add_image(pntr_gen_image_color(width, height, colorHost));
+ return retHost;
 })
 
 // Copy an image to a new image
-HOST_FUNCTION(uint32_t, image_copy, (uint32_t imagePtr), {
-  pntr_image *image = images[imagePtr];
-  return add_image(pntr_image_copy(image));
-})
-
-// Crop an image, in-place
-HOST_FUNCTION(void, image_crop, (uint32_t imagePtr, int32_t x, int32_t y, int32_t width, int32_t height), {
-  pntr_image *image = images[imagePtr];
-  pntr_image_crop(image, x, y, width, height);
-})
-
-// Flip an image, in-place
-HOST_FUNCTION(void, image_flip, (uint32_t imagePtr, bool horizontal, bool vertical), {
-  pntr_image *image = images[imagePtr];
-  pntr_image_flip(image, horizontal, vertical);
-})
-
-// Create a new image of a gradient
-HOST_FUNCTION(uint32_t, image_gradient, (int32_t width, int32_t height, uint32_t topLeftPtr, uint32_t topRightPtr, uint32_t bottomLeftPtr, uint32_t bottomRightPtr), {
-  pntr_color topLeft = copy_color_from_cart(topLeftPtr);
-  pntr_color topRight = copy_color_from_cart(topRightPtr);
-  pntr_color bottomLeft = copy_color_from_cart(bottomLeftPtr);
-  pntr_color bottomRight = copy_color_from_cart(bottomRightPtr);
-  return add_image(pntr_gen_image_gradient(width, height, topLeft, topRight, bottomLeft, bottomRight));
-})
-
-HOST_FUNCTION(uint32_t, image_load, (uint32_t filenamePtr), {
-  char *filename = copy_string_from_cart(filenamePtr);
-  pntr_image* p = pntr_load_image(filename);
-  // char* err = pntr_get_error();
-  // if (err != NULL) {
-  //   fprintf(stderr, "Error: %s\n", err);
-  // }
-  return add_image(p);
-})
-
-// Meaure an image (use 0 for screen)
-HOST_FUNCTION(uint32_t, image_measure, (uint32_t imagePtr), {
-  pntr_image *image = images[imagePtr];
-  pntr_vector dim = (pntr_vector){.x = image->width, .y = image->height};
-  return copy_memory_to_cart(&dim, sizeof(dim));
-})
-
-// Create a new blank image
-HOST_FUNCTION(uint32_t, image_new, (int32_t width, int32_t height, uint32_t colorPtr), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  return add_image(pntr_gen_image_color(width, height, color));
-})
-
-// Resize an image, in-place
-HOST_FUNCTION(void, image_resize, (uint32_t imagePtr, int32_t newWidth, int32_t newHeight, int32_t offsetX, int32_t offsetY, uint32_t fillPtr), {
-  pntr_image *image = images[imagePtr];
-  pntr_color fill = copy_color_from_cart(fillPtr);
-  pntr_image_resize_canvas(image, newWidth, newHeight, offsetX, offsetY, fill);
-})
-
-// Create a new image, rotating another image
-HOST_FUNCTION(uint32_t, image_rotate, (uint32_t imagePtr, float degrees, uint32_t filter), {
-  pntr_image *image = images[imagePtr];
-  return add_image(pntr_image_rotate(image, degrees, filter));
-})
-
-// Save an image to persistant storage
-HOST_FUNCTION(void, image_save, (uint32_t imagePtr, uint32_t filenamePtr), {
-  pntr_image *image = images[imagePtr];
-  char *filename = copy_string_from_cart(filenamePtr);
-  pntr_save_image(image, filename);
-})
-
-// Unload an image
-HOST_FUNCTION(void, image_unload, (uint32_t imagePtr), {
-  pntr_image *image = images[imagePtr];
-  pntr_unload_image(image);
+HOST_FUNCTION(uint32_t, image_copy, (uint32_t image), {
+ uint32_t retHost = add_image(pntr_image_copy(images[image]));
+ return retHost;
 })
 
 // Create an image from a region of another image
-HOST_FUNCTION(uint32_t, subimage, (uint32_t imagePtr, int32_t x, int32_t y, int32_t width, int32_t height), {
-  pntr_image *image = images[imagePtr];
-  return add_image(pntr_image_subimage(image, x, y, width, height));
+HOST_FUNCTION(uint32_t, image_subimage, (uint32_t image, int32_t x, int32_t y, int32_t width, int32_t height), {
+ uint32_t retHost = add_image(pntr_image_subimage(images[image], x, y, width, height));
+ return retHost;
+})
+
+// Clear the screen
+HOST_FUNCTION(void, clear, (uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_clear_background(images[0], colorHost);
+})
+
+// Draw a single pixel on the screen
+HOST_FUNCTION(void, draw_point, (int32_t x, int32_t y, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_point(images[0], x, y, colorHost);
+})
+
+// Draw a line on the screen
+HOST_FUNCTION(void, draw_line, (int32_t startPosX, int32_t startPosY, int32_t endPosX, int32_t endPosY, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_line(images[0], startPosX, startPosY, endPosX, endPosY, colorHost);
+})
+
+// Draw a filled rectangle on the screen
+HOST_FUNCTION(void, draw_rectangle, (int32_t posX, int32_t posY, int32_t width, int32_t height, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_rectangle_fill(images[0], posX, posY, width, height, colorHost);
+})
+
+// Draw a filled triangle on the screen
+HOST_FUNCTION(void, draw_triangle, (int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_triangle_fill(images[0], x1, y1, x2, y2, x3, y3, colorHost);
+})
+
+// Draw a filled ellipse on the screen
+HOST_FUNCTION(void, draw_ellipse, (int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_ellipse_fill(images[0], centerX, centerY, radiusX, radiusY, colorHost);
+})
+
+// Draw a filled circle on the screen
+HOST_FUNCTION(void, draw_circle, (int32_t centerX, int32_t centerY, int32_t radius, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_circle_fill(images[0], centerX, centerY, radius, colorHost);
+})
+
+// Draw a filled polygon on the screen
+HOST_FUNCTION(void, draw_polygon, (uint32_t points, int32_t numPoints, uint32_t color), {
+ pntr_vector* pointsHost = copy_memory_from_cart(points, numPoints * sizeof(pntr_vector));
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_polygon_fill(images[0], pointsHost, numPoints, colorHost);
+ free(pointsHost);
+})
+
+// Draw a filled arc on the screen
+HOST_FUNCTION(void, draw_arc, (int32_t centerX, int32_t centerY, float radius, float startAngle, float endAngle, int32_t segments, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_arc_fill(images[0], centerX, centerY, radius, startAngle, endAngle, segments, colorHost);
+})
+
+// Draw a filled round-rectangle on the screen
+HOST_FUNCTION(void, draw_rectangle_rounded, (int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_rectangle_rounded_fill(images[0], x, y, width, height, cornerRadius, colorHost);
+})
+
+// Draw an image on the screen
+HOST_FUNCTION(void, draw_image, (uint32_t src, int32_t posX, int32_t posY), {
+ pntr_draw_image(images[0], images[src], posX, posY);
+})
+
+// Draw a tinted image on the screen
+HOST_FUNCTION(void, draw_image_tint, (uint32_t src, int32_t posX, int32_t posY, uint32_t tint), {
+ pntr_color tintHost = copy_color_from_cart(tint);
+ pntr_draw_image_tint(images[0], images[src], posX, posY, tintHost);
+})
+
+// Draw an image, rotated, on the screen
+HOST_FUNCTION(void, draw_image_rotated, (uint32_t src, int32_t posX, int32_t posY, float degrees, float offsetX, float offsetY, pntr_filter filter), {
+ pntr_draw_image_rotated(images[0], images[src], posX, posY, degrees, offsetX, offsetY, filter);
+})
+
+// Draw an image, flipped, on the screen
+HOST_FUNCTION(void, draw_image_flipped, (uint32_t src, int32_t posX, int32_t posY, bool flipHorizontal, bool flipVertical, bool flipDiagonal), {
+ pntr_draw_image_flipped(images[0], images[src], posX, posY, flipHorizontal, flipVertical, flipDiagonal);
+})
+
+// Draw an image, scaled, on the screen
+HOST_FUNCTION(void, draw_image_scaled, (uint32_t src, int32_t posX, int32_t posY, float scaleX, float scaleY, float offsetX, float offsetY, pntr_filter filter), {
+ pntr_draw_image_scaled(images[0], images[src], posX, posY, scaleX, scaleY, offsetX, offsetY, filter);
+})
+
+// Draw some text on the screen
+HOST_FUNCTION(void, draw_text, (uint32_t font, uint32_t text, int32_t posX, int32_t posY, uint32_t color), {
+ char* textHost = copy_string_from_cart(text);
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_text(images[0], fonts[font], textHost, posX, posY, colorHost);
+ free(textHost);
+})
+
+// Save an image to persistant storage
+HOST_FUNCTION(void, save_image, (uint32_t image, uint32_t filename), {
+ char* filenameHost = copy_string_from_cart(filename);
+ pntr_save_image(images[image], filenameHost);
+ free(filenameHost);
+})
+
+// Load an image from a file in cart
+HOST_FUNCTION(uint32_t, load_image, (uint32_t filename), {
+ char* filenameHost = copy_string_from_cart(filename);
+ uint32_t retHost = add_image(pntr_load_image(filenameHost));
+ free(filenameHost);
+ return retHost;
+})
+
+// Resize an image, in-place
+HOST_FUNCTION(void, image_resize, (uint32_t image, int32_t newWidth, int32_t newHeight, pntr_filter filter), {
+ pntr_image_resize(images[image], newWidth, newHeight, filter);
+})
+
+// Scale an image, in-place
+HOST_FUNCTION(void, image_scale, (uint32_t image, float scaleX, float scaleY, pntr_filter filter), {
+ pntr_image_scale(images[image], scaleX, scaleY, filter);
+})
+
+// Replace a color in an image, in-place
+HOST_FUNCTION(void, image_color_replace, (uint32_t image, uint32_t color, uint32_t replace), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_color replaceHost = copy_color_from_cart(replace);
+ pntr_image_color_replace(images[image], colorHost, replaceHost);
+})
+
+// Tint a color in an image, in-place
+HOST_FUNCTION(void, image_color_tint, (uint32_t image, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_image_color_tint(images[image], colorHost);
+})
+
+// Fade a color in an image, in-place
+HOST_FUNCTION(void, image_color_fade, (uint32_t image, float alpha), {
+ pntr_image_color_fade(images[image], alpha);
 })
 
 // Copy a font to a new font
-HOST_FUNCTION(uint32_t, font_copy, (uint32_t fontPtr), {
-  pntr_font *font = fonts[fontPtr];
-  return add_font(pntr_font_copy(font));
-})
-
-// Load a BMF font from a file in cart
-HOST_FUNCTION(uint32_t, font_load_bmf, (uint32_t filenamePtr, uint32_t charactersPtr), {
-  char *filename = copy_string_from_cart(filenamePtr);
-  char *characters = copy_string_from_cart(charactersPtr);
-  return add_font(pntr_load_font_bmf(filename, characters));
-})
-
-// Load a BMF font from an image
-HOST_FUNCTION(uint32_t, font_load_bmf_from_image, (uint32_t imagePtr, uint32_t charactersPtr), {
-  pntr_image *image = images[imagePtr];
-  char *characters = copy_string_from_cart(charactersPtr);
-  return add_font(pntr_load_font_bmf_from_image(image, characters));
-})
-
-// Load a TTF font from a file in cart
-HOST_FUNCTION(uint32_t, font_load_ttf, (uint32_t filenamePtr, int32_t fontSize), {
-  char *filename = copy_string_from_cart(filenamePtr);
-  return add_font(pntr_load_font_ttf(filename, fontSize));
-})
-
-// Load a TTY font from a file in cart
-HOST_FUNCTION(uint32_t, font_load_tty, (uint32_t filenamePtr, int32_t glyphWidth, int32_t glyphHeight, uint32_t charactersPtr), {
-  char *filename = copy_string_from_cart(filenamePtr);
-  char *characters = copy_string_from_cart(charactersPtr);
-  return add_font(pntr_load_font_tty(filename, glyphWidth, glyphHeight, characters));
-})
-
-// Load a TTY font from an image
-HOST_FUNCTION(uint32_t, font_load_tty_from_image, (uint32_t imagePtr, int32_t glyphWidth, int32_t glyphHeight, uint32_t charactersPtr), {
-  pntr_image *image = images[imagePtr];
-  char *characters = copy_string_from_cart(charactersPtr);
-  return add_font(pntr_load_font_tty_from_image(image, glyphWidth, glyphHeight, characters));
+HOST_FUNCTION(uint32_t, font_copy, (uint32_t font), {
+ uint32_t retHost = add_font(pntr_font_copy(fonts[font]));
+ return retHost;
 })
 
 // Scale a font, return a new font
-HOST_FUNCTION(uint32_t, font_scale, (uint32_t fontPtr, float scaleX, float scaleY, uint32_t filter), {
-  pntr_font *font = fonts[fontPtr];
-  return add_font(pntr_font_scale(font, scaleX, scaleY, filter));
+HOST_FUNCTION(uint32_t, font_scale, (uint32_t font, float scaleX, float scaleY, pntr_filter filter), {
+ uint32_t retHost = add_font(pntr_font_scale(fonts[font], scaleX, scaleY, filter));
+ return retHost;
 })
 
-// Unload a font
-HOST_FUNCTION(void, font_unload, (uint32_t fontPtr), {
-  pntr_font *font = fonts[fontPtr];
-  pntr_unload_font(font);
+// Load a BMF font from a file in cart
+HOST_FUNCTION(uint32_t, load_font_bmf, (uint32_t filename, uint32_t characters), {
+ char* filenameHost = copy_string_from_cart(filename);
+ char* charactersHost = copy_string_from_cart(characters);
+ uint32_t retHost = add_font(pntr_load_font_bmf(filenameHost, charactersHost));
+ free(filenameHost);
+ free(charactersHost);
+ return retHost;
+})
+
+// Load a BMF font from an image
+HOST_FUNCTION(uint32_t, load_font_bmf_from_image, (uint32_t image, uint32_t characters), {
+ char* charactersHost = copy_string_from_cart(characters);
+ uint32_t retHost = add_font(pntr_load_font_bmf_from_image(images[image], charactersHost));
+ free(charactersHost);
+ return retHost;
 })
 
 // Measure the size of some text
-HOST_FUNCTION(uint32_t, text_measure, (uint32_t fontPtr, uint32_t textPtr), {
-  pntr_font *font = fonts[fontPtr];
-  char *text = copy_string_from_cart(textPtr);
-  pntr_vector dim = pntr_measure_text_ex(font, text, strlen(text));
-  return copy_memory_to_cart(&dim, sizeof(dim));
+HOST_FUNCTION(uint32_t, measure_text, (uint32_t font, uint32_t text, int32_t textLength), {
+ char* textHost = copy_string_from_cart(text);
+ pntr_vector retHostVal = pntr_measure_text_ex(fonts[font], textHost, textLength);
+ uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(pntr_vector));
+ free(textHost);
+ return retHost;
 })
 
-// Blend 2 colors together
-HOST_FUNCTION(uint32_t, color_alpha_blend, (uint32_t dstPtr, uint32_t srcPtr), {
-  pntr_color dst = copy_color_from_cart(dstPtr);
-  pntr_color src = copy_color_from_cart(srcPtr);
-  return copy_color_to_cart(pntr_color_alpha_blend(dst, src));
+// Meaure an image (use 0 for screen)
+HOST_FUNCTION(uint32_t, measure_image, (uint32_t image), {
+ pntr_vector retHostVal = null0_measure_image(images[image]);
+ uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(pntr_vector));
+ return retHost;
 })
 
-// Interpolate colors
-HOST_FUNCTION(uint32_t, color_bilinear_interpolate, (uint32_t color00Ptr, uint32_t color01Ptr, uint32_t color10Ptr, uint32_t color11Ptr, float coordinateX, float coordinateY), {
-  pntr_color color00 = copy_color_from_cart(color00Ptr);
-  pntr_color color01 = copy_color_from_cart(color01Ptr);
-  pntr_color color10 = copy_color_from_cart(color10Ptr);
-  pntr_color color11 = copy_color_from_cart(color11Ptr);
-  return copy_color_to_cart(pntr_color_bilinear_interpolate(color00, color01, color10, color11, coordinateX, coordinateY));
+// Load a TTY font from a file in cart
+HOST_FUNCTION(uint32_t, load_font_tty, (uint32_t filename, int32_t glyphWidth, int32_t glyphHeight, uint32_t characters), {
+ char* filenameHost = copy_string_from_cart(filename);
+ char* charactersHost = copy_string_from_cart(characters);
+ uint32_t retHost = add_font(pntr_load_font_tty(filenameHost, glyphWidth, glyphHeight, charactersHost));
+ free(filenameHost);
+ free(charactersHost);
+ return retHost;
 })
 
-// Change the brightness of a color
-HOST_FUNCTION(uint32_t, color_brightness, (uint32_t colorPtr, float factor), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  return copy_color_to_cart(pntr_color_brightness(color, factor));
+// Load a TTY font from an image
+HOST_FUNCTION(uint32_t, load_font_tty_from_image, (uint32_t image, int32_t glyphWidth, int32_t glyphHeight, uint32_t characters), {
+ char* charactersHost = copy_string_from_cart(characters);
+ uint32_t retHost = add_font(pntr_load_font_tty_from_image(images[image], glyphWidth, glyphHeight, charactersHost));
+ free(charactersHost);
+ return retHost;
 })
 
-// Change contrast of a color
-HOST_FUNCTION(uint32_t, color_contrast, (uint32_t colorPtr, float contrast), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  return copy_color_to_cart(pntr_color_contrast(color, contrast));
+// Load a TTF font from a file in cart
+HOST_FUNCTION(uint32_t, load_font_ttf, (uint32_t filename, int32_t fontSize), {
+ char* filenameHost = copy_string_from_cart(filename);
+ uint32_t retHost = add_font(pntr_load_font_ttf(filenameHost, fontSize));
+ free(filenameHost);
+ return retHost;
+})
+
+// Invert the colors in an image, in-place
+HOST_FUNCTION(void, image_color_invert, (uint32_t image), {
+ pntr_image_color_invert(images[image]);
+})
+
+// Calculate a rectangle representing the available alpha border in an image
+HOST_FUNCTION(uint32_t, image_alpha_border, (uint32_t image, float threshold), {
+ pntr_rectangle retHostVal = pntr_image_alpha_border(images[image], threshold);
+ uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(pntr_rectangle));
+ return retHost;
+})
+
+// Crop an image, in-place
+HOST_FUNCTION(void, image_crop, (uint32_t image, int32_t x, int32_t y, int32_t width, int32_t height), {
+ pntr_image_crop(images[image], x, y, width, height);
+})
+
+// Crop an image based on the alpha border, in-place
+HOST_FUNCTION(void, image_alpha_crop, (uint32_t image, float threshold), {
+ pntr_image_alpha_crop(images[image], threshold);
+})
+
+// Adjust the brightness of an image, in-place
+HOST_FUNCTION(void, image_color_brightness, (uint32_t image, float factor), {
+ pntr_image_color_brightness(images[image], factor);
+})
+
+// Flip an image, in-place
+HOST_FUNCTION(void, image_flip, (uint32_t image, bool horizontal, bool vertical), {
+ pntr_image_flip(images[image], horizontal, vertical);
+})
+
+// Change the contrast of an image, in-place
+HOST_FUNCTION(void, image_color_contrast, (uint32_t image, float contrast), {
+ pntr_image_color_contrast(images[image], contrast);
+})
+
+// Use an image as an alpha-mask on another image
+HOST_FUNCTION(void, image_alpha_mask, (uint32_t image, uint32_t alphaMask, int32_t posX, int32_t posY), {
+ pntr_image_alpha_mask(images[image], images[alphaMask], posX, posY);
+})
+
+// Create a new image, rotating another image
+HOST_FUNCTION(uint32_t, image_rotate, (uint32_t image, float degrees, pntr_filter filter), {
+ uint32_t retHost = add_image(pntr_image_rotate(images[image], degrees, filter));
+ return retHost;
+})
+
+// Create a new image of a gradient
+HOST_FUNCTION(uint32_t, image_gradient, (int32_t width, int32_t height, uint32_t topLeft, uint32_t topRight, uint32_t bottomLeft, uint32_t bottomRight), {
+ pntr_color topLeftHost = copy_color_from_cart(topLeft);
+ pntr_color topRightHost = copy_color_from_cart(topRight);
+ pntr_color bottomLeftHost = copy_color_from_cart(bottomLeft);
+ pntr_color bottomRightHost = copy_color_from_cart(bottomRight);
+ uint32_t retHost = add_image(pntr_gen_image_gradient(width, height, topLeftHost, topRightHost, bottomLeftHost, bottomRightHost));
+ return retHost;
+})
+
+// Unload an image
+HOST_FUNCTION(void, unload_image, (uint32_t image), {
+ pntr_unload_image(images[image]);
+})
+
+// Unload a font
+HOST_FUNCTION(void, unload_font, (uint32_t font), {
+ pntr_unload_font(fonts[font]);
+})
+
+// Clear an image
+HOST_FUNCTION(void, clear_image, (uint32_t destination, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_clear_background(images[destination], colorHost);
+})
+
+// Draw a single pixel on an image
+HOST_FUNCTION(void, draw_point_on_image, (uint32_t destination, int32_t x, int32_t y, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_point(images[destination], x, y, colorHost);
+})
+
+// Draw a line on an image
+HOST_FUNCTION(void, draw_line_on_image, (uint32_t destination, int32_t startPosX, int32_t startPosY, int32_t endPosX, int32_t endPosY, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_line(images[destination], startPosX, startPosY, endPosX, endPosY, colorHost);
+})
+
+// Draw a filled rectangle on an image
+HOST_FUNCTION(void, draw_rectangle_on_image, (uint32_t destination, int32_t posX, int32_t posY, int32_t width, int32_t height, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_rectangle_fill(images[destination], posX, posY, width, height, colorHost);
+})
+
+// Draw a filled triangle on an image
+HOST_FUNCTION(void, draw_triangle_on_image, (uint32_t destination, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_triangle_fill(images[destination], x1, y1, x2, y2, x3, y3, colorHost);
+})
+
+// Draw a filled ellipse on an image
+HOST_FUNCTION(void, draw_ellipse_on_image, (uint32_t destination, int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_ellipse_fill(images[destination], centerX, centerY, radiusX, radiusY, colorHost);
+})
+
+// Draw a circle on an image
+HOST_FUNCTION(void, draw_circle_on_image, (uint32_t destination, int32_t centerX, int32_t centerY, int32_t radius, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_circle_fill(images[destination], centerX, centerY, radius, colorHost);
+})
+
+// Draw a filled polygon on an image
+HOST_FUNCTION(void, draw_polygon_on_image, (uint32_t destination, uint32_t points, int32_t numPoints, uint32_t color), {
+ pntr_vector* pointsHost = copy_memory_from_cart(points, numPoints * sizeof(pntr_vector));
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_polygon_fill(images[destination], pointsHost, numPoints, colorHost);
+ free(pointsHost);
+})
+
+// Draw a filled round-rectangle on an image
+HOST_FUNCTION(void, draw_rectangle_rounded_on_image, (uint32_t destination, int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_rectangle_rounded_fill(images[destination], x, y, width, height, cornerRadius, colorHost);
+})
+
+// Draw an image on an image
+HOST_FUNCTION(void, draw_image_on_image, (uint32_t destination, uint32_t src, int32_t posX, int32_t posY), {
+ pntr_draw_image(images[destination], images[src], posX, posY);
+})
+
+// Draw a tinted image on an image
+HOST_FUNCTION(void, draw_image_tint_on_image, (uint32_t destination, uint32_t src, int32_t posX, int32_t posY, uint32_t tint), {
+ pntr_color tintHost = copy_color_from_cart(tint);
+ pntr_draw_image_tint(images[destination], images[src], posX, posY, tintHost);
+})
+
+// Draw an image, rotated, on an image
+HOST_FUNCTION(void, draw_image_rotated_on_image, (uint32_t destination, uint32_t src, int32_t posX, int32_t posY, float degrees, float offsetX, float offsetY, pntr_filter filter), {
+ pntr_draw_image_rotated(images[destination], images[src], posX, posY, degrees, offsetX, offsetY, filter);
+})
+
+// Draw an image, flipped, on an image
+HOST_FUNCTION(void, draw_image_flipped_on_image, (uint32_t destination, uint32_t src, int32_t posX, int32_t posY, bool flipHorizontal, bool flipVertical, bool flipDiagonal), {
+ pntr_draw_image_flipped(images[destination], images[src], posX, posY, flipHorizontal, flipVertical, flipDiagonal);
+})
+
+// Draw an image, scaled, on an image
+HOST_FUNCTION(void, draw_image_scaled_on_image, (uint32_t destination, uint32_t src, int32_t posX, int32_t posY, float scaleX, float scaleY, float offsetX, float offsetY, pntr_filter filter), {
+ pntr_draw_image_scaled(images[destination], images[src], posX, posY, scaleX, scaleY, offsetX, offsetY, filter);
+})
+
+// Draw some text on an image
+HOST_FUNCTION(void, draw_text_on_image, (uint32_t destination, uint32_t font, uint32_t text, int32_t posX, int32_t posY, uint32_t color), {
+ char* textHost = copy_string_from_cart(text);
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_text(images[destination], fonts[font], textHost, posX, posY, colorHost);
+ free(textHost);
+})
+
+// Draw a 1px outlined rectangle on the screen
+HOST_FUNCTION(void, draw_rectangle_outline, (int32_t posX, int32_t posY, int32_t width, int32_t height, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_rectangle_thick(images[0], posX, posY, width, height, thickness, colorHost);
+})
+
+// Draw a 1px outlined triangle on the screen
+HOST_FUNCTION(void, draw_triangle_outline, (int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_triangle_thick(images[0], x1, y1, x2, y2, x3, y3, thickness, colorHost);
+})
+
+// Draw a 1px outlined ellipse on the screen
+HOST_FUNCTION(void, draw_ellipse_outline, (int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_ellipse_thick(images[0], centerX, centerY, radiusX, radiusY, thickness, colorHost);
+})
+
+// Draw a 1px outlined circle on the screen
+HOST_FUNCTION(void, draw_circle_outline, (int32_t centerX, int32_t centerY, int32_t radius, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_circle_thick(images[0], centerX, centerY, radius, thickness, colorHost);
+})
+
+// Draw a 1px outlined polygon on the screen
+HOST_FUNCTION(void, draw_polygon_outline, (uint32_t points, int32_t numPoints, int32_t thickness, uint32_t color), {
+ pntr_vector* pointsHost = copy_memory_from_cart(points, numPoints * sizeof(pntr_vector));
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_polygon_thick(images[0], pointsHost, numPoints, thickness, colorHost);
+ free(pointsHost);
+})
+
+// Draw a 1px outlined arc on the screen
+HOST_FUNCTION(void, draw_arc_outline, (int32_t centerX, int32_t centerY, float radius, float startAngle, float endAngle, int32_t segments, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_arc_thick(images[0], centerX, centerY, radius, startAngle, endAngle, segments, thickness, colorHost);
+})
+
+// Draw a 1px outlined round-rectangle on the screen
+HOST_FUNCTION(void, draw_rectangle_rounded_outline, (int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ null0_draw_rectangle_thick_rounded(images[0], x, y, width, height, cornerRadius, thickness, colorHost);
+})
+
+// Draw a 1px outlined rectangle on an image
+HOST_FUNCTION(void, draw_rectangle_outline_on_image, (uint32_t destination, int32_t posX, int32_t posY, int32_t width, int32_t height, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_rectangle_thick(images[destination], posX, posY, width, height, thickness, colorHost);
+})
+
+// Draw a 1px outlined triangle on an image
+HOST_FUNCTION(void, draw_triangle_outline_on_image, (uint32_t destination, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_triangle_thick(images[destination], x1, y1, x2, y2, x3, y3, thickness, colorHost);
+})
+
+// Draw a 1px outlined ellipse on an image
+HOST_FUNCTION(void, draw_ellipse_outline_on_image, (uint32_t destination, int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_ellipse_thick(images[destination], centerX, centerY, radiusX, radiusY, thickness, colorHost);
+})
+
+// Draw a 1px outlined circle on an image
+HOST_FUNCTION(void, draw_circle_outline_on_image, (uint32_t destination, int32_t centerX, int32_t centerY, int32_t radius, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_circle_thick(images[destination], centerX, centerY, radius, thickness, colorHost);
+})
+
+// Draw a 1px outlined polygon on an image
+HOST_FUNCTION(void, draw_polygon_outline_on_image, (uint32_t destination, uint32_t points, int32_t numPoints, int32_t thickness, uint32_t color), {
+ pntr_vector* pointsHost = copy_memory_from_cart(points, numPoints * sizeof(pntr_vector));
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_draw_polygon_thick(images[destination], pointsHost, numPoints, thickness, colorHost);
+ free(pointsHost);
+})
+
+// Draw a 1px outlined round-rectangle on an image
+HOST_FUNCTION(void, draw_rectangle_rounded_outline_on_image, (uint32_t destination, int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, int32_t thickness, uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ null0_draw_rectangle_thick_rounded(images[destination], x, y, width, height, cornerRadius, thickness, colorHost);
+})
+
+
+// COLORS
+
+// Tint a color with another color
+HOST_FUNCTION(uint32_t, color_tint, (uint32_t color, uint32_t tint), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_color tintHost = copy_color_from_cart(tint);
+ uint32_t retHost = copy_color_to_cart(pntr_color_tint(colorHost, tintHost));
+ return retHost;
 })
 
 // Fade a color
-HOST_FUNCTION(uint32_t, color_fade, (uint32_t colorPtr, float alpha), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  return copy_color_to_cart(pntr_color_fade(color, alpha));
+HOST_FUNCTION(uint32_t, color_fade, (uint32_t color, float alpha), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ uint32_t retHost = copy_color_to_cart(pntr_color_fade(colorHost, alpha));
+ return retHost;
+})
+
+// Change the brightness of a color
+HOST_FUNCTION(uint32_t, color_brightness, (uint32_t color, float factor), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ uint32_t retHost = copy_color_to_cart(pntr_color_brightness(colorHost, factor));
+ return retHost;
 })
 
 // Invert a color
-HOST_FUNCTION(uint32_t, color_invert, (uint32_t colorPtr), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  return copy_color_to_cart(pntr_color_invert(color));
+HOST_FUNCTION(uint32_t, color_invert, (uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ uint32_t retHost = copy_color_to_cart(pntr_color_invert(colorHost));
+ return retHost;
 })
 
-// Tint a color with another color
-HOST_FUNCTION(uint32_t, color_tint, (uint32_t colorPtr, uint32_t tintPtr), {
-  pntr_color color = copy_color_from_cart(colorPtr);
-  pntr_color tint = copy_color_from_cart(tintPtr);
-  return copy_color_to_cart(pntr_color_tint(color, tint));
+// Blend 2 colors together
+HOST_FUNCTION(uint32_t, color_alpha_blend, (uint32_t dst, uint32_t src), {
+ pntr_color dstHost = copy_color_from_cart(dst);
+ pntr_color srcHost = copy_color_from_cart(src);
+ uint32_t retHost = copy_color_to_cart(pntr_color_alpha_blend(dstHost, srcHost));
+ return retHost;
+})
+
+// Change contrast of a color
+HOST_FUNCTION(uint32_t, color_contrast, (uint32_t color, float contrast), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ uint32_t retHost = copy_color_to_cart(pntr_color_contrast(colorHost, contrast));
+ return retHost;
+})
+
+// Interpolate colors
+HOST_FUNCTION(uint32_t, color_bilinear_interpolate, (uint32_t color00, uint32_t color01, uint32_t color10, uint32_t color11, float coordinateX, float coordinateY), {
+ pntr_color color00Host = copy_color_from_cart(color00);
+ pntr_color color01Host = copy_color_from_cart(color01);
+ pntr_color color10Host = copy_color_from_cart(color10);
+ pntr_color color11Host = copy_color_from_cart(color11);
+ uint32_t retHost = copy_color_to_cart(pntr_color_bilinear_interpolate(color00Host, color01Host, color10Host, color11Host, coordinateX, coordinateY));
+ return retHost;
 })
