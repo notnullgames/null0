@@ -11,7 +11,7 @@
     "build:web": "cmake --build wbuild --target host",
     "prebuild:carts": "npm run configure:native",
     "build:carts": "cmake --build build --target carts",
-    "clean": "rm -rf build",
+    "clean": "rm -rf build wbuild",
     "start": "npx -y live-server --mount=/carts:./build/carts --mount=/wbuild:./wbuild webroot",
     "prestart": "npm run build:web && npm run build:carts",
     "gen:host": "node tools/gen_host.js",
