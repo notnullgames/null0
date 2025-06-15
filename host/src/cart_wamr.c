@@ -1,6 +1,7 @@
 #ifndef EMSCRIPTEN
 #include <wasm_export.h>
 #include "host.h"
+#include "wasi_physfs.h"
 
 cvector_vector_type(NativeSymbol) null0_native_symbols;
 cvector_vector_type(NativeSymbol) wasi_native_symbols;
@@ -50,6 +51,18 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
       pntr_app_log(PNTR_APP_LOG_ERROR, "null0: register");
       return false;
     }
+  } else {
+    pntr_app_log(PNTR_APP_LOG_WARNING, "null0: no symbols");
+  }
+
+  int wasi_count = cvector_size(wasi_native_symbols);
+  if (wasi_count) {
+    if (!wasm_runtime_register_natives("wasi_snapshot_preview1", wasi_native_symbols, wasi_count)) {
+      pntr_app_log(PNTR_APP_LOG_ERROR, "wasi: register");
+      return false;
+    }
+  } else {
+    pntr_app_log(PNTR_APP_LOG_WARNING, "wasi: no symbols");
   }
 
   // Load WASM module
