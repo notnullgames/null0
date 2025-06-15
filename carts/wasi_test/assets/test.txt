@@ -1,0 +1,3 @@
+Hello from WASI test file!
+This is a test to verify that file reading works correctly.
+Line 3 of the test file.
