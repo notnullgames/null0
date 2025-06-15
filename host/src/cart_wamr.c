@@ -1,10 +1,10 @@
 #ifndef EMSCRIPTEN
 #include <wasm_export.h>
 #include "host.h"
-#include "wasi_physfs.h"
 
 cvector_vector_type(NativeSymbol) null0_native_symbols;
 cvector_vector_type(NativeSymbol) wasi_native_symbols;
+
 
 static uint32_t stack_size = 1024 * 1024 * 10; // 10 MB
 static uint32_t heap_size = 1024 * 1024 * 10;  // 10 MB
@@ -20,6 +20,8 @@ static wasm_function_inst_t cart_callback_keyUp = NULL;
 static wasm_function_inst_t cart_callback_mouseDown = NULL;
 static wasm_function_inst_t cart_callback_mouseUp = NULL;
 static wasm_function_inst_t cart_callback_mouseMoved = NULL;
+
+#include "wasi_physfs.h"
 
 static int callback_args[2];
 static float callback_float_args[2];
@@ -55,12 +57,15 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
     pntr_app_log(PNTR_APP_LOG_WARNING, "null0: no symbols");
   }
 
+  wasi_physfs_init();
+
   int wasi_count = cvector_size(wasi_native_symbols);
   if (wasi_count) {
     if (!wasm_runtime_register_natives("wasi_snapshot_preview1", wasi_native_symbols, wasi_count)) {
       pntr_app_log(PNTR_APP_LOG_ERROR, "wasi: register");
       return false;
     }
+    printf("Added %d WASI functions\n", wasi_count);
   } else {
     pntr_app_log(PNTR_APP_LOG_WARNING, "wasi: no symbols");
   }

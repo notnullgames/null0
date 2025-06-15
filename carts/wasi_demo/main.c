@@ -1,13 +1,29 @@
 #include "../null0.h"
+#include <sys/stat.h>
+
+long get_file_size_stat(const char* filename) {
+    struct stat st;
+    if (stat(filename, &st) == 0) {
+        return st.st_size;
+    }
+    return -1; // Error getting file info
+}
 
 int main() {
   printf("hello from WASI\n");
 
+  long filesize = get_file_size_stat("assets/cyber.txt");
+  printf("filesize: %lu\n", filesize);
   FILE *file = fopen("assets/cyber.txt", "r");
-  if (file) {
-    printf("could read file\n");
-  }else{
-    printf("could not read file\n");
+
+  if (file && filesize) {
+    char* data = malloc(filesize);
+    // this beach-balls
+    fgets(data, filesize, file);
+    printf("%s\n", data);
+    fclose(file);
+  } else {
+    printf("no file/filesize!\n");
   }
 
   return 0;
