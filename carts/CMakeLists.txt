@@ -49,5 +49,6 @@ BUILDCART("example")
 BUILDCART("colorbars")
 BUILDCART("input")
 BUILDCART("gradient")
+BUILDCART("wasi_demo")
 
 add_custom_target(carts ALL DEPENDS ${CART_TARGETS})
