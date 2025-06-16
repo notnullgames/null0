@@ -20,8 +20,9 @@ int main() {
     char* data = malloc(filesize);
     // this beach-balls
     fgets(data, filesize, file);
-    printf("%s\n", data);
     fclose(file);
+    printf("file: %s\n", data);
+    free(data);
   } else {
     printf("no file/filesize!\n");
   }

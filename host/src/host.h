@@ -90,17 +90,12 @@ unsigned int add_font(pntr_font *font);
   EMSCRIPTEN_KEEPALIVE ret_type host_##name params { \
     __VA_ARGS__                                      \
   }
-#define WASI_FUNCTION(ret_type, name, params, ...)   \
-  EMSCRIPTEN_KEEPALIVE ret_type wasi_##name params { \
-    __VA_ARGS__                                      \
-  }
 #endif // EMSCRIPTEN
 
 #ifndef EMSCRIPTEN
 #include <wasm_export.h>
 
 extern cvector_vector_type(NativeSymbol) null0_native_symbols;
-extern cvector_vector_type(NativeSymbol) wasi_native_symbols;
 
 #define EXPAND_PARAMS(...) , ##__VA_ARGS__
 #define HOST_FUNCTION(ret_type, name, params, ...)                                       \
@@ -108,12 +103,6 @@ extern cvector_vector_type(NativeSymbol) wasi_native_symbols;
     __VA_ARGS__};                                                                        \
   static void __attribute__((constructor)) _register_##name() {                          \
     cvector_push_back(null0_native_symbols, ((NativeSymbol){#name, host_##name, NULL})); \
-  }
-#define WASI_FUNCTION(ret_type, name, params, ...)                                      \
-  ret_type wasi_##name(wasm_exec_env_t exec_env EXPAND_PARAMS params){                  \
-    __VA_ARGS__};                                                                       \
-  static void __attribute__((constructor)) _register_##name() {                         \
-    cvector_push_back(wasi_native_symbols, ((NativeSymbol){#name, wasi_##name, NULL})); \
   }
 #endif
 

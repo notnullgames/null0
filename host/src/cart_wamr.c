@@ -1,10 +1,9 @@
 #ifndef EMSCRIPTEN
-#include <wasm_export.h>
 #include "host.h"
+#include "wasi_physfs.h"
+#include <wasm_export.h>
 
 cvector_vector_type(NativeSymbol) null0_native_symbols;
-cvector_vector_type(NativeSymbol) wasi_native_symbols;
-
 
 static uint32_t stack_size = 1024 * 1024 * 10; // 10 MB
 static uint32_t heap_size = 1024 * 1024 * 10;  // 10 MB
@@ -20,8 +19,6 @@ static wasm_function_inst_t cart_callback_keyUp = NULL;
 static wasm_function_inst_t cart_callback_mouseDown = NULL;
 static wasm_function_inst_t cart_callback_mouseUp = NULL;
 static wasm_function_inst_t cart_callback_mouseMoved = NULL;
-
-#include "wasi_physfs.h"
 
 static int callback_args[2];
 static float callback_float_args[2];
@@ -57,9 +54,7 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
     pntr_app_log(PNTR_APP_LOG_WARNING, "null0: no symbols");
   }
 
-  wasi_physfs_init();
-
-  int wasi_count = cvector_size(wasi_native_symbols);
+  int wasi_count = sizeof(wasi_native_symbols) / sizeof(NativeSymbol);
   if (wasi_count) {
     if (!wasm_runtime_register_natives("wasi_snapshot_preview1", wasi_native_symbols, wasi_count)) {
       pntr_app_log(PNTR_APP_LOG_ERROR, "wasi: register");
@@ -145,7 +140,6 @@ void host_close() {
   // TODO: do I need to cleanup any WAMR stuff?
 }
 
-
 void cart_update() {
   if (cart_callback_update != NULL) {
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_update, 0, NULL)) {
@@ -228,7 +222,6 @@ void cart_mouseMoved(float x, float y) {
   }
 }
 
-
 // allocate some memory in cart
 uint32_t cart_malloc(size_t size) {
   void **p_native_addr = NULL;
@@ -240,12 +233,12 @@ void cart_free(uint32_t ptr) {
   wasm_runtime_module_free(module_inst, (uint64_t)ptr);
 }
 
-void mem_to_cart(uint32_t dest, void* src, size_t size) {
+void mem_to_cart(uint32_t dest, void *src, size_t size) {
   void *cartHostPtr = wasm_runtime_addr_app_to_native(module_inst, (uint64_t)dest);
   memcpy(cartHostPtr, src, size);
 }
 
-void mem_from_cart(void* dest, uint32_t src, size_t size) {
+void mem_from_cart(void *dest, uint32_t src, size_t size) {
   void *cartHostPtr = wasm_runtime_addr_app_to_native(module_inst, (uint64_t)src);
   memcpy(dest, cartHostPtr, size);
 }

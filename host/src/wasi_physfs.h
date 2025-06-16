@@ -1,98 +1,137 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <errno.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <physfs.h>
+#include "wasm_export.h"
 
-// WASI Error Codes
-#define WASI_ERRNO_SUCCESS 0
-#define WASI_ERRNO_2BIG 1
-#define WASI_ERRNO_ACCES 2
-#define WASI_ERRNO_ADDRINUSE 3
-#define WASI_ERRNO_ADDRNOTAVAIL 4
-#define WASI_ERRNO_AFNOSUPPORT 5
-#define WASI_ERRNO_AGAIN 6
-#define WASI_ERRNO_ALREADY 7
-#define WASI_ERRNO_BADF 8
-#define WASI_ERRNO_BADMSG 9
-#define WASI_ERRNO_BUSY 10
-#define WASI_ERRNO_CANCELED 11
-#define WASI_ERRNO_CHILD 12
-#define WASI_ERRNO_CONNABORTED 13
-#define WASI_ERRNO_CONNREFUSED 14
-#define WASI_ERRNO_CONNRESET 15
-#define WASI_ERRNO_DEADLK 16
-#define WASI_ERRNO_DESTADDRREQ 17
-#define WASI_ERRNO_DOM 18
-#define WASI_ERRNO_DQUOT 19
-#define WASI_ERRNO_EXIST 20
-#define WASI_ERRNO_FAULT 21
-#define WASI_ERRNO_FBIG 22
-#define WASI_ERRNO_HOSTUNREACH 23
-#define WASI_ERRNO_IDRM 24
-#define WASI_ERRNO_ILSEQ 25
-#define WASI_ERRNO_INPROGRESS 26
-#define WASI_ERRNO_INTR 27
-#define WASI_ERRNO_INVAL 28
-#define WASI_ERRNO_IO 29
-#define WASI_ERRNO_ISCONN 30
-#define WASI_ERRNO_ISDIR 31
-#define WASI_ERRNO_LOOP 32
-#define WASI_ERRNO_MFILE 33
-#define WASI_ERRNO_MLINK 34
-#define WASI_ERRNO_MSGSIZE 35
-#define WASI_ERRNO_MULTIHOP 36
-#define WASI_ERRNO_NAMETOOLONG 37
-#define WASI_ERRNO_NETDOWN 38
-#define WASI_ERRNO_NETRESET 39
-#define WASI_ERRNO_NETUNREACH 40
-#define WASI_ERRNO_NFILE 41
-#define WASI_ERRNO_NOBUFS 42
-#define WASI_ERRNO_NODEV 43
-#define WASI_ERRNO_NOENT 44
-#define WASI_ERRNO_NOEXEC 45
-#define WASI_ERRNO_NOLCK 46
-#define WASI_ERRNO_NOLINK 47
-#define WASI_ERRNO_NOMEM 48
-#define WASI_ERRNO_NOMSG 49
-#define WASI_ERRNO_NOPROTOOPT 50
-#define WASI_ERRNO_NOSPC 51
-#define WASI_ERRNO_NOSYS 52
-#define WASI_ERRNO_NOTCONN 53
-#define WASI_ERRNO_NOTDIR 54
-#define WASI_ERRNO_NOTEMPTY 55
-#define WASI_ERRNO_NOTRECOVERABLE 56
-#define WASI_ERRNO_NOTSOCK 57
-#define WASI_ERRNO_NOTSUP 58
-#define WASI_ERRNO_NOTTY 59
-#define WASI_ERRNO_NXIO 60
-#define WASI_ERRNO_OVERFLOW 61
-#define WASI_ERRNO_OWNERDEAD 62
-#define WASI_ERRNO_PERM 63
-#define WASI_ERRNO_PIPE 64
-#define WASI_ERRNO_PROTO 65
-#define WASI_ERRNO_PROTONOSUPPORT 66
-#define WASI_ERRNO_PROTOTYPE 67
-#define WASI_ERRNO_RANGE 68
-#define WASI_ERRNO_ROFS 69
-#define WASI_ERRNO_SPIPE 70
-#define WASI_ERRNO_SRCH 71
-#define WASI_ERRNO_STALE 72
-#define WASI_ERRNO_TIMEDOUT 73
-#define WASI_ERRNO_TXTBSY 74
-#define WASI_ERRNO_XDEV 75
+#include <stddef.h>
+#include <stdint.h>
 
-// WASI Clock IDs
-#define WASI_CLOCKID_REALTIME 0
-#define WASI_CLOCKID_MONOTONIC 1
-#define WASI_CLOCKID_PROCESS_CPUTIME_ID 2
-#define WASI_CLOCKID_THREAD_CPUTIME_ID 3
+typedef uint32_t wasi_size_t;
 
-// WASI File Types
+typedef uint8_t wasi_advice_t;
+#define WASI_ADVICE_NORMAL 0
+#define WASI_ADVICE_SEQUENTIAL 1
+#define WASI_ADVICE_RANDOM 2
+#define WASI_ADVICE_WILLNEED 3
+#define WASI_ADVICE_DONTNEED 4
+#define WASI_ADVICE_NOREUSE 5
+
+typedef struct wasi_ciovec_s {
+  const void *buf;
+  wasi_size_t buf_len;
+} wasi_ciovec_t;
+
+typedef uint32_t wasi_clockid_t;
+#define WASI_CLOCK_REALTIME 0
+#define WASI_CLOCK_MONOTONIC 1
+#define WASI_CLOCK_PROCESS_CPUTIME_ID 2
+#define WASI_CLOCK_THREAD_CPUTIME_ID 3
+
+typedef uint64_t wasi_device_t;
+
+typedef uint64_t wasi_dircookie_t;
+#define WASI_DIRCOOKIE_START 0
+
+typedef uint16_t wasi_errno_t;
+#define WASI_ESUCCESS 0
+#define WASI_E2BIG 1
+#define WASI_EACCES 2
+#define WASI_EADDRINUSE 3
+#define WASI_EADDRNOTAVAIL 4
+#define WASI_EAFNOSUPPORT 5
+#define WASI_EAGAIN 6
+#define WASI_EALREADY 7
+#define WASI_EBADF 8
+#define WASI_EBADMSG 9
+#define WASI_EBUSY 10
+#define WASI_ECANCELED 11
+#define WASI_ECHILD 12
+#define WASI_ECONNABORTED 13
+#define WASI_ECONNREFUSED 14
+#define WASI_ECONNRESET 15
+#define WASI_EDEADLK 16
+#define WASI_EDESTADDRREQ 17
+#define WASI_EDOM 18
+#define WASI_EDQUOT 19
+#define WASI_EEXIST 20
+#define WASI_EFAULT 21
+#define WASI_EFBIG 22
+#define WASI_EHOSTUNREACH 23
+#define WASI_EIDRM 24
+#define WASI_EILSEQ 25
+#define WASI_EINPROGRESS 26
+#define WASI_EINTR 27
+#define WASI_EINVAL 28
+#define WASI_EIO 29
+#define WASI_EISCONN 30
+#define WASI_EISDIR 31
+#define WASI_ELOOP 32
+#define WASI_EMFILE 33
+#define WASI_EMLINK 34
+#define WASI_EMSGSIZE 35
+#define WASI_EMULTIHOP 36
+#define WASI_ENAMETOOLONG 37
+#define WASI_ENETDOWN 38
+#define WASI_ENETRESET 39
+#define WASI_ENETUNREACH 40
+#define WASI_ENFILE 41
+#define WASI_ENOBUFS 42
+#define WASI_ENODEV 43
+#define WASI_ENOENT 44
+#define WASI_ENOEXEC 45
+#define WASI_ENOLCK 46
+#define WASI_ENOLINK 47
+#define WASI_ENOMEM 48
+#define WASI_ENOMSG 49
+#define WASI_ENOPROTOOPT 50
+#define WASI_ENOSPC 51
+#define WASI_ENOSYS 52
+#define WASI_ENOTCONN 53
+#define WASI_ENOTDIR 54
+#define WASI_ENOTEMPTY 55
+#define WASI_ENOTRECOVERABLE 56
+#define WASI_ENOTSOCK 57
+#define WASI_ENOTSUP 58
+#define WASI_ENOTTY 59
+#define WASI_ENXIO 60
+#define WASI_EOVERFLOW 61
+#define WASI_EOWNERDEAD 62
+#define WASI_EPERM 63
+#define WASI_EPIPE 64
+#define WASI_EPROTO 65
+#define WASI_EPROTONOSUPPORT 66
+#define WASI_EPROTOTYPE 67
+#define WASI_ERANGE 68
+#define WASI_EROFS 69
+#define WASI_ESPIPE 70
+#define WASI_ESRCH 71
+#define WASI_ESTALE 72
+#define WASI_ETIMEDOUT 73
+#define WASI_ETXTBSY 74
+#define WASI_EXDEV 75
+#define WASI_ENOTCAPABLE 76
+
+typedef uint16_t wasi_eventrwflags_t; /* Bitfield */
+#define WASI_EVENT_FD_READWRITE_HANGUP (1 << 0)
+
+typedef uint8_t wasi_eventtype_t;
+#define WASI_EVENTTYPE_CLOCK 0
+#define WASI_EVENTTYPE_FD_READ 1
+#define WASI_EVENTTYPE_FD_WRITE 2
+
+typedef uint32_t wasi_exitcode_t;
+
+typedef uint32_t wasi_fd_t;
+
+typedef uint16_t wasi_fdflags_t; /* Bitfield */
+#define WASI_FDFLAG_APPEND (1 << 0)
+#define WASI_FDFLAG_DSYNC (1 << 1)
+#define WASI_FDFLAG_NONBLOCK (1 << 2)
+#define WASI_FDFLAG_RSYNC (1 << 3)
+#define WASI_FDFLAG_SYNC (1 << 4)
+
+typedef int64_t wasi_filedelta_t;
+
+typedef uint64_t wasi_filesize_t;
+
+typedef uint8_t wasi_filetype_t;
 #define WASI_FILETYPE_UNKNOWN 0
 #define WASI_FILETYPE_BLOCK_DEVICE 1
 #define WASI_FILETYPE_CHARACTER_DEVICE 2
@@ -102,738 +141,452 @@
 #define WASI_FILETYPE_SOCKET_STREAM 6
 #define WASI_FILETYPE_SYMBOLIC_LINK 7
 
-// WASI Whence values
+typedef uint16_t wasi_fstflags_t; /* Bitfield */
+#define WASI_FILESTAT_SET_ATIM (1 << 0)
+#define WASI_FILESTAT_SET_ATIM_NOW (1 << 1)
+#define WASI_FILESTAT_SET_MTIM (1 << 2)
+#define WASI_FILESTAT_SET_MTIM_NOW (1 << 3)
+
+typedef uint64_t wasi_inode_t;
+
+typedef struct wasi_iovec_s {
+  void *buf;
+  wasi_size_t buf_len;
+} wasi_iovec_t;
+
+typedef uint64_t wasi_linkcount_t;
+
+typedef uint32_t wasi_lookupflags_t; /* Bitfield */
+#define WASI_LOOKUP_SYMLINK_FOLLOW (1 << 0)
+
+typedef uint16_t wasi_oflags_t; /* Bitfield */
+#define WASI_O_CREAT (1 << 0)
+#define WASI_O_DIRECTORY (1 << 1)
+#define WASI_O_EXCL (1 << 2)
+#define WASI_O_TRUNC (1 << 3)
+
+typedef uint8_t wasi_preopentype_t;
+#define WASI_PREOPENTYPE_DIR 0
+
+typedef struct wasi_prestat_s {
+  wasi_preopentype_t pr_type;
+  union wasi_prestat_u {
+    struct wasi_prestat_dir_t {
+      wasi_size_t pr_name_len;
+    } dir;
+  } u;
+} wasi_prestat_t;
+
+typedef uint16_t wasi_riflags_t; /* Bitfield */
+#define WASI_SOCK_RECV_PEEK (1 << 0)
+#define WASI_SOCK_RECV_WAITALL (1 << 1)
+
+typedef uint64_t wasi_rights_t; /* Bitfield */
+#define WASI_RIGHT_FD_DATASYNC (1 << 0)
+#define WASI_RIGHT_FD_READ (1 << 1)
+#define WASI_RIGHT_FD_SEEK (1 << 2)
+#define WASI_RIGHT_FD_FDSTAT_SET_FLAGS (1 << 3)
+#define WASI_RIGHT_FD_SYNC (1 << 4)
+#define WASI_RIGHT_FD_TELL (1 << 5)
+#define WASI_RIGHT_FD_WRITE (1 << 6)
+#define WASI_RIGHT_FD_ADVISE (1 << 7)
+#define WASI_RIGHT_FD_ALLOCATE (1 << 8)
+#define WASI_RIGHT_PATH_CREATE_DIRECTORY (1 << 9)
+#define WASI_RIGHT_PATH_CREATE_FILE (1 << 10)
+#define WASI_RIGHT_PATH_LINK_SOURCE (1 << 11)
+#define WASI_RIGHT_PATH_LINK_TARGET (1 << 12)
+#define WASI_RIGHT_PATH_OPEN (1 << 13)
+#define WASI_RIGHT_FD_READDIR (1 << 14)
+#define WASI_RIGHT_PATH_READLINK (1 << 15)
+#define WASI_RIGHT_PATH_RENAME_SOURCE (1 << 16)
+#define WASI_RIGHT_PATH_RENAME_TARGET (1 << 17)
+#define WASI_RIGHT_PATH_FILESTAT_GET (1 << 18)
+#define WASI_RIGHT_PATH_FILESTAT_SET_SIZE (1 << 19)
+#define WASI_RIGHT_PATH_FILESTAT_SET_TIMES (1 << 20)
+#define WASI_RIGHT_FD_FILESTAT_GET (1 << 21)
+#define WASI_RIGHT_FD_FILESTAT_SET_SIZE (1 << 22)
+#define WASI_RIGHT_FD_FILESTAT_SET_TIMES (1 << 23)
+#define WASI_RIGHT_PATH_SYMLINK (1 << 24)
+#define WASI_RIGHT_PATH_REMOVE_DIRECTORY (1 << 25)
+#define WASI_RIGHT_PATH_UNLINK_FILE (1 << 26)
+#define WASI_RIGHT_POLL_FD_READWRITE (1 << 27)
+#define WASI_RIGHT_SOCK_SHUTDOWN (1 << 28)
+#define WASI_RIGHT_SOCK_ACCEPT (1 << 29)
+
+typedef uint16_t wasi_roflags_t; /* Bitfield */
+#define WASI_SOCK_RECV_DATA_TRUNCATED (1 << 0)
+
+typedef uint8_t wasi_sdflags_t; /* Bitfield */
+#define WASI_SHUT_RD (1 << 0)
+#define WASI_SHUT_WR (1 << 1)
+
+typedef uint16_t wasi_siflags_t; /* Bitfield */
+
+typedef uint8_t wasi_signal_t;
+#define WASI_SIGHUP 1
+#define WASI_SIGINT 2
+#define WASI_SIGQUIT 3
+#define WASI_SIGILL 4
+#define WASI_SIGTRAP 5
+#define WASI_SIGABRT 6
+#define WASI_SIGBUS 7
+#define WASI_SIGFPE 8
+#define WASI_SIGKILL 9
+#define WASI_SIGUSR1 10
+#define WASI_SIGSEGV 11
+#define WASI_SIGUSR2 12
+#define WASI_SIGPIPE 13
+#define WASI_SIGALRM 14
+#define WASI_SIGTERM 15
+#define WASI_SIGCHLD 16
+#define WASI_SIGCONT 17
+#define WASI_SIGSTOP 18
+#define WASI_SIGTSTP 19
+#define WASI_SIGTTIN 20
+#define WASI_SIGTTOU 21
+#define WASI_SIGURG 22
+#define WASI_SIGXCPU 23
+#define WASI_SIGXFSZ 24
+#define WASI_SIGVTALRM 25
+#define WASI_SIGPROF 26
+#define WASI_SIGWINCH 27
+#define WASI_SIGPOLL 28
+#define WASI_SIGPWR 29
+#define WASI_SIGSYS 30
+
+typedef uint16_t wasi_subclockflags_t; /* Bitfield */
+#define WASI_SUBSCRIPTION_CLOCK_ABSTIME (1 << 0)
+
+typedef uint64_t wasi_timestamp_t;
+
+typedef uint64_t wasi_userdata_t;
+
+typedef struct wasi_subscription_s {
+  wasi_userdata_t userdata;
+  wasi_eventtype_t type;
+  union {
+    struct {
+      wasi_clockid_t clock_id;
+      wasi_timestamp_t timeout;
+      wasi_timestamp_t precision;
+      wasi_subclockflags_t flags;
+    } clock;
+    struct {
+      wasi_fd_t fd;
+    } fd_readwrite;
+  } u;
+} wasi_subscription_t;
+
+typedef struct wasi_dirent_s {
+  wasi_dircookie_t d_next;
+  wasi_inode_t d_ino;
+  uint32_t d_namlen;
+  wasi_filetype_t d_type;
+} wasi_dirent_t;
+
+typedef struct wasi_fdstat_s {
+  wasi_filetype_t fs_filetype;
+  wasi_fdflags_t fs_flags;
+  wasi_rights_t fs_rights_base;
+  wasi_rights_t fs_rights_inheriting;
+} wasi_fdstat_t;
+
+typedef struct wasi_filestat_s {
+  wasi_device_t st_dev;
+  wasi_inode_t st_ino;
+  wasi_filetype_t st_filetype;
+  wasi_linkcount_t st_nlink;
+  wasi_filesize_t st_size;
+  wasi_timestamp_t st_atim;
+  wasi_timestamp_t st_mtim;
+  wasi_timestamp_t st_ctim;
+} wasi_filestat_t;
+
+typedef struct wasi_event_s {
+  wasi_userdata_t userdata;
+  wasi_errno_t error;
+  wasi_eventtype_t type;
+  union {
+    struct {
+      wasi_filesize_t nbytes;
+      wasi_eventrwflags_t flags;
+    } fd_readwrite;
+  } u;
+} wasi_event_t;
+
+typedef struct iovec_app {
+  uint32_t buf_offset;
+  uint32_t buf_len;
+} iovec_app_t;
+
+typedef struct wasi_prestat_app {
+  wasi_preopentype_t pr_type;
+  uint32_t pr_name_len;
+} wasi_prestat_app_t;
+
+typedef uint8_t wasi_whence_t;
 #define WASI_WHENCE_SET 0
 #define WASI_WHENCE_CUR 1
 #define WASI_WHENCE_END 2
 
-// WASI Open Flags
-#define WASI_OFLAGS_CREAT 0x0001
-#define WASI_OFLAGS_DIRECTORY 0x0002
-#define WASI_OFLAGS_EXCL 0x0004
-#define WASI_OFLAGS_TRUNC 0x0008
-
-// WASI FD Flags
-#define WASI_FDFLAGS_APPEND 0x0001
-#define WASI_FDFLAGS_DSYNC 0x0002
-#define WASI_FDFLAGS_NONBLOCK 0x0004
-#define WASI_FDFLAGS_RSYNC 0x0008
-#define WASI_FDFLAGS_SYNC 0x0010
-
-// WASI IOVec structure
-typedef struct {
-    uint32_t buf_ptr;
-    uint32_t buf_len;
-} wasi_iovec_t;
-
-// WASI FDStat structure
-typedef struct {
-    uint8_t fs_filetype;
-    uint16_t fs_flags;
-    uint64_t fs_rights_base;
-    uint64_t fs_rights_inheriting;
-} wasi_fdstat_t;
-
-// WASI Prestat structure
-typedef struct {
-    uint8_t pr_type;
-    uint32_t pr_name_len;
-} wasi_prestat_t;
-
-// WASI Filestat structure
-typedef struct {
-    uint64_t dev;
-    uint64_t ino;
-    uint8_t filetype;
-    uint64_t nlink;
-    uint64_t size;
-    uint64_t atim;
-    uint64_t mtim;
-    uint64_t ctim;
-} wasi_filestat_t;
-
-// File descriptor to PhysicsFS handle mapping
-typedef struct {
-    PHYSFS_File* handle;
-    char* path;
-    int flags;
-    int is_directory;
-} physfs_fd_mapping_t;
-
-#define MAX_FDS 1024
-static physfs_fd_mapping_t fd_table[MAX_FDS] = {0};
-static int next_fd = 10;
-
-// Pre-opened directories
-static const char* preopen_dirs[] = { "/" };
-static const int num_preopen_dirs = 1;
-
-// Initialize FD table
-static void init_fd_table() {
-    memset(fd_table, 0, sizeof(fd_table));
-
-    // Pre-opened directory
-    fd_table[3].path = strdup("/");
-    fd_table[3].is_directory = 1;
+static wasi_errno_t wasi_args_get(wasm_exec_env_t exec_env, uint32_t *argv_offsets, char *argv_buf) {
+  return 0;
 }
 
-// Allocate a new file descriptor
-static int allocate_fd(PHYSFS_File* handle, const char* path, int flags) {
-    for (int fd = next_fd; fd < MAX_FDS; fd++) {
-        if (!fd_table[fd].handle && !fd_table[fd].is_directory) {
-            fd_table[fd].handle = handle;
-            fd_table[fd].path = strdup(path);
-            fd_table[fd].flags = flags;
-            fd_table[fd].is_directory = 0;
-            return fd;
-        }
-    }
-    return -1;
+static wasi_errno_t wasi_args_sizes_get(wasm_exec_env_t exec_env, uint32_t *argc_app, uint32_t *argv_buf_size_app) {
+  return 0;
 }
 
-// Free a file descriptor
-static void free_fd(int fd) {
-    if (fd >= 0 && fd < MAX_FDS) {
-        if (fd_table[fd].path) {
-            free(fd_table[fd].path);
-            fd_table[fd].path = NULL;
-        }
-        fd_table[fd].handle = NULL;
-        fd_table[fd].flags = 0;
-        fd_table[fd].is_directory = 0;
-    }
+static wasi_errno_t wasi_clock_res_get(wasm_exec_env_t exec_env, wasi_clockid_t clock_id, wasi_timestamp_t *resolution) {
+  return 0;
 }
 
-// Convert PhysicsFS error to WASI errno
-static int physfs_to_wasi_errno() {
-    PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
-    switch (err) {
-        case PHYSFS_ERR_OK: return WASI_ERRNO_SUCCESS;
-        case PHYSFS_ERR_NOT_FOUND: return WASI_ERRNO_NOENT;
-        case PHYSFS_ERR_NOT_A_FILE: return WASI_ERRNO_ISDIR;
-        case PHYSFS_ERR_READ_ONLY: return WASI_ERRNO_ROFS;
-        case PHYSFS_ERR_PERMISSION: return WASI_ERRNO_ACCES;
-        case PHYSFS_ERR_NO_SPACE: return WASI_ERRNO_NOSPC;
-        case PHYSFS_ERR_OUT_OF_MEMORY: return WASI_ERRNO_NOMEM;
-        case PHYSFS_ERR_BAD_FILENAME: return WASI_ERRNO_INVAL;
-        default: return WASI_ERRNO_IO;
-    }
+static wasi_errno_t wasi_clock_time_get(wasm_exec_env_t exec_env, wasi_clockid_t clock_id, wasi_timestamp_t precision, wasi_timestamp_t *time) {
+  return 0;
 }
 
-// Convert errno to WASI errno
-static int errno_to_wasi(int err) {
-    switch (err) {
-        case 0: return WASI_ERRNO_SUCCESS;
-        case EACCES: return WASI_ERRNO_ACCES;
-        case EBADF: return WASI_ERRNO_BADF;
-        case EEXIST: return WASI_ERRNO_EXIST;
-        case EINVAL: return WASI_ERRNO_INVAL;
-        case EIO: return WASI_ERRNO_IO;
-        case EISDIR: return WASI_ERRNO_ISDIR;
-        case ENOENT: return WASI_ERRNO_NOENT;
-        case ENOTDIR: return WASI_ERRNO_NOTDIR;
-        case ENOMEM: return WASI_ERRNO_NOMEM;
-        case ENOSPC: return WASI_ERRNO_NOSPC;
-        case ENOSYS: return WASI_ERRNO_NOSYS;
-        case EPERM: return WASI_ERRNO_PERM;
-        default: return WASI_ERRNO_IO;
-    }
+static wasi_errno_t wasi_environ_get(wasm_exec_env_t exec_env, uint32_t *environ_offsets, char *environ_buf) {
+  return 0;
 }
 
-// Get memory pointer from WASM instance
-static void* get_wasm_memory_ptr(uint32_t offset) {
-    return wasm_runtime_addr_app_to_native(module_inst, offset);
+static wasi_errno_t wasi_environ_sizes_get(wasm_exec_env_t exec_env, uint32_t *environ_count_app, uint32_t *environ_buf_size_app) {
+  return 0;
 }
 
-// ========== FILE DESCRIPTOR OPERATIONS ==========
-
-WASI_FUNCTION(int, fd_close, (int fd), {
-    if (fd < 0 || fd >= MAX_FDS) {
-        return WASI_ERRNO_BADF;
-    }
-
-    // Don't close stdin/stdout/stderr or pre-opened directories
-    if (fd <= 2 || (fd >= 3 && fd < 3 + num_preopen_dirs && fd_table[fd].is_directory)) {
-        return WASI_ERRNO_SUCCESS;
-    }
-
-    if (fd_table[fd].handle) {
-        if (!PHYSFS_close(fd_table[fd].handle)) {
-            return physfs_to_wasi_errno();
-        }
-    }
-
-    free_fd(fd);
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, fd_fdstat_get, (int fd, uint32_t statPtr), {
-    if (fd < 0 || fd >= MAX_FDS) {
-        return WASI_ERRNO_BADF;
-    }
-
-    wasi_fdstat_t* stat = (wasi_fdstat_t*)get_wasm_memory_ptr(statPtr);
-    if (!stat) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    // Standard I/O
-    if (fd <= 2) {
-        stat->fs_filetype = WASI_FILETYPE_CHARACTER_DEVICE;
-        stat->fs_flags = 0;
-        stat->fs_rights_base = 0xFFFFFFFFFFFFFFFF;
-        stat->fs_rights_inheriting = 0;
-        return WASI_ERRNO_SUCCESS;
-    }
-
-    // Directories
-    if (fd_table[fd].is_directory) {
-        stat->fs_filetype = WASI_FILETYPE_DIRECTORY;
-        stat->fs_flags = 0;
-        stat->fs_rights_base = 0xFFFFFFFFFFFFFFFF;
-        stat->fs_rights_inheriting = 0xFFFFFFFFFFFFFFFF;
-        return WASI_ERRNO_SUCCESS;
-    }
-
-    // Regular files
-    if (fd_table[fd].handle) {
-        stat->fs_filetype = WASI_FILETYPE_REGULAR_FILE;
-        stat->fs_flags = fd_table[fd].flags;
-        stat->fs_rights_base = 0xFFFFFFFFFFFFFFFF;
-        stat->fs_rights_inheriting = 0xFFFFFFFFFFFFFFFF;
-        return WASI_ERRNO_SUCCESS;
-    }
-
-    return WASI_ERRNO_BADF;
-})
-
-WASI_FUNCTION(int, fd_fdstat_set_flags, (int fd, int fdflags), {
-    if (fd < 0 || fd >= MAX_FDS) {
-        return WASI_ERRNO_BADF;
-    }
-
-    if (fd_table[fd].handle || fd_table[fd].is_directory) {
-        fd_table[fd].flags = fdflags;
-        return WASI_ERRNO_SUCCESS;
-    }
-
-    return WASI_ERRNO_BADF;
-})
-
-WASI_FUNCTION(int, fd_prestat_get, (int fd, uint32_t prestatPtr), {
-    if (fd < 3 || fd >= 3 + num_preopen_dirs) {
-        return WASI_ERRNO_BADF;
-    }
-
-    wasi_prestat_t* prestat = (wasi_prestat_t*)get_wasm_memory_ptr(prestatPtr);
-    if (!prestat) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    prestat->pr_type = 0;
-    prestat->pr_name_len = strlen(preopen_dirs[fd - 3]);
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, fd_prestat_dir_name, (int fd, uint32_t namePtr, int nameLen), {
-    if (fd < 3 || fd >= 3 + num_preopen_dirs) {
-        return WASI_ERRNO_BADF;
-    }
-
-    char* name = (char*)get_wasm_memory_ptr(namePtr);
-    if (!name) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    const char* dir_name = preopen_dirs[fd - 3];
-    int actual_len = strlen(dir_name);
-
-    if (nameLen < actual_len) {
-        return WASI_ERRNO_NAMETOOLONG;
-    }
-
-    memcpy(name, dir_name, actual_len);
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, fd_read, (int fd, uint32_t iovsPtr, int iovsLen, uint32_t nreadPtr), {
-    if (fd < 0 || fd >= MAX_FDS) {
-        return WASI_ERRNO_BADF;
-    }
-
-    wasi_iovec_t* iovs = (wasi_iovec_t*)get_wasm_memory_ptr(iovsPtr);
-    uint32_t* nread = (uint32_t*)get_wasm_memory_ptr(nreadPtr);
-
-    if (!iovs || !nread) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    *nread = 0;
-
-    // stdin
-    if (fd == 0) {
-        for (int i = 0; i < iovsLen; i++) {
-            char* buf = (char*)get_wasm_memory_ptr(iovs[i].buf_ptr);
-            if (!buf) return WASI_ERRNO_FAULT;
-
-            ssize_t bytes_read = read(0, buf, iovs[i].buf_len);
-            if (bytes_read < 0) return errno_to_wasi(errno);
-
-            *nread += bytes_read;
-            if (bytes_read < iovs[i].buf_len) break;
-        }
-        return WASI_ERRNO_SUCCESS;
-    }
-
-    // PhysicsFS files
-    if (!fd_table[fd].handle) {
-        return WASI_ERRNO_BADF;
-    }
-
-    for (int i = 0; i < iovsLen; i++) {
-        char* buf = (char*)get_wasm_memory_ptr(iovs[i].buf_ptr);
-        if (!buf) return WASI_ERRNO_FAULT;
-
-        PHYSFS_sint64 bytes_read = PHYSFS_readBytes(fd_table[fd].handle, buf, iovs[i].buf_len);
-        if (bytes_read < 0) {
-            return physfs_to_wasi_errno();
-        }
-
-        *nread += bytes_read;
-        if (bytes_read < iovs[i].buf_len) break;
-    }
-
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, fd_seek, (int fd, int64_t offset, int whence, uint32_t newoffsetPtr), {
-    if (fd < 0 || fd >= MAX_FDS || !fd_table[fd].handle) {
-        return WASI_ERRNO_BADF;
-    }
-
-    uint64_t* newoffset = (uint64_t*)get_wasm_memory_ptr(newoffsetPtr);
-    if (!newoffset) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    PHYSFS_sint64 file_size = PHYSFS_fileLength(fd_table[fd].handle);
-    PHYSFS_sint64 new_pos;
-
-    switch (whence) {
-        case WASI_WHENCE_SET:
-            new_pos = offset;
-            break;
-        case WASI_WHENCE_CUR:
-            new_pos = PHYSFS_tell(fd_table[fd].handle) + offset;
-            break;
-        case WASI_WHENCE_END:
-            new_pos = file_size + offset;
-            break;
-        default:
-            return WASI_ERRNO_INVAL;
-    }
-
-    if (!PHYSFS_seek(fd_table[fd].handle, new_pos)) {
-        return physfs_to_wasi_errno();
-    }
-
-    *newoffset = PHYSFS_tell(fd_table[fd].handle);
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, fd_write, (int fd, uint32_t iovsPtr, int iovsLen, uint32_t nwrittenPtr), {
-    if (fd < 0 || fd >= MAX_FDS) {
-        return WASI_ERRNO_BADF;
-    }
-
-    wasi_iovec_t* iovs = (wasi_iovec_t*)get_wasm_memory_ptr(iovsPtr);
-    uint32_t* nwritten = (uint32_t*)get_wasm_memory_ptr(nwrittenPtr);
-
-    if (!iovs || !nwritten) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    *nwritten = 0;
-
-    // stdout/stderr
-    if (fd == 1 || fd == 2) {
-        for (int i = 0; i < iovsLen; i++) {
-            char* buf = (char*)get_wasm_memory_ptr(iovs[i].buf_ptr);
-            if (!buf) return WASI_ERRNO_FAULT;
-
-            ssize_t bytes_written = write(fd, buf, iovs[i].buf_len);
-            if (bytes_written < 0) return errno_to_wasi(errno);
-
-            *nwritten += bytes_written;
-            if (bytes_written < iovs[i].buf_len) break;
-        }
-        return WASI_ERRNO_SUCCESS;
-    }
-
-    // PhysicsFS files
-    if (!fd_table[fd].handle) {
-        return WASI_ERRNO_BADF;
-    }
-
-    for (int i = 0; i < iovsLen; i++) {
-        char* buf = (char*)get_wasm_memory_ptr(iovs[i].buf_ptr);
-        if (!buf) return WASI_ERRNO_FAULT;
-
-        PHYSFS_sint64 bytes_written = PHYSFS_writeBytes(fd_table[fd].handle, buf, iovs[i].buf_len);
-        if (bytes_written < 0) {
-            return physfs_to_wasi_errno();
-        }
-
-        *nwritten += bytes_written;
-        if (bytes_written < iovs[i].buf_len) break;
-    }
-
-    return WASI_ERRNO_SUCCESS;
-})
-
-// ========== PATH OPERATIONS ==========
-
-WASI_FUNCTION(int, path_open, (int dirfd, int dirflags, uint32_t pathPtr, int pathLen, int oflags, uint64_t fs_rights_base, uint64_t fs_rights_inheriting, int fdflags, uint32_t newfdPtr), {
-    char* path = (char*)get_wasm_memory_ptr(pathPtr);
-    uint32_t* newfd = (uint32_t*)get_wasm_memory_ptr(newfdPtr);
-
-    if (!path || !newfd) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    char path_buf[pathLen + 1];
-    memcpy(path_buf, path, pathLen);
-    path_buf[pathLen] = '\0';
-
-    // Check if directory
-    PHYSFS_Stat stat;
-    if (PHYSFS_stat(path_buf, &stat) && stat.filetype == PHYSFS_FILETYPE_DIRECTORY) {
-        if (oflags & WASI_OFLAGS_DIRECTORY) {
-            for (int fd = next_fd; fd < MAX_FDS; fd++) {
-                if (!fd_table[fd].handle && !fd_table[fd].is_directory) {
-                    fd_table[fd].path = strdup(path_buf);
-                    fd_table[fd].is_directory = 1;
-                    *newfd = fd;
-                    return WASI_ERRNO_SUCCESS;
-                }
-            }
-            return WASI_ERRNO_MFILE;
-        }
-        return WASI_ERRNO_ISDIR;
-    }
-
-    // Open file
-    PHYSFS_File* handle = NULL;
-
-    if (oflags & WASI_OFLAGS_CREAT) {
-        handle = PHYSFS_openWrite(path_buf);
-        if (handle && !(oflags & WASI_OFLAGS_EXCL)) {
-            PHYSFS_close(handle);
-            handle = PHYSFS_openAppend(path_buf);
-        }
-    } else {
-        if (fs_rights_base & 0x1) {
-            handle = (fdflags & WASI_FDFLAGS_APPEND) ?
-                     PHYSFS_openAppend(path_buf) : PHYSFS_openWrite(path_buf);
-        } else {
-            handle = PHYSFS_openRead(path_buf);
-        }
-    }
-
-    if (!handle) {
-        return physfs_to_wasi_errno();
-    }
-
-    if (oflags & WASI_OFLAGS_TRUNC) {
-        PHYSFS_close(handle);
-        handle = PHYSFS_openWrite(path_buf);
-        if (!handle) {
-            return physfs_to_wasi_errno();
-        }
-    }
-
-    int fd = allocate_fd(handle, path_buf, fdflags);
-    if (fd < 0) {
-        PHYSFS_close(handle);
-        return WASI_ERRNO_MFILE;
-    }
-
-    *newfd = fd;
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, path_filestat_get, (int fd, int flags, uint32_t pathPtr, int pathLen, uint32_t filestatPtr), {
-    char* path = (char*)get_wasm_memory_ptr(pathPtr);
-    wasi_filestat_t* filestat = (wasi_filestat_t*)get_wasm_memory_ptr(filestatPtr);
-
-    if (!path || !filestat) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    char path_buf[pathLen + 1];
-    memcpy(path_buf, path, pathLen);
-    path_buf[pathLen] = '\0';
-
-    PHYSFS_Stat stat;
-    if (!PHYSFS_stat(path_buf, &stat)) {
-        return physfs_to_wasi_errno();
-    }
-
-    memset(filestat, 0, sizeof(wasi_filestat_t));
-    filestat->dev = 0;
-    filestat->ino = 0;
-
-    switch (stat.filetype) {
-        case PHYSFS_FILETYPE_REGULAR:
-            filestat->filetype = WASI_FILETYPE_REGULAR_FILE;
-            break;
-        case PHYSFS_FILETYPE_DIRECTORY:
-            filestat->filetype = WASI_FILETYPE_DIRECTORY;
-            break;
-        case PHYSFS_FILETYPE_SYMLINK:
-            filestat->filetype = WASI_FILETYPE_SYMBOLIC_LINK;
-            break;
-        default:
-            filestat->filetype = WASI_FILETYPE_UNKNOWN;
-    }
-
-    filestat->nlink = 1;
-    filestat->size = stat.filesize;
-    filestat->atim = stat.accesstime * 1000000000ULL;
-    filestat->mtim = stat.modtime * 1000000000ULL;
-    filestat->ctim = stat.createtime * 1000000000ULL;
-
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, path_create_directory, (int fd, uint32_t pathPtr, int pathLen), {
-    char* path = (char*)get_wasm_memory_ptr(pathPtr);
-    if (!path) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    char path_buf[pathLen + 1];
-    memcpy(path_buf, path, pathLen);
-    path_buf[pathLen] = '\0';
-
-    if (!PHYSFS_mkdir(path_buf)) {
-        return physfs_to_wasi_errno();
-    }
-
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, path_remove_directory, (int fd, uint32_t pathPtr, int pathLen), {
-    char* path = (char*)get_wasm_memory_ptr(pathPtr);
-    if (!path) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    char path_buf[pathLen + 1];
-    memcpy(path_buf, path, pathLen);
-    path_buf[pathLen] = '\0';
-
-    if (!PHYSFS_delete(path_buf)) {
-        return physfs_to_wasi_errno();
-    }
-
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, path_unlink_file, (int fd, uint32_t pathPtr, int pathLen), {
-    char* path = (char*)get_wasm_memory_ptr(pathPtr);
-    if (!path) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    char path_buf[pathLen + 1];
-    memcpy(path_buf, path, pathLen);
-    path_buf[pathLen] = '\0';
-
-    if (!PHYSFS_delete(path_buf)) {
-        return physfs_to_wasi_errno();
-    }
-
-    return WASI_ERRNO_SUCCESS;
-})
-
-// ========== CLOCK OPERATIONS ==========
-
-WASI_FUNCTION(int, clock_res_get, (int clockid, uint32_t resolutionPtr), {
-    uint64_t* resolution = (uint64_t*)get_wasm_memory_ptr(resolutionPtr);
-    if (!resolution) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    struct timespec ts;
-    clockid_t native_clockid;
-
-    switch (clockid) {
-        case WASI_CLOCKID_REALTIME:
-            native_clockid = CLOCK_REALTIME;
-            break;
-        case WASI_CLOCKID_MONOTONIC:
-            native_clockid = CLOCK_MONOTONIC;
-            break;
-        case WASI_CLOCKID_PROCESS_CPUTIME_ID:
-            native_clockid = CLOCK_PROCESS_CPUTIME_ID;
-            break;
-        case WASI_CLOCKID_THREAD_CPUTIME_ID:
-            native_clockid = CLOCK_THREAD_CPUTIME_ID;
-            break;
-        default:
-            return WASI_ERRNO_INVAL;
-    }
-
-    if (clock_getres(native_clockid, &ts) == -1) {
-        return errno_to_wasi(errno);
-    }
-
-    *resolution = ts.tv_sec * 1000000000ULL + ts.tv_nsec;
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, clock_time_get, (int clockid, uint64_t precision, uint32_t timePtr), {
-    uint64_t* time = (uint64_t*)get_wasm_memory_ptr(timePtr);
-    if (!time) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    struct timespec ts;
-    clockid_t native_clockid;
-
-    switch (clockid) {
-        case WASI_CLOCKID_REALTIME:
-            native_clockid = CLOCK_REALTIME;
-            break;
-        case WASI_CLOCKID_MONOTONIC:
-            native_clockid = CLOCK_MONOTONIC;
-            break;
-        case WASI_CLOCKID_PROCESS_CPUTIME_ID:
-            native_clockid = CLOCK_PROCESS_CPUTIME_ID;
-            break;
-        case WASI_CLOCKID_THREAD_CPUTIME_ID:
-            native_clockid = CLOCK_THREAD_CPUTIME_ID;
-            break;
-        default:
-            return WASI_ERRNO_INVAL;
-    }
-
-    if (clock_gettime(native_clockid, &ts) == -1) {
-        return errno_to_wasi(errno);
-    }
-
-    *time = ts.tv_sec * 1000000000ULL + ts.tv_nsec;
-    return WASI_ERRNO_SUCCESS;
-})
-
-// ========== RANDOM OPERATIONS ==========
-
-WASI_FUNCTION(int, random_get, (uint32_t bufPtr, uint32_t bufLen), {
-    uint8_t* buf = (uint8_t*)get_wasm_memory_ptr(bufPtr);
-    if (!buf) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    FILE* urandom = fopen("/dev/urandom", "rb");
-    if (!urandom) {
-        srand(time(NULL));
-        for (uint32_t i = 0; i < bufLen; i++) {
-            buf[i] = rand() & 0xFF;
-        }
-        return WASI_ERRNO_SUCCESS;
-    }
-
-    size_t bytes_read = fread(buf, 1, bufLen, urandom);
-    fclose(urandom);
-
-    if (bytes_read != bufLen) {
-        return WASI_ERRNO_IO;
-    }
-
-    return WASI_ERRNO_SUCCESS;
-})
-
-// ========== PROCESS OPERATIONS ==========
-
-WASI_FUNCTION(void, proc_exit, (int rval), {
-    exit(rval);
-})
-
-WASI_FUNCTION(int, args_get, (uint32_t argvPtr, uint32_t argvBufPtr), {
-    uint32_t* argv = (uint32_t*)get_wasm_memory_ptr(argvPtr);
-    if (!argv) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    argv[0] = 0;
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, args_sizes_get, (uint32_t argcPtr, uint32_t argvBufSizePtr), {
-    uint32_t* argc = (uint32_t*)get_wasm_memory_ptr(argcPtr);
-    uint32_t* argvBufSize = (uint32_t*)get_wasm_memory_ptr(argvBufSizePtr);
-
-    if (!argc || !argvBufSize) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    *argc = 0;
-    *argvBufSize = 0;
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, environ_get, (uint32_t environPtr, uint32_t environBufPtr), {
-    uint32_t* environ = (uint32_t*)get_wasm_memory_ptr(environPtr);
-    if (!environ) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    environ[0] = 0;
-    return WASI_ERRNO_SUCCESS;
-})
-
-WASI_FUNCTION(int, environ_sizes_get, (uint32_t environCountPtr, uint32_t environBufSizePtr), {
-    uint32_t* environCount = (uint32_t*)get_wasm_memory_ptr(environCountPtr);
-    uint32_t* environBufSize = (uint32_t*)get_wasm_memory_ptr(environBufSizePtr);
-
-    if (!environCount || !environBufSize) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    *environCount = 0;
-    *environBufSize = 0;
-    return WASI_ERRNO_SUCCESS;
-})
-
-// ========== POLL OPERATIONS ==========
-
-WASI_FUNCTION(int, poll_oneoff, (uint32_t inPtr, uint32_t outPtr, uint32_t nsubscriptions, uint32_t neventsPtr), {
-    uint32_t* nevents = (uint32_t*)get_wasm_memory_ptr(neventsPtr);
-    if (!nevents) {
-        return WASI_ERRNO_FAULT;
-    }
-
-    *nevents = 0;
-    return WASI_ERRNO_SUCCESS;
-})
-
-// ========== SOCKET OPERATIONS (Stubs) ==========
-
-WASI_FUNCTION(int, sock_recv, (int fd, uint32_t riDataPtr, uint32_t riDataLen, int riFlags, uint32_t roDatalenPtr, uint32_t roFlagsPtr), {
-    return WASI_ERRNO_NOSYS;
-})
-
-WASI_FUNCTION(int, sock_send, (int fd, uint32_t siDataPtr, uint32_t siDataLen, int siFlags, uint32_t soDatalenPtr), {
-    return WASI_ERRNO_NOSYS;
-})
-
-WASI_FUNCTION(int, sock_shutdown, (int fd, int how), {
-    return WASI_ERRNO_NOSYS;
-})
-
-// ========== INITIALIZATION ==========
-
-void wasi_physfs_init() {
-    init_fd_table();
+static wasi_errno_t wasi_fd_prestat_get(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_prestat_app_t *prestat_app) {
+  return 0;
 }
+
+static wasi_errno_t wasi_fd_prestat_dir_name(wasm_exec_env_t exec_env, wasi_fd_t fd, char *path, uint32_t path_len) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_close(wasm_exec_env_t exec_env, wasi_fd_t fd) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_datasync(wasm_exec_env_t exec_env, wasi_fd_t fd) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_pread(wasm_exec_env_t exec_env, wasi_fd_t fd, iovec_app_t *iovec_app, uint32_t iovs_len, wasi_filesize_t offset, uint32_t *nread_app) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_pwrite(wasm_exec_env_t exec_env, wasi_fd_t fd, const iovec_app_t *iovec_app, uint32_t iovs_len, wasi_filesize_t offset, uint32_t *nwritten_app) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_read(wasm_exec_env_t exec_env, wasi_fd_t fd, const iovec_app_t *iovec_app, uint32_t iovs_len, uint32_t *nread_app) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_renumber(wasm_exec_env_t exec_env, wasi_fd_t from, wasi_fd_t to) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_seek(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_filedelta_t offset, wasi_whence_t whence, wasi_filesize_t *newoffset) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_tell(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_filesize_t *newoffset) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_fdstat_get(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_fdstat_t *fdstat_app) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_fdstat_set_flags(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_fdflags_t flags) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_fdstat_set_rights(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_rights_t fs_rights_base, wasi_rights_t fs_rights_inheriting) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_sync(wasm_exec_env_t exec_env, wasi_fd_t fd) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_write(wasm_exec_env_t exec_env, wasi_fd_t fd, const iovec_app_t *iovec_app, uint32_t iovs_len, uint32_t *nwritten_app) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_advise(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_filesize_t offset, wasi_filesize_t len, wasi_advice_t advice) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_allocate(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_filesize_t offset, wasi_filesize_t len) {
+  return 0;
+}
+
+static wasi_errno_t wasi_path_create_directory(wasm_exec_env_t exec_env, wasi_fd_t fd, const char *path, uint32_t path_len) {
+  return 0;
+}
+
+static wasi_errno_t wasi_path_link(wasm_exec_env_t exec_env, wasi_fd_t old_fd, wasi_lookupflags_t old_flags, const char *old_path, uint32_t old_path_len, wasi_fd_t new_fd, const char *new_path, uint32_t new_path_len) {
+  return 0;
+}
+
+static wasi_errno_t wasi_path_open(wasm_exec_env_t exec_env, wasi_fd_t dirfd, wasi_lookupflags_t dirflags, const char *path, uint32_t path_len, wasi_oflags_t oflags, wasi_rights_t fs_rights_base, wasi_rights_t fs_rights_inheriting, wasi_fdflags_t fs_flags, wasi_fd_t *fd_app) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_readdir(wasm_exec_env_t exec_env, wasi_fd_t fd, void *buf, uint32_t buf_len, wasi_dircookie_t cookie, uint32_t *bufused_app) {
+  return 0;
+}
+
+static wasi_errno_t wasi_path_readlink(wasm_exec_env_t exec_env, wasi_fd_t fd, const char *path, uint32_t path_len, char *buf, uint32_t buf_len, uint32_t *bufused_app) {
+  return 0;
+}
+
+static wasi_errno_t wasi_path_rename(wasm_exec_env_t exec_env, wasi_fd_t old_fd, const char *old_path, uint32_t old_path_len, wasi_fd_t new_fd, const char *new_path, uint32_t new_path_len) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_filestat_get(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_filestat_t *filestat) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_filestat_set_times(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_timestamp_t st_atim, wasi_timestamp_t st_mtim, wasi_fstflags_t fstflags) {
+  return 0;
+}
+
+static wasi_errno_t wasi_fd_filestat_set_size(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_filesize_t st_size) {
+  return 0;
+}
+
+static wasi_errno_t wasi_path_filestat_get(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_lookupflags_t flags, const char *path, uint32_t path_len, wasi_filestat_t *filestat) {
+  return 0;
+}
+
+static wasi_errno_t wasi_path_filestat_set_times(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_lookupflags_t flags, const char *path, uint32_t path_len, wasi_timestamp_t st_atim, wasi_timestamp_t st_mtim, wasi_fstflags_t fstflags) {
+  return 0;
+}
+
+static wasi_errno_t wasi_path_symlink(wasm_exec_env_t exec_env, const char *old_path, uint32_t old_path_len, wasi_fd_t fd, const char *new_path, uint32_t new_path_len) {
+  return 0;
+}
+
+static wasi_errno_t wasi_path_unlink_file(wasm_exec_env_t exec_env, wasi_fd_t fd, const char *path, uint32_t path_len) {
+  return 0;
+}
+
+static wasi_errno_t wasi_path_remove_directory(wasm_exec_env_t exec_env, wasi_fd_t fd, const char *path, uint32_t path_len) {
+  return 0;
+}
+
+static wasi_errno_t wasi_poll_oneoff(wasm_exec_env_t exec_env, const wasi_subscription_t *in, wasi_event_t *out, uint32_t nsubscriptions, uint32_t *nevents_app) {
+  return 0;
+}
+
+static void wasi_proc_exit(wasm_exec_env_t exec_env, wasi_exitcode_t rval) {
+}
+
+static wasi_errno_t wasi_proc_raise(wasm_exec_env_t exec_env, wasi_signal_t sig) {
+  return 0;
+}
+
+static wasi_errno_t wasi_random_get(wasm_exec_env_t exec_env, void *buf, uint32_t buf_len) {
+  return 0;
+}
+
+static NativeSymbol wasi_native_symbols[] = {
+  {"args_get", wasi_args_get, "(**)i"},
+  {"args_sizes_get", wasi_args_sizes_get, "(**)i"},
+  {"clock_res_get", wasi_clock_res_get, "(i*)i"},
+  {"clock_time_get", wasi_clock_time_get, "(iI*)i"},
+  {"environ_get", wasi_environ_get, "(**)i"},
+  {"environ_sizes_get", wasi_environ_sizes_get, "(**)i"},
+  {"fd_prestat_get", wasi_fd_prestat_get, "(i*)i"},
+  {"fd_prestat_dir_name", wasi_fd_prestat_dir_name, "(i*~)i"},
+  {"fd_close", wasi_fd_close, "(i)i"},
+  {"fd_datasync", wasi_fd_datasync, "(i)i"},
+  {"fd_pread", wasi_fd_pread, "(i*iI*)i"},
+  {"fd_pwrite", wasi_fd_pwrite, "(i*iI*)i"},
+  {"fd_read", wasi_fd_read, "(i*i*)i"},
+  {"fd_renumber", wasi_fd_renumber, "(ii)i"},
+  {"fd_seek", wasi_fd_seek, "(iIi*)i"},
+  {"fd_tell", wasi_fd_tell, "(i*)i"},
+  {"fd_fdstat_get", wasi_fd_fdstat_get, "(i*)i"},
+  {"fd_fdstat_set_flags", wasi_fd_fdstat_set_flags, "(ii)i"},
+  {"fd_fdstat_set_rights", wasi_fd_fdstat_set_rights, "(iII)i"},
+  {"fd_sync", wasi_fd_sync, "(i)i"},
+  {"fd_write", wasi_fd_write, "(i*i*)i"},
+  {"fd_advise", wasi_fd_advise, "(iIIi)i"},
+  {"fd_allocate", wasi_fd_allocate, "(iII)i"},
+  {"path_create_directory", wasi_path_create_directory, "(i*~)i"},
+  {"path_link", wasi_path_link, "(ii*~i*~)i"},
+  {"path_open", wasi_path_open, "(ii*~iIIi*)i"},
+  {"fd_readdir", wasi_fd_readdir, "(i*~I*)i"},
+  {"path_readlink", wasi_path_readlink, "(i*~*~*)i"},
+  {"path_rename", wasi_path_rename, "(i*~i*~)i"},
+  {"fd_filestat_get", wasi_fd_filestat_get, "(i*)i"},
+  {"fd_filestat_set_times", wasi_fd_filestat_set_times, "(iIIi)i"},
+  {"fd_filestat_set_size", wasi_fd_filestat_set_size, "(iI)i"},
+  {"path_filestat_get", wasi_path_filestat_get, "(ii*~*)i"},
+  {"path_filestat_set_times", wasi_path_filestat_set_times, "(ii*~IIi)i"},
+  {"path_symlink", wasi_path_symlink, "(*~i*~)i"},
+  {"path_unlink_file", wasi_path_unlink_file, "(i*~)i"},
+  {"path_remove_directory", wasi_path_remove_directory, "(i*~)i"},
+  {"poll_oneoff", wasi_poll_oneoff, "(**i*)i"},
+  {"proc_exit", wasi_proc_exit, "(i)"},
+  {"proc_raise", wasi_proc_raise, "(i)i"},
+  {"random_get", wasi_random_get, "(*~)i"},
+
+  // These are not needed
+  // {"sock_accept", wasi_sock_accept, "(ii*)i"},
+  // {"sock_addr_local", wasi_sock_addr_local, "(i*)i"},
+  // {"sock_addr_remote", wasi_sock_addr_remote, "(i*)i"},
+  // {"sock_addr_resolve", wasi_sock_addr_resolve, "($$**i*)i"},
+  // {"sock_bind", wasi_sock_bind, "(i*)i"},
+  // {"sock_close", wasi_sock_close, "(i)i"},
+  // {"sock_connect", wasi_sock_connect, "(i*)i"},
+  // {"sock_get_broadcast", wasi_sock_get_broadcast, "(i*)i"},
+  // {"sock_get_keep_alive", wasi_sock_get_keep_alive, "(i*)i"},
+  // {"sock_get_linger", wasi_sock_get_linger, "(i**)i"},
+  // {"sock_get_recv_buf_size", wasi_sock_get_recv_buf_size, "(i*)i"},
+  // {"sock_get_recv_timeout", wasi_sock_get_recv_timeout, "(i*)i"},
+  // {"sock_get_reuse_addr", wasi_sock_get_reuse_addr, "(i*)i"},
+  // {"sock_get_reuse_port", wasi_sock_get_reuse_port, "(i*)i"},
+  // {"sock_get_send_buf_size", wasi_sock_get_send_buf_size, "(i*)i"},
+  // {"sock_get_send_timeout", wasi_sock_get_send_timeout, "(i*)i"},
+  // {"sock_get_tcp_fastopen_connect", wasi_sock_get_tcp_fastopen_connect, "(i*)i"},
+  // {"sock_get_tcp_keep_idle", wasi_sock_get_tcp_keep_idle, "(i*)i"},
+  // {"sock_get_tcp_keep_intvl", wasi_sock_get_tcp_keep_intvl, "(i*)i"},
+  // {"sock_get_tcp_no_delay", wasi_sock_get_tcp_no_delay, "(i*)i"},
+  // {"sock_get_tcp_quick_ack", wasi_sock_get_tcp_quick_ack, "(i*)i"},
+  // {"sock_get_ip_multicast_loop", wasi_sock_get_ip_multicast_loop, "(ii*)i"},
+  // {"sock_get_ip_multicast_ttl", wasi_sock_get_ip_multicast_ttl, "(i*)i"},
+  // {"sock_get_ip_ttl", wasi_sock_get_ip_ttl, "(i*)i"},
+  // {"sock_get_ipv6_only", wasi_sock_get_ipv6_only, "(i*)i"},
+  // {"sock_listen", wasi_sock_listen, "(ii)i"},
+  // {"sock_open", wasi_sock_open, "(iii*)i"},
+  // {"sock_recv", wasi_sock_recv, "(i*ii**)i"},
+  // {"sock_recv_from", wasi_sock_recv_from, "(i*ii**)i"},
+  // {"sock_send", wasi_sock_send, "(i*ii*)i"},
+  // {"sock_send_to", wasi_sock_send_to, "(i*ii**)i"},
+  // {"sock_set_broadcast", wasi_sock_set_broadcast, "(ii)i"},
+  // {"sock_set_keep_alive", wasi_sock_set_keep_alive, "(ii)i"},
+  // {"sock_set_linger", wasi_sock_set_linger, "(iii)i"},
+  // {"sock_set_recv_buf_size", wasi_sock_set_recv_buf_size, "(ii)i"},
+  // {"sock_set_recv_timeout", wasi_sock_set_recv_timeout, "(iI)i"},
+  // {"sock_set_reuse_addr", wasi_sock_set_reuse_addr, "(ii)i"},
+  // {"sock_set_reuse_port", wasi_sock_set_reuse_port, "(ii)i"},
+  // {"sock_set_send_buf_size", wasi_sock_set_send_buf_size, "(ii)i"},
+  // {"sock_set_send_timeout", wasi_sock_set_send_timeout, "(iI)i"},
+  // {"sock_set_tcp_fastopen_connect", wasi_sock_set_tcp_fastopen_connect, "(ii)i"},
+  // {"sock_set_tcp_keep_idle", wasi_sock_set_tcp_keep_idle, "(ii)i"},
+  // {"sock_set_tcp_keep_intvl", wasi_sock_set_tcp_keep_intvl, "(ii)i"},
+  // {"sock_set_tcp_no_delay", wasi_sock_set_tcp_no_delay, "(ii)i"},
+  // {"sock_set_tcp_quick_ack", wasi_sock_set_tcp_quick_ack, "(ii)i"},
+  // {"sock_set_ip_multicast_loop", wasi_sock_set_ip_multicast_loop, "(iii)i"},
+  // {"sock_set_ip_multicast_ttl", wasi_sock_set_ip_multicast_ttl, "(ii)i"},
+  // {"sock_set_ip_add_membership", wasi_sock_set_ip_add_membership, "(i*i)i"},
+  // {"sock_set_ip_drop_membership", wasi_sock_set_ip_drop_membership, "(i*i)i"},
+  // {"sock_set_ip_ttl", wasi_sock_set_ip_ttl, "(ii)i"},
+  // {"sock_set_ipv6_only", wasi_sock_set_ipv6_only, "(ii)i"},
+  // {"sock_shutdown", wasi_sock_shutdown, "(ii)i"},
+  // {"sched_yield", wasi_sched_yield, "()i"},
+};
