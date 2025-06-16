@@ -1,7 +1,18 @@
 #include "wasm_export.h"
 
+#include <fcntl.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/time.h>
+#include <time.h>
+#include <unistd.h>
+
+// Global variables to store argc/argv
+static int g_argc = 0;
+static char **g_argv = NULL;
 
 typedef uint32_t wasi_size_t;
 
@@ -329,28 +340,111 @@ typedef uint8_t wasi_whence_t;
 #define WASI_WHENCE_CUR 1
 #define WASI_WHENCE_END 2
 
-static wasi_errno_t wasi_args_get(wasm_exec_env_t exec_env, uint32_t *argv_offsets, char *argv_buf) {
-  return 0;
+// Function to initialize arguments (call this before running WASM)
+void wasi_set_args(int argc, char **argv) {
+  g_argc = argc;
+  g_argv = argv;
 }
 
-static wasi_errno_t wasi_args_sizes_get(wasm_exec_env_t exec_env, uint32_t *argc_app, uint32_t *argv_buf_size_app) {
-  return 0;
+static wasi_errno_t wasi_args_sizes_get(wasm_exec_env_t exec_env,
+  uint32_t *argc_app,
+  uint32_t *argv_buf_size_app) {
+  uint32_t buf_size = 0;
+  int i;
+
+  for (i = 0; i < g_argc; i++) {
+    buf_size += strlen(g_argv[i]) + 1;
+  }
+
+  *argc_app = g_argc;
+  *argv_buf_size_app = buf_size;
+
+  return WASI_ESUCCESS;
 }
 
-static wasi_errno_t wasi_clock_res_get(wasm_exec_env_t exec_env, wasi_clockid_t clock_id, wasi_timestamp_t *resolution) {
-  return 0;
+static wasi_errno_t wasi_args_get(wasm_exec_env_t exec_env,
+  uint32_t *argv_offsets,
+  char *argv_buf) {
+  wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
+  uint32_t *offsets = (uint32_t *)wasm_runtime_addr_app_to_native(module_inst, (uint32_t)argv_offsets);
+  char *buf = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)argv_buf);
+  uint32_t buf_offset = 0;
+  int i;
+
+  if (!offsets || !buf) {
+    return WASI_EFAULT;
+  }
+
+  for (i = 0; i < g_argc; i++) {
+    size_t len = strlen(g_argv[i]) + 1;
+
+    offsets[i] = (uint32_t)argv_buf + buf_offset;
+    memcpy(buf + buf_offset, g_argv[i], len);
+    buf_offset += len;
+  }
+
+  return WASI_ESUCCESS;
 }
 
 static wasi_errno_t wasi_clock_time_get(wasm_exec_env_t exec_env, wasi_clockid_t clock_id, wasi_timestamp_t precision, wasi_timestamp_t *time) {
-  return 0;
+  struct timespec ts;
+  int result;
+
+  switch (clock_id) {
+  case WASI_CLOCK_REALTIME:
+    result = clock_gettime(CLOCK_REALTIME, &ts);
+    break;
+  case WASI_CLOCK_MONOTONIC:
+    result = clock_gettime(CLOCK_MONOTONIC, &ts);
+    break;
+  case WASI_CLOCK_PROCESS_CPUTIME_ID:
+    result = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    break;
+  case WASI_CLOCK_THREAD_CPUTIME_ID:
+    result = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+    break;
+  default:
+    return WASI_EINVAL;
+  }
+
+  if (result != 0) {
+    return WASI_EIO;
+  }
+
+  // Convert to nanoseconds
+  *time = (wasi_timestamp_t)ts.tv_sec * 1000000000ULL + (wasi_timestamp_t)ts.tv_nsec;
+
+  return WASI_ESUCCESS;
 }
 
-static wasi_errno_t wasi_environ_get(wasm_exec_env_t exec_env, uint32_t *environ_offsets, char *environ_buf) {
-  return 0;
-}
+static wasi_errno_t wasi_clock_res_get(wasm_exec_env_t exec_env, wasi_clockid_t clock_id, wasi_timestamp_t *resolution) {
+  struct timespec ts;
+  int result;
 
-static wasi_errno_t wasi_environ_sizes_get(wasm_exec_env_t exec_env, uint32_t *environ_count_app, uint32_t *environ_buf_size_app) {
-  return 0;
+  switch (clock_id) {
+  case WASI_CLOCK_REALTIME:
+    result = clock_getres(CLOCK_REALTIME, &ts);
+    break;
+  case WASI_CLOCK_MONOTONIC:
+    result = clock_getres(CLOCK_MONOTONIC, &ts);
+    break;
+  case WASI_CLOCK_PROCESS_CPUTIME_ID:
+    result = clock_getres(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    break;
+  case WASI_CLOCK_THREAD_CPUTIME_ID:
+    result = clock_getres(CLOCK_THREAD_CPUTIME_ID, &ts);
+    break;
+  default:
+    return WASI_EINVAL;
+  }
+
+  if (result != 0) {
+    return WASI_EIO;
+  }
+
+  *resolution = (wasi_timestamp_t)ts.tv_sec * 1000000000ULL + (wasi_timestamp_t)ts.tv_nsec;
+
+  return WASI_ESUCCESS;
 }
 
 static wasi_errno_t wasi_fd_prestat_get(wasm_exec_env_t exec_env, wasi_fd_t fd, wasi_prestat_app_t *prestat_app) {
@@ -377,8 +471,138 @@ static wasi_errno_t wasi_fd_pwrite(wasm_exec_env_t exec_env, wasi_fd_t fd, const
   return 0;
 }
 
+static wasi_errno_t wasi_fd_write(wasm_exec_env_t exec_env, wasi_fd_t fd, const iovec_app_t *iovec_app, uint32_t iovs_len, uint32_t *nwritten_app) {
+  wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
+  uint32_t total_written = 0;
+  uint32_t i;
+
+  // Validate file descriptor
+  if (fd > 2) {
+    return WASI_EBADF;
+  }
+
+  // Process each iovec
+  for (i = 0; i < iovs_len; i++) {
+    char *buf = wasm_runtime_addr_app_to_native(module_inst, iovec_app[i].buf_offset);
+    uint32_t buf_len = iovec_app[i].buf_len;
+
+    if (!buf) {
+      return WASI_EFAULT;
+    }
+
+    // Write to appropriate stream
+    if (fd == 1) { // stdout
+      fwrite(buf, 1, buf_len, stdout);
+      fflush(stdout);
+    } else if (fd == 2) { // stderr
+      fwrite(buf, 1, buf_len, stderr);
+      fflush(stderr);
+    }
+
+    total_written += buf_len;
+  }
+
+  // Write back the number of bytes written
+  if (nwritten_app) {
+    *nwritten_app = total_written;
+  }
+
+  return WASI_ESUCCESS;
+}
+
 static wasi_errno_t wasi_fd_read(wasm_exec_env_t exec_env, wasi_fd_t fd, const iovec_app_t *iovec_app, uint32_t iovs_len, uint32_t *nread_app) {
-  return 0;
+  wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
+  uint32_t total_read = 0;
+  uint32_t i;
+
+  // Only support stdin (fd 0)
+  if (fd != 0) {
+    return WASI_EBADF;
+  }
+
+  // Process each iovec
+  for (i = 0; i < iovs_len; i++) {
+    char *buf = wasm_runtime_addr_app_to_native(module_inst, iovec_app[i].buf_offset);
+    uint32_t buf_len = iovec_app[i].buf_len;
+    size_t bytes_read;
+
+    if (!buf) {
+      return WASI_EFAULT;
+    }
+
+    bytes_read = fread(buf, 1, buf_len, stdin);
+    total_read += bytes_read;
+
+    // If we couldn't fill the buffer, we're done
+    if (bytes_read < buf_len) {
+      break;
+    }
+  }
+
+  if (nread_app) {
+    *nread_app = total_read;
+  }
+
+  return WASI_ESUCCESS;
+}
+
+static void wasi_proc_exit(wasm_exec_env_t exec_env, wasi_exitcode_t rval) {
+  // In WAMR, we should signal the runtime to exit
+  // This implementation depends on your WAMR integration
+  exit(rval);
+}
+
+static wasi_errno_t wasi_environ_sizes_get(wasm_exec_env_t exec_env,
+  uint32_t *environ_count_app,
+  uint32_t *environ_buf_size_app) {
+  extern char **environ;
+  uint32_t count = 0;
+  uint32_t buf_size = 0;
+  char **env_ptr = environ;
+
+  // Count environment variables and calculate buffer size
+  while (*env_ptr) {
+    count++;
+    buf_size += strlen(*env_ptr) + 1; // +1 for null terminator
+    env_ptr++;
+  }
+
+  *environ_count_app = count;
+  *environ_buf_size_app = buf_size;
+
+  return WASI_ESUCCESS;
+}
+
+static wasi_errno_t wasi_environ_get(wasm_exec_env_t exec_env,
+  uint32_t *environ_offsets,
+  char *environ_buf) {
+  wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
+  extern char **environ;
+  char **env_ptr = environ;
+  uint32_t *offsets = (uint32_t *)wasm_runtime_addr_app_to_native(module_inst, (uint32_t)environ_offsets);
+  char *buf = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)environ_buf);
+  uint32_t buf_offset = 0;
+  uint32_t i = 0;
+
+  if (!offsets || !buf) {
+    return WASI_EFAULT;
+  }
+
+  while (*env_ptr) {
+    size_t len = strlen(*env_ptr) + 1;
+
+    // Store offset
+    offsets[i] = (uint32_t)environ_buf + buf_offset;
+
+    // Copy environment variable
+    memcpy(buf + buf_offset, *env_ptr, len);
+    buf_offset += len;
+
+    env_ptr++;
+    i++;
+  }
+
+  return WASI_ESUCCESS;
 }
 
 static wasi_errno_t wasi_fd_renumber(wasm_exec_env_t exec_env, wasi_fd_t from, wasi_fd_t to) {
@@ -406,10 +630,6 @@ static wasi_errno_t wasi_fd_fdstat_set_rights(wasm_exec_env_t exec_env, wasi_fd_
 }
 
 static wasi_errno_t wasi_fd_sync(wasm_exec_env_t exec_env, wasi_fd_t fd) {
-  return 0;
-}
-
-static wasi_errno_t wasi_fd_write(wasm_exec_env_t exec_env, wasi_fd_t fd, const iovec_app_t *iovec_app, uint32_t iovs_len, uint32_t *nwritten_app) {
   return 0;
 }
 
@@ -481,15 +701,44 @@ static wasi_errno_t wasi_poll_oneoff(wasm_exec_env_t exec_env, const wasi_subscr
   return 0;
 }
 
-static void wasi_proc_exit(wasm_exec_env_t exec_env, wasi_exitcode_t rval) {
-}
-
 static wasi_errno_t wasi_proc_raise(wasm_exec_env_t exec_env, wasi_signal_t sig) {
   return 0;
 }
 
 static wasi_errno_t wasi_random_get(wasm_exec_env_t exec_env, void *buf, uint32_t buf_len) {
-  return 0;
+  wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
+  char *native_buf = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)buf);
+
+  if (!native_buf) {
+    return WASI_EFAULT;
+  }
+
+#ifdef __linux__
+// Use getrandom syscall on Linux
+#include <sys/random.h>
+  ssize_t result = getrandom(native_buf, buf_len, 0);
+  if (result < 0) {
+    return WASI_EIO;
+  }
+  if ((uint32_t)result != buf_len) {
+    return WASI_EIO;
+  }
+#else
+  // Fall back to /dev/urandom
+  int fd = open("/dev/urandom", O_RDONLY);
+  if (fd < 0) {
+    return WASI_EIO;
+  }
+
+  ssize_t bytes_read = read(fd, native_buf, buf_len);
+  close(fd);
+
+  if (bytes_read < 0 || (uint32_t)bytes_read != buf_len) {
+    return WASI_EIO;
+  }
+#endif
+
+  return WASI_ESUCCESS;
 }
 
 static NativeSymbol wasi_native_symbols[] = {
