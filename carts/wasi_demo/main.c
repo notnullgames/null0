@@ -17,9 +17,9 @@ int main() {
   FILE *file = fopen("assets/cyber.txt", "r");
 
   if (file && filesize) {
-    char* data = malloc(filesize);
-    // this beach-balls
-    fgets(data, filesize, file);
+    char* data = malloc(filesize + 1); // +1 for null terminator
+    size_t bytes_read = fread(data, 1, filesize, file);
+    data[bytes_read] = '\0'; // Null terminate the string
     fclose(file);
     printf("file: %s\n", data);
     free(data);

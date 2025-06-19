@@ -6,7 +6,7 @@ set (WAMR_BUILD_AOT 0)
 set (WAMR_BUILD_LIBC_BUILTIN 0)
 set (WAMR_BUILD_LIBC_WASI 0)
 set (WAMR_BUILD_SIMD 1)
-set (WAMR_BUILD_REF_TYPES 0)
+set (WAMR_BUILD_REF_TYPES 1)
 
 FetchContent_Declare(wamr
   URL https://github.com/bytecodealliance/wasm-micro-runtime/archive/refs/heads/master.zip

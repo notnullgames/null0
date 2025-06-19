@@ -26,6 +26,10 @@ static float callback_float_args[2];
 bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
   char error_buf[128];
   RuntimeInitArgs init_args = {0};
+  
+  // Initialize WASI arguments
+  char *argv[] = {"null0", app->argFile ? app->argFile : "cart.null0"};
+  wasi_set_args(2, argv);
 
   void *heap_buf = malloc(16 * 1024 * 1024);
   if (!heap_buf) {
