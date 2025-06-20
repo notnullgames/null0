@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# This will build a cart (zip file with main.wasm)
-
-# buildcart.sh "fullpath/to/whatever.null0" "fullpath/to/whatever.wasm" "fullpath/to/assets"
+# this will build a cart (zip file with main.wasm)
 
 CART="${1}"
 WASM=$(basename "${2}")
@@ -13,7 +11,8 @@ cp "${WASM_DIR}/${WASM}" "${FILES_DIR}/main.wasm"
 cd "${FILES_DIR}"
 
 shopt -s extglob
-zip -rq "${CART}" main.wasm **/!(*.c|*.h|.DS_Store|__*)
+# Include main.wasm and all files except the excluded patterns
+zip -rq "${CART}" . -x "*.c" "*.h" ".DS_Store" "__*"
 shopt -u extglob
 
 rm "${FILES_DIR}/main.wasm"

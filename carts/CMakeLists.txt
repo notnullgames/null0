@@ -45,10 +45,32 @@ function(BUILDCART name)
   set(CART_TARGETS ${CART_TARGETS} ${name} PARENT_SCOPE)
 endfunction()
 
+function(BUILDJSCART name)
+  add_custom_target(${name}
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/js/buildcart.sh"
+            "${CMAKE_CURRENT_BINARY_DIR}/${name}.null0"
+            "${CMAKE_CURRENT_BINARY_DIR}/cart-js.wasm"
+            "${CMAKE_CURRENT_SOURCE_DIR}/${name}"
+  )
+  add_dependencies(${name} cart-js)
+  set(CART_TARGETS ${CART_TARGETS} ${name} PARENT_SCOPE)
+endfunction()
+
 BUILDCART("example")
 BUILDCART("colorbars")
 BUILDCART("input")
 BUILDCART("gradient")
 BUILDCART("wasi_demo")
+
+# These are general interpretors that can be reused by many carts
+add_executable(cart-js js/main.c js/libunicode.c js/cutils.c js/libbf.c js/libregexp.c js/quickjs.c js/quickjs-libc.c js/qjscalc.c)
+target_compile_definitions(cart-js PRIVATE
+    CONFIG_VERSION="wasi"
+    _WASI_EMULATED_SIGNAL
+    CONFIG_BIGNUM=y
+)
+target_link_libraries(cart-js PRIVATE wasi-emulated-signal)
+BUILDJSCART("demo-js")
+
 
 add_custom_target(carts ALL DEPENDS ${CART_TARGETS})
