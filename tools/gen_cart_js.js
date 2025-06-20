@@ -41,6 +41,82 @@ JSValue func_mouseDown;
 JSValue func_mouseUp;
 JSValue func_mouseMoved;
 
+// type-converters
+
+static JSValue bool_to_js(bool value) {
+  return JS_NewBool(ctx, value);
+}
+
+static JSValue i32_to_js(int32_t value) {
+  return JS_NewInt32(ctx, value);
+}
+
+static JSValue u32_to_js(uint32_t value) {
+  return JS_NewUint32(ctx, value);
+}
+
+static JSValue f32_to_js(float value) {
+  return JS_NewFloat64(ctx, (double)value);
+}
+
+static JSValue u64_to_js(uint64_t value) {
+  // For values that fit in a regular number, use that
+  if (value <= 0x1FFFFFFFFFFFFF) { // 2^53 - 1 (safe integer range)
+    return JS_NewFloat64(ctx, (double)value);
+  }
+  // For larger values, use BigInt
+  return JS_NewBigInt64(ctx, (int64_t)value);
+}
+
+static bool bool_from_js(JSValue val) {
+  return JS_ToBool(ctx, val);
+}
+
+static int32_t i32_from_js(JSValue val) {
+  int32_t result = 0;
+  JS_ToInt32(ctx, &result, val);
+  return result;
+}
+
+static uint32_t u32_from_js(JSValue val) {
+  uint32_t result = 0;
+  JS_ToUint32(ctx, &result, val);
+  return result;
+}
+
+static float f32_from_js(JSValue val) {
+  double result = 0.0;
+  JS_ToFloat64(ctx, &result, val);
+  return (float)result;
+}
+
+static uint64_t u64_from_js(JSValue val) {
+  uint64_t result = 0;
+  
+  // Try to convert as regular number first (for small values)
+  if (JS_IsNumber(val)) {
+    double d;
+    if (JS_ToFloat64(ctx, &d, val) == 0) {
+      result = (uint64_t)d;
+    }
+  }
+  // Handle BigInt values
+  else if (JS_IsBigInt(ctx, val)) {
+    // For BigInt, we need to use a different approach
+    // Convert to string and parse, or use JS_ToBigInt64 if available
+    int64_t signed_result = 0;
+    if (JS_ToBigInt64(ctx, &signed_result, val) == 0) {
+      result = (uint64_t)signed_result;
+    }
+  }
+  
+  return result;
+}
+
+static const char* string_from_js(JSValue val) {
+  return JS_ToCString(ctx, val);
+}
+
 static JSValue dimensions_to_js(Dimensions dims) {
   JSValue obj = JS_NewObject(ctx);
   JS_SetPropertyStr(ctx, obj, "width", JS_NewUint32(ctx, dims.width));
@@ -73,134 +149,104 @@ static JSValue color_to_js(Color color) {
   return obj;
 }
 
-static int dimensions_from_js(JSValue obj, Dimensions *dims) {
+static Vector* vector_array_from_js(JSValue vecArray, uint32_t* lenPointer) {
+  // Check if the input is actually an array
+  if (!JS_IsArray(ctx, vecArray)) {
+    return NULL;
+  }
+
+  // Get the array length
+  JSValue len_val = JS_GetPropertyStr(ctx, vecArray, "length");
+  uint32_t len = 0;
+  JS_ToUint32(ctx, &len, len_val);
+  JS_FreeValue(ctx, len_val);
+
+  if (len == 0) return NULL;
+
+  *lenPointer = len;
+
+  // Allocate memory for the Vector array (caller must free)
+  Vector *vecs = malloc(len * sizeof(Vector));
+  if (!vecs) return NULL;
+
+  // Convert each element
+  for (uint32_t i = 0; i < len; i++) {
+    JSValue val = JS_GetPropertyUint32(ctx, vecArray, i);
+    
+    if (JS_IsObject(val)) {
+      JSValue x_val = JS_GetPropertyStr(ctx, val, "x");
+      JSValue y_val = JS_GetPropertyStr(ctx, val, "y");
+      
+      JS_ToInt32(ctx, &vecs[i].x, x_val);
+      JS_ToInt32(ctx, &vecs[i].y, y_val);
+      
+      JS_FreeValue(ctx, x_val);
+      JS_FreeValue(ctx, y_val);
+    } else {
+      vecs[i].x = 0;
+      vecs[i].y = 0;
+    }
+    
+    JS_FreeValue(ctx, val);
+  }
+
+  return vecs;
+}
+
+
+static Dimensions dimensions_from_js(JSValue obj) {
+  Dimensions dims = {0, 0}; // Default values
+  
   JSValue width_val = JS_GetPropertyStr(ctx, obj, "width");
   JSValue height_val = JS_GetPropertyStr(ctx, obj, "height");
-
-  if (JS_IsException(width_val) || JS_IsException(height_val)) {
-    JS_FreeValue(ctx, width_val);
-    JS_FreeValue(ctx, height_val);
-    return -1;
-  }
-
-  uint32_t width, height;
-  if (JS_ToUint32(ctx, &width, width_val) < 0 ||
-      JS_ToUint32(ctx, &height, height_val) < 0) {
-    JS_FreeValue(ctx, width_val);
-    JS_FreeValue(ctx, height_val);
-    return -1;
-  }
-
-  dims->width = width;
-  dims->height = height;
-
+  
+  JS_ToUint32(ctx, &dims.width, width_val);
+  JS_ToUint32(ctx, &dims.height, height_val);
+  
   JS_FreeValue(ctx, width_val);
   JS_FreeValue(ctx, height_val);
-  return 0;
+  return dims;
 }
 
-static int vector_from_js(JSValue obj, Vector *vec) {
-  JSValue x_val = JS_GetPropertyStr(ctx, obj, "x");
-  JSValue y_val = JS_GetPropertyStr(ctx, obj, "y");
-
-  if (JS_IsException(x_val) || JS_IsException(y_val)) {
-    JS_FreeValue(ctx, x_val);
-    JS_FreeValue(ctx, y_val);
-    return -1;
-  }
-
-  int32_t x, y;
-  if (JS_ToInt32(ctx, &x, x_val) < 0 ||
-      JS_ToInt32(ctx, &y, y_val) < 0) {
-    JS_FreeValue(ctx, x_val);
-    JS_FreeValue(ctx, y_val);
-    return -1;
-  }
-
-  vec->x = x;
-  vec->y = y;
-
-  JS_FreeValue(ctx, x_val);
-  JS_FreeValue(ctx, y_val);
-  return 0;
-}
-
-static int rectangle_from_js(JSValue obj, Rectangle *rect) {
+static Rectangle rectangle_from_js(JSValue obj) {
+  Rectangle rect = {0, 0, 0, 0}; // Default values
+  
   JSValue x_val = JS_GetPropertyStr(ctx, obj, "x");
   JSValue y_val = JS_GetPropertyStr(ctx, obj, "y");
   JSValue width_val = JS_GetPropertyStr(ctx, obj, "width");
   JSValue height_val = JS_GetPropertyStr(ctx, obj, "height");
-
-  if (JS_IsException(x_val) || JS_IsException(y_val) ||
-      JS_IsException(width_val) || JS_IsException(height_val)) {
-    JS_FreeValue(ctx, x_val);
-    JS_FreeValue(ctx, y_val);
-    JS_FreeValue(ctx, width_val);
-    JS_FreeValue(ctx, height_val);
-    return -1;
-  }
-
-  int32_t x, y, width, height;
-  if (JS_ToInt32(ctx, &x, x_val) < 0 ||
-      JS_ToInt32(ctx, &y, y_val) < 0 ||
-      JS_ToInt32(ctx, &width, width_val) < 0 ||
-      JS_ToInt32(ctx, &height, height_val) < 0) {
-    JS_FreeValue(ctx, x_val);
-    JS_FreeValue(ctx, y_val);
-    JS_FreeValue(ctx, width_val);
-    JS_FreeValue(ctx, height_val);
-    return -1;
-  }
-
-  rect->x = x;
-  rect->y = y;
-  rect->width = width;
-  rect->height = height;
-
+  
+  JS_ToInt32(ctx, &rect.x, x_val);
+  JS_ToInt32(ctx, &rect.y, y_val);
+  JS_ToInt32(ctx, &rect.width, width_val);
+  JS_ToInt32(ctx, &rect.height, height_val);
+  
   JS_FreeValue(ctx, x_val);
   JS_FreeValue(ctx, y_val);
   JS_FreeValue(ctx, width_val);
   JS_FreeValue(ctx, height_val);
-  return 0;
+  return rect;
 }
 
-static int color_from_js(JSValue obj, Color *color) {
+static Color color_from_js(JSValue obj) {
+  Color color = {0, 0, 0, 255}; // Default to opaque black
+  
   JSValue r_val = JS_GetPropertyStr(ctx, obj, "r");
   JSValue g_val = JS_GetPropertyStr(ctx, obj, "g");
   JSValue b_val = JS_GetPropertyStr(ctx, obj, "b");
   JSValue a_val = JS_GetPropertyStr(ctx, obj, "a");
-
-  if (JS_IsException(r_val) || JS_IsException(g_val) ||
-      JS_IsException(b_val) || JS_IsException(a_val)) {
-    JS_FreeValue(ctx, r_val);
-    JS_FreeValue(ctx, g_val);
-    JS_FreeValue(ctx, b_val);
-    JS_FreeValue(ctx, a_val);
-    return -1;
-  }
-
+  
   uint32_t r, g, b, a;
-  if (JS_ToUint32(ctx, &r, r_val) < 0 || r > 255 ||
-      JS_ToUint32(ctx, &g, g_val) < 0 || g > 255 ||
-      JS_ToUint32(ctx, &b, b_val) < 0 || b > 255 ||
-      JS_ToUint32(ctx, &a, a_val) < 0 || a > 255) {
-    JS_FreeValue(ctx, r_val);
-    JS_FreeValue(ctx, g_val);
-    JS_FreeValue(ctx, b_val);
-    JS_FreeValue(ctx, a_val);
-    return -1;
-  }
-
-  color->r = (uint8_t)r;
-  color->g = (uint8_t)g;
-  color->b = (uint8_t)b;
-  color->a = (uint8_t)a;
-
+  if (JS_ToUint32(ctx, &r, r_val) >= 0 && r <= 255) color.r = (uint8_t)r;
+  if (JS_ToUint32(ctx, &g, g_val) >= 0 && g <= 255) color.g = (uint8_t)g;
+  if (JS_ToUint32(ctx, &b, b_val) >= 0 && b <= 255) color.b = (uint8_t)b;
+  if (JS_ToUint32(ctx, &a, a_val) >= 0 && a <= 255) color.a = (uint8_t)a;
+  
   JS_FreeValue(ctx, r_val);
   JS_FreeValue(ctx, g_val);
   JS_FreeValue(ctx, b_val);
   JS_FreeValue(ctx, a_val);
-  return 0;
+  return color;
 }
 
 void expose_things_to_js();
@@ -373,9 +419,51 @@ static JSValue js_console_log(JSContext *ctx, JSValueConst this_val, int argc, J
 
 `)
 
-const returnMap = {}
+// functions to map return value into value that js-engine can handle
+const returnMap = {
+  // Wrapper functions for primitives
+  bool: 'bool_to_js',
+  i32: 'i32_to_js',
+  f32: 'f32_to_js',
+  u64: 'u64_to_js',
 
-const argTypes = {}
+  // Resource references
+  Sound: 'u32_to_js',
+  Image: 'u32_to_js',
+  Font: 'u32_to_js',
+
+  // Custom struct converters
+  Vector: 'vector_to_js',
+  Dimensions: 'dimensions_to_js',
+  Rectangle: 'rectangle_to_js',
+  Color: 'color_to_js'
+}
+
+// these types are pointers when returned from C
+const returnRef = ['Vector', 'Dimensions', 'Color']
+
+// functions to map args from js into something C can handle
+const argTypes = {
+  // Wrapper functions for primitives
+  bool: 'bool_from_js',
+  i32: 'i32_from_js',
+  f32: 'f32_from_js',
+  u64: 'u64_from_js',
+  string: 'string_from_js',
+
+  // Resource references and enums
+  Sound: 'u32_from_js',
+  Image: 'u32_from_js',
+  Font: 'u32_from_js',
+  ImageFilter: 'i32_from_js',
+  Key: 'i32_from_js',
+  GamepadButton: 'i32_from_js',
+  MouseButton: 'i32_from_js',
+
+  // Custom struct converters
+  Color: 'color_from_js',
+  'Vector[]': 'vector_array_from_js'
+}
 
 const api = createApiStream()
 
@@ -393,10 +481,13 @@ api.on('end', async () => {
   out.push('')
 
   out.push(
-    indent(`JSValue console_obj = JS_NewObject(ctx);
+    indent(
+      `JSValue console_obj = JS_NewObject(ctx);
 JS_SetPropertyStr(ctx, console_obj, "log", JS_NewCFunction(ctx, js_console_log, "log", 1));
 JS_SetPropertyStr(ctx, global, "console", console_obj);
-`)
+`,
+      2
+    )
   )
   out.push(...funcs)
   out.push('}')
@@ -409,18 +500,33 @@ api.on('function', ({ apiName, funcName, args = {}, returns = 'void', descriptio
   out.push(`// ${description}`)
   out.push(`static JSValue js_${funcName}(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {`)
 
-  let i = -1
-  for (const [name, type] of Object.entries(args)) {
-    i++
-    if (argTypes[type]) {
-      out.push(indent(`//`))
+  let hasArray = false
+
+  let mappedArgs = Object.keys(args).map((name, id) => {
+    const type = args[name]
+    if (type.includes('[]')) {
+      hasArray = id + 1
+      return `${argTypes[type]}(argv[${id}], &outlen)`
+    } else {
+      return `${argTypes[type]}(argv[${hasArray ? id - 1 : id}])`
     }
+  })
+
+  if (hasArray) {
+    out.push(`size_t outlen = 0;`)
+    mappedArgs = mappedArgs.filter((v, i) => i != hasArray)
+    mappedArgs.splice(hasArray, 0, 'outlen')
   }
 
   if (returns === 'void') {
-    out.push(indent(`${funcName}(${Object.keys(args).join(', ')});\nreturn JS_UNDEFINED;`))
+    out.push(indent(`${funcName}(${mappedArgs.join(', ')});\nreturn JS_UNDEFINED;`))
   } else {
-    out.push(indent(`return ${returnMap[returns]}(${funcName}(${Object.keys(args).join(', ')}));`))
+    if (returnRef.includes(returns)) {
+      out.push(`${returns}* ret = ${funcName}(${mappedArgs.join(', ')});`)
+      out.push(indent(`return ${returnMap[returns]}(*ret);`))
+    } else {
+      out.push(indent(`return ${returnMap[returns]}(${funcName}(${mappedArgs.join(', ')}));`))
+    }
   }
   out.push('}')
 })
