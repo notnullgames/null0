@@ -629,55 +629,55 @@ extern void draw_image_scaled_on_image(u32 destination, u32 src, i32 posX, i32 p
 NULL0_IMPORT("draw_text_on_image")
 extern void draw_text_on_image(u32 destination, u32 font, char* text, i32 posX, i32 posY, Color color);
 
-// Draw a 1px outlined rectangle on the screen
+// Draw a outlined (with thickness) rectangle on the screen
 NULL0_IMPORT("draw_rectangle_outline")
 extern void draw_rectangle_outline(i32 posX, i32 posY, i32 width, i32 height, i32 thickness, Color color);
 
-// Draw a 1px outlined triangle on the screen
+// Draw a outlined (with thickness) triangle on the screen
 NULL0_IMPORT("draw_triangle_outline")
 extern void draw_triangle_outline(i32 x1, i32 y1, i32 x2, i32 y2, i32 x3, i32 y3, i32 thickness, Color color);
 
-// Draw a 1px outlined ellipse on the screen
+// Draw a outlined (with thickness) ellipse on the screen
 NULL0_IMPORT("draw_ellipse_outline")
 extern void draw_ellipse_outline(i32 centerX, i32 centerY, i32 radiusX, i32 radiusY, i32 thickness, Color color);
 
-// Draw a 1px outlined circle on the screen
+// Draw a outlined (with thickness) circle on the screen
 NULL0_IMPORT("draw_circle_outline")
 extern void draw_circle_outline(i32 centerX, i32 centerY, i32 radius, i32 thickness, Color color);
 
-// Draw a 1px outlined polygon on the screen
+// Draw a outlined (with thickness) polygon on the screen
 NULL0_IMPORT("draw_polygon_outline")
 extern void draw_polygon_outline(Vector* points, i32 numPoints, i32 thickness, Color color);
 
-// Draw a 1px outlined arc on the screen
+// Draw a outlined (with thickness) arc on the screen
 NULL0_IMPORT("draw_arc_outline")
 extern void draw_arc_outline(i32 centerX, i32 centerY, f32 radius, f32 startAngle, f32 endAngle, i32 segments, i32 thickness, Color color);
 
-// Draw a 1px outlined round-rectangle on the screen
+// Draw a outlined (with thickness) round-rectangle on the screen
 NULL0_IMPORT("draw_rectangle_rounded_outline")
 extern void draw_rectangle_rounded_outline(i32 x, i32 y, i32 width, i32 height, i32 cornerRadius, i32 thickness, Color color);
 
-// Draw a 1px outlined rectangle on an image
+// Draw a outlined (with thickness) rectangle on an image
 NULL0_IMPORT("draw_rectangle_outline_on_image")
 extern void draw_rectangle_outline_on_image(u32 destination, i32 posX, i32 posY, i32 width, i32 height, i32 thickness, Color color);
 
-// Draw a 1px outlined triangle on an image
+// Draw a outlined (with thickness) triangle on an image
 NULL0_IMPORT("draw_triangle_outline_on_image")
 extern void draw_triangle_outline_on_image(u32 destination, i32 x1, i32 y1, i32 x2, i32 y2, i32 x3, i32 y3, i32 thickness, Color color);
 
-// Draw a 1px outlined ellipse on an image
+// Draw a outlined (with thickness) ellipse on an image
 NULL0_IMPORT("draw_ellipse_outline_on_image")
 extern void draw_ellipse_outline_on_image(u32 destination, i32 centerX, i32 centerY, i32 radiusX, i32 radiusY, i32 thickness, Color color);
 
-// Draw a 1px outlined circle on an image
+// Draw a outlined (with thickness) circle on an image
 NULL0_IMPORT("draw_circle_outline_on_image")
 extern void draw_circle_outline_on_image(u32 destination, i32 centerX, i32 centerY, i32 radius, i32 thickness, Color color);
 
-// Draw a 1px outlined polygon on an image
+// Draw a outlined (with thickness) polygon on an image
 NULL0_IMPORT("draw_polygon_outline_on_image")
 extern void draw_polygon_outline_on_image(u32 destination, Vector* points, i32 numPoints, i32 thickness, Color color);
 
-// Draw a 1px outlined round-rectangle on an image
+// Draw a outlined (with thickness) round-rectangle on an image
 NULL0_IMPORT("draw_rectangle_rounded_outline_on_image")
 extern void draw_rectangle_rounded_outline_on_image(u32 destination, i32 x, i32 y, i32 width, i32 height, i32 cornerRadius, i32 thickness, Color color);
 

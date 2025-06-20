@@ -565,7 +565,7 @@ draw_rectangle_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined rectangle on the screen
+  description: Draw a outlined (with thickness) rectangle on the screen
 
 draw_triangle_outline:
   args:
@@ -578,7 +578,7 @@ draw_triangle_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined triangle on the screen
+  description: Draw a outlined (with thickness) triangle on the screen
 
 draw_ellipse_outline:
   args:
@@ -589,7 +589,7 @@ draw_ellipse_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined ellipse on the screen
+  description: Draw a outlined (with thickness) ellipse on the screen
 
 draw_circle_outline:
   args:
@@ -599,7 +599,7 @@ draw_circle_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined circle on the screen
+  description: Draw a outlined (with thickness) circle on the screen
 
 draw_polygon_outline:
   args:
@@ -608,7 +608,7 @@ draw_polygon_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined polygon on the screen
+  description: Draw a outlined (with thickness) polygon on the screen
 
 draw_arc_outline:
   args:
@@ -621,7 +621,7 @@ draw_arc_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined arc on the screen
+  description: Draw a outlined (with thickness) arc on the screen
 
 draw_rectangle_rounded_outline:
   args:
@@ -633,7 +633,7 @@ draw_rectangle_rounded_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined round-rectangle on the screen
+  description: Draw a outlined (with thickness) round-rectangle on the screen
 
 draw_rectangle_outline_on_image:
   args:
@@ -645,7 +645,7 @@ draw_rectangle_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined rectangle on an image
+  description: Draw a outlined (with thickness) rectangle on an image
 
 draw_triangle_outline_on_image:
   args:
@@ -659,7 +659,7 @@ draw_triangle_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined triangle on an image
+  description: Draw a outlined (with thickness) triangle on an image
 
 draw_ellipse_outline_on_image:
   args:
@@ -671,7 +671,7 @@ draw_ellipse_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined ellipse on an image
+  description: Draw a outlined (with thickness) ellipse on an image
 
 draw_circle_outline_on_image:
   args:
@@ -682,7 +682,7 @@ draw_circle_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined circle on an image
+  description: Draw a outlined (with thickness) circle on an image
 
 draw_polygon_outline_on_image:
   args:
@@ -692,7 +692,7 @@ draw_polygon_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined polygon on an image
+  description: Draw a outlined (with thickness) polygon on an image
 
 draw_rectangle_rounded_outline_on_image:
   args:
@@ -705,4 +705,4 @@ draw_rectangle_rounded_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a 1px outlined round-rectangle on an image
+  description: Draw a outlined (with thickness) round-rectangle on an image

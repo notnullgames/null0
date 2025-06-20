@@ -524,31 +524,31 @@ HOST_FUNCTION(void, draw_text_on_image, (uint32_t destination, uint32_t font, ui
  free(textHost);
 })
 
-// Draw a 1px outlined rectangle on the screen
+// Draw a outlined (with thickness) rectangle on the screen
 HOST_FUNCTION(void, draw_rectangle_outline, (int32_t posX, int32_t posY, int32_t width, int32_t height, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  pntr_draw_rectangle_thick(images[0], posX, posY, width, height, thickness, colorHost);
 })
 
-// Draw a 1px outlined triangle on the screen
+// Draw a outlined (with thickness) triangle on the screen
 HOST_FUNCTION(void, draw_triangle_outline, (int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  pntr_draw_triangle_thick(images[0], x1, y1, x2, y2, x3, y3, thickness, colorHost);
 })
 
-// Draw a 1px outlined ellipse on the screen
+// Draw a outlined (with thickness) ellipse on the screen
 HOST_FUNCTION(void, draw_ellipse_outline, (int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  pntr_draw_ellipse_thick(images[0], centerX, centerY, radiusX, radiusY, thickness, colorHost);
 })
 
-// Draw a 1px outlined circle on the screen
+// Draw a outlined (with thickness) circle on the screen
 HOST_FUNCTION(void, draw_circle_outline, (int32_t centerX, int32_t centerY, int32_t radius, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  pntr_draw_circle_thick(images[0], centerX, centerY, radius, thickness, colorHost);
 })
 
-// Draw a 1px outlined polygon on the screen
+// Draw a outlined (with thickness) polygon on the screen
 HOST_FUNCTION(void, draw_polygon_outline, (uint32_t points, int32_t numPoints, int32_t thickness, uint32_t color), {
  pntr_vector* pointsHost = copy_memory_from_cart(points, numPoints * sizeof(pntr_vector));
  pntr_color colorHost = copy_color_from_cart(color);
@@ -556,43 +556,43 @@ HOST_FUNCTION(void, draw_polygon_outline, (uint32_t points, int32_t numPoints, i
  free(pointsHost);
 })
 
-// Draw a 1px outlined arc on the screen
+// Draw a outlined (with thickness) arc on the screen
 HOST_FUNCTION(void, draw_arc_outline, (int32_t centerX, int32_t centerY, float radius, float startAngle, float endAngle, int32_t segments, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  pntr_draw_arc_thick(images[0], centerX, centerY, radius, startAngle, endAngle, segments, thickness, colorHost);
 })
 
-// Draw a 1px outlined round-rectangle on the screen
+// Draw a outlined (with thickness) round-rectangle on the screen
 HOST_FUNCTION(void, draw_rectangle_rounded_outline, (int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  null0_draw_rectangle_thick_rounded(images[0], x, y, width, height, cornerRadius, thickness, colorHost);
 })
 
-// Draw a 1px outlined rectangle on an image
+// Draw a outlined (with thickness) rectangle on an image
 HOST_FUNCTION(void, draw_rectangle_outline_on_image, (uint32_t destination, int32_t posX, int32_t posY, int32_t width, int32_t height, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  pntr_draw_rectangle_thick(images[destination], posX, posY, width, height, thickness, colorHost);
 })
 
-// Draw a 1px outlined triangle on an image
+// Draw a outlined (with thickness) triangle on an image
 HOST_FUNCTION(void, draw_triangle_outline_on_image, (uint32_t destination, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  pntr_draw_triangle_thick(images[destination], x1, y1, x2, y2, x3, y3, thickness, colorHost);
 })
 
-// Draw a 1px outlined ellipse on an image
+// Draw a outlined (with thickness) ellipse on an image
 HOST_FUNCTION(void, draw_ellipse_outline_on_image, (uint32_t destination, int32_t centerX, int32_t centerY, int32_t radiusX, int32_t radiusY, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  pntr_draw_ellipse_thick(images[destination], centerX, centerY, radiusX, radiusY, thickness, colorHost);
 })
 
-// Draw a 1px outlined circle on an image
+// Draw a outlined (with thickness) circle on an image
 HOST_FUNCTION(void, draw_circle_outline_on_image, (uint32_t destination, int32_t centerX, int32_t centerY, int32_t radius, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  pntr_draw_circle_thick(images[destination], centerX, centerY, radius, thickness, colorHost);
 })
 
-// Draw a 1px outlined polygon on an image
+// Draw a outlined (with thickness) polygon on an image
 HOST_FUNCTION(void, draw_polygon_outline_on_image, (uint32_t destination, uint32_t points, int32_t numPoints, int32_t thickness, uint32_t color), {
  pntr_vector* pointsHost = copy_memory_from_cart(points, numPoints * sizeof(pntr_vector));
  pntr_color colorHost = copy_color_from_cart(color);
@@ -600,7 +600,7 @@ HOST_FUNCTION(void, draw_polygon_outline_on_image, (uint32_t destination, uint32
  free(pointsHost);
 })
 
-// Draw a 1px outlined round-rectangle on an image
+// Draw a outlined (with thickness) round-rectangle on an image
 HOST_FUNCTION(void, draw_rectangle_rounded_outline_on_image, (uint32_t destination, int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, int32_t thickness, uint32_t color), {
  pntr_color colorHost = copy_color_from_cart(color);
  null0_draw_rectangle_thick_rounded(images[destination], x, y, width, height, cornerRadius, thickness, colorHost);
