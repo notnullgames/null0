@@ -10,8 +10,7 @@ FILES_DIR="${3}"
 cp "${WASM_DIR}/${WASM}" "${FILES_DIR}/main.wasm"
 cd "${FILES_DIR}"
 
-# Simple zip without exclusions first
-zip -r "${CART}" .
+zip -rq "${CART}" . -x "*.c" "*.h" ".DS_Store" "__*"
 
 echo "Zip contents:"
 unzip -l "${CART}"

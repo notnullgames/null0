@@ -10,9 +10,9 @@ FILES_DIR="${3}"
 cp "${WASM_DIR}/${WASM}" "${FILES_DIR}/main.wasm"
 cd "${FILES_DIR}"
 
-shopt -s extglob
-# Include main.wasm and all files except the excluded patterns
 zip -rq "${CART}" . -x "*.c" "*.h" ".DS_Store" "__*"
-shopt -u extglob
+
+echo "Zip contents:"
+unzip -l "${CART}"
 
 rm "${FILES_DIR}/main.wasm"
