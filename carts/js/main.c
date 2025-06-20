@@ -567,14 +567,118 @@ static JSValue js_log(JSContext *ctx, JSValueConst this_val, int argc, JSValueCo
     return JS_UNDEFINED;
   }
 
-  // Set up game engine bindings
-  static void setup_game_bindings() {
-    JSValue global = JS_GetGlobalObject(ctx);
+// Set up game engine bindings
+static void setup_game_bindings() {
+  JSValue global = JS_GetGlobalObject(ctx);
 
-    // Add console.log function
-    JSValue console_obj = JS_NewObject(ctx);
-    JS_SetPropertyStr(ctx, console_obj, "log", JS_NewCFunction(ctx, js_log, "log", 1));
-    JS_SetPropertyStr(ctx, global, "console", console_obj);
+  // Add console.log function
+  JSValue console_obj = JS_NewObject(ctx);
+  JS_SetPropertyStr(ctx, console_obj, "log", JS_NewCFunction(ctx, js_log, "log", 1));
+  JS_SetPropertyStr(ctx, global, "console", console_obj);
+
+  JS_SetPropertyStr(ctx, global, "current_time", JS_NewCFunction(ctx, js_current_time, "current_time", 0));
+  JS_SetPropertyStr(ctx, global, "delta_time", JS_NewCFunction(ctx, js_delta_time, "delta_time", 0));
+  JS_SetPropertyStr(ctx, global, "random_int", JS_NewCFunction(ctx, js_random_int, "random_int", 2));
+  JS_SetPropertyStr(ctx, global, "random_seed_get", JS_NewCFunction(ctx, js_random_seed_get, "random_seed_get", 0));
+  JS_SetPropertyStr(ctx, global, "random_seed_set", JS_NewCFunction(ctx, js_random_seed_set, "random_seed_set", 1));
+  JS_SetPropertyStr(ctx, global, "load_sound", JS_NewCFunction(ctx, js_load_sound, "load_sound", 1));
+  JS_SetPropertyStr(ctx, global, "play_sound", JS_NewCFunction(ctx, js_play_sound, "play_sound", 2));
+  JS_SetPropertyStr(ctx, global, "stop_sound", JS_NewCFunction(ctx, js_stop_sound, "stop_sound", 1));
+  JS_SetPropertyStr(ctx, global, "unload_sound", JS_NewCFunction(ctx, js_unload_sound, "unload_sound", 1));
+  JS_SetPropertyStr(ctx, global, "key_pressed", JS_NewCFunction(ctx, js_key_pressed, "key_pressed", 1));
+  JS_SetPropertyStr(ctx, global, "key_down", JS_NewCFunction(ctx, js_key_down, "key_down", 1));
+  JS_SetPropertyStr(ctx, global, "key_released", JS_NewCFunction(ctx, js_key_released, "key_released", 1));
+  JS_SetPropertyStr(ctx, global, "key_up", JS_NewCFunction(ctx, js_key_up, "key_up", 1));
+  JS_SetPropertyStr(ctx, global, "gamepad_button_pressed", JS_NewCFunction(ctx, js_gamepad_button_pressed, "gamepad_button_pressed", 2));
+  JS_SetPropertyStr(ctx, global, "gamepad_button_down", JS_NewCFunction(ctx, js_gamepad_button_down, "gamepad_button_down", 2));
+  JS_SetPropertyStr(ctx, global, "gamepad_button_released", JS_NewCFunction(ctx, js_gamepad_button_released, "gamepad_button_released", 2));
+  JS_SetPropertyStr(ctx, global, "mouse_position", JS_NewCFunction(ctx, js_mouse_position, "mouse_position", 0));
+  JS_SetPropertyStr(ctx, global, "mouse_button_pressed", JS_NewCFunction(ctx, js_mouse_button_pressed, "mouse_button_pressed", 1));
+  JS_SetPropertyStr(ctx, global, "mouse_button_down", JS_NewCFunction(ctx, js_mouse_button_down, "mouse_button_down", 1));
+  JS_SetPropertyStr(ctx, global, "mouse_button_released", JS_NewCFunction(ctx, js_mouse_button_released, "mouse_button_released", 1));
+  JS_SetPropertyStr(ctx, global, "mouse_button_up", JS_NewCFunction(ctx, js_mouse_button_up, "mouse_button_up", 1));
+  JS_SetPropertyStr(ctx, global, "new_image", JS_NewCFunction(ctx, js_new_image, "new_image", 3));
+  JS_SetPropertyStr(ctx, global, "image_copy", JS_NewCFunction(ctx, js_image_copy, "image_copy", 1));
+  JS_SetPropertyStr(ctx, global, "image_subimage", JS_NewCFunction(ctx, js_image_subimage, "image_subimage", 5));
+  JS_SetPropertyStr(ctx, global, "clear", JS_NewCFunction(ctx, js_clear, "clear", 1));
+  JS_SetPropertyStr(ctx, global, "draw_point", JS_NewCFunction(ctx, js_draw_point, "draw_point", 3));
+  JS_SetPropertyStr(ctx, global, "draw_line", JS_NewCFunction(ctx, js_draw_line, "draw_line", 5));
+  JS_SetPropertyStr(ctx, global, "draw_rectangle", JS_NewCFunction(ctx, js_draw_rectangle, "draw_rectangle", 5));
+  JS_SetPropertyStr(ctx, global, "draw_triangle", JS_NewCFunction(ctx, js_draw_triangle, "draw_triangle", 7));
+  JS_SetPropertyStr(ctx, global, "draw_ellipse", JS_NewCFunction(ctx, js_draw_ellipse, "draw_ellipse", 5));
+  JS_SetPropertyStr(ctx, global, "draw_circle", JS_NewCFunction(ctx, js_draw_circle, "draw_circle", 4));
+  JS_SetPropertyStr(ctx, global, "draw_polygon", JS_NewCFunction(ctx, js_draw_polygon, "draw_polygon", 3));
+  JS_SetPropertyStr(ctx, global, "draw_arc", JS_NewCFunction(ctx, js_draw_arc, "draw_arc", 7));
+  JS_SetPropertyStr(ctx, global, "draw_rectangle_rounded", JS_NewCFunction(ctx, js_draw_rectangle_rounded, "draw_rectangle_rounded", 6));
+  JS_SetPropertyStr(ctx, global, "draw_image", JS_NewCFunction(ctx, js_draw_image, "draw_image", 3));
+  JS_SetPropertyStr(ctx, global, "draw_image_tint", JS_NewCFunction(ctx, js_draw_image_tint, "draw_image_tint", 4));
+  JS_SetPropertyStr(ctx, global, "draw_image_rotated", JS_NewCFunction(ctx, js_draw_image_rotated, "draw_image_rotated", 7));
+  JS_SetPropertyStr(ctx, global, "draw_image_flipped", JS_NewCFunction(ctx, js_draw_image_flipped, "draw_image_flipped", 6));
+  JS_SetPropertyStr(ctx, global, "draw_image_scaled", JS_NewCFunction(ctx, js_draw_image_scaled, "draw_image_scaled", 8));
+  JS_SetPropertyStr(ctx, global, "draw_text", JS_NewCFunction(ctx, js_draw_text, "draw_text", 5));
+  JS_SetPropertyStr(ctx, global, "save_image", JS_NewCFunction(ctx, js_save_image, "save_image", 2));
+  JS_SetPropertyStr(ctx, global, "load_image", JS_NewCFunction(ctx, js_load_image, "load_image", 1));
+  JS_SetPropertyStr(ctx, global, "image_resize", JS_NewCFunction(ctx, js_image_resize, "image_resize", 4));
+  JS_SetPropertyStr(ctx, global, "image_scale", JS_NewCFunction(ctx, js_image_scale, "image_scale", 4));
+  JS_SetPropertyStr(ctx, global, "image_color_replace", JS_NewCFunction(ctx, js_image_color_replace, "image_color_replace", 3));
+  JS_SetPropertyStr(ctx, global, "image_color_tint", JS_NewCFunction(ctx, js_image_color_tint, "image_color_tint", 2));
+  JS_SetPropertyStr(ctx, global, "image_color_fade", JS_NewCFunction(ctx, js_image_color_fade, "image_color_fade", 2));
+  JS_SetPropertyStr(ctx, global, "font_copy", JS_NewCFunction(ctx, js_font_copy, "font_copy", 1));
+  JS_SetPropertyStr(ctx, global, "font_scale", JS_NewCFunction(ctx, js_font_scale, "font_scale", 4));
+  JS_SetPropertyStr(ctx, global, "load_font_bmf", JS_NewCFunction(ctx, js_load_font_bmf, "load_font_bmf", 2));
+  JS_SetPropertyStr(ctx, global, "load_font_bmf_from_image", JS_NewCFunction(ctx, js_load_font_bmf_from_image, "load_font_bmf_from_image", 2));
+  JS_SetPropertyStr(ctx, global, "measure_text", JS_NewCFunction(ctx, js_measure_text, "measure_text", 3));
+  JS_SetPropertyStr(ctx, global, "measure_image", JS_NewCFunction(ctx, js_measure_image, "measure_image", 1));
+  JS_SetPropertyStr(ctx, global, "load_font_tty", JS_NewCFunction(ctx, js_load_font_tty, "load_font_tty", 4));
+  JS_SetPropertyStr(ctx, global, "load_font_tty_from_image", JS_NewCFunction(ctx, js_load_font_tty_from_image, "load_font_tty_from_image", 4));
+  JS_SetPropertyStr(ctx, global, "load_font_ttf", JS_NewCFunction(ctx, js_load_font_ttf, "load_font_ttf", 2));
+  JS_SetPropertyStr(ctx, global, "image_color_invert", JS_NewCFunction(ctx, js_image_color_invert, "image_color_invert", 1));
+  JS_SetPropertyStr(ctx, global, "image_alpha_border", JS_NewCFunction(ctx, js_image_alpha_border, "image_alpha_border", 2));
+  JS_SetPropertyStr(ctx, global, "image_crop", JS_NewCFunction(ctx, js_image_crop, "image_crop", 5));
+  JS_SetPropertyStr(ctx, global, "image_alpha_crop", JS_NewCFunction(ctx, js_image_alpha_crop, "image_alpha_crop", 2));
+  JS_SetPropertyStr(ctx, global, "image_color_brightness", JS_NewCFunction(ctx, js_image_color_brightness, "image_color_brightness", 2));
+  JS_SetPropertyStr(ctx, global, "image_flip", JS_NewCFunction(ctx, js_image_flip, "image_flip", 3));
+  JS_SetPropertyStr(ctx, global, "image_color_contrast", JS_NewCFunction(ctx, js_image_color_contrast, "image_color_contrast", 2));
+  JS_SetPropertyStr(ctx, global, "image_alpha_mask", JS_NewCFunction(ctx, js_image_alpha_mask, "image_alpha_mask", 4));
+  JS_SetPropertyStr(ctx, global, "image_rotate", JS_NewCFunction(ctx, js_image_rotate, "image_rotate", 3));
+  JS_SetPropertyStr(ctx, global, "image_gradient", JS_NewCFunction(ctx, js_image_gradient, "image_gradient", 6));
+  JS_SetPropertyStr(ctx, global, "unload_image", JS_NewCFunction(ctx, js_unload_image, "unload_image", 1));
+  JS_SetPropertyStr(ctx, global, "unload_font", JS_NewCFunction(ctx, js_unload_font, "unload_font", 1));
+  JS_SetPropertyStr(ctx, global, "clear_image", JS_NewCFunction(ctx, js_clear_image, "clear_image", 2));
+  JS_SetPropertyStr(ctx, global, "draw_point_on_image", JS_NewCFunction(ctx, js_draw_point_on_image, "draw_point_on_image", 4));
+  JS_SetPropertyStr(ctx, global, "draw_line_on_image", JS_NewCFunction(ctx, js_draw_line_on_image, "draw_line_on_image", 6));
+  JS_SetPropertyStr(ctx, global, "draw_rectangle_on_image", JS_NewCFunction(ctx, js_draw_rectangle_on_image, "draw_rectangle_on_image", 6));
+  JS_SetPropertyStr(ctx, global, "draw_triangle_on_image", JS_NewCFunction(ctx, js_draw_triangle_on_image, "draw_triangle_on_image", 8));
+  JS_SetPropertyStr(ctx, global, "draw_ellipse_on_image", JS_NewCFunction(ctx, js_draw_ellipse_on_image, "draw_ellipse_on_image", 6));
+  JS_SetPropertyStr(ctx, global, "draw_circle_on_image", JS_NewCFunction(ctx, js_draw_circle_on_image, "draw_circle_on_image", 5));
+  JS_SetPropertyStr(ctx, global, "draw_polygon_on_image", JS_NewCFunction(ctx, js_draw_polygon_on_image, "draw_polygon_on_image", 4));
+  JS_SetPropertyStr(ctx, global, "draw_rectangle_rounded_on_image", JS_NewCFunction(ctx, js_draw_rectangle_rounded_on_image, "draw_rectangle_rounded_on_image", 7));
+  JS_SetPropertyStr(ctx, global, "draw_image_on_image", JS_NewCFunction(ctx, js_draw_image_on_image, "draw_image_on_image", 4));
+  JS_SetPropertyStr(ctx, global, "draw_image_tint_on_image", JS_NewCFunction(ctx, js_draw_image_tint_on_image, "draw_image_tint_on_image", 5));
+  JS_SetPropertyStr(ctx, global, "draw_image_rotated_on_image", JS_NewCFunction(ctx, js_draw_image_rotated_on_image, "draw_image_rotated_on_image", 8));
+  JS_SetPropertyStr(ctx, global, "draw_image_flipped_on_image", JS_NewCFunction(ctx, js_draw_image_flipped_on_image, "draw_image_flipped_on_image", 7));
+  JS_SetPropertyStr(ctx, global, "draw_image_scaled_on_image", JS_NewCFunction(ctx, js_draw_image_scaled_on_image, "draw_image_scaled_on_image", 9));
+  JS_SetPropertyStr(ctx, global, "draw_text_on_image", JS_NewCFunction(ctx, js_draw_text_on_image, "draw_text_on_image", 6));
+  JS_SetPropertyStr(ctx, global, "draw_rectangle_outline", JS_NewCFunction(ctx, js_draw_rectangle_outline, "draw_rectangle_outline", 6));
+  JS_SetPropertyStr(ctx, global, "draw_triangle_outline", JS_NewCFunction(ctx, js_draw_triangle_outline, "draw_triangle_outline", 8));
+  JS_SetPropertyStr(ctx, global, "draw_ellipse_outline", JS_NewCFunction(ctx, js_draw_ellipse_outline, "draw_ellipse_outline", 6));
+  JS_SetPropertyStr(ctx, global, "draw_circle_outline", JS_NewCFunction(ctx, js_draw_circle_outline, "draw_circle_outline", 5));
+  JS_SetPropertyStr(ctx, global, "draw_polygon_outline", JS_NewCFunction(ctx, js_draw_polygon_outline, "draw_polygon_outline", 4));
+  JS_SetPropertyStr(ctx, global, "draw_arc_outline", JS_NewCFunction(ctx, js_draw_arc_outline, "draw_arc_outline", 8));
+  JS_SetPropertyStr(ctx, global, "draw_rectangle_rounded_outline", JS_NewCFunction(ctx, js_draw_rectangle_rounded_outline, "draw_rectangle_rounded_outline", 7));
+  JS_SetPropertyStr(ctx, global, "draw_rectangle_outline_on_image", JS_NewCFunction(ctx, js_draw_rectangle_outline_on_image, "draw_rectangle_outline_on_image", 7));
+  JS_SetPropertyStr(ctx, global, "draw_triangle_outline_on_image", JS_NewCFunction(ctx, js_draw_triangle_outline_on_image, "draw_triangle_outline_on_image", 9));
+  JS_SetPropertyStr(ctx, global, "draw_ellipse_outline_on_image", JS_NewCFunction(ctx, js_draw_ellipse_outline_on_image, "draw_ellipse_outline_on_image", 7));
+  JS_SetPropertyStr(ctx, global, "draw_circle_outline_on_image", JS_NewCFunction(ctx, js_draw_circle_outline_on_image, "draw_circle_outline_on_image", 6));
+  JS_SetPropertyStr(ctx, global, "draw_polygon_outline_on_image", JS_NewCFunction(ctx, js_draw_polygon_outline_on_image, "draw_polygon_outline_on_image", 5));
+  JS_SetPropertyStr(ctx, global, "draw_rectangle_rounded_outline_on_image", JS_NewCFunction(ctx, js_draw_rectangle_rounded_outline_on_image, "draw_rectangle_rounded_outline_on_image", 8));
+  JS_SetPropertyStr(ctx, global, "color_tint", JS_NewCFunction(ctx, js_color_tint, "color_tint", 2));
+  JS_SetPropertyStr(ctx, global, "color_fade", JS_NewCFunction(ctx, js_color_fade, "color_fade", 2));
+  JS_SetPropertyStr(ctx, global, "color_brightness", JS_NewCFunction(ctx, js_color_brightness, "color_brightness", 2));
+  JS_SetPropertyStr(ctx, global, "color_invert", JS_NewCFunction(ctx, js_color_invert, "color_invert", 1));
+  JS_SetPropertyStr(ctx, global, "color_alpha_blend", JS_NewCFunction(ctx, js_color_alpha_blend, "color_alpha_blend", 2));
+  JS_SetPropertyStr(ctx, global, "color_contrast", JS_NewCFunction(ctx, js_color_contrast, "color_contrast", 2));
+  JS_SetPropertyStr(ctx, global, "color_bilinear_interpolate", JS_NewCFunction(ctx, js_color_bilinear_interpolate, "color_bilinear_interpolate", 6));
 
   JS_SetPropertyStr(ctx, global, "LIGHTGRAY", js_color_from_native(ctx, LIGHTGRAY));
   JS_SetPropertyStr(ctx, global, "GRAY", js_color_from_native(ctx, GRAY));
