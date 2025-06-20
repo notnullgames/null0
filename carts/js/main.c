@@ -547,7 +547,7 @@ static JSValue js_draw_circle(JSContext *ctx, JSValueConst this_val, int argc, J
 }
 // Draw a filled polygon on the screen
 static JSValue js_draw_polygon(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-size_t outlen = 0;
+ size_t outlen = 0;
  draw_polygon(vector_array_from_js(argv[0], &outlen), outlen, color_from_js(argv[1]));
  return JS_UNDEFINED;
 }
@@ -757,7 +757,7 @@ static JSValue js_draw_circle_on_image(JSContext *ctx, JSValueConst this_val, in
 }
 // Draw a filled polygon on an image
 static JSValue js_draw_polygon_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-size_t outlen = 0;
+ size_t outlen = 0;
  draw_polygon_on_image(u32_from_js(argv[0]), vector_array_from_js(argv[1], &outlen), outlen, color_from_js(argv[2]));
  return JS_UNDEFINED;
 }
@@ -818,7 +818,7 @@ static JSValue js_draw_circle_outline(JSContext *ctx, JSValueConst this_val, int
 }
 // Draw a outlined (with thickness) polygon on the screen
 static JSValue js_draw_polygon_outline(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-size_t outlen = 0;
+ size_t outlen = 0;
  draw_polygon_outline(vector_array_from_js(argv[0], &outlen), outlen, i32_from_js(argv[1]), color_from_js(argv[2]));
  return JS_UNDEFINED;
 }
@@ -854,7 +854,7 @@ static JSValue js_draw_circle_outline_on_image(JSContext *ctx, JSValueConst this
 }
 // Draw a outlined (with thickness) polygon on an image
 static JSValue js_draw_polygon_outline_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-size_t outlen = 0;
+ size_t outlen = 0;
  draw_polygon_outline_on_image(u32_from_js(argv[0]), vector_array_from_js(argv[1], &outlen), outlen, i32_from_js(argv[2]), color_from_js(argv[3]));
  return JS_UNDEFINED;
 }

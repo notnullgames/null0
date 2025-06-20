@@ -513,7 +513,7 @@ api.on('function', ({ apiName, funcName, args = {}, returns = 'void', descriptio
   })
 
   if (hasArray) {
-    out.push(`size_t outlen = 0;`)
+    out.push(indent(`size_t outlen = 0;`))
     mappedArgs = mappedArgs.filter((v, i) => i != hasArray)
     mappedArgs.splice(hasArray, 0, 'outlen')
   }
