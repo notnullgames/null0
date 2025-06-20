@@ -522,7 +522,7 @@ api.on('function', ({ apiName, funcName, args = {}, returns = 'void', descriptio
     out.push(indent(`${funcName}(${mappedArgs.join(', ')});\nreturn JS_UNDEFINED;`))
   } else {
     if (returnRef.includes(returns)) {
-      out.push(`${returns}* ret = ${funcName}(${mappedArgs.join(', ')});`)
+      out.push(indent(`${returns}* ret = ${funcName}(${mappedArgs.join(', ')});`))
       out.push(indent(`return ${returnMap[returns]}(*ret);`))
     } else {
       out.push(indent(`return ${returnMap[returns]}(${funcName}(${mappedArgs.join(', ')}));`))

@@ -476,7 +476,7 @@ static JSValue js_gamepad_button_released(JSContext *ctx, JSValueConst this_val,
 }
 // Get current position of mouse
 static JSValue js_mouse_position(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-Vector* ret = mouse_position();
+ Vector* ret = mouse_position();
  return vector_to_js(*ret);
 }
 // Has the button been pressed? (tracks unpress/read correctly)
@@ -643,12 +643,12 @@ static JSValue js_load_font_bmf_from_image(JSContext *ctx, JSValueConst this_val
 }
 // Measure the size of some text
 static JSValue js_measure_text(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-Dimensions* ret = measure_text(u32_from_js(argv[0]), string_from_js(argv[1]), i32_from_js(argv[2]));
+ Dimensions* ret = measure_text(u32_from_js(argv[0]), string_from_js(argv[1]), i32_from_js(argv[2]));
  return dimensions_to_js(*ret);
 }
 // Meaure an image (use 0 for screen)
 static JSValue js_measure_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-Dimensions* ret = measure_image(u32_from_js(argv[0]));
+ Dimensions* ret = measure_image(u32_from_js(argv[0]));
  return dimensions_to_js(*ret);
 }
 // Load a TTY font from a file in cart
@@ -868,37 +868,37 @@ static JSValue js_draw_rectangle_rounded_outline_on_image(JSContext *ctx, JSValu
 
 // Tint a color with another color
 static JSValue js_color_tint(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-Color* ret = color_tint(color_from_js(argv[0]), color_from_js(argv[1]));
+ Color* ret = color_tint(color_from_js(argv[0]), color_from_js(argv[1]));
  return color_to_js(*ret);
 }
 // Fade a color
 static JSValue js_color_fade(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-Color* ret = color_fade(color_from_js(argv[0]), f32_from_js(argv[1]));
+ Color* ret = color_fade(color_from_js(argv[0]), f32_from_js(argv[1]));
  return color_to_js(*ret);
 }
 // Change the brightness of a color
 static JSValue js_color_brightness(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-Color* ret = color_brightness(color_from_js(argv[0]), f32_from_js(argv[1]));
+ Color* ret = color_brightness(color_from_js(argv[0]), f32_from_js(argv[1]));
  return color_to_js(*ret);
 }
 // Invert a color
 static JSValue js_color_invert(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-Color* ret = color_invert(color_from_js(argv[0]));
+ Color* ret = color_invert(color_from_js(argv[0]));
  return color_to_js(*ret);
 }
 // Blend 2 colors together
 static JSValue js_color_alpha_blend(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-Color* ret = color_alpha_blend(color_from_js(argv[0]), color_from_js(argv[1]));
+ Color* ret = color_alpha_blend(color_from_js(argv[0]), color_from_js(argv[1]));
  return color_to_js(*ret);
 }
 // Change contrast of a color
 static JSValue js_color_contrast(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-Color* ret = color_contrast(color_from_js(argv[0]), f32_from_js(argv[1]));
+ Color* ret = color_contrast(color_from_js(argv[0]), f32_from_js(argv[1]));
  return color_to_js(*ret);
 }
 // Interpolate colors
 static JSValue js_color_bilinear_interpolate(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-Color* ret = color_bilinear_interpolate(color_from_js(argv[0]), color_from_js(argv[1]), color_from_js(argv[2]), color_from_js(argv[3]), f32_from_js(argv[4]), f32_from_js(argv[5]));
+ Color* ret = color_bilinear_interpolate(color_from_js(argv[0]), color_from_js(argv[1]), color_from_js(argv[2]), color_from_js(argv[3]), f32_from_js(argv[4]), f32_from_js(argv[5]));
  return color_to_js(*ret);
 }
 void expose_things_to_js() {
