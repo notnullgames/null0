@@ -3,7 +3,7 @@ function load() {
 }
 
 function update() {
-  console.log('update')
+  clear(BLUE)
 }
 
 function unload() {
