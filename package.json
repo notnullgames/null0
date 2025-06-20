@@ -15,7 +15,8 @@
     "start": "npx -y live-server --mount=/carts:./build/carts --mount=/wbuild:./wbuild webroot",
     "prestart": "npm run build:web && npm run build:carts",
     "gen:host": "node tools/gen_host.js",
-    "gen:cart_c": "node tools/gen_cart_c.js"
+    "gen:cart_c": "node tools/gen_cart_c.js",
+    "gen:cart_js": "node tools/gen_cart_js.js"
   },
   "devDependencies": {
     "glob": "^11.0.3",
