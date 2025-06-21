@@ -64,7 +64,7 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
       pntr_app_log(PNTR_APP_LOG_ERROR, "wasi: register");
       return false;
     }
-    printf("Added %d WASI functions\n", wasi_count);
+    // printf("Added %d WASI functions\n", wasi_count);
   } else {
     pntr_app_log(PNTR_APP_LOG_WARNING, "wasi: no symbols");
   }

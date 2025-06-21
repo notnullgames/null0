@@ -21,25 +21,89 @@ function add_consts() {
 
 out.push(`#include "../null0.h"
 #include "quickjs.h"
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include "quickjs-libc.h"
 
-JSValue global;
+JSRuntime *rt;
 JSContext *ctx;
-JSValue callback_params[2] = {};
-JSValue func_unload;
-JSValue func_update;
-JSValue func_buttonUp;
-JSValue func_buttonDown;
-JSValue func_keyUp;
-JSValue func_keyDown;
-JSValue func_mouseDown;
-JSValue func_mouseUp;
-JSValue func_mouseMoved;
+JSValue global;
+JSValue args[2];
+
+void expose_things_to_js();
+
+// callback something in cart
+void cart(const char* func_name, JSValue* args, int argc) {
+  JSValue cart = JS_GetPropertyStr(ctx, global, "cart");
+  if (!JS_IsUndefined(cart)) {
+    JSValue func = JS_GetPropertyStr(ctx, cart, func_name);
+    if (JS_IsFunction(ctx, func)) {
+      JSValue result = JS_Call(ctx, func, cart, argc, args);
+      if (JS_IsException(result)) {
+        js_std_dump_error(ctx);
+      }
+      JS_FreeValue(ctx, result);
+    } else {
+      // printf("cart.%s() not defined\\n", func_name);
+    }
+    JS_FreeValue(ctx, func);
+  } else {
+    printf("cart not defined when calling %s\\n", func_name);
+  }
+  JS_FreeValue(ctx, cart);
+}
+
+int main(int argc, char* argv[]) {
+  rt = JS_NewRuntime();
+  ctx = JS_NewContext(rt);
+  global = JS_GetGlobalObject(ctx);
+
+  JS_SetMemoryLimit(rt, 0x4000000); // 64 Mb
+  JS_SetMaxStackSize(rt, 0x10000); // 64 Kb
+  JS_SetModuleLoaderFunc(rt, NULL, js_module_loader, NULL);
+  js_std_add_helpers(ctx, 0, NULL);
+
+  expose_things_to_js();
+
+  // setup std/os globals/modules
+  js_init_module_std(ctx, "std");
+  js_init_module_os(ctx, "os");
+  const char *str = "import * as std from 'std';\\n"
+    "import * as os from 'os';\\n"
+    "import * as cart from './main.js';\\n"
+    "globalThis.cart = cart;\\n"
+    "globalThis.std = std;\\n"
+    "globalThis.os = os;\\n"
+    "cart?.load && cart.load();\\n";
+  
+  JSValue std_val = JS_Eval(ctx, str, strlen(str), "<CART>", JS_EVAL_TYPE_MODULE);
+  std_val = js_std_await(ctx, std_val);
+  
+  if (!JS_IsException(std_val)) {
+    js_module_set_import_meta(ctx, std_val, 1, 1);
+    std_val = JS_EvalFunction(ctx, std_val);
+  } else {
+    js_std_dump_error(ctx);
+  }
+
+  JS_FreeValue(ctx, std_val);
+}
+
+void update() {
+  cart("update", NULL, 0);
+  fflush(stdout);
+}
+
+void buttonDown(GamepadButton button, unsigned int player) {
+  args[0] = JS_NewInt32(ctx, (int)button);
+  args[1] = JS_NewUint32(ctx, player);
+  cart("buttonDown", args, 2);
+}
+
+void buttonUp(GamepadButton button, unsigned int player) {
+  args[0] = JS_NewInt32(ctx, (int)button);
+  args[1] = JS_NewUint32(ctx, player);
+  cart("buttonUp", args, 2);
+}
+
 
 // type-converters
 
@@ -249,173 +313,7 @@ static Color color_from_js(JSValue obj) {
   return color;
 }
 
-void expose_things_to_js();
-
-// Function to read file contents
-static char *read_file(const char *filename) {
-  int fd = open(filename, O_RDONLY);
-  if (fd < 0) {
-    fprintf(stderr, "Error: Cannot open file '%s'\\n", filename);
-    return NULL;
-  }
-
-  struct stat st;
-  if (fstat(fd, &st) < 0) {
-    close(fd);
-    fprintf(stderr, "Error: Cannot stat file '%s'\\n", filename);
-    return NULL;
-  }
-
-  size_t size = st.st_size;
-  char *buffer = malloc(size + 1);
-  if (!buffer) {
-    close(fd);
-    fprintf(stderr, "Error: Memory allocation failed\\n");
-    return NULL;
-  }
-
-  ssize_t bytes_read = read(fd, buffer, size);
-  close(fd);
-
-  if (bytes_read != size) {
-    free(buffer);
-    fprintf(stderr, "Error: Failed to read complete file\\n");
-    return NULL;
-  }
-
-  buffer[size] = '\\0';
-  return buffer;
-}
-
-static int execute_js_file(const char *filename) {
-  char *code = read_file(filename);
-  if (code == NULL) {
-    return -1;
-  }
-  JSValue result = JS_Eval(ctx, code, strlen(code), filename, JS_EVAL_TYPE_GLOBAL);
-  if (JS_IsException(result)) {
-    JSValue exception = JS_GetException(ctx);
-    const char *error_str = JS_ToCString(ctx, exception);
-    fprintf(stderr, "JavaScript Error: %s\\n", error_str ? error_str : "Unknown error");
-    JS_FreeCString(ctx, error_str);
-    JS_FreeValue(ctx, exception);
-    JS_FreeValue(ctx, result);
-    return -1;
-  }
-  free(code);
-  JS_FreeValue(ctx, result);
-  return 0;
-}
-
-int run_func(JSValue func, char* func_name, int argc, JSValue* args) {
-  if (JS_IsFunction(ctx, func)) {
-    JSValue result = JS_Call(ctx, func, global, argc, args);
-    if (JS_IsException(result)) {
-      JSValue exception = JS_GetException(ctx);
-      const char *error_str = JS_ToCString(ctx, exception);
-      fprintf(stderr, "Error calling %s: %s\\n", func_name, error_str ? error_str : "Unknown error");
-      JS_FreeCString(ctx, error_str);
-      JS_FreeValue(ctx, exception);
-    }
-    JS_FreeValue(ctx, result);
-    return 1;
-  }
-  return 0;
-}
-
-int main(int argc, char **argv) {
-  JSRuntime *rt = JS_NewRuntime();
-  if (!rt) {
-    fprintf(stderr, "Error: Failed to create QuickJS runtime\\n");
-    return 1;
-  }
-  ctx = JS_NewContext(rt);
-  if (!ctx) {
-    fprintf(stderr, "Error: Failed to create QuickJS context\\n");
-    JS_FreeRuntime(rt);
-    return 1;
-  }
-  global = JS_GetGlobalObject(ctx);
-  if (execute_js_file("main.js") != 0) {
-    JS_FreeContext(ctx);
-    JS_FreeRuntime(rt);
-    JS_FreeValue(ctx, global);
-    return 1;
-  }
-  JSValue func_load = JS_GetPropertyStr(ctx, global, "load");
-  func_unload = JS_GetPropertyStr(ctx, global, "unload");
-  func_update = JS_GetPropertyStr(ctx, global, "update");
-  func_buttonDown = JS_GetPropertyStr(ctx, global, "buttonDown");
-  func_buttonUp = JS_GetPropertyStr(ctx, global, "buttonUp");
-  func_keyUp = JS_GetPropertyStr(ctx, global, "keyUp");
-  func_keyDown = JS_GetPropertyStr(ctx, global, "keyDown");
-  func_mouseUp = JS_GetPropertyStr(ctx, global, "mouseUp");
-  func_mouseDown = JS_GetPropertyStr(ctx, global, "mouseDown");
-  func_mouseMoved = JS_GetPropertyStr(ctx, global, "mouseMoved");
-
-  expose_things_to_js();
-
-  run_func(func_load, "load", 0, NULL);
-  return 0;
-}
-
-void update() {
-  run_func(func_update, "update", 0, NULL);
-}
-
-void unload() {
-  run_func(func_unload, "unload", 0, NULL);
-}
-
-void buttonUp(GamepadButton button, unsigned int player) {
-  JS_ToInt32(ctx, &button, callback_params[0]);
-  JS_ToInt32(ctx, &player, callback_params[1]);
-  run_func(func_buttonUp, "buttonUp", 2, callback_params);
-}
-
-void buttonDown(GamepadButton button, unsigned int player) {
-  JS_ToInt32(ctx, &button, callback_params[0]);
-  JS_ToInt32(ctx, &player, callback_params[1]);
-  run_func(func_buttonDown, "buttonDown", 2, callback_params);
-}
-
-void keyUp(Key key) {
-  JS_ToInt32(ctx, &key, callback_params[0]);
-  run_func(func_keyUp, "keyUp", 1, callback_params);
-}
-
-void keyDown(Key key) {
-  JS_ToInt32(ctx, &key, callback_params[0]);
-  run_func(func_keyDown, "keyDown", 1, callback_params);
-}
-
-void mouseDown(unsigned int button) {
-  JS_ToInt32(ctx, &button, callback_params[0]);
-  run_func(func_mouseDown, "mouseDown", 1, callback_params);
-}
-
-void mouseUp(unsigned int button) {
-  JS_ToInt32(ctx, &button, callback_params[0]);
-  run_func(func_mouseUp, "mouseUp", 1, callback_params);
-}
-
-void mouseMoved(float x, float y) {
-  JS_ToFloat64(ctx, &x, callback_params[0]);
-  JS_ToFloat64(ctx, &y, callback_params[1]);
-  run_func(func_mouseMoved, "mouseMoved", 2, callback_params);
-}
-
 // BINDINGS
-static JSValue js_console_log(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
-  if (argc > 0) {
-    const char *str = JS_ToCString(ctx, argv[0]);
-    if (str) {
-      printf("%s\\n", str);
-      JS_FreeCString(ctx, str);
-    }
-  }
-  return JS_UNDEFINED;
-}
 
 `)
 
@@ -479,16 +377,6 @@ api.on('end', async () => {
   out.push('')
   add_consts()
   out.push('')
-
-  out.push(
-    indent(
-      `JSValue console_obj = JS_NewObject(ctx);
-JS_SetPropertyStr(ctx, console_obj, "log", JS_NewCFunction(ctx, js_console_log, "log", 1));
-JS_SetPropertyStr(ctx, global, "console", console_obj);
-`,
-      2
-    )
-  )
   out.push(...funcs)
   out.push('}')
 
