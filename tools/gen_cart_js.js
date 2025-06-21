@@ -104,6 +104,37 @@ void buttonUp(GamepadButton button, unsigned int player) {
   cart("buttonUp", args, 2);
 }
 
+void keyUp(Key key) {
+  args[0] = JS_NewInt32(ctx, (int)key);
+  cart("keyUp", args, 1);
+}
+
+void keyDown(Key key) {
+  args[0] = JS_NewInt32(ctx, (int)key);
+  cart("keyDown", args, 1);
+}
+
+void mouseDown(unsigned int button) {
+  args[0] = JS_NewUint32(ctx, button);
+  cart("mouseDown", args, 1);
+}
+
+void mouseUp(unsigned int button) {
+  args[0] = JS_NewUint32(ctx, button);
+  cart("mouseUp", args, 1);
+}
+
+void mouseMoved(float x, float y) {
+  args[0] = JS_NewFloat64(ctx, x);
+  args[1] = JS_NewFloat64(ctx, y);
+  cart("mouseMoved", args, 2);
+}
+
+void unload() {
+  cart("unload", NULL, 0);
+  // TODO: cleanup quickjs runtime vars, too
+}
+
 
 // type-converters
 
