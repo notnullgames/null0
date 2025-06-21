@@ -12,7 +12,7 @@ cd "${FILES_DIR}"
 
 zip -rq "${CART}" . -x "*.c" "*.h" ".DS_Store" "__*"
 
-echo "Zip contents:"
+echo "Cart:"
 unzip -l "${CART}"
 
 rm "${FILES_DIR}/main.wasm"

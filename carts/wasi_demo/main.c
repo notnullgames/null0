@@ -20,12 +20,13 @@ int main() {
     char *data = malloc(filesize + 1); // +1 for null terminator
     size_t bytes_read = fread(data, 1, filesize, file);
     data[bytes_read] = '\0'; // Null terminate the string
-    fclose(file);
     printf("file: %s\n", data);
     free(data);
   } else {
     printf("no file/filesize!\n");
   }
+
+  fclose(file);
 
   return 0;
 }

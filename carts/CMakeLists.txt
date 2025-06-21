@@ -71,6 +71,7 @@ target_compile_definitions(cart-js PRIVATE
 )
 target_link_libraries(cart-js PRIVATE wasi-emulated-signal)
 BUILDJSCART("demo-js")
+BUILDJSCART("input-js")
 
 
 add_custom_target(carts ALL DEPENDS ${CART_TARGETS})

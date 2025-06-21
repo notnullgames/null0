@@ -4,20 +4,14 @@ export function load() {
   console.log('JS cart says "hi"')
   console.log(`${mod.name} loaded`)
   console.log('Press buttons to see reaction.')
-  console.log('Press SDPACE to see text on screen.')
+  console.log('Press SPACE to see text on screen.')
 }
 
 export function buttonDown(button, player) {
-  if (player === 9999) {
-    player = '(keyboard)'
-  }
   console.log(`buttonDown: ${button} ${player}`)
 }
 
 export function buttonUp(button, player) {
-  if (player === 9999) {
-    player = '(keyboard)'
-  }
   console.log(`buttonUp: ${button} ${player}`)
 }
 
