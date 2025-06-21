@@ -1,5 +1,5 @@
 import WasiPreview1 from '@easywasm/wasi'
-import PhysFS from './PhysFS.js'
+import fflatefs from './fflatefs.js'
 
 // this is output from emscripten
 import loadHost from './wbuild/host/null0.mjs'
@@ -8,13 +8,13 @@ const debug = false
 
 export default async function loadCart(cartUrl, canvas) {
   const cartName = cartUrl.split('/').pop()
+  const fs = await fflatefs(cartUrl)
+
   return await loadHost({
     canvas,
     arguments: [cartName],
     preRun(h) {
       h.FS.createPreloadedFile('', cartName, cartUrl, true, false)
-
-      const fs = new PhysFS()
 
       // this is called at startup by emscripten-code
       h.cart_callback_init = (wasmBytesPtr, wasmSize) => {
