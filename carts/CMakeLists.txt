@@ -61,6 +61,7 @@ BUILDCART("colorbars")
 BUILDCART("input")
 BUILDCART("gradient")
 BUILDCART("wasi_demo")
+BUILDCART("issue-6-c")
 
 # These are general interpretors that can be reused by many carts
 add_executable(cart-js js/main.c js/libunicode.c js/cutils.c js/libbf.c js/libregexp.c js/quickjs.c js/quickjs-libc.c js/qjscalc.c)
