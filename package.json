@@ -21,5 +21,9 @@
   "devDependencies": {
     "glob": "^11.0.3",
     "yaml": "^2.8.0"
+  },
+  "dependencies": {
+    "@easywasm/wasi": "^0.0.8",
+    "fflate": "^0.8.2"
   }
 }
