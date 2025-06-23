@@ -266,14 +266,16 @@ HOST_FUNCTION(uint32_t, load_image, (uint32_t filename), {
  return retHost;
 })
 
-// Resize an image, in-place
-HOST_FUNCTION(void, image_resize, (uint32_t image, int32_t newWidth, int32_t newHeight, pntr_filter filter), {
- pntr_image_resize(images[image], newWidth, newHeight, filter);
+// Resize an image, return copy
+HOST_FUNCTION(uint32_t, image_resize, (uint32_t image, int32_t newWidth, int32_t newHeight, pntr_filter filter), {
+ uint32_t retHost = add_image(pntr_image_resize(images[image], newWidth, newHeight, filter));
+ return retHost;
 })
 
-// Scale an image, in-place
-HOST_FUNCTION(void, image_scale, (uint32_t image, float scaleX, float scaleY, pntr_filter filter), {
- pntr_image_scale(images[image], scaleX, scaleY, filter);
+// Scale an image, return copy
+HOST_FUNCTION(uint32_t, image_scale, (uint32_t image, float scaleX, float scaleY, pntr_filter filter), {
+ uint32_t retHost = add_image(pntr_image_scale(images[image], scaleX, scaleY, filter));
+ return retHost;
 })
 
 // Replace a color in an image, in-place

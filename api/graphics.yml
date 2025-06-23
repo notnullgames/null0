@@ -200,8 +200,8 @@ image_resize:
     newWidth: i32
     newHeight: i32
     filter: ImageFilter
-  returns: void
-  description: Resize an image, in-place
+  returns: Image
+  description: Resize an image, return copy
 
 image_scale:
   args:
@@ -209,8 +209,8 @@ image_scale:
     scaleX: f32
     scaleY: f32
     filter: ImageFilter
-  returns: void
-  description: Scale an image, in-place
+  returns: Image
+  description: Scale an image, return copy
 
 image_color_replace:
   args:

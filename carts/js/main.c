@@ -529,15 +529,13 @@ static JSValue js_save_image(JSContext *ctx, JSValueConst this_val, int argc, JS
 static JSValue js_load_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(load_image(string_from_js(argv[0])));
 }
-// Resize an image, in-place
+// Resize an image, return copy
 static JSValue js_image_resize(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- image_resize(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]));
- return JS_UNDEFINED;
+ return u32_to_js(image_resize(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3])));
 }
-// Scale an image, in-place
+// Scale an image, return copy
 static JSValue js_image_scale(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- image_scale(u32_from_js(argv[0]), f32_from_js(argv[1]), f32_from_js(argv[2]), i32_from_js(argv[3]));
- return JS_UNDEFINED;
+ return u32_to_js(image_scale(u32_from_js(argv[0]), f32_from_js(argv[1]), f32_from_js(argv[2]), i32_from_js(argv[3])));
 }
 // Replace a color in an image, in-place
 static JSValue js_image_color_replace(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {

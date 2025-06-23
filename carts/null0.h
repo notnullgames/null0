@@ -465,13 +465,13 @@ extern void save_image(u32 image, char* filename);
 NULL0_IMPORT("load_image")
 extern u32 load_image(char* filename);
 
-// Resize an image, in-place
+// Resize an image, return copy
 NULL0_IMPORT("image_resize")
-extern void image_resize(u32 image, i32 newWidth, i32 newHeight, ImageFilter filter);
+extern u32 image_resize(u32 image, i32 newWidth, i32 newHeight, ImageFilter filter);
 
-// Scale an image, in-place
+// Scale an image, return copy
 NULL0_IMPORT("image_scale")
-extern void image_scale(u32 image, f32 scaleX, f32 scaleY, ImageFilter filter);
+extern u32 image_scale(u32 image, f32 scaleX, f32 scaleY, ImageFilter filter);
 
 // Replace a color in an image, in-place
 NULL0_IMPORT("image_color_replace")
