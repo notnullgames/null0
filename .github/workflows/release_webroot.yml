@@ -1,4 +1,4 @@
-name: Release Carts
+name: Release Webroot
 
 on:
   release:
