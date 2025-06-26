@@ -2,6 +2,7 @@
   "name": "null0",
   "version": "0.0.0",
   "type": "module",
+  "private": true,
   "scripts": {
     "configure:native": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release",
     "prebuild:native": "npm run configure:native",
