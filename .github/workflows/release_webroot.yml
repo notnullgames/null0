@@ -16,7 +16,7 @@ jobs:
       - name: Configure Web
         run: emcmake cmake -B build_web -DCMAKE_BUILD_TYPE=Release
       - name: Build Web
-        run: cmake --build build_web
+        run: cmake --build build_web --target host
       - name: Bundle Web
         run: |
           mkdir -p webroot/wbuild/host/

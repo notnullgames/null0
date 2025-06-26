@@ -1,0 +1,24 @@
+name: Release Linux
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Native Host
+        run: |
+          sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --target host
+          cd build/host
+          zip ../../null0_linux.zip null0
+      - run: gh release upload ${{github.event.release.tag_name}} null0_linux.zip
+        env:
+          GH_TOKEN: ${{ github.token }}
