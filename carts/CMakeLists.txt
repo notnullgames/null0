@@ -1,4 +1,5 @@
 # build for carts
+# essentially, anything that uses C should default to all wasi-sdk stuff
 
 cmake_minimum_required (VERSION 3.18)
 
@@ -34,46 +35,61 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 set(CMAKE_EXECUTABLE_SUFFIX ".wasm")
 
-function(BUILDCART name)
-  add_executable(${name} ${name}/main.c)
-  add_custom_command(
-        TARGET ${name}
-        POST_BUILD
-        COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/buildcart.sh"
-        ARGS "${CMAKE_CURRENT_BINARY_DIR}/${name}.null0" "${CMAKE_CURRENT_BINARY_DIR}/${name}.wasm" "${CMAKE_CURRENT_SOURCE_DIR}/${name}"
-    )
-  set(CART_TARGETS ${CART_TARGETS} ${name} PARENT_SCOPE)
-endfunction()
+# anything that adds itself as dependency to this can be built with target=carts
+add_custom_target(carts)
 
-function(BUILDJSCART name)
-  add_custom_target(${name}
-    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/js/buildcart.sh"
-            "${CMAKE_CURRENT_BINARY_DIR}/${name}.null0"
-            "${CMAKE_CURRENT_BINARY_DIR}/cart-js.wasm"
-            "${CMAKE_CURRENT_SOURCE_DIR}/${name}"
-  )
-  add_dependencies(${name} cart-js)
-  set(CART_TARGETS ${CART_TARGETS} ${name} PARENT_SCOPE)
-endfunction()
-
-BUILDCART("example")
-BUILDCART("colorbars")
-BUILDCART("input")
-BUILDCART("gradient")
-BUILDCART("wasi_demo")
-BUILDCART("issue-6-c")
-
-# These are general interpretors that can be reused by many carts
-add_executable(cart-js js/main.c js/libunicode.c js/cutils.c js/libbf.c js/libregexp.c js/quickjs.c js/quickjs-libc.c js/qjscalc.c)
+# this is the QuickJS runtime for javascript carts
+add_executable(cart-js c/js/main.c c/js/libunicode.c c/js/cutils.c c/js/libbf.c c/js/libregexp.c c/js/quickjs.c c/js/quickjs-libc.c c/js/qjscalc.c)
 target_compile_definitions(cart-js PRIVATE
     CONFIG_VERSION="wasi"
     _WASI_EMULATED_SIGNAL
     CONFIG_BIGNUM=y
 )
-target_link_libraries(cart-js PRIVATE wasi-emulated-signal)
-BUILDJSCART("demo-js")
-BUILDJSCART("input-js")
-BUILDJSCART("issue-6")
+
+# this will build a C cart, by name
+function (BUILD_CART_C name)
+  set(CART_DIR "${CMAKE_CURRENT_SOURCE_DIR}/c/${name}")
+  set(CART_TEMP "${CMAKE_CURRENT_BINARY_DIR}/${name}_c_temp/")
+  add_executable(${name}_c_wasm "${CART_DIR}/main.c")
+  target_include_directories(${name}_c_wasm PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/c")
+  add_custom_target(cart_c_${name} ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CART_TEMP}"
+    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${name}_c_wasm>" "${CART_TEMP}/main.wasm"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CART_DIR}" "${CART_TEMP}"
+    COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/*.c"
+    COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/*.h"
+    COMMAND ${CMAKE_COMMAND} -E chdir "${CART_TEMP}" ${CMAKE_COMMAND} -E tar "cf" "../${name}_c.null0" --format=zip .
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CART_TEMP}"
+    DEPENDS ${name}_c_wasm
+    COMMENT "Creating cart ${name}_c.null0"
+  )
+  add_dependencies(carts cart_c_${name})
+endfunction()
+
+# this will build a JS cart, by name
+function (BUILD_CART_JS name)
+  set(CART_DIR "${CMAKE_CURRENT_SOURCE_DIR}/js/${name}")
+  set(CART_TEMP "${CMAKE_CURRENT_BINARY_DIR}/${name}_js_temp/")
+  add_custom_target(cart_js_${name} ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CART_TEMP}"
+    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:cart-js>" "${CART_TEMP}/main.wasm"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CART_DIR}" "${CART_TEMP}"
+    COMMAND ${CMAKE_COMMAND} -E chdir "${CART_TEMP}" ${CMAKE_COMMAND} -E tar "cf" "../${name}_js.null0" --format=zip .
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CART_TEMP}"
+    DEPENDS cart-js 
+    COMMENT "Creating cart ${name}_js.null0"
+  )
+  add_dependencies(carts cart_js_${name})
+endfunction()
 
 
-add_custom_target(carts ALL DEPENDS ${CART_TARGETS})
+BUILD_CART_C("colorbars")
+BUILD_CART_C("example")
+BUILD_CART_C("gradient")
+BUILD_CART_C("input")
+BUILD_CART_C("issue6")
+BUILD_CART_C("wasi_demo")
+
+BUILD_CART_JS("demo")
+BUILD_CART_JS("input")
+BUILD_CART_JS("issue6")

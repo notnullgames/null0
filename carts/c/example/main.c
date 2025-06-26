@@ -1,4 +1,4 @@
-#include "../null0.h"
+#include "null0.h"
 
 u32 logo;
 Dimensions *logodim;

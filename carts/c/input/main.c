@@ -1,7 +1,7 @@
 // TODO: this could be simplified with new input stuff
 // TODO: use drawing instead of images
 
-#include "../null0.h"
+#include "null0.h"
 
 bool buttons[] = {
   false,

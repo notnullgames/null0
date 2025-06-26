@@ -1,4 +1,4 @@
-#include "../null0.h"
+#include "null0.h"
 
 int main() {
   Color colors[26];

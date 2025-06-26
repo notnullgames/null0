@@ -1,4 +1,4 @@
-#include "../null0.h"
+#include "null0.h"
 #include <sys/stat.h>
 
 long get_file_size_stat(const char *filename) {
