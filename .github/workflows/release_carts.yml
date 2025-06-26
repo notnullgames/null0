@@ -17,9 +17,8 @@ jobs:
         uses: konsumer/install-wasi-sdk@v1
         with:
           version: '25'
-          add-to-path: 'false'
       - name: Configure Carts
-        run: cmake -B build_cart -DCMAKE_BUILD_TYPE=Release carts/
+        run: cmake -B build_cart -DCMAKE_BUILD_TYPE=Release carts/ -DCMAKE_TOOLCHAIN_FILE=$WASI_SDK_PATH/share/cmake/wasi-sdk.cmake
       - name: Build Carts
         run: cmake --build build_cart
       - run: gh release upload ${{github.event.release.tag_name}} build_cart/*.null0
