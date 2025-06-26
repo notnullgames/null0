@@ -21,8 +21,8 @@ jobs:
         run: |
           mkdir -p webroot/wbuild/host/
           mv build_web/host/null0.* webroot/wbuild/host/
-          mv webroot/mygame.html webroot/index.html
           cd webroot
+          mv mygame.html index.html
           zip -r ../webroot.zip .
       - run: gh release upload ${{github.event.release.tag_name}} webroot.zip
         env:
