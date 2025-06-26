@@ -16,7 +16,8 @@
     "prestart": "npm run build:web && npm run build:carts",
     "gen:host": "node tools/gen_host.js",
     "gen:cart_c": "node tools/gen_cart_c.js",
-    "gen:cart_js": "node tools/gen_cart_js.js"
+    "gen:cart_js": "node tools/gen_cart_js.js",
+    "gen:cart_nelua": "node tools/gen_cart_nelua.js"
   },
   "devDependencies": {
     "glob": "^11.0.3",

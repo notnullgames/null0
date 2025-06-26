@@ -1,0 +1,877 @@
+-- null0 API for Nelua
+-- This file provides Nelua bindings for the null0 game engine API
+-- Generated automatically - do not edit manually
+
+-- Type definitions
+global Color: type = @record{
+  r: uint8,
+  g: uint8,
+  b: uint8,
+  a: uint8
+}
+
+global Vector: type = @record{
+  x: int32,
+  y: int32
+}
+
+global Rectangle: type = @record{
+  x: int32,
+  y: int32,
+  width: int32,
+  height: int32
+}
+
+global Dimensions: type = @record{
+  width: uint32,
+  height: uint32
+}
+
+-- Enum definitions
+global ImageFilter: type = @enum{
+  FILTER_NEARESTNEIGHBOR = 0,
+  FILTER_BILINEAR,
+  FILTER_SMOOTH
+}
+
+global Key: type = @enum{
+  KEY_INVALID = 0,
+  KEY_SPACE = 32,
+  KEY_APOSTROPHE = 39,
+  KEY_COMMA = 44,
+  KEY_MINUS = 45,
+  KEY_PERIOD = 46,
+  KEY_SLASH = 47,
+  KEY_0 = 48,
+  KEY_1 = 49,
+  KEY_2 = 50,
+  KEY_3 = 51,
+  KEY_4 = 52,
+  KEY_5 = 53,
+  KEY_6 = 54,
+  KEY_7 = 55,
+  KEY_8 = 56,
+  KEY_9 = 57,
+  KEY_SEMICOLON = 59,
+  KEY_EQUAL = 61,
+  KEY_A = 65,
+  KEY_B = 66,
+  KEY_C = 67,
+  KEY_D = 68,
+  KEY_E = 69,
+  KEY_F = 70,
+  KEY_G = 71,
+  KEY_H = 72,
+  KEY_I = 73,
+  KEY_J = 74,
+  KEY_K = 75,
+  KEY_L = 76,
+  KEY_M = 77,
+  KEY_N = 78,
+  KEY_O = 79,
+  KEY_P = 80,
+  KEY_Q = 81,
+  KEY_R = 82,
+  KEY_S = 83,
+  KEY_T = 84,
+  KEY_U = 85,
+  KEY_V = 86,
+  KEY_W = 87,
+  KEY_X = 88,
+  KEY_Y = 89,
+  KEY_Z = 90,
+  KEY_LEFT_BRACKET = 91,
+  KEY_BACKSLASH = 92,
+  KEY_RIGHT_BRACKET = 93,
+  KEY_GRAVE_ACCENT = 96,
+  KEY_WORLD_1 = 161,
+  KEY_WORLD_2 = 162,
+  KEY_ESCAPE = 256,
+  KEY_ENTER = 257,
+  KEY_TAB = 258,
+  KEY_BACKSPACE = 259,
+  KEY_INSERT = 260,
+  KEY_DELETE = 261,
+  KEY_RIGHT = 262,
+  KEY_LEFT = 263,
+  KEY_DOWN = 264,
+  KEY_UP = 265,
+  KEY_PAGE_UP = 266,
+  KEY_PAGE_DOWN = 267,
+  KEY_HOME = 268,
+  KEY_END = 269,
+  KEY_CAPS_LOCK = 280,
+  KEY_SCROLL_LOCK = 281,
+  KEY_NUM_LOCK = 282,
+  KEY_PRINT_SCREEN = 283,
+  KEY_PAUSE = 284,
+  KEY_F1 = 290,
+  KEY_F2 = 291,
+  KEY_F3 = 292,
+  KEY_F4 = 293,
+  KEY_F5 = 294,
+  KEY_F6 = 295,
+  KEY_F7 = 296,
+  KEY_F8 = 297,
+  KEY_F9 = 298,
+  KEY_F10 = 299,
+  KEY_F11 = 300,
+  KEY_F12 = 301,
+  KEY_F13 = 302,
+  KEY_F14 = 303,
+  KEY_F15 = 304,
+  KEY_F16 = 305,
+  KEY_F17 = 306,
+  KEY_F18 = 307,
+  KEY_F19 = 308,
+  KEY_F20 = 309,
+  KEY_F21 = 310,
+  KEY_F22 = 311,
+  KEY_F23 = 312,
+  KEY_F24 = 313,
+  KEY_F25 = 314,
+  KEY_KP_0 = 320,
+  KEY_KP_1 = 321,
+  KEY_KP_2 = 322,
+  KEY_KP_3 = 323,
+  KEY_KP_4 = 324,
+  KEY_KP_5 = 325,
+  KEY_KP_6 = 326,
+  KEY_KP_7 = 327,
+  KEY_KP_8 = 328,
+  KEY_KP_9 = 329,
+  KEY_KP_DECIMAL = 330,
+  KEY_KP_DIVIDE = 331,
+  KEY_KP_MULTIPLY = 332,
+  KEY_KP_SUBTRACT = 333,
+  KEY_KP_ADD = 334,
+  KEY_KP_ENTER = 335,
+  KEY_KP_EQUAL = 336,
+  KEY_LEFT_SHIFT = 340,
+  KEY_LEFT_CONTROL = 341,
+  KEY_LEFT_ALT = 342,
+  KEY_LEFT_SUPER = 343,
+  KEY_RIGHT_SHIFT = 344,
+  KEY_RIGHT_CONTROL = 345,
+  KEY_RIGHT_ALT = 346,
+  KEY_RIGHT_SUPER = 347,
+  KEY_MENU = 348
+}
+
+global GamepadButton: type = @enum{
+  GAMEPAD_BUTTON_UNKNOWN = 0,
+  GAMEPAD_BUTTON_UP = 1,
+  GAMEPAD_BUTTON_RIGHT,
+  GAMEPAD_BUTTON_DOWN,
+  GAMEPAD_BUTTON_LEFT,
+  GAMEPAD_BUTTON_Y,
+  GAMEPAD_BUTTON_B,
+  GAMEPAD_BUTTON_A,
+  GAMEPAD_BUTTON_X,
+  GAMEPAD_BUTTON_LEFT_SHOULDER,
+  GAMEPAD_BUTTON_LEFT_TRIGGER,
+  GAMEPAD_BUTTON_RIGHT_SHOULDER,
+  GAMEPAD_BUTTON_RIGHT_TRIGGER,
+  GAMEPAD_BUTTON_SELECT,
+  GAMEPAD_BUTTON_MENU,
+  GAMEPAD_BUTTON_START,
+  GAMEPAD_BUTTON_LEFT_THUMB,
+  GAMEPAD_BUTTON_RIGHT_THUMB
+}
+
+global MouseButton: type = @enum{
+  MOUSE_BUTTON_UNKNOWN = 0,
+  MOUSE_BUTTON_LEFT = 1,
+  MOUSE_BUTTON_RIGHT = 2,
+  MOUSE_BUTTON_MIDDLE = 3
+}
+
+-- Constants
+global SCREEN: integer <comptime> = 0
+global SCREEN_WIDTH: integer <comptime> = 640
+global SCREEN_HEIGHT: integer <comptime> = 480
+global FONT_DEFAULT: integer <comptime> = 0
+
+-- Color constants
+global LIGHTGRAY: Color <comptime> = {r = 200, g = 200, b = 200, a = 255}
+global GRAY: Color <comptime> = {r = 130, g = 130, b = 130, a = 255}
+global DARKGRAY: Color <comptime> = {r = 80, g = 80, b = 80, a = 255}
+global YELLOW: Color <comptime> = {r = 253, g = 249, b = 0, a = 255}
+global GOLD: Color <comptime> = {r = 255, g = 203, b = 0, a = 255}
+global ORANGE: Color <comptime> = {r = 255, g = 161, b = 0, a = 255}
+global PINK: Color <comptime> = {r = 255, g = 109, b = 194, a = 255}
+global RED: Color <comptime> = {r = 230, g = 41, b = 55, a = 255}
+global MAROON: Color <comptime> = {r = 190, g = 33, b = 55, a = 255}
+global GREEN: Color <comptime> = {r = 0, g = 228, b = 48, a = 255}
+global LIME: Color <comptime> = {r = 0, g = 158, b = 47, a = 255}
+global DARKGREEN: Color <comptime> = {r = 0, g = 117, b = 44, a = 255}
+global SKYBLUE: Color <comptime> = {r = 102, g = 191, b = 255, a = 255}
+global BLUE: Color <comptime> = {r = 0, g = 121, b = 241, a = 255}
+global DARKBLUE: Color <comptime> = {r = 0, g = 82, b = 172, a = 255}
+global PURPLE: Color <comptime> = {r = 200, g = 122, b = 255, a = 255}
+global VIOLET: Color <comptime> = {r = 135, g = 60, b = 190, a = 255}
+global DARKPURPLE: Color <comptime> = {r = 112, g = 31, b = 126, a = 255}
+global BEIGE: Color <comptime> = {r = 211, g = 176, b = 131, a = 255}
+global BROWN: Color <comptime> = {r = 127, g = 106, b = 79, a = 255}
+global DARKBROWN: Color <comptime> = {r = 76, g = 63, b = 47, a = 255}
+global WHITE: Color <comptime> = {r = 255, g = 255, b = 255, a = 255}
+global BLACK: Color <comptime> = {r = 0, g = 0, b = 0, a = 255}
+global BLANK: Color <comptime> = {r = 0, g = 0, b = 0, a = 0}
+global MAGENTA: Color <comptime> = {r = 255, g = 0, b = 255, a = 255}
+global RAYWHITE: Color <comptime> = {r = 245, g = 245, b = 245, a = 255}
+
+-- Math functions
+global math: type = @record{}
+global function math.sin(x: number): number <cimport 'sin', nodecl, cinclude '<math.h>'> end
+global function math.cos(x: number): number <cimport 'cos', nodecl, cinclude '<math.h>'> end
+global function math.sqrt(x: number): number <cimport 'sqrt', nodecl, cinclude '<math.h>'> end
+global function math.pi(): number <comptime>
+  return 3.14159265358979323846
+end
+
+-- Type aliases for resources
+global Image: type = @uint32
+global Font: type = @uint32  
+global Sound: type = @uint32
+
+-- UTILITIES
+
+-- Get system-time (ms) since unix epoch
+local function _current_time(): uint64 <cimport 'current_time', nodecl> end
+global function current_time(): uint64
+  return _current_time()
+end
+
+-- Get the change in time (seconds) since the last update run
+local function _delta_time(): float32 <cimport 'delta_time', nodecl> end
+global function delta_time(): float32
+  return _delta_time()
+end
+
+-- Get a random integer between 2 numbers
+local function _random_int(min: int32, max: int32): int32 <cimport 'random_int', nodecl> end
+global function random_int(min: int32, max: int32): int32
+  return _random_int((@int32)(min), (@int32)(max))
+end
+
+-- Get the random-seed
+local function _random_seed_get(): uint64 <cimport 'random_seed_get', nodecl> end
+global function random_seed_get(): uint64
+  return _random_seed_get()
+end
+
+-- Set the random-seed
+local function _random_seed_set(seed: uint64): void <cimport 'random_seed_set', nodecl> end
+global function random_seed_set(seed: uint64): void
+  _random_seed_set(seed)
+end
+
+
+-- SOUND
+
+-- Load a sound from a file in cart
+local function _load_sound(filename: cstring): uint32 <cimport 'load_sound', nodecl> end
+global function load_sound(filename: cstring): uint32
+  return _load_sound(filename)
+end
+
+-- Play a sound
+local function _play_sound(sound: uint32, loop: boolean): void <cimport 'play_sound', nodecl> end
+global function play_sound(sound: uint32, loop: boolean): void
+  _play_sound(sound, loop)
+end
+
+-- Stop a sound
+local function _stop_sound(sound: uint32): void <cimport 'stop_sound', nodecl> end
+global function stop_sound(sound: uint32): void
+  _stop_sound(sound)
+end
+
+-- Unload a sound
+local function _unload_sound(sound: uint32): void <cimport 'unload_sound', nodecl> end
+global function unload_sound(sound: uint32): void
+  _unload_sound(sound)
+end
+
+
+-- INPUT
+
+-- Has the key been pressed? (tracks unpress/read correctly)
+local function _key_pressed(key: Key): boolean <cimport 'key_pressed', nodecl> end
+global function key_pressed(key: Key): boolean
+  return _key_pressed(key)
+end
+
+-- Is the key currently down?
+local function _key_down(key: Key): boolean <cimport 'key_down', nodecl> end
+global function key_down(key: Key): boolean
+  return _key_down(key)
+end
+
+-- Has the key been released? (tracks press/read correctly)
+local function _key_released(key: Key): boolean <cimport 'key_released', nodecl> end
+global function key_released(key: Key): boolean
+  return _key_released(key)
+end
+
+-- Is the key currently up?
+local function _key_up(key: Key): boolean <cimport 'key_up', nodecl> end
+global function key_up(key: Key): boolean
+  return _key_up(key)
+end
+
+-- Has the button been pressed? (tracks unpress/read correctly)
+local function _gamepad_button_pressed(gamepad: int32, button: GamepadButton): boolean <cimport 'gamepad_button_pressed', nodecl> end
+global function gamepad_button_pressed(gamepad: int32, button: GamepadButton): boolean
+  return _gamepad_button_pressed((@int32)(gamepad), button)
+end
+
+-- Is the button currently down?
+local function _gamepad_button_down(gamepad: int32, button: GamepadButton): boolean <cimport 'gamepad_button_down', nodecl> end
+global function gamepad_button_down(gamepad: int32, button: GamepadButton): boolean
+  return _gamepad_button_down((@int32)(gamepad), button)
+end
+
+-- Has the button been released? (tracks press/read correctly)
+local function _gamepad_button_released(gamepad: int32, button: GamepadButton): boolean <cimport 'gamepad_button_released', nodecl> end
+global function gamepad_button_released(gamepad: int32, button: GamepadButton): boolean
+  return _gamepad_button_released((@int32)(gamepad), button)
+end
+
+-- Get current position of mouse
+local function _mouse_position(): *Vector <cimport 'mouse_position', nodecl> end
+global function mouse_position(): *Vector
+  local result = _mouse_position()
+  return result != nilptr and $result or (@Vector){0}
+end
+
+-- Has the button been pressed? (tracks unpress/read correctly)
+local function _mouse_button_pressed(button: MouseButton): boolean <cimport 'mouse_button_pressed', nodecl> end
+global function mouse_button_pressed(button: MouseButton): boolean
+  return _mouse_button_pressed(button)
+end
+
+-- Is the button currently down?
+local function _mouse_button_down(button: MouseButton): boolean <cimport 'mouse_button_down', nodecl> end
+global function mouse_button_down(button: MouseButton): boolean
+  return _mouse_button_down(button)
+end
+
+-- Has the button been released? (tracks press/read correctly)
+local function _mouse_button_released(button: MouseButton): boolean <cimport 'mouse_button_released', nodecl> end
+global function mouse_button_released(button: MouseButton): boolean
+  return _mouse_button_released(button)
+end
+
+-- Is the button currently up?
+local function _mouse_button_up(button: MouseButton): boolean <cimport 'mouse_button_up', nodecl> end
+global function mouse_button_up(button: MouseButton): boolean
+  return _mouse_button_up(button)
+end
+
+
+-- GRAPHICS
+
+-- Create a new blank image
+local function _new_image(width: int32, height: int32, color: Color): uint32 <cimport 'new_image', nodecl> end
+global function new_image(width: int32, height: int32, color: Color): uint32
+  return _new_image((@int32)(width), (@int32)(height), color)
+end
+
+-- Copy an image to a new image
+local function _image_copy(image: uint32): uint32 <cimport 'image_copy', nodecl> end
+global function image_copy(image: uint32): uint32
+  return _image_copy(image)
+end
+
+-- Create an image from a region of another image
+local function _image_subimage(image: uint32, x: int32, y: int32, width: int32, height: int32): uint32 <cimport 'image_subimage', nodecl> end
+global function image_subimage(image: uint32, x: int32, y: int32, width: int32, height: int32): uint32
+  return _image_subimage(image, (@int32)(x), (@int32)(y), (@int32)(width), (@int32)(height))
+end
+
+-- Clear the screen
+local function _clear(color: Color): void <cimport 'clear', nodecl> end
+global function clear(color: Color): void
+  _clear(color)
+end
+
+-- Draw a single pixel on the screen
+local function _draw_point(x: int32, y: int32, color: Color): void <cimport 'draw_point', nodecl> end
+global function draw_point(x: int32, y: int32, color: Color): void
+  _draw_point((@int32)(x), (@int32)(y), color)
+end
+
+-- Draw a line on the screen
+local function _draw_line(startPosX: int32, startPosY: int32, endPosX: int32, endPosY: int32, color: Color): void <cimport 'draw_line', nodecl> end
+global function draw_line(startPosX: int32, startPosY: int32, endPosX: int32, endPosY: int32, color: Color): void
+  _draw_line((@int32)(startPosX), (@int32)(startPosY), (@int32)(endPosX), (@int32)(endPosY), color)
+end
+
+-- Draw a filled rectangle on the screen
+local function _draw_rectangle(posX: int32, posY: int32, width: int32, height: int32, color: Color): void <cimport 'draw_rectangle', nodecl> end
+global function draw_rectangle(posX: int32, posY: int32, width: int32, height: int32, color: Color): void
+  _draw_rectangle((@int32)(posX), (@int32)(posY), (@int32)(width), (@int32)(height), color)
+end
+
+-- Draw a filled triangle on the screen
+local function _draw_triangle(x1: int32, y1: int32, x2: int32, y2: int32, x3: int32, y3: int32, color: Color): void <cimport 'draw_triangle', nodecl> end
+global function draw_triangle(x1: int32, y1: int32, x2: int32, y2: int32, x3: int32, y3: int32, color: Color): void
+  _draw_triangle((@int32)(x1), (@int32)(y1), (@int32)(x2), (@int32)(y2), (@int32)(x3), (@int32)(y3), color)
+end
+
+-- Draw a filled ellipse on the screen
+local function _draw_ellipse(centerX: int32, centerY: int32, radiusX: int32, radiusY: int32, color: Color): void <cimport 'draw_ellipse', nodecl> end
+global function draw_ellipse(centerX: int32, centerY: int32, radiusX: int32, radiusY: int32, color: Color): void
+  _draw_ellipse((@int32)(centerX), (@int32)(centerY), (@int32)(radiusX), (@int32)(radiusY), color)
+end
+
+-- Draw a filled circle on the screen
+local function _draw_circle(centerX: int32, centerY: int32, radius: int32, color: Color): void <cimport 'draw_circle', nodecl> end
+global function draw_circle(centerX: int32, centerY: int32, radius: int32, color: Color): void
+  _draw_circle((@int32)(centerX), (@int32)(centerY), (@int32)(radius), color)
+end
+
+-- Draw a filled polygon on the screen
+local function _draw_polygon(points: *Vector, numPoints: int32, color: Color, numPoints: int32): void <cimport 'draw_polygon', nodecl> end
+global function draw_polygon(points: *Vector, numPoints: int32, color: Color, numPoints: integer): void
+  _draw_polygon(points, numPoints, (@int32)(numPoints), color, (@int32)(numPoints))
+end
+
+-- Draw a filled arc on the screen
+local function _draw_arc(centerX: int32, centerY: int32, radius: float32, startAngle: float32, endAngle: float32, segments: int32, color: Color): void <cimport 'draw_arc', nodecl> end
+global function draw_arc(centerX: int32, centerY: int32, radius: float32, startAngle: float32, endAngle: float32, segments: int32, color: Color): void
+  _draw_arc((@int32)(centerX), (@int32)(centerY), radius, startAngle, endAngle, (@int32)(segments), color)
+end
+
+-- Draw a filled round-rectangle on the screen
+local function _draw_rectangle_rounded(x: int32, y: int32, width: int32, height: int32, cornerRadius: int32, color: Color): void <cimport 'draw_rectangle_rounded', nodecl> end
+global function draw_rectangle_rounded(x: int32, y: int32, width: int32, height: int32, cornerRadius: int32, color: Color): void
+  _draw_rectangle_rounded((@int32)(x), (@int32)(y), (@int32)(width), (@int32)(height), (@int32)(cornerRadius), color)
+end
+
+-- Draw an image on the screen
+local function _draw_image(src: uint32, posX: int32, posY: int32): void <cimport 'draw_image', nodecl> end
+global function draw_image(src: uint32, posX: int32, posY: int32): void
+  _draw_image(src, (@int32)(posX), (@int32)(posY))
+end
+
+-- Draw a tinted image on the screen
+local function _draw_image_tint(src: uint32, posX: int32, posY: int32, tint: Color): void <cimport 'draw_image_tint', nodecl> end
+global function draw_image_tint(src: uint32, posX: int32, posY: int32, tint: Color): void
+  _draw_image_tint(src, (@int32)(posX), (@int32)(posY), tint)
+end
+
+-- Draw an image, rotated, on the screen
+local function _draw_image_rotated(src: uint32, posX: int32, posY: int32, degrees: float32, offsetX: float32, offsetY: float32, filter: ImageFilter): void <cimport 'draw_image_rotated', nodecl> end
+global function draw_image_rotated(src: uint32, posX: int32, posY: int32, degrees: float32, offsetX: float32, offsetY: float32, filter: ImageFilter): void
+  _draw_image_rotated(src, (@int32)(posX), (@int32)(posY), degrees, offsetX, offsetY, filter)
+end
+
+-- Draw an image, flipped, on the screen
+local function _draw_image_flipped(src: uint32, posX: int32, posY: int32, flipHorizontal: boolean, flipVertical: boolean, flipDiagonal: boolean): void <cimport 'draw_image_flipped', nodecl> end
+global function draw_image_flipped(src: uint32, posX: int32, posY: int32, flipHorizontal: boolean, flipVertical: boolean, flipDiagonal: boolean): void
+  _draw_image_flipped(src, (@int32)(posX), (@int32)(posY), flipHorizontal, flipVertical, flipDiagonal)
+end
+
+-- Draw an image, scaled, on the screen
+local function _draw_image_scaled(src: uint32, posX: int32, posY: int32, scaleX: float32, scaleY: float32, offsetX: float32, offsetY: float32, filter: ImageFilter): void <cimport 'draw_image_scaled', nodecl> end
+global function draw_image_scaled(src: uint32, posX: int32, posY: int32, scaleX: float32, scaleY: float32, offsetX: float32, offsetY: float32, filter: ImageFilter): void
+  _draw_image_scaled(src, (@int32)(posX), (@int32)(posY), scaleX, scaleY, offsetX, offsetY, filter)
+end
+
+-- Draw some text on the screen
+local function _draw_text(font: uint32, text: cstring, posX: int32, posY: int32, color: Color): void <cimport 'draw_text', nodecl> end
+global function draw_text(font: uint32, text: cstring, posX: int32, posY: int32, color: Color): void
+  _draw_text(font, text, (@int32)(posX), (@int32)(posY), color)
+end
+
+-- Save an image to persistant storage
+local function _save_image(image: uint32, filename: cstring): void <cimport 'save_image', nodecl> end
+global function save_image(image: uint32, filename: cstring): void
+  _save_image(image, filename)
+end
+
+-- Load an image from a file in cart
+local function _load_image(filename: cstring): uint32 <cimport 'load_image', nodecl> end
+global function load_image(filename: cstring): uint32
+  return _load_image(filename)
+end
+
+-- Resize an image, return copy
+local function _image_resize(image: uint32, newWidth: int32, newHeight: int32, filter: ImageFilter): uint32 <cimport 'image_resize', nodecl> end
+global function image_resize(image: uint32, newWidth: int32, newHeight: int32, filter: ImageFilter): uint32
+  return _image_resize(image, (@int32)(newWidth), (@int32)(newHeight), filter)
+end
+
+-- Scale an image, return copy
+local function _image_scale(image: uint32, scaleX: float32, scaleY: float32, filter: ImageFilter): uint32 <cimport 'image_scale', nodecl> end
+global function image_scale(image: uint32, scaleX: float32, scaleY: float32, filter: ImageFilter): uint32
+  return _image_scale(image, scaleX, scaleY, filter)
+end
+
+-- Replace a color in an image, in-place
+local function _image_color_replace(image: uint32, color: Color, replace: Color): void <cimport 'image_color_replace', nodecl> end
+global function image_color_replace(image: uint32, color: Color, replace: Color): void
+  _image_color_replace(image, color, replace)
+end
+
+-- Tint a color in an image, in-place
+local function _image_color_tint(image: uint32, color: Color): void <cimport 'image_color_tint', nodecl> end
+global function image_color_tint(image: uint32, color: Color): void
+  _image_color_tint(image, color)
+end
+
+-- Fade a color in an image, in-place
+local function _image_color_fade(image: uint32, alpha: float32): void <cimport 'image_color_fade', nodecl> end
+global function image_color_fade(image: uint32, alpha: float32): void
+  _image_color_fade(image, alpha)
+end
+
+-- Copy a font to a new font
+local function _font_copy(font: uint32): uint32 <cimport 'font_copy', nodecl> end
+global function font_copy(font: uint32): uint32
+  return _font_copy(font)
+end
+
+-- Scale a font, return a new font
+local function _font_scale(font: uint32, scaleX: float32, scaleY: float32, filter: ImageFilter): uint32 <cimport 'font_scale', nodecl> end
+global function font_scale(font: uint32, scaleX: float32, scaleY: float32, filter: ImageFilter): uint32
+  return _font_scale(font, scaleX, scaleY, filter)
+end
+
+-- Load a BMF font from a file in cart
+local function _load_font_bmf(filename: cstring, characters: cstring): uint32 <cimport 'load_font_bmf', nodecl> end
+global function load_font_bmf(filename: cstring, characters: cstring): uint32
+  return _load_font_bmf(filename, characters)
+end
+
+-- Load a BMF font from an image
+local function _load_font_bmf_from_image(image: uint32, characters: cstring): uint32 <cimport 'load_font_bmf_from_image', nodecl> end
+global function load_font_bmf_from_image(image: uint32, characters: cstring): uint32
+  return _load_font_bmf_from_image(image, characters)
+end
+
+-- Measure the size of some text
+local function _measure_text(font: uint32, text: cstring, textLength: int32): *Dimensions <cimport 'measure_text', nodecl> end
+global function measure_text(font: uint32, text: cstring, textLength: int32): *Dimensions
+  local result = _measure_text(font, text, (@int32)(textLength))
+  return result != nilptr and $result or (@Dimensions){0}
+end
+
+-- Meaure an image (use 0 for screen)
+local function _measure_image(image: uint32): *Dimensions <cimport 'measure_image', nodecl> end
+global function measure_image(image: uint32): *Dimensions
+  local result = _measure_image(image)
+  return result != nilptr and $result or (@Dimensions){0}
+end
+
+-- Load a TTY font from a file in cart
+local function _load_font_tty(filename: cstring, glyphWidth: int32, glyphHeight: int32, characters: cstring): uint32 <cimport 'load_font_tty', nodecl> end
+global function load_font_tty(filename: cstring, glyphWidth: int32, glyphHeight: int32, characters: cstring): uint32
+  return _load_font_tty(filename, (@int32)(glyphWidth), (@int32)(glyphHeight), characters)
+end
+
+-- Load a TTY font from an image
+local function _load_font_tty_from_image(image: uint32, glyphWidth: int32, glyphHeight: int32, characters: cstring): uint32 <cimport 'load_font_tty_from_image', nodecl> end
+global function load_font_tty_from_image(image: uint32, glyphWidth: int32, glyphHeight: int32, characters: cstring): uint32
+  return _load_font_tty_from_image(image, (@int32)(glyphWidth), (@int32)(glyphHeight), characters)
+end
+
+-- Load a TTF font from a file in cart
+local function _load_font_ttf(filename: cstring, fontSize: int32): uint32 <cimport 'load_font_ttf', nodecl> end
+global function load_font_ttf(filename: cstring, fontSize: int32): uint32
+  return _load_font_ttf(filename, (@int32)(fontSize))
+end
+
+-- Invert the colors in an image, in-place
+local function _image_color_invert(image: uint32): void <cimport 'image_color_invert', nodecl> end
+global function image_color_invert(image: uint32): void
+  _image_color_invert(image)
+end
+
+-- Calculate a rectangle representing the available alpha border in an image
+local function _image_alpha_border(image: uint32, threshold: float32): Rectangle <cimport 'image_alpha_border', nodecl> end
+global function image_alpha_border(image: uint32, threshold: float32): Rectangle
+  return _image_alpha_border(image, threshold)
+end
+
+-- Crop an image, in-place
+local function _image_crop(image: uint32, x: int32, y: int32, width: int32, height: int32): void <cimport 'image_crop', nodecl> end
+global function image_crop(image: uint32, x: int32, y: int32, width: int32, height: int32): void
+  _image_crop(image, (@int32)(x), (@int32)(y), (@int32)(width), (@int32)(height))
+end
+
+-- Crop an image based on the alpha border, in-place
+local function _image_alpha_crop(image: uint32, threshold: float32): void <cimport 'image_alpha_crop', nodecl> end
+global function image_alpha_crop(image: uint32, threshold: float32): void
+  _image_alpha_crop(image, threshold)
+end
+
+-- Adjust the brightness of an image, in-place
+local function _image_color_brightness(image: uint32, factor: float32): void <cimport 'image_color_brightness', nodecl> end
+global function image_color_brightness(image: uint32, factor: float32): void
+  _image_color_brightness(image, factor)
+end
+
+-- Flip an image, in-place
+local function _image_flip(image: uint32, horizontal: boolean, vertical: boolean): void <cimport 'image_flip', nodecl> end
+global function image_flip(image: uint32, horizontal: boolean, vertical: boolean): void
+  _image_flip(image, horizontal, vertical)
+end
+
+-- Change the contrast of an image, in-place
+local function _image_color_contrast(image: uint32, contrast: float32): void <cimport 'image_color_contrast', nodecl> end
+global function image_color_contrast(image: uint32, contrast: float32): void
+  _image_color_contrast(image, contrast)
+end
+
+-- Use an image as an alpha-mask on another image
+local function _image_alpha_mask(image: uint32, alphaMask: uint32, posX: int32, posY: int32): void <cimport 'image_alpha_mask', nodecl> end
+global function image_alpha_mask(image: uint32, alphaMask: uint32, posX: int32, posY: int32): void
+  _image_alpha_mask(image, alphaMask, (@int32)(posX), (@int32)(posY))
+end
+
+-- Create a new image, rotating another image
+local function _image_rotate(image: uint32, degrees: float32, filter: ImageFilter): uint32 <cimport 'image_rotate', nodecl> end
+global function image_rotate(image: uint32, degrees: float32, filter: ImageFilter): uint32
+  return _image_rotate(image, degrees, filter)
+end
+
+-- Create a new image of a gradient
+local function _image_gradient(width: int32, height: int32, topLeft: Color, topRight: Color, bottomLeft: Color, bottomRight: Color): uint32 <cimport 'image_gradient', nodecl> end
+global function image_gradient(width: int32, height: int32, topLeft: Color, topRight: Color, bottomLeft: Color, bottomRight: Color): uint32
+  return _image_gradient((@int32)(width), (@int32)(height), topLeft, topRight, bottomLeft, bottomRight)
+end
+
+-- Unload an image
+local function _unload_image(image: uint32): void <cimport 'unload_image', nodecl> end
+global function unload_image(image: uint32): void
+  _unload_image(image)
+end
+
+-- Unload a font
+local function _unload_font(font: uint32): void <cimport 'unload_font', nodecl> end
+global function unload_font(font: uint32): void
+  _unload_font(font)
+end
+
+-- Clear an image
+local function _clear_image(destination: uint32, color: Color): void <cimport 'clear_image', nodecl> end
+global function clear_image(destination: uint32, color: Color): void
+  _clear_image(destination, color)
+end
+
+-- Draw a single pixel on an image
+local function _draw_point_on_image(destination: uint32, x: int32, y: int32, color: Color): void <cimport 'draw_point_on_image', nodecl> end
+global function draw_point_on_image(destination: uint32, x: int32, y: int32, color: Color): void
+  _draw_point_on_image(destination, (@int32)(x), (@int32)(y), color)
+end
+
+-- Draw a line on an image
+local function _draw_line_on_image(destination: uint32, startPosX: int32, startPosY: int32, endPosX: int32, endPosY: int32, color: Color): void <cimport 'draw_line_on_image', nodecl> end
+global function draw_line_on_image(destination: uint32, startPosX: int32, startPosY: int32, endPosX: int32, endPosY: int32, color: Color): void
+  _draw_line_on_image(destination, (@int32)(startPosX), (@int32)(startPosY), (@int32)(endPosX), (@int32)(endPosY), color)
+end
+
+-- Draw a filled rectangle on an image
+local function _draw_rectangle_on_image(destination: uint32, posX: int32, posY: int32, width: int32, height: int32, color: Color): void <cimport 'draw_rectangle_on_image', nodecl> end
+global function draw_rectangle_on_image(destination: uint32, posX: int32, posY: int32, width: int32, height: int32, color: Color): void
+  _draw_rectangle_on_image(destination, (@int32)(posX), (@int32)(posY), (@int32)(width), (@int32)(height), color)
+end
+
+-- Draw a filled triangle on an image
+local function _draw_triangle_on_image(destination: uint32, x1: int32, y1: int32, x2: int32, y2: int32, x3: int32, y3: int32, color: Color): void <cimport 'draw_triangle_on_image', nodecl> end
+global function draw_triangle_on_image(destination: uint32, x1: int32, y1: int32, x2: int32, y2: int32, x3: int32, y3: int32, color: Color): void
+  _draw_triangle_on_image(destination, (@int32)(x1), (@int32)(y1), (@int32)(x2), (@int32)(y2), (@int32)(x3), (@int32)(y3), color)
+end
+
+-- Draw a filled ellipse on an image
+local function _draw_ellipse_on_image(destination: uint32, centerX: int32, centerY: int32, radiusX: int32, radiusY: int32, color: Color): void <cimport 'draw_ellipse_on_image', nodecl> end
+global function draw_ellipse_on_image(destination: uint32, centerX: int32, centerY: int32, radiusX: int32, radiusY: int32, color: Color): void
+  _draw_ellipse_on_image(destination, (@int32)(centerX), (@int32)(centerY), (@int32)(radiusX), (@int32)(radiusY), color)
+end
+
+-- Draw a circle on an image
+local function _draw_circle_on_image(destination: uint32, centerX: int32, centerY: int32, radius: int32, color: Color): void <cimport 'draw_circle_on_image', nodecl> end
+global function draw_circle_on_image(destination: uint32, centerX: int32, centerY: int32, radius: int32, color: Color): void
+  _draw_circle_on_image(destination, (@int32)(centerX), (@int32)(centerY), (@int32)(radius), color)
+end
+
+-- Draw a filled polygon on an image
+local function _draw_polygon_on_image(destination: uint32, points: *Vector, numPoints: int32, color: Color, numPoints: int32): void <cimport 'draw_polygon_on_image', nodecl> end
+global function draw_polygon_on_image(destination: uint32, points: *Vector, numPoints: int32, color: Color, numPoints: integer): void
+  _draw_polygon_on_image(destination, points, numPoints, (@int32)(numPoints), color, (@int32)(numPoints))
+end
+
+-- Draw a filled round-rectangle on an image
+local function _draw_rectangle_rounded_on_image(destination: uint32, x: int32, y: int32, width: int32, height: int32, cornerRadius: int32, color: Color): void <cimport 'draw_rectangle_rounded_on_image', nodecl> end
+global function draw_rectangle_rounded_on_image(destination: uint32, x: int32, y: int32, width: int32, height: int32, cornerRadius: int32, color: Color): void
+  _draw_rectangle_rounded_on_image(destination, (@int32)(x), (@int32)(y), (@int32)(width), (@int32)(height), (@int32)(cornerRadius), color)
+end
+
+-- Draw an image on an image
+local function _draw_image_on_image(destination: uint32, src: uint32, posX: int32, posY: int32): void <cimport 'draw_image_on_image', nodecl> end
+global function draw_image_on_image(destination: uint32, src: uint32, posX: int32, posY: int32): void
+  _draw_image_on_image(destination, src, (@int32)(posX), (@int32)(posY))
+end
+
+-- Draw a tinted image on an image
+local function _draw_image_tint_on_image(destination: uint32, src: uint32, posX: int32, posY: int32, tint: Color): void <cimport 'draw_image_tint_on_image', nodecl> end
+global function draw_image_tint_on_image(destination: uint32, src: uint32, posX: int32, posY: int32, tint: Color): void
+  _draw_image_tint_on_image(destination, src, (@int32)(posX), (@int32)(posY), tint)
+end
+
+-- Draw an image, rotated, on an image
+local function _draw_image_rotated_on_image(destination: uint32, src: uint32, posX: int32, posY: int32, degrees: float32, offsetX: float32, offsetY: float32, filter: ImageFilter): void <cimport 'draw_image_rotated_on_image', nodecl> end
+global function draw_image_rotated_on_image(destination: uint32, src: uint32, posX: int32, posY: int32, degrees: float32, offsetX: float32, offsetY: float32, filter: ImageFilter): void
+  _draw_image_rotated_on_image(destination, src, (@int32)(posX), (@int32)(posY), degrees, offsetX, offsetY, filter)
+end
+
+-- Draw an image, flipped, on an image
+local function _draw_image_flipped_on_image(destination: uint32, src: uint32, posX: int32, posY: int32, flipHorizontal: boolean, flipVertical: boolean, flipDiagonal: boolean): void <cimport 'draw_image_flipped_on_image', nodecl> end
+global function draw_image_flipped_on_image(destination: uint32, src: uint32, posX: int32, posY: int32, flipHorizontal: boolean, flipVertical: boolean, flipDiagonal: boolean): void
+  _draw_image_flipped_on_image(destination, src, (@int32)(posX), (@int32)(posY), flipHorizontal, flipVertical, flipDiagonal)
+end
+
+-- Draw an image, scaled, on an image
+local function _draw_image_scaled_on_image(destination: uint32, src: uint32, posX: int32, posY: int32, scaleX: float32, scaleY: float32, offsetX: float32, offsetY: float32, filter: ImageFilter): void <cimport 'draw_image_scaled_on_image', nodecl> end
+global function draw_image_scaled_on_image(destination: uint32, src: uint32, posX: int32, posY: int32, scaleX: float32, scaleY: float32, offsetX: float32, offsetY: float32, filter: ImageFilter): void
+  _draw_image_scaled_on_image(destination, src, (@int32)(posX), (@int32)(posY), scaleX, scaleY, offsetX, offsetY, filter)
+end
+
+-- Draw some text on an image
+local function _draw_text_on_image(destination: uint32, font: uint32, text: cstring, posX: int32, posY: int32, color: Color): void <cimport 'draw_text_on_image', nodecl> end
+global function draw_text_on_image(destination: uint32, font: uint32, text: cstring, posX: int32, posY: int32, color: Color): void
+  _draw_text_on_image(destination, font, text, (@int32)(posX), (@int32)(posY), color)
+end
+
+-- Draw a outlined (with thickness) rectangle on the screen
+local function _draw_rectangle_outline(posX: int32, posY: int32, width: int32, height: int32, thickness: int32, color: Color): void <cimport 'draw_rectangle_outline', nodecl> end
+global function draw_rectangle_outline(posX: int32, posY: int32, width: int32, height: int32, thickness: int32, color: Color): void
+  _draw_rectangle_outline((@int32)(posX), (@int32)(posY), (@int32)(width), (@int32)(height), (@int32)(thickness), color)
+end
+
+-- Draw a outlined (with thickness) triangle on the screen
+local function _draw_triangle_outline(x1: int32, y1: int32, x2: int32, y2: int32, x3: int32, y3: int32, thickness: int32, color: Color): void <cimport 'draw_triangle_outline', nodecl> end
+global function draw_triangle_outline(x1: int32, y1: int32, x2: int32, y2: int32, x3: int32, y3: int32, thickness: int32, color: Color): void
+  _draw_triangle_outline((@int32)(x1), (@int32)(y1), (@int32)(x2), (@int32)(y2), (@int32)(x3), (@int32)(y3), (@int32)(thickness), color)
+end
+
+-- Draw a outlined (with thickness) ellipse on the screen
+local function _draw_ellipse_outline(centerX: int32, centerY: int32, radiusX: int32, radiusY: int32, thickness: int32, color: Color): void <cimport 'draw_ellipse_outline', nodecl> end
+global function draw_ellipse_outline(centerX: int32, centerY: int32, radiusX: int32, radiusY: int32, thickness: int32, color: Color): void
+  _draw_ellipse_outline((@int32)(centerX), (@int32)(centerY), (@int32)(radiusX), (@int32)(radiusY), (@int32)(thickness), color)
+end
+
+-- Draw a outlined (with thickness) circle on the screen
+local function _draw_circle_outline(centerX: int32, centerY: int32, radius: int32, thickness: int32, color: Color): void <cimport 'draw_circle_outline', nodecl> end
+global function draw_circle_outline(centerX: int32, centerY: int32, radius: int32, thickness: int32, color: Color): void
+  _draw_circle_outline((@int32)(centerX), (@int32)(centerY), (@int32)(radius), (@int32)(thickness), color)
+end
+
+-- Draw a outlined (with thickness) polygon on the screen
+local function _draw_polygon_outline(points: *Vector, numPoints: int32, thickness: int32, color: Color, numPoints: int32): void <cimport 'draw_polygon_outline', nodecl> end
+global function draw_polygon_outline(points: *Vector, numPoints: int32, thickness: int32, color: Color, numPoints: integer): void
+  _draw_polygon_outline(points, numPoints, (@int32)(numPoints), (@int32)(thickness), color, (@int32)(numPoints))
+end
+
+-- Draw a outlined (with thickness) arc on the screen
+local function _draw_arc_outline(centerX: int32, centerY: int32, radius: float32, startAngle: float32, endAngle: float32, segments: int32, thickness: int32, color: Color): void <cimport 'draw_arc_outline', nodecl> end
+global function draw_arc_outline(centerX: int32, centerY: int32, radius: float32, startAngle: float32, endAngle: float32, segments: int32, thickness: int32, color: Color): void
+  _draw_arc_outline((@int32)(centerX), (@int32)(centerY), radius, startAngle, endAngle, (@int32)(segments), (@int32)(thickness), color)
+end
+
+-- Draw a outlined (with thickness) round-rectangle on the screen
+local function _draw_rectangle_rounded_outline(x: int32, y: int32, width: int32, height: int32, cornerRadius: int32, thickness: int32, color: Color): void <cimport 'draw_rectangle_rounded_outline', nodecl> end
+global function draw_rectangle_rounded_outline(x: int32, y: int32, width: int32, height: int32, cornerRadius: int32, thickness: int32, color: Color): void
+  _draw_rectangle_rounded_outline((@int32)(x), (@int32)(y), (@int32)(width), (@int32)(height), (@int32)(cornerRadius), (@int32)(thickness), color)
+end
+
+-- Draw a outlined (with thickness) rectangle on an image
+local function _draw_rectangle_outline_on_image(destination: uint32, posX: int32, posY: int32, width: int32, height: int32, thickness: int32, color: Color): void <cimport 'draw_rectangle_outline_on_image', nodecl> end
+global function draw_rectangle_outline_on_image(destination: uint32, posX: int32, posY: int32, width: int32, height: int32, thickness: int32, color: Color): void
+  _draw_rectangle_outline_on_image(destination, (@int32)(posX), (@int32)(posY), (@int32)(width), (@int32)(height), (@int32)(thickness), color)
+end
+
+-- Draw a outlined (with thickness) triangle on an image
+local function _draw_triangle_outline_on_image(destination: uint32, x1: int32, y1: int32, x2: int32, y2: int32, x3: int32, y3: int32, thickness: int32, color: Color): void <cimport 'draw_triangle_outline_on_image', nodecl> end
+global function draw_triangle_outline_on_image(destination: uint32, x1: int32, y1: int32, x2: int32, y2: int32, x3: int32, y3: int32, thickness: int32, color: Color): void
+  _draw_triangle_outline_on_image(destination, (@int32)(x1), (@int32)(y1), (@int32)(x2), (@int32)(y2), (@int32)(x3), (@int32)(y3), (@int32)(thickness), color)
+end
+
+-- Draw a outlined (with thickness) ellipse on an image
+local function _draw_ellipse_outline_on_image(destination: uint32, centerX: int32, centerY: int32, radiusX: int32, radiusY: int32, thickness: int32, color: Color): void <cimport 'draw_ellipse_outline_on_image', nodecl> end
+global function draw_ellipse_outline_on_image(destination: uint32, centerX: int32, centerY: int32, radiusX: int32, radiusY: int32, thickness: int32, color: Color): void
+  _draw_ellipse_outline_on_image(destination, (@int32)(centerX), (@int32)(centerY), (@int32)(radiusX), (@int32)(radiusY), (@int32)(thickness), color)
+end
+
+-- Draw a outlined (with thickness) circle on an image
+local function _draw_circle_outline_on_image(destination: uint32, centerX: int32, centerY: int32, radius: int32, thickness: int32, color: Color): void <cimport 'draw_circle_outline_on_image', nodecl> end
+global function draw_circle_outline_on_image(destination: uint32, centerX: int32, centerY: int32, radius: int32, thickness: int32, color: Color): void
+  _draw_circle_outline_on_image(destination, (@int32)(centerX), (@int32)(centerY), (@int32)(radius), (@int32)(thickness), color)
+end
+
+-- Draw a outlined (with thickness) polygon on an image
+local function _draw_polygon_outline_on_image(destination: uint32, points: *Vector, numPoints: int32, thickness: int32, color: Color, numPoints: int32): void <cimport 'draw_polygon_outline_on_image', nodecl> end
+global function draw_polygon_outline_on_image(destination: uint32, points: *Vector, numPoints: int32, thickness: int32, color: Color, numPoints: integer): void
+  _draw_polygon_outline_on_image(destination, points, numPoints, (@int32)(numPoints), (@int32)(thickness), color, (@int32)(numPoints))
+end
+
+-- Draw a outlined (with thickness) round-rectangle on an image
+local function _draw_rectangle_rounded_outline_on_image(destination: uint32, x: int32, y: int32, width: int32, height: int32, cornerRadius: int32, thickness: int32, color: Color): void <cimport 'draw_rectangle_rounded_outline_on_image', nodecl> end
+global function draw_rectangle_rounded_outline_on_image(destination: uint32, x: int32, y: int32, width: int32, height: int32, cornerRadius: int32, thickness: int32, color: Color): void
+  _draw_rectangle_rounded_outline_on_image(destination, (@int32)(x), (@int32)(y), (@int32)(width), (@int32)(height), (@int32)(cornerRadius), (@int32)(thickness), color)
+end
+
+
+-- COLORS
+
+-- Tint a color with another color
+local function _color_tint(color: Color, tint: Color): *Color <cimport 'color_tint', nodecl> end
+global function color_tint(color: Color, tint: Color): *Color
+  local result = _color_tint(color, tint)
+  return result != nilptr and $result or (@Color){0}
+end
+
+-- Fade a color
+local function _color_fade(color: Color, alpha: float32): *Color <cimport 'color_fade', nodecl> end
+global function color_fade(color: Color, alpha: float32): *Color
+  local result = _color_fade(color, alpha)
+  return result != nilptr and $result or (@Color){0}
+end
+
+-- Change the brightness of a color
+local function _color_brightness(color: Color, factor: float32): *Color <cimport 'color_brightness', nodecl> end
+global function color_brightness(color: Color, factor: float32): *Color
+  local result = _color_brightness(color, factor)
+  return result != nilptr and $result or (@Color){0}
+end
+
+-- Invert a color
+local function _color_invert(color: Color): *Color <cimport 'color_invert', nodecl> end
+global function color_invert(color: Color): *Color
+  local result = _color_invert(color)
+  return result != nilptr and $result or (@Color){0}
+end
+
+-- Blend 2 colors together
+local function _color_alpha_blend(dst: Color, src: Color): *Color <cimport 'color_alpha_blend', nodecl> end
+global function color_alpha_blend(dst: Color, src: Color): *Color
+  local result = _color_alpha_blend(dst, src)
+  return result != nilptr and $result or (@Color){0}
+end
+
+-- Change contrast of a color
+local function _color_contrast(color: Color, contrast: float32): *Color <cimport 'color_contrast', nodecl> end
+global function color_contrast(color: Color, contrast: float32): *Color
+  local result = _color_contrast(color, contrast)
+  return result != nilptr and $result or (@Color){0}
+end
+
+-- Interpolate colors
+local function _color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: float32, coordinateY: float32): *Color <cimport 'color_bilinear_interpolate', nodecl> end
+global function color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: float32, coordinateY: float32): *Color
+  local result = _color_bilinear_interpolate(color00, color01, color10, color11, coordinateX, coordinateY)
+  return result != nilptr and $result or (@Color){0}
+end

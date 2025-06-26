@@ -1,0 +1,35 @@
+-- Import the null0 API functions
+require '../null0'
+
+-- Main function - entry point for the cart (like C)
+function main(): integer
+  local colors: [26]Color = {
+    LIGHTGRAY, GRAY, DARKGRAY, YELLOW, GOLD, ORANGE, PINK, RED, MAROON,
+    GREEN, LIME, DARKGREEN, BLANK, SKYBLUE, DARKBLUE, PURPLE, VIOLET,
+    DARKPURPLE, BEIGE, BROWN, DARKBROWN, WHITE, BLACK, BLUE, MAGENTA, RAYWHITE
+  }
+
+  local margin: integer = 10
+  local bar_width: number = (SCREEN_WIDTH / (26.0 * 2)) + (margin / 4)
+  local bar_height: number = SCREEN_HEIGHT - (margin * 2.0)
+
+  -- Draw concentric circles
+  local d: integer = SCREEN_HEIGHT // 4
+  local i: integer = 0
+  while d > 0 do
+    d = d - (@integer)(bar_width)
+    draw_circle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, d, i % 2 == 1 and WHITE or RED)
+    i = i + 1
+  end
+
+  -- Draw color bars
+  for x: integer = 0, < 26 do
+    local rect_x: integer = margin + (x * ((@integer)(bar_width) + margin))
+    draw_rectangle(rect_x, margin, (@integer)(bar_width), (@integer)(bar_height), colors[x])
+    
+    local outline_color: Color = x == 0 and WHITE or LIGHTGRAY
+    draw_rectangle_outline(rect_x, margin, (@integer)(bar_width), (@integer)(bar_height), 1, outline_color)
+  end
+
+  return 0
+end 
