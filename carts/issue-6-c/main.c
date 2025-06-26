@@ -4,10 +4,6 @@ int main() {
   unsigned int logo = load_image("logo.png");
   Dimensions* before = measure_image(logo);
 
-  // FILTER_NEARESTNEIGHBOR
-  // FILTER_BILINEAR
-  // FILTER_SMOOTH
-
   unsigned int logo2 = image_scale(logo, 2, 2, FILTER_NEARESTNEIGHBOR);
   Dimensions* after = measure_image(logo2);
 
