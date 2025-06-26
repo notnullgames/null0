@@ -1,6 +1,7 @@
 name: Release Webroot
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
