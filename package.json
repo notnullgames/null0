@@ -18,7 +18,8 @@
     "gen:host": "node tools/gen_host.js",
     "gen:cart_c": "node tools/gen_cart_c.js",
     "gen:cart_js": "node tools/gen_cart_js.js",
-    "gen:cart_nelua": "node tools/gen_cart_nelua.js"
+    "gen:cart_nelua": "node tools/gen_cart_nelua.js",
+    "gen:api_docs": "node tools/gen_api_docs.js"
   },
   "devDependencies": {
     "glob": "^11.0.3",
