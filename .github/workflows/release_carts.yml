@@ -1,0 +1,26 @@
+name: Release Carts
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install WASI SDK
+        uses: konsumer/install-wasi-sdk@v1
+        with:
+          version: '25'
+          add-to-path: 'false'
+      - name: Configure Carts
+        run: cmake -B build_cart -DCMAKE_BUILD_TYPE=Release carts/
+      - name: Build Carts
+        run: cmake --build build_cart
+      - run: gh release upload ${{github.event.release.tag_name}} build_cart/*.null0
+        env:
+          GH_TOKEN: ${{ github.token }}

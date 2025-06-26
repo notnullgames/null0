@@ -1,0 +1,29 @@
+name: Release Carts
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+      - name: Configure Web
+        run: emcmake cmake -B build_web -DCMAKE_BUILD_TYPE=Release
+      - name: Build Web
+        run: cmake --build build_web
+      - name: Bundle Web
+        run: |
+          mkdir -p webroot/wbuild/host/
+          mv build_web/host/null0.* webroot/wbuild/host/
+          mv webroot/mygame.html webroot/index.html
+          cd webroot
+          zip -r ../webroot.zip .
+      - run: gh release upload ${{github.event.release.tag_name}} webroot.zip
+        env:
+          GH_TOKEN: ${{ github.token }}
