@@ -63,3 +63,12 @@ char *fs_get_cart_name(const char *filename);
 
 // get the real location of write-dir
 char *fs_get_write_dir();
+
+// Check if executable has embedded cart data
+bool fs_has_embedded_cart(const char *exe_path);
+
+// Mount executable with embedded cart data  
+bool fs_mount_embedded_cart(const char *exe_path);
+
+// Get size of embedded cart data (0 if none)
+size_t fs_get_embedded_cart_size(const char *exe_path);

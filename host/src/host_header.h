@@ -92,11 +92,23 @@ uint32_t copy_memory_to_cart(void *src, uint32_t size) {
 }
 
 bool host_init(pntr_app *app) {
-  char* main_path = file_exists_next_to_executable("main.null0");
-  if (!app->argFile && main_path) {
-    app->argFile = strdup(main_path);
+  // First try to find embedded cart in executable
+  char* exe_path = get_executable_path();
+  bool has_embedded = exe_path && fs_has_embedded_cart(exe_path);
+
+  if (has_embedded && !app->argFile) {
+    // Use embedded cart
+    app->argFile = strdup(exe_path);
+  } else {
+    // Fallback to external file
+    char* main_path = file_exists_next_to_executable("main.null0");
+    if (!app->argFile && main_path) {
+      app->argFile = strdup(main_path);
+    }
+    free(main_path);
   }
-  free(main_path);
+  
+  if (exe_path) free(exe_path);
 
   if (!app->argFile) {
     pntr_app_log(PNTR_APP_LOG_ERROR, "Usage: null <CART>");
@@ -105,52 +117,74 @@ bool host_init(pntr_app *app) {
 
   null0_app = app;
 
-  uint32_t cartSize = 0;
-  unsigned char *cartBytes = fs_load_file_real(app->argFile, &cartSize);
-
-  if (!cartSize) {
-    if (cartBytes) {
-      free(cartBytes);
-    }
-    pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load cart.");
-    return false;
-  }
-
   if (!PHYSFS_init("/")) {
     pntr_app_log(PNTR_APP_LOG_ERROR, "Could not start filesystem.");
     return false;
   }
 
-  DetectFileType cartType = fs_parse_magic_bytes(*(uint32_t *)cartBytes);
+  uint32_t cartSize = 0;
+  unsigned char *cartBytes = NULL;
   uint32_t wasmSize = 0;
   unsigned char *wasmBytes = NULL;
 
-  if (cartType == FILE_TYPE_ZIP) {
-    if (!PHYSFS_mountMemory(cartBytes, cartSize, NULL, "cart.zip", NULL, 1)) {
+  // Check if we're using embedded cart
+  if (has_embedded) {
+    // Mount the executable as PhysFS archive
+    if (!fs_mount_embedded_cart(app->argFile)) {
       PHYSFS_deinit();
-      free(cartBytes);
-      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not mount cart.");
+      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not mount embedded cart.");
       return false;
     }
+    
+    // Load main.wasm from mounted archive
     wasmBytes = fs_load_file("main.wasm", &wasmSize);
     if (wasmSize == 0) {
-      free(cartBytes);
-      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load main.wasm.");
+      PHYSFS_deinit();
+      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load main.wasm from embedded cart.");
       return false;
     }
-  } else if (cartType == FILE_TYPE_WASM) {
-    wasmSize = cartSize;
-    wasmBytes = cartBytes;
   } else {
-    free(cartBytes);
-    pntr_app_log(PNTR_APP_LOG_ERROR, "Only wasm/zip cart-files are supported.");
-    return false;
+    // Original external file logic
+    cartBytes = fs_load_file_real(app->argFile, &cartSize);
+
+    if (!cartSize) {
+      if (cartBytes) {
+        free(cartBytes);
+      }
+      pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load cart.");
+      return false;
+    }
+
+    DetectFileType cartType = fs_parse_magic_bytes(*(uint32_t *)cartBytes);
+
+    if (cartType == FILE_TYPE_ZIP) {
+      if (!PHYSFS_mountMemory(cartBytes, cartSize, NULL, "cart.zip", NULL, 1)) {
+        PHYSFS_deinit();
+        free(cartBytes);
+        pntr_app_log(PNTR_APP_LOG_ERROR, "Could not mount cart.");
+        return false;
+      }
+      wasmBytes = fs_load_file("main.wasm", &wasmSize);
+      if (wasmSize == 0) {
+        free(cartBytes);
+        pntr_app_log(PNTR_APP_LOG_ERROR, "Could not load main.wasm.");
+        return false;
+      }
+    } else if (cartType == FILE_TYPE_WASM) {
+      wasmSize = cartSize;
+      wasmBytes = cartBytes;
+    } else {
+      free(cartBytes);
+      pntr_app_log(PNTR_APP_LOG_ERROR, "Only wasm/zip cart-files are supported.");
+      return false;
+    }
   }
 
   add_image(app->screen);
   add_font(pntr_load_font_default());
 
   bool ret = cart_init(app, wasmBytes, wasmSize);
+  if (cartBytes) free(cartBytes);
   free(wasmBytes);
   return ret;
 }
@@ -259,3 +293,4 @@ pntr_vector null0_measure_image(pntr_image *image) {
 void null0_draw_rectangle_thick_rounded(pntr_image *dst, int32_t x, int32_t y, int32_t width, int32_t height, int32_t cornerRadius, int32_t thickness, pntr_color color) {
   pntr_draw_rectangle_thick_rounded(dst, x, y, width, height, cornerRadius, cornerRadius, cornerRadius, cornerRadius, thickness, color);
 }
+

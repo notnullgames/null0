@@ -186,3 +186,111 @@ DetectFileType fs_detect_type(const char *filename) {
   PHYSFS_close(f);
   return fs_parse_magic_bytes(magic_number);
 }
+
+
+
+// Check if executable has embedded cart data
+bool fs_has_embedded_cart(const char *exe_path) {
+    FILE *file = fopen(exe_path, "rb");
+    if (!file) {
+        return false;
+    }
+    
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    
+    if (file_size < 22) { // Minimum size for EOCD record
+        fclose(file);
+        return false;
+    }
+    
+    // Search for End of Central Directory signature (0x06054b50)
+    // We need to scan backwards from the end since there might be comments
+    long search_start = file_size - 22; // Minimum EOCD size
+    long search_end = file_size - 65536; // Maximum comment size is 65535
+    if (search_end < 0) search_end = 0;
+    
+    for (long pos = search_start; pos >= search_end; pos--) {
+        fseek(file, pos, SEEK_SET);
+        uint32_t signature;
+        
+        if (fread(&signature, sizeof(uint32_t), 1, file) != 1) {
+            continue;
+        }
+        
+        if (signature == 0x06054b50) { // End of central directory signature
+            fclose(file);
+            return true;
+        }
+    }
+    
+    fclose(file);
+    return false;
+}
+
+// Mount executable with embedded cart data
+bool fs_mount_embedded_cart(const char *exe_path) {
+    
+    if (!fs_has_embedded_cart(exe_path)) {
+        return false;
+    }
+    
+    // PhysFS can directly mount executables with appended zip data
+    if (PHYSFS_mount(exe_path, NULL, 1) == 0) {
+        return false;
+    }
+    
+    return true;
+}
+
+// Get size of embedded cart data (0 if none)
+size_t fs_get_embedded_cart_size(const char *exe_path) {
+    if (!fs_has_embedded_cart(exe_path)) {
+        return 0;
+    }
+    
+    FILE *file = fopen(exe_path, "rb");
+    if (!file) return 0;
+    
+    // Read the End of Central Directory Record
+    fseek(file, -22, SEEK_END); // EOCD is 22 bytes minimum
+    
+    uint32_t signature;
+    uint16_t disk_number;
+    uint16_t central_dir_disk;
+    uint16_t num_entries_this_disk;
+    uint16_t num_entries_total;
+    uint32_t central_dir_size;
+    uint32_t central_dir_offset;
+    uint16_t comment_length;
+    
+    fread(&signature, 4, 1, file);
+    if (signature != 0x06054b50) {
+        fclose(file);
+        return 0;
+    }
+    
+    fread(&disk_number, 2, 1, file);
+    fread(&central_dir_disk, 2, 1, file); 
+    fread(&num_entries_this_disk, 2, 1, file);
+    fread(&num_entries_total, 2, 1, file);
+    fread(&central_dir_size, 4, 1, file);
+    fread(&central_dir_offset, 4, 1, file);
+    fread(&comment_length, 2, 1, file);
+    
+    fclose(file);
+    
+    // Calculate zip size: from start of zip to end of file
+    long file_size;
+    file = fopen(exe_path, "rb");
+    fseek(file, 0, SEEK_END);
+    file_size = ftell(file);
+    fclose(file);
+    
+    // ZIP starts at central_dir_offset minus central_dir_size
+    // This gives us the approximate size of the appended zip data
+    size_t zip_size = file_size - central_dir_offset;
+    
+    return zip_size;
+}

@@ -13,6 +13,18 @@ npm run build:carts
 npm start
 ```
 
+## distribution
+
+To distribute your game, you can either save your cart as main.null0, alongside the native runtime (and name that whatever you want) or you can embed it all in one executable:
+
+```sh
+# linux or mac
+./tools/embed_cart.js build/host/null0 build/carts/input_c.null0 tester
+
+# windows
+nide ./tools/embed_cart.js build/host/null0.exe build/carts/input_c.null0 tester.exe
+```
+
 ## thanks
 
 See [THANKS](THANKS.md) for acknowledgement and thanks for all the great help & code I received to make this.
