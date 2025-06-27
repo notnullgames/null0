@@ -1,34 +1,45 @@
 -- Import the null0 API functions
 require 'null0'
 
-function main(): integer
-  local colors: [26]Color = {
-    LIGHTGRAY, GRAY, DARKGRAY, YELLOW, GOLD, ORANGE, PINK, RED, MAROON,
-    GREEN, LIME, DARKGREEN, BLANK, SKYBLUE, DARKBLUE, PURPLE, VIOLET,
-    DARKPURPLE, BEIGE, BROWN, DARKBROWN, WHITE, BLACK, BLUE, MAGENTA, RAYWHITE
+global function load(): void <cexport "load">
+  clear(BLACK)
+end
+
+global function update(): void <cexport "update">
+  local colors: [8]Color = {
+    WHITE, BLACK, RED, GREEN, BLUE, YELLOW, LIGHTGRAY, GRAY
   }
 
-  local margin: integer = 10
-  local bar_width: number = (SCREEN_WIDTH / (26.0 * 2)) + (margin / 4)
-  local bar_height: number = SCREEN_HEIGHT - (margin * 2.0)
+  local margin: int32 = 10
+  local bar_width: int32 = (SCREEN_WIDTH // 8) - margin
+  local bar_height: int32 = SCREEN_HEIGHT - (margin * 2)
 
   -- Draw concentric circles
-  local d: integer = SCREEN_HEIGHT // 4
-  local i: integer = 0
+  local d: int32 = SCREEN_HEIGHT // 4
+  local i: int32 = 0
   while d > 0 do
-    d = d - (@integer)(bar_width)
-    draw_circle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, d, i % 2 == 1 and WHITE or RED)
+    d = d - bar_width
+    if i % 2 == 1 then
+      draw_circle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, d, WHITE)
+    else
+      draw_circle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, d, RED)
+    end
     i = i + 1
   end
 
   -- Draw color bars
-  for x: integer = 0, < 26 do
-    local rect_x: integer = margin + (x * ((@integer)(bar_width) + margin))
-    draw_rectangle(rect_x, margin, (@integer)(bar_width), (@integer)(bar_height), colors[x])
+  for x: int32 = 0, < 8 do
+    local rect_x: int32 = margin + (x * (bar_width + margin))
+    draw_rectangle(rect_x, margin, bar_width, bar_height, colors[x])
     
-    local outline_color: Color = x == 0 and WHITE or LIGHTGRAY
-    draw_rectangle_outline(rect_x, margin, (@integer)(bar_width), (@integer)(bar_height), 1, outline_color)
+    if x == 0 then
+      draw_rectangle_outline(rect_x, margin, bar_width, bar_height, 1, WHITE)
+    else
+      draw_rectangle_outline(rect_x, margin, bar_width, bar_height, 1, LIGHTGRAY)
+    end
   end
+end
 
-  return 0
+global function unload(): void <cexport "unload">
+  -- cleanup if needed
 end 

@@ -1,7 +1,16 @@
 -- Import the null0 API functions
 require 'null0'
 
-function main(): integer
+global function load(): void <cexport "load">
+  clear(BLUE)
+end
 
-  return 0
+global function update(): void <cexport "update">
+  clear(BLACK)
+  draw_rectangle(100, 100, 200, 150, RED)
+  draw_circle(300, 200, 50, GREEN)
+end
+
+global function unload(): void <cexport "unload">
+  -- cleanup if needed
 end 
