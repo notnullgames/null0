@@ -19,19 +19,19 @@ To distribute your game, you can either save your cart as main.null0, alongside 
 
 ```sh
 # linux or mac
-./tools/embed_cart.js build/host/null0 build/carts/input_c.null0 tester
-
-# windows
-node ./tools/embed_cart.js build/host/null0.exe build/carts/input_c.null0 tester.exe
-
-# or
-
-# linux or mac
 cat build/host/null0 build/carts/input_c.null0 > tester
 
 # windows
 copy /b build/host/null0.exe+build/carts/input_c.null0 tester.exe
 ```
+
+## todo/ideas
+
+- [ui](https://github.com/rxi/microui)
+- add back sfx
+- add back tts
+- tiled map/sprite support
+- physics
 
 ## thanks
 
