@@ -3,6 +3,7 @@
 
 #include "host.h"
 #include <sys/time.h>
+#include "exists_next_to_executable.h"
 
 static pntr_app *null0_app;
 
@@ -91,6 +92,12 @@ uint32_t copy_memory_to_cart(void *src, uint32_t size) {
 }
 
 bool host_init(pntr_app *app) {
+  char* main_path = file_exists_next_to_executable("main.null0");
+  if (!app->argFile && main_path) {
+    app->argFile = strdup(main_path);
+  }
+  free(main_path);
+
   if (!app->argFile) {
     pntr_app_log(PNTR_APP_LOG_ERROR, "Usage: null <CART>");
     return false;
