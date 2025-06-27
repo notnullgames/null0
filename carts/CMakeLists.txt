@@ -82,6 +82,27 @@ function (BUILD_CART_JS name)
   add_dependencies(carts cart_js_${name})
 endfunction()
 
+# this will build a Nelua cart, by name
+function (BUILD_CART_NELUA name)
+  set(CART_DIR "${CMAKE_CURRENT_SOURCE_DIR}/nelua/${name}")
+  set(CART_TEMP "${CMAKE_CURRENT_BINARY_DIR}/${name}_nelua_temp/")
+  set(NELUA_C_TEMP "${CMAKE_CURRENT_BINARY_DIR}/${name}_nelua_c_temp.c")
+  
+  add_custom_target(cart_nelua_${name} ALL
+    COMMAND nelua -L "${CMAKE_CURRENT_SOURCE_DIR}/nelua/" -c "${CART_DIR}/main.nelua" --output "${NELUA_C_TEMP}"
+    COMMAND ${CMAKE_C_COMPILER} -target ${CMAKE_C_COMPILER_TARGET} ${CMAKE_C_LINK_FLAGS} "${NELUA_C_TEMP}" -o "${CMAKE_CURRENT_BINARY_DIR}/${name}_nelua.wasm"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CART_TEMP}"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${name}_nelua.wasm" "${CART_TEMP}/main.wasm"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CART_DIR}" "${CART_TEMP}"
+    COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/*.nelua"
+    COMMAND ${CMAKE_COMMAND} -E chdir "${CART_TEMP}" ${CMAKE_COMMAND} -E tar "cf" "../${name}_nelua.null0" --format=zip .
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CART_TEMP}"
+    COMMAND ${CMAKE_COMMAND} -E rm -f "${NELUA_C_TEMP}"
+    COMMAND ${CMAKE_COMMAND} -E rm -f "${CMAKE_CURRENT_BINARY_DIR}/${name}_nelua.wasm"
+    COMMENT "Creating cart ${name}_nelua.null0"
+  )
+  add_dependencies(carts cart_nelua_${name})
+endfunction()
 
 BUILD_CART_C("colorbars")
 BUILD_CART_C("example")
@@ -93,3 +114,5 @@ BUILD_CART_C("wasi_demo")
 BUILD_CART_JS("demo")
 BUILD_CART_JS("input")
 BUILD_CART_JS("issue6")
+
+BUILD_CART_NELUA("basic")

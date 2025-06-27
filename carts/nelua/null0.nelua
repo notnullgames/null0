@@ -193,41 +193,41 @@ global SCREEN_HEIGHT: integer <comptime> = 480
 global FONT_DEFAULT: integer <comptime> = 0
 
 -- Color constants
-global LIGHTGRAY: Color <comptime> = {r = 200, g = 200, b = 200, a = 255}
-global GRAY: Color <comptime> = {r = 130, g = 130, b = 130, a = 255}
-global DARKGRAY: Color <comptime> = {r = 80, g = 80, b = 80, a = 255}
-global YELLOW: Color <comptime> = {r = 253, g = 249, b = 0, a = 255}
-global GOLD: Color <comptime> = {r = 255, g = 203, b = 0, a = 255}
-global ORANGE: Color <comptime> = {r = 255, g = 161, b = 0, a = 255}
-global PINK: Color <comptime> = {r = 255, g = 109, b = 194, a = 255}
-global RED: Color <comptime> = {r = 230, g = 41, b = 55, a = 255}
-global MAROON: Color <comptime> = {r = 190, g = 33, b = 55, a = 255}
-global GREEN: Color <comptime> = {r = 0, g = 228, b = 48, a = 255}
-global LIME: Color <comptime> = {r = 0, g = 158, b = 47, a = 255}
-global DARKGREEN: Color <comptime> = {r = 0, g = 117, b = 44, a = 255}
-global SKYBLUE: Color <comptime> = {r = 102, g = 191, b = 255, a = 255}
-global BLUE: Color <comptime> = {r = 0, g = 121, b = 241, a = 255}
-global DARKBLUE: Color <comptime> = {r = 0, g = 82, b = 172, a = 255}
-global PURPLE: Color <comptime> = {r = 200, g = 122, b = 255, a = 255}
-global VIOLET: Color <comptime> = {r = 135, g = 60, b = 190, a = 255}
-global DARKPURPLE: Color <comptime> = {r = 112, g = 31, b = 126, a = 255}
-global BEIGE: Color <comptime> = {r = 211, g = 176, b = 131, a = 255}
-global BROWN: Color <comptime> = {r = 127, g = 106, b = 79, a = 255}
-global DARKBROWN: Color <comptime> = {r = 76, g = 63, b = 47, a = 255}
-global WHITE: Color <comptime> = {r = 255, g = 255, b = 255, a = 255}
-global BLACK: Color <comptime> = {r = 0, g = 0, b = 0, a = 255}
-global BLANK: Color <comptime> = {r = 0, g = 0, b = 0, a = 0}
-global MAGENTA: Color <comptime> = {r = 255, g = 0, b = 255, a = 255}
-global RAYWHITE: Color <comptime> = {r = 245, g = 245, b = 245, a = 255}
+-- global LIGHTGRAY: Color <comptime> = {r = 200, g = 200, b = 200, a = 255}
+-- global GRAY: Color <comptime> = {r = 130, g = 130, b = 130, a = 255}
+-- global DARKGRAY: Color <comptime> = {r = 80, g = 80, b = 80, a = 255}
+-- global YELLOW: Color <comptime> = {r = 253, g = 249, b = 0, a = 255}
+-- global GOLD: Color <comptime> = {r = 255, g = 203, b = 0, a = 255}
+-- global ORANGE: Color <comptime> = {r = 255, g = 161, b = 0, a = 255}
+-- global PINK: Color <comptime> = {r = 255, g = 109, b = 194, a = 255}
+-- global RED: Color <comptime> = {r = 230, g = 41, b = 55, a = 255}
+-- global MAROON: Color <comptime> = {r = 190, g = 33, b = 55, a = 255}
+-- global GREEN: Color <comptime> = {r = 0, g = 228, b = 48, a = 255}
+-- global LIME: Color <comptime> = {r = 0, g = 158, b = 47, a = 255}
+-- global DARKGREEN: Color <comptime> = {r = 0, g = 117, b = 44, a = 255}
+-- global SKYBLUE: Color <comptime> = {r = 102, g = 191, b = 255, a = 255}
+-- global BLUE: Color <comptime> = {r = 0, g = 121, b = 241, a = 255}
+-- global DARKBLUE: Color <comptime> = {r = 0, g = 82, b = 172, a = 255}
+-- global PURPLE: Color <comptime> = {r = 200, g = 122, b = 255, a = 255}
+-- global VIOLET: Color <comptime> = {r = 135, g = 60, b = 190, a = 255}
+-- global DARKPURPLE: Color <comptime> = {r = 112, g = 31, b = 126, a = 255}
+-- global BEIGE: Color <comptime> = {r = 211, g = 176, b = 131, a = 255}
+-- global BROWN: Color <comptime> = {r = 127, g = 106, b = 79, a = 255}
+-- global DARKBROWN: Color <comptime> = {r = 76, g = 63, b = 47, a = 255}
+-- global WHITE: Color <comptime> = {r = 255, g = 255, b = 255, a = 255}
+-- global BLACK: Color <comptime> = {r = 0, g = 0, b = 0, a = 255}
+-- global BLANK: Color <comptime> = {r = 0, g = 0, b = 0, a = 0}
+-- global MAGENTA: Color <comptime> = {r = 255, g = 0, b = 255, a = 255}
+-- global RAYWHITE: Color <comptime> = {r = 245, g = 245, b = 245, a = 255}
 
 -- Math functions
-global math: type = @record{}
-global function math.sin(x: number): number <cimport 'sin', nodecl, cinclude '<math.h>'> end
-global function math.cos(x: number): number <cimport 'cos', nodecl, cinclude '<math.h>'> end
-global function math.sqrt(x: number): number <cimport 'sqrt', nodecl, cinclude '<math.h>'> end
-global function math.pi(): number <comptime>
-  return 3.14159265358979323846
-end
+-- global math: type = @record{}
+-- global function math.sin(x: number): number <cimport 'sin', nodecl, cinclude '<math.h>'> end
+-- global function math.cos(x: number): number <cimport 'cos', nodecl, cinclude '<math.h>'> end
+-- global function math.sqrt(x: number): number <cimport 'sqrt', nodecl, cinclude '<math.h>'> end
+-- global function math.pi(): number <comptime>
+--   return 3.14159265358979323846
+-- end
 
 -- Type aliases for resources
 global Image: type = @uint32
@@ -342,7 +342,7 @@ end
 local function _mouse_position(): *Vector <cimport 'mouse_position', nodecl> end
 global function mouse_position(): *Vector
   local result = _mouse_position()
-  return result != nilptr and $result or (@Vector){0}
+  return result ~= nilptr and $result or nilptr
 end
 
 -- Has the button been pressed? (tracks unpress/read correctly)
@@ -556,14 +556,14 @@ end
 local function _measure_text(font: uint32, text: cstring, textLength: int32): *Dimensions <cimport 'measure_text', nodecl> end
 global function measure_text(font: uint32, text: cstring, textLength: int32): *Dimensions
   local result = _measure_text(font, text, (@int32)(textLength))
-  return result != nilptr and $result or (@Dimensions){0}
+  return result ~= nilptr and $result or (@Dimensions){0}
 end
 
 -- Meaure an image (use 0 for screen)
 local function _measure_image(image: uint32): *Dimensions <cimport 'measure_image', nodecl> end
 global function measure_image(image: uint32): *Dimensions
   local result = _measure_image(image)
-  return result != nilptr and $result or (@Dimensions){0}
+  return result ~= nilptr and $result or (@Dimensions){0}
 end
 
 -- Load a TTY font from a file in cart
@@ -831,47 +831,47 @@ end
 local function _color_tint(color: Color, tint: Color): *Color <cimport 'color_tint', nodecl> end
 global function color_tint(color: Color, tint: Color): *Color
   local result = _color_tint(color, tint)
-  return result != nilptr and $result or (@Color){0}
+  return result ~= nilptr and $result or (@Color){0}
 end
 
 -- Fade a color
 local function _color_fade(color: Color, alpha: float32): *Color <cimport 'color_fade', nodecl> end
 global function color_fade(color: Color, alpha: float32): *Color
   local result = _color_fade(color, alpha)
-  return result != nilptr and $result or (@Color){0}
+  return result ~= nilptr and $result or (@Color){0}
 end
 
 -- Change the brightness of a color
 local function _color_brightness(color: Color, factor: float32): *Color <cimport 'color_brightness', nodecl> end
 global function color_brightness(color: Color, factor: float32): *Color
   local result = _color_brightness(color, factor)
-  return result != nilptr and $result or (@Color){0}
+  return result ~= nilptr and $result or (@Color){0}
 end
 
 -- Invert a color
 local function _color_invert(color: Color): *Color <cimport 'color_invert', nodecl> end
 global function color_invert(color: Color): *Color
   local result = _color_invert(color)
-  return result != nilptr and $result or (@Color){0}
+  return result ~= nilptr and $result or (@Color){0}
 end
 
 -- Blend 2 colors together
 local function _color_alpha_blend(dst: Color, src: Color): *Color <cimport 'color_alpha_blend', nodecl> end
 global function color_alpha_blend(dst: Color, src: Color): *Color
   local result = _color_alpha_blend(dst, src)
-  return result != nilptr and $result or (@Color){0}
+  return result ~= nilptr and $result or (@Color){0}
 end
 
 -- Change contrast of a color
 local function _color_contrast(color: Color, contrast: float32): *Color <cimport 'color_contrast', nodecl> end
 global function color_contrast(color: Color, contrast: float32): *Color
   local result = _color_contrast(color, contrast)
-  return result != nilptr and $result or (@Color){0}
+  return result ~= nilptr and $result or (@Color){0}
 end
 
 -- Interpolate colors
 local function _color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: float32, coordinateY: float32): *Color <cimport 'color_bilinear_interpolate', nodecl> end
 global function color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: float32, coordinateY: float32): *Color
   local result = _color_bilinear_interpolate(color00, color01, color10, color11, coordinateX, coordinateY)
-  return result != nilptr and $result or (@Color){0}
+  return result ~= nilptr and $result or (@Color){0}
 end

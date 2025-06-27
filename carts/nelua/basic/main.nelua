@@ -1,0 +1,7 @@
+-- Import the null0 API functions
+require 'null0'
+
+function main(): integer
+
+  return 0
+end 

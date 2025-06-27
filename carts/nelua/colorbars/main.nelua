@@ -1,7 +1,6 @@
 -- Import the null0 API functions
-require '../null0'
+require 'null0'
 
--- Main function - entry point for the cart (like C)
 function main(): integer
   local colors: [26]Color = {
     LIGHTGRAY, GRAY, DARKGRAY, YELLOW, GOLD, ORANGE, PINK, RED, MAROON,
