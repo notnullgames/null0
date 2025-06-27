@@ -1,5 +1,15 @@
 require 'null0'
 
+local function load() <cexport'load'>
+  local dims = measure_image(SCREEN)
+  if dims then
+    print("screen width:", dims.width)
+    print("screen height:", dims.height)
+  else
+    print("Failed to get screen dimensions")
+  end
+end
+
 local function update() <cexport'update'>
   clear(BLACK)
   draw_rectangle(10, 10, 100, 50, RED)
