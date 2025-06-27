@@ -260,8 +260,8 @@ const retTypes = {
   Image: 'uint32',
   Font: 'uint32',
   Sound: 'uint32',
-  Vector: 'Vector',
-  Dimensions: 'Dimensions',
+  Vector: '*Vector',
+  Dimensions: '*Dimensions',
   Color: 'Color',
   Rectangle: 'Rectangle'
 }

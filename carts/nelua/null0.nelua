@@ -276,7 +276,7 @@ global function gamepad_button_down(gamepad: int32, button: GamepadButton): bool
 global function gamepad_button_released(gamepad: int32, button: GamepadButton): boolean <cimport,nodecl> end
 
 -- Get current position of mouse
-global function mouse_position(): Vector <cimport,nodecl> end
+global function mouse_position(): *Vector <cimport,nodecl> end
 
 -- Has the button been pressed? (tracks unpress/read correctly)
 global function mouse_button_pressed(button: MouseButton): boolean <cimport,nodecl> end
@@ -384,10 +384,10 @@ global function load_font_bmf(filename: cstring, characters: cstring): uint32 <c
 global function load_font_bmf_from_image(image: uint32, characters: cstring): uint32 <cimport,nodecl> end
 
 -- Measure the size of some text
-global function measure_text(font: uint32, text: cstring, textLength: int32): Dimensions <cimport,nodecl> end
+global function measure_text(font: uint32, text: cstring, textLength: int32): *Dimensions <cimport,nodecl> end
 
 -- Meaure an image (use 0 for screen)
-global function measure_image(image: uint32): Dimensions <cimport,nodecl> end
+global function measure_image(image: uint32): *Dimensions <cimport,nodecl> end
 
 -- Load a TTY font from a file in cart
 global function load_font_tty(filename: cstring, glyphWidth: int32, glyphHeight: int32, characters: cstring): uint32 <cimport,nodecl> end
