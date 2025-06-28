@@ -1,4 +1,4 @@
-#include "../null0.h"
+#include "null0.h"
 #include "quickjs.h"
 #include "quickjs-libc.h"
 

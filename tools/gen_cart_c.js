@@ -329,7 +329,7 @@ api.on('function', ({ apiName, funcName, args = {}, returns = 'void', descriptio
 })
 
 api.on('end', async () => {
-  await writeFile('carts/null0.h', out.join('\n'))
+  await writeFile('carts/c/null0.h', out.join('\n'))
 })
 
 api.on('error', (e) => {

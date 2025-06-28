@@ -19,7 +19,7 @@ function add_consts() {
   }
 }
 
-out.push(`#include "../null0.h"
+out.push(`#include "null0.h"
 #include "quickjs.h"
 #include "quickjs-libc.h"
 
@@ -411,7 +411,7 @@ api.on('end', async () => {
   out.push(...funcs)
   out.push('}')
 
-  await writeFile('carts/js/main.c', out.join('\n'))
+  await writeFile('carts/c/js/main.c', out.join('\n'))
 })
 
 api.on('function', ({ apiName, funcName, args = {}, returns = 'void', description = '' }) => {

@@ -1,7 +1,6 @@
 name: Release Linux
 
 on:
-  workflow_dispatch:
   release:
     types: [published]
 
@@ -13,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build Native Host
+      - name: Build Native Linux Host
         run: |
           sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev
           cmake -B build -DCMAKE_BUILD_TYPE=Release

@@ -292,7 +292,6 @@ api.on('function', ({ apiName, funcName, args = {}, returns = 'void', descriptio
 
 api.on('end', async () => {
   await writeFile('carts/nelua/null0.nelua', out.join('\n'))
-  console.log('Generated Nelua API bindings: carts/nelua/null0.nelua')
 })
 
 api.on('error', (e) => {

@@ -45,6 +45,7 @@ target_compile_definitions(cart-js PRIVATE
     _WASI_EMULATED_SIGNAL
     CONFIG_BIGNUM=y
 )
+target_include_directories(cart-js PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/c")
 
 # this will build a C cart, by name
 function (BUILD_CART_C name)
@@ -83,17 +84,19 @@ function (BUILD_CART_JS name)
 endfunction()
 
 # this will build a Nelua cart, by name
+set(NELUA_CFLAGS "-I ${CMAKE_CURRENT_SOURCE_DIR}/c")
 function (BUILD_CART_NELUA name)
   set(CART_DIR "${CMAKE_CURRENT_SOURCE_DIR}/nelua/${name}")
   set(CART_TEMP "${CMAKE_CURRENT_BINARY_DIR}/${name}_nelua_temp/")
   add_custom_target(cart_nelua_${name} ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CART_TEMP}"
-    COMMAND nelua --cflags=\""-I ${CMAKE_CURRENT_SOURCE_DIR}/c"\" -L "${CMAKE_CURRENT_SOURCE_DIR}/nelua" "${CMAKE_CURRENT_SOURCE_DIR}/nelua/${name}/main.nelua" -r --cc "${CMAKE_C_COMPILER}" -o "${CART_TEMP}/main.wasm"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CART_DIR}" "${CART_TEMP}"
     COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/*.nelua"
+    COMMAND nelua --cache-dir "${CART_TEMP}/nelua_cache" --cflags=${NELUA_CFLAGS} -L "${CMAKE_CURRENT_SOURCE_DIR}/nelua" "${CMAKE_CURRENT_SOURCE_DIR}/nelua/${name}/main.nelua" -r --cc "${CMAKE_C_COMPILER}" -o "${CART_TEMP}/main.wasm"
     COMMAND ${CMAKE_COMMAND} -E chdir "${CART_TEMP}" ${CMAKE_COMMAND} -E tar "cf" "../${name}_nelua.null0" --format=zip .
     COMMAND ${CMAKE_COMMAND} -E rm -rf "${CART_TEMP}"
     COMMENT "Creating cart ${name}_nelua.null0"
+    VERBATIM
   )
   add_dependencies(carts cart_nelua_${name})
 endfunction()
