@@ -1,102 +1,59 @@
 The Null0 API is exposed to several languages, but we try to keep the syntax mostly the same. See docs/templates in individual languages for exact syntax, this page is more about what you can do with null0. I will use C-like pseudo-code to describe everything here.
 
-## defines
-
-These are pre-defined constants you can use
-
-```c
-#define SCREEN 0
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
-#define FONT_DEFAULT 0
-
-// some pre-defined colors
-Color LIGHTGRAY = (Color){.r = 200, .g = 200, .b = 200, .a = 255};
-Color GRAY = (Color){.r = 130, .g = 130, .b = 130, .a = 255};
-Color DARKGRAY = (Color){.r = 80, .g = 80, .b = 80, .a = 255};
-Color YELLOW = (Color){.r = 253, .g = 249, .b = 0, .a = 255};
-Color GOLD = (Color){.r = 255, .g = 203, .b = 0, .a = 255};
-Color ORANGE = (Color){.r = 255, .g = 161, .b = 0, .a = 255};
-Color PINK = (Color){.r = 255, .g = 109, .b = 194, .a = 255};
-Color RED = (Color){.r = 230, .g = 41, .b = 55, .a = 255};
-Color MAROON = (Color){.r = 190, .g = 33, .b = 55, .a = 255};
-Color GREEN = (Color){.r = 0, .g = 228, .b = 48, .a = 255};
-Color LIME = (Color){.r = 0, .g = 158, .b = 47, .a = 255};
-Color DARKGREEN = (Color){.r = 0, .g = 117, .b = 44, .a = 255};
-Color SKYBLUE = (Color){.r = 102, .g = 191, .b = 255, .a = 255};
-Color BLUE = (Color){.r = 0, .g = 121, .b = 241, .a = 255};
-Color DARKBLUE = (Color){.r = 0, .g = 82, .b = 172, .a = 255};
-Color PURPLE = (Color){.r = 200, .g = 122, .b = 255, .a = 255};
-Color VIOLET = (Color){.r = 135, .g = 60, .b = 190, .a = 255};
-Color DARKPURPLE = (Color){.r = 112, .g = 31, .b = 126, .a = 255};
-Color BEIGE = (Color){.r = 211, .g = 176, .b = 131, .a = 255};
-Color BROWN = (Color){.r = 127, .g = 106, .b = 79, .a = 255};
-Color DARKBROWN = (Color){.r = 76, .g = 63, .b = 47, .a = 255};
-Color WHITE = (Color){.r = 255, .g = 255, .b = 255, .a = 255};
-Color BLACK = (Color){.r = 0, .g = 0, .b = 0, .a = 255};
-Color BLANK = (Color){.r = 0, .g = 0, .b = 0, .a = 0};
-Color MAGENTA = (Color){.r = 255, .g = 0, .b = 255, .a = 255};
-Color RAYWHITE = (Color){.r = 245, .g = 245, .b = 245, .a = 255};
-```
-
 ## types
 
-There are a few types that are used:
+These are the types of parameters or things that functions can return.
 
 ```c
-// I like shorter type-names
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef float f32;
+// This function does not return anything.
+void
 
-// these are resource-counters
-typedef u32 Image;
-typedef u32 Font;
-typedef u32 Sound;
+// Signed integer, 32 bits (4 bytes.)
+i32
 
-// the "size of something"
-typedef struct {
-  u32 width;
-  u32 height;
-} Dimensions;
+// Unsigned integer, 32 bits (4 bytes.)
+u32
 
-// the "2D position of something"
-typedef struct {
-  i32 x;
-  i32 y;
-} Vector;
+// Unsigned integer, 64 bits (8 bytes.)
+u64
 
-// a rectangle coordinate: "size and position of something"
-typedef struct {
-  i32 x;
-  i32 y;
-  i32 width;
-  i32 height;
-} Rectangle;
+// Floating-point decimal, 32 bits (4 bytes.)
+f32
 
-// an RGBA color
-typedef struct {
-  u8 r;
-  u8 g;
-  u8 b;
-  u8 a;
-} Color;
+// Boolean (true/false.)
+bool
 
-// enum: Filtering operations for resize/etc
-typedef enum ImageFilter {
+// An image.
+Image
+
+// A font.
+Font
+
+// A sound.
+Sound
+
+// Pointer to a null-terminated UTF8 string. (char*)
+string
+
+// An array of Vectors.
+Vector[]
+
+```
+
+
+### enums
+
+This is a textual way to describe some possible options for an integer field.
+
+```c
+// Potential image-filtering techniques for scale/etc.
+enum ImageFilter {
   FILTER_NEARESTNEIGHBOR = 0,
-  FILTER_BILINEAR,
-  FILTER_SMOOTH
-} ImageFilter;
+  FILTER_BILINEAR = 1
+}
 
-// enum: a key
-typedef enum Key {
+// Represents a keyboard key.
+enum Key {
   KEY_INVALID = 0,
   KEY_SPACE = 32,
   KEY_APOSTROPHE = 39,
@@ -217,128 +174,251 @@ typedef enum Key {
   KEY_RIGHT_CONTROL = 345,
   KEY_RIGHT_ALT = 346,
   KEY_RIGHT_SUPER = 347,
-  KEY_MENU = 348,
-} Key;
+  KEY_MENU = 348
+}
 
-// enum: a gamepad button
-typedef enum GamepadButton {
-  GAMEPAD_BUTTON_UNKNOWN = 0,         // Unknown button, just for error checking
-  GAMEPAD_BUTTON_UP = 1,              // Gamepad left DPAD up button
-  GAMEPAD_BUTTON_RIGHT = 2,           // Gamepad left DPAD right button
-  GAMEPAD_BUTTON_DOWN = 3,            // Gamepad left DPAD down button
-  GAMEPAD_BUTTON_LEFT = 4,            // Gamepad left DPAD left button
-  GAMEPAD_BUTTON_Y= 5,                // Gamepad right button up (i.e. PS3: Triangle, Xbox: Y)
-  GAMEPAD_BUTTON_B = 6,               // Gamepad right button right (i.e. PS3: Square, Xbox: X)
-  GAMEPAD_BUTTON_A = 7,               // Gamepad right button down (i.e. PS3: Cross, Xbox: A)
-  GAMEPAD_BUTTON_X = 8,               // Gamepad right button left (i.e. PS3: Circle, Xbox: B)
-  GAMEPAD_BUTTON_LEFT_SHOULDER = 9,   // Gamepad top/back trigger left (first), it could be a trailing button
-  GAMEPAD_BUTTON_LEFT_TRIGGER = 10,   // Gamepad top/back trigger left (second), it could be a trailing button
-  GAMEPAD_BUTTON_RIGHT_SHOULDER = 11, // Gamepad top/back trigger right (one), it could be a trailing button
-  GAMEPAD_BUTTON_RIGHT_TRIGGER = 12,  // Gamepad top/back trigger right (second), it could be a trailing button
-  GAMEPAD_BUTTON_SELECT = 13,         // Gamepad center buttons, left one (i.e. PS3: Select)
-  GAMEPAD_BUTTON_MENU = 14,           // Gamepad center buttons, middle one (i.e. PS3: PS, Xbox: XBOX)
-  GAMEPAD_BUTTON_START = 15,          // Gamepad center buttons, right one (i.e. PS3: Start)
-  GAMEPAD_BUTTON_LEFT_THUMB = 16,     // Gamepad joystick pressed button left
-  GAMEPAD_BUTTON_RIGHT_THUMB = 17,    // Gamepad joystick pressed button right
-} GamepadButton;
+// Represents a gamepad button.
+enum GamepadButton {
+  GAMEPAD_BUTTON_UNKNOWN = 0,
+  GAMEPAD_BUTTON_UP = 1,
+  GAMEPAD_BUTTON_RIGHT = 2,
+  GAMEPAD_BUTTON_DOWN = 3,
+  GAMEPAD_BUTTON_LEFT = 4,
+  GAMEPAD_BUTTON_Y = 5,
+  GAMEPAD_BUTTON_B = 6,
+  GAMEPAD_BUTTON_A = 7,
+  GAMEPAD_BUTTON_X = 8,
+  GAMEPAD_BUTTON_LEFT_SHOULDER = 9,
+  GAMEPAD_BUTTON_LEFT_TRIGGER = 10,
+  GAMEPAD_BUTTON_RIGHT_SHOULDER = 11,
+  GAMEPAD_BUTTON_RIGHT_TRIGGER = 12,
+  GAMEPAD_BUTTON_SELECT = 13,
+  GAMEPAD_BUTTON_MENU = 14,
+  GAMEPAD_BUTTON_START = 15,
+  GAMEPAD_BUTTON_LEFT_THUMB = 16,
+  GAMEPAD_BUTTON_RIGHT_THUMB = 17
+}
 
-// enum: a mouse button
-typedef enum MouseButton {
+// Represents a mouse button.
+enum MouseButton {
   MOUSE_BUTTON_UNKNOWN = 0,
   MOUSE_BUTTON_LEFT = 1,
   MOUSE_BUTTON_RIGHT = 2,
-  MOUSE_BUTTON_MIDDLE = 3,
-} MouseButton;
+  MOUSE_BUTTON_MIDDLE = 3
+}
+
 ```
 
 
-## utilities
+### structs
+
+This is a compound-object, like a row in a spreadsheet. These are used to pass multiple values as a single object.
+
+```c
+// The 2D size of something (width/height.)
+struct Dimensions {
+  i32 width,
+  i32 height
+}
+
+// The 2D position of something (x/y.)
+struct Vector {
+  i32 x,
+  i32 y
+}
+
+// The 2D position + size of something (x/y/w/h.)
+struct Rectangle {
+  i32 x,
+  i32 y,
+  i32 width,
+  i32 height
+}
+
+// An RGBA color.
+struct Color {
+  u8 r,
+  u8 g,
+  u8 b,
+  u8 a
+}
+
+```
+
+
+## callbacks
+
+Callbacks are how you define your game. See [cart](https://notnull.games/null0/cart) for more info.
+
+
+#### buttonUp
+
+Mapped controller (keys and gamepad will trigger) callback for when a "button" is unpressed.
+
+```c
+void buttonUp(GamepadButton button, u32 player)
+```
+
+
+#### buttonDown
+
+Mapped controller (keys and gamepad will trigger) callback for when a "button" is pressed.
+
+```c
+void buttonDown(GamepadButton button, u32 player)
+```
+
+
+#### keyUp
+
+Called when keys are unpressed.
+
+```c
+void keyUp(Key key)
+```
+
+
+#### keyDown
+
+Called when keys are pressed.
+
+```c
+void keyDown(Key key)
+```
+
+
+#### mouseDown
+
+Called when mouse-button is pressed.
+
+```c
+void mouseDown(MouseButton button)
+```
+
+
+#### mouseUp
+
+Called when mouse-button is released.
+
+```c
+void mouseUp(MouseButton button)
+```
+
+
+#### mouseMoved
+
+Called when mouse is moved.
+
+```c
+void mouseMoved(f32 x, f32 y)
+```
+
+
+## api
+
+These are what make up the things you can do in your game.
+
+
+### utilities
 
 #### current_time
 
-Get system-time (ms) since unix epoch
+Get system-time (ms) since unix epoch.
 
 ```c
 u64 current_time()
 ```
 
+
 #### delta_time
 
-Get the change in time (seconds) since the last update run
+Get the change in time (seconds) since the last update run.
 
 ```c
 f32 delta_time()
 ```
 
+
 #### random_int
 
-Get a random integer between 2 numbers
+Get a random integer between 2 numbers.
 
 ```c
 i32 random_int(i32 min, i32 max)
 ```
 
+
 #### random_seed_get
 
-Get the random-seed
+Get the random-seed.
 
 ```c
 u64 random_seed_get()
 ```
 
+
 #### random_seed_set
 
-Set the random-seed
+Set the random-seed.
 
 ```c
 void random_seed_set(u64 seed)
 ```
 
+---
 
-## sound
+### types
+---
+
+### sound
 
 #### load_sound
 
-Load a sound from a file in cart
+Load a sound from a file in cart.
 
 ```c
 Sound load_sound(string filename)
 ```
 
+
 #### play_sound
 
-Play a sound
+Play a sound.
 
 ```c
 void play_sound(Sound sound, bool loop)
 ```
 
+
 #### stop_sound
 
-Stop a sound
+Stop a sound.
 
 ```c
 void stop_sound(Sound sound)
 ```
 
+
 #### unload_sound
 
-Unload a sound
+Unload a sound.
 
 ```c
 void unload_sound(Sound sound)
 ```
 
+---
 
-## input
+### input
 
 #### key_pressed
 
-Has the key been pressed? (tracks unpress/read correctly)
+Has the key been pressed? (tracks unpress/read correctly.)
 
 ```c
 bool key_pressed(Key key)
 ```
+
 
 #### key_down
 
@@ -348,13 +428,15 @@ Is the key currently down?
 bool key_down(Key key)
 ```
 
+
 #### key_released
 
-Has the key been released? (tracks press/read correctly)
+Has the key been released? (tracks press/read correctly.)
 
 ```c
 bool key_released(Key key)
 ```
+
 
 #### key_up
 
@@ -364,13 +446,15 @@ Is the key currently up?
 bool key_up(Key key)
 ```
 
+
 #### gamepad_button_pressed
 
-Has the button been pressed? (tracks unpress/read correctly)
+Has the button been pressed? (tracks unpress/read correctly.)
 
 ```c
 bool gamepad_button_pressed(i32 gamepad, GamepadButton button)
 ```
+
 
 #### gamepad_button_down
 
@@ -380,29 +464,33 @@ Is the button currently down?
 bool gamepad_button_down(i32 gamepad, GamepadButton button)
 ```
 
+
 #### gamepad_button_released
 
-Has the button been released? (tracks press/read correctly)
+Has the button been released? (tracks press/read correctly.)
 
 ```c
 bool gamepad_button_released(i32 gamepad, GamepadButton button)
 ```
 
+
 #### mouse_position
 
-Get current position of mouse
+Get current position of mouse.
 
 ```c
 Vector mouse_position()
 ```
 
+
 #### mouse_button_pressed
 
-Has the button been pressed? (tracks unpress/read correctly)
+Has the button been pressed? (tracks unpress/read correctly.)
 
 ```c
 bool mouse_button_pressed(MouseButton button)
 ```
+
 
 #### mouse_button_down
 
@@ -412,13 +500,15 @@ Is the button currently down?
 bool mouse_button_down(MouseButton button)
 ```
 
+
 #### mouse_button_released
 
-Has the button been released? (tracks press/read correctly)
+Has the button been released? (tracks press/read correctly.)
 
 ```c
 bool mouse_button_released(MouseButton button)
 ```
+
 
 #### mouse_button_up
 
@@ -428,664 +518,747 @@ Is the button currently up?
 bool mouse_button_up(MouseButton button)
 ```
 
+---
 
-## graphics
+### graphics
 
 #### new_image
 
-Create a new blank image
+Create a new blank image.
 
 ```c
 Image new_image(i32 width, i32 height, Color color)
 ```
 
+
 #### image_copy
 
-Copy an image to a new image
+Copy an image to a new image.
 
 ```c
 Image image_copy(Image image)
 ```
 
+
 #### image_subimage
 
-Create an image from a region of another image
+Create an image from a region of another image.
 
 ```c
 Image image_subimage(Image image, i32 x, i32 y, i32 width, i32 height)
 ```
 
+
 #### clear
 
-Clear the screen
+Clear the screen.
 
 ```c
 void clear(Color color)
 ```
 
+
 #### draw_point
 
-Draw a single pixel on the screen
+Draw a single pixel on the screen.
 
 ```c
 void draw_point(i32 x, i32 y, Color color)
 ```
 
+
 #### draw_line
 
-Draw a line on the screen
+Draw a line on the screen.
 
 ```c
 void draw_line(i32 startPosX, i32 startPosY, i32 endPosX, i32 endPosY, Color color)
 ```
 
+
 #### draw_rectangle
 
-Draw a filled rectangle on the screen
+Draw a filled rectangle on the screen.
 
 ```c
 void draw_rectangle(i32 posX, i32 posY, i32 width, i32 height, Color color)
 ```
 
+
 #### draw_triangle
 
-Draw a filled triangle on the screen
+Draw a filled triangle on the screen.
 
 ```c
 void draw_triangle(i32 x1, i32 y1, i32 x2, i32 y2, i32 x3, i32 y3, Color color)
 ```
 
+
 #### draw_ellipse
 
-Draw a filled ellipse on the screen
+Draw a filled ellipse on the screen.
 
 ```c
 void draw_ellipse(i32 centerX, i32 centerY, i32 radiusX, i32 radiusY, Color color)
 ```
 
+
 #### draw_circle
 
-Draw a filled circle on the screen
+Draw a filled circle on the screen.
 
 ```c
 void draw_circle(i32 centerX, i32 centerY, i32 radius, Color color)
 ```
 
+
 #### draw_polygon
 
-Draw a filled polygon on the screen
+Draw a filled polygon on the screen.
 
 ```c
 void draw_polygon(Vector[] points, i32 numPoints, Color color)
 ```
 
+
 #### draw_arc
 
-Draw a filled arc on the screen
+Draw a filled arc on the screen.
 
 ```c
 void draw_arc(i32 centerX, i32 centerY, f32 radius, f32 startAngle, f32 endAngle, i32 segments, Color color)
 ```
 
+
 #### draw_rectangle_rounded
 
-Draw a filled round-rectangle on the screen
+Draw a filled round-rectangle on the screen.
 
 ```c
 void draw_rectangle_rounded(i32 x, i32 y, i32 width, i32 height, i32 cornerRadius, Color color)
 ```
 
+
 #### draw_image
 
-Draw an image on the screen
+Draw an image on the screen.
 
 ```c
 void draw_image(Image src, i32 posX, i32 posY)
 ```
 
+
 #### draw_image_tint
 
-Draw a tinted image on the screen
+Draw a tinted image on the screen.
 
 ```c
 void draw_image_tint(Image src, i32 posX, i32 posY, Color tint)
 ```
 
+
 #### draw_image_rotated
 
-Draw an image, rotated, on the screen
+Draw an image, rotated, on the screen.
 
 ```c
 void draw_image_rotated(Image src, i32 posX, i32 posY, f32 degrees, f32 offsetX, f32 offsetY, ImageFilter filter)
 ```
 
+
 #### draw_image_flipped
 
-Draw an image, flipped, on the screen
+Draw an image, flipped, on the screen.
 
 ```c
 void draw_image_flipped(Image src, i32 posX, i32 posY, bool flipHorizontal, bool flipVertical, bool flipDiagonal)
 ```
 
+
 #### draw_image_scaled
 
-Draw an image, scaled, on the screen
+Draw an image, scaled, on the screen.
 
 ```c
 void draw_image_scaled(Image src, i32 posX, i32 posY, f32 scaleX, f32 scaleY, f32 offsetX, f32 offsetY, ImageFilter filter)
 ```
 
+
 #### draw_text
 
-Draw some text on the screen
+Draw some text on the screen.
 
 ```c
 void draw_text(Font font, string text, i32 posX, i32 posY, Color color)
 ```
 
+
 #### save_image
 
-Save an image to persistant storage
+Save an image to persistant storage.
 
 ```c
 void save_image(Image image, string filename)
 ```
 
+
 #### load_image
 
-Load an image from a file in cart
+Load an image from a file in cart.
 
 ```c
 Image load_image(string filename)
 ```
 
+
 #### image_resize
 
-Resize an image, return copy
+Resize an image, return copy.
 
 ```c
 Image image_resize(Image image, i32 newWidth, i32 newHeight, ImageFilter filter)
 ```
 
+
 #### image_scale
 
-Scale an image, return copy
+Scale an image, return copy.
 
 ```c
 Image image_scale(Image image, f32 scaleX, f32 scaleY, ImageFilter filter)
 ```
 
+
 #### image_color_replace
 
-Replace a color in an image, in-place
+Replace a color in an image, in-place.
 
 ```c
 void image_color_replace(Image image, Color color, Color replace)
 ```
 
+
 #### image_color_tint
 
-Tint a color in an image, in-place
+Tint a color in an image, in-place.
 
 ```c
 void image_color_tint(Image image, Color color)
 ```
 
+
 #### image_color_fade
 
-Fade a color in an image, in-place
+Fade a color in an image, in-place.
 
 ```c
 void image_color_fade(Image image, f32 alpha)
 ```
 
+
 #### font_copy
 
-Copy a font to a new font
+Copy a font to a new font.
 
 ```c
 Font font_copy(Font font)
 ```
 
+
 #### font_scale
 
-Scale a font, return a new font
+Scale a font, return a new font.
 
 ```c
 Font font_scale(Font font, f32 scaleX, f32 scaleY, ImageFilter filter)
 ```
 
+
 #### load_font_bmf
 
-Load a BMF font from a file in cart
+Load a BMF font from a file in cart.
 
 ```c
 Font load_font_bmf(string filename, string characters)
 ```
 
+
 #### load_font_bmf_from_image
 
-Load a BMF font from an image
+Load a BMF font from an image.
 
 ```c
 Font load_font_bmf_from_image(Image image, string characters)
 ```
 
+
 #### measure_text
 
-Measure the size of some text
+Measure the size of some text.
 
 ```c
 Dimensions measure_text(Font font, string text, i32 textLength)
 ```
 
+
 #### measure_image
 
-Meaure an image (use 0 for screen)
+Meaure an image (use 0 for screen).
 
 ```c
 Dimensions measure_image(Image image)
 ```
 
+
 #### load_font_tty
 
-Load a TTY font from a file in cart
+Load a TTY font from a file in cart.
 
 ```c
 Font load_font_tty(string filename, i32 glyphWidth, i32 glyphHeight, string characters)
 ```
 
+
 #### load_font_tty_from_image
 
-Load a TTY font from an image
+Load a TTY font from an image.
 
 ```c
 Font load_font_tty_from_image(Image image, i32 glyphWidth, i32 glyphHeight, string characters)
 ```
 
+
 #### load_font_ttf
 
-Load a TTF font from a file in cart
+Load a TTF font from a file in cart.
 
 ```c
 Font load_font_ttf(string filename, i32 fontSize)
 ```
 
+
 #### image_color_invert
 
-Invert the colors in an image, in-place
+Invert the colors in an image, in-place.
 
 ```c
 void image_color_invert(Image image)
 ```
 
+
 #### image_alpha_border
 
-Calculate a rectangle representing the available alpha border in an image
+Calculate a rectangle representing the available alpha border in an image.
 
 ```c
 Rectangle image_alpha_border(Image image, f32 threshold)
 ```
 
+
 #### image_crop
 
-Crop an image, in-place
+Crop an image, in-place.
 
 ```c
 void image_crop(Image image, i32 x, i32 y, i32 width, i32 height)
 ```
 
+
 #### image_alpha_crop
 
-Crop an image based on the alpha border, in-place
+Crop an image based on the alpha border, in-place.
 
 ```c
 void image_alpha_crop(Image image, f32 threshold)
 ```
 
+
 #### image_color_brightness
 
-Adjust the brightness of an image, in-place
+Adjust the brightness of an image, in-place.
 
 ```c
 void image_color_brightness(Image image, f32 factor)
 ```
 
+
 #### image_flip
 
-Flip an image, in-place
+Flip an image, in-place.
 
 ```c
 void image_flip(Image image, bool horizontal, bool vertical)
 ```
 
+
 #### image_color_contrast
 
-Change the contrast of an image, in-place
+Change the contrast of an image, in-place.
 
 ```c
 void image_color_contrast(Image image, f32 contrast)
 ```
 
+
 #### image_alpha_mask
 
-Use an image as an alpha-mask on another image
+Use an image as an alpha-mask on another image.
 
 ```c
 void image_alpha_mask(Image image, Image alphaMask, i32 posX, i32 posY)
 ```
 
+
 #### image_rotate
 
-Create a new image, rotating another image
+Create a new image, rotating another image.
 
 ```c
 Image image_rotate(Image image, f32 degrees, ImageFilter filter)
 ```
 
+
 #### image_gradient
 
-Create a new image of a gradient
+Create a new image of a gradient.
 
 ```c
 Image image_gradient(i32 width, i32 height, Color topLeft, Color topRight, Color bottomLeft, Color bottomRight)
 ```
 
+
 #### unload_image
 
-Unload an image
+Unload an image.
 
 ```c
 void unload_image(Image image)
 ```
 
+
 #### unload_font
 
-Unload a font
+Unload a font.
 
 ```c
 void unload_font(Font font)
 ```
 
+
 #### clear_image
 
-Clear an image
+Clear an image.
 
 ```c
 void clear_image(Image destination, Color color)
 ```
 
+
 #### draw_point_on_image
 
-Draw a single pixel on an image
+Draw a single pixel on an image.
 
 ```c
 void draw_point_on_image(Image destination, i32 x, i32 y, Color color)
 ```
 
+
 #### draw_line_on_image
 
-Draw a line on an image
+Draw a line on an image.
 
 ```c
 void draw_line_on_image(Image destination, i32 startPosX, i32 startPosY, i32 endPosX, i32 endPosY, Color color)
 ```
 
+
 #### draw_rectangle_on_image
 
-Draw a filled rectangle on an image
+Draw a filled rectangle on an image.
 
 ```c
 void draw_rectangle_on_image(Image destination, i32 posX, i32 posY, i32 width, i32 height, Color color)
 ```
 
+
 #### draw_triangle_on_image
 
-Draw a filled triangle on an image
+Draw a filled triangle on an image.
 
 ```c
 void draw_triangle_on_image(Image destination, i32 x1, i32 y1, i32 x2, i32 y2, i32 x3, i32 y3, Color color)
 ```
 
+
 #### draw_ellipse_on_image
 
-Draw a filled ellipse on an image
+Draw a filled ellipse on an image.
 
 ```c
 void draw_ellipse_on_image(Image destination, i32 centerX, i32 centerY, i32 radiusX, i32 radiusY, Color color)
 ```
 
+
 #### draw_circle_on_image
 
-Draw a circle on an image
+Draw a circle on an image.
 
 ```c
 void draw_circle_on_image(Image destination, i32 centerX, i32 centerY, i32 radius, Color color)
 ```
 
+
 #### draw_polygon_on_image
 
-Draw a filled polygon on an image
+Draw a filled polygon on an image.
 
 ```c
 void draw_polygon_on_image(Image destination, Vector[] points, i32 numPoints, Color color)
 ```
 
+
 #### draw_rectangle_rounded_on_image
 
-Draw a filled round-rectangle on an image
+Draw a filled round-rectangle on an image.
 
 ```c
 void draw_rectangle_rounded_on_image(Image destination, i32 x, i32 y, i32 width, i32 height, i32 cornerRadius, Color color)
 ```
 
+
 #### draw_image_on_image
 
-Draw an image on an image
+Draw an image on an image.
 
 ```c
 void draw_image_on_image(Image destination, Image src, i32 posX, i32 posY)
 ```
 
+
 #### draw_image_tint_on_image
 
-Draw a tinted image on an image
+Draw a tinted image on an image.
 
 ```c
 void draw_image_tint_on_image(Image destination, Image src, i32 posX, i32 posY, Color tint)
 ```
 
+
 #### draw_image_rotated_on_image
 
-Draw an image, rotated, on an image
+Draw an image, rotated, on an image.
 
 ```c
 void draw_image_rotated_on_image(Image destination, Image src, i32 posX, i32 posY, f32 degrees, f32 offsetX, f32 offsetY, ImageFilter filter)
 ```
 
+
 #### draw_image_flipped_on_image
 
-Draw an image, flipped, on an image
+Draw an image, flipped, on an image.
 
 ```c
 void draw_image_flipped_on_image(Image destination, Image src, i32 posX, i32 posY, bool flipHorizontal, bool flipVertical, bool flipDiagonal)
 ```
 
+
 #### draw_image_scaled_on_image
 
-Draw an image, scaled, on an image
+Draw an image, scaled, on an image.
 
 ```c
 void draw_image_scaled_on_image(Image destination, Image src, i32 posX, i32 posY, f32 scaleX, f32 scaleY, f32 offsetX, f32 offsetY, ImageFilter filter)
 ```
 
+
 #### draw_text_on_image
 
-Draw some text on an image
+Draw some text on an image.
 
 ```c
 void draw_text_on_image(Image destination, Font font, string text, i32 posX, i32 posY, Color color)
 ```
 
+
 #### draw_rectangle_outline
 
-Draw a outlined (with thickness) rectangle on the screen
+Draw a outlined (with thickness) rectangle on the screen.
 
 ```c
 void draw_rectangle_outline(i32 posX, i32 posY, i32 width, i32 height, i32 thickness, Color color)
 ```
 
+
 #### draw_triangle_outline
 
-Draw a outlined (with thickness) triangle on the screen
+Draw a outlined (with thickness) triangle on the screen.
 
 ```c
 void draw_triangle_outline(i32 x1, i32 y1, i32 x2, i32 y2, i32 x3, i32 y3, i32 thickness, Color color)
 ```
 
+
 #### draw_ellipse_outline
 
-Draw a outlined (with thickness) ellipse on the screen
+Draw a outlined (with thickness) ellipse on the screen.
 
 ```c
 void draw_ellipse_outline(i32 centerX, i32 centerY, i32 radiusX, i32 radiusY, i32 thickness, Color color)
 ```
 
+
 #### draw_circle_outline
 
-Draw a outlined (with thickness) circle on the screen
+Draw a outlined (with thickness) circle on the screen.
 
 ```c
 void draw_circle_outline(i32 centerX, i32 centerY, i32 radius, i32 thickness, Color color)
 ```
 
+
 #### draw_polygon_outline
 
-Draw a outlined (with thickness) polygon on the screen
+Draw a outlined (with thickness) polygon on the screen.
 
 ```c
 void draw_polygon_outline(Vector[] points, i32 numPoints, i32 thickness, Color color)
 ```
 
+
 #### draw_arc_outline
 
-Draw a outlined (with thickness) arc on the screen
+Draw a outlined (with thickness) arc on the screen.
 
 ```c
 void draw_arc_outline(i32 centerX, i32 centerY, f32 radius, f32 startAngle, f32 endAngle, i32 segments, i32 thickness, Color color)
 ```
 
+
 #### draw_rectangle_rounded_outline
 
-Draw a outlined (with thickness) round-rectangle on the screen
+Draw a outlined (with thickness) round-rectangle on the screen.
 
 ```c
 void draw_rectangle_rounded_outline(i32 x, i32 y, i32 width, i32 height, i32 cornerRadius, i32 thickness, Color color)
 ```
 
+
 #### draw_rectangle_outline_on_image
 
-Draw a outlined (with thickness) rectangle on an image
+Draw a outlined (with thickness) rectangle on an image.
 
 ```c
 void draw_rectangle_outline_on_image(Image destination, i32 posX, i32 posY, i32 width, i32 height, i32 thickness, Color color)
 ```
 
+
 #### draw_triangle_outline_on_image
 
-Draw a outlined (with thickness) triangle on an image
+Draw a outlined (with thickness) triangle on an image.
 
 ```c
 void draw_triangle_outline_on_image(Image destination, i32 x1, i32 y1, i32 x2, i32 y2, i32 x3, i32 y3, i32 thickness, Color color)
 ```
 
+
 #### draw_ellipse_outline_on_image
 
-Draw a outlined (with thickness) ellipse on an image
+Draw a outlined (with thickness) ellipse on an image.
 
 ```c
 void draw_ellipse_outline_on_image(Image destination, i32 centerX, i32 centerY, i32 radiusX, i32 radiusY, i32 thickness, Color color)
 ```
 
+
 #### draw_circle_outline_on_image
 
-Draw a outlined (with thickness) circle on an image
+Draw a outlined (with thickness) circle on an image.
 
 ```c
 void draw_circle_outline_on_image(Image destination, i32 centerX, i32 centerY, i32 radius, i32 thickness, Color color)
 ```
 
+
 #### draw_polygon_outline_on_image
 
-Draw a outlined (with thickness) polygon on an image
+Draw a outlined (with thickness) polygon on an image.
 
 ```c
 void draw_polygon_outline_on_image(Image destination, Vector[] points, i32 numPoints, i32 thickness, Color color)
 ```
 
+
 #### draw_rectangle_rounded_outline_on_image
 
-Draw a outlined (with thickness) round-rectangle on an image
+Draw a outlined (with thickness) round-rectangle on an image.
 
 ```c
 void draw_rectangle_rounded_outline_on_image(Image destination, i32 x, i32 y, i32 width, i32 height, i32 cornerRadius, i32 thickness, Color color)
 ```
 
+---
 
-## colors
+### colors
 
 #### color_tint
 
-Tint a color with another color
+Tint a color with another color.
 
 ```c
 Color color_tint(Color color, Color tint)
 ```
 
+
 #### color_fade
 
-Fade a color
+Fade a color.
 
 ```c
 Color color_fade(Color color, f32 alpha)
 ```
 
+
 #### color_brightness
 
-Change the brightness of a color
+Change the brightness of a color.
 
 ```c
 Color color_brightness(Color color, f32 factor)
 ```
 
+
 #### color_invert
 
-Invert a color
+Invert a color.
 
 ```c
 Color color_invert(Color color)
 ```
 
+
 #### color_alpha_blend
 
-Blend 2 colors together
+Blend 2 colors together.
 
 ```c
 Color color_alpha_blend(Color dst, Color src)
 ```
 
+
 #### color_contrast
 
-Change contrast of a color
+Change contrast of a color.
 
 ```c
 Color color_contrast(Color color, f32 contrast)
 ```
 
+
 #### color_bilinear_interpolate
 
-Interpolate colors
+Interpolate colors.
 
 ```c
 Color color_bilinear_interpolate(Color color00, Color color01, Color color10, Color color11, f32 coordinateX, f32 coordinateY)
 ```
+

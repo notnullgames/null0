@@ -329,45 +329,48 @@ static Color color_from_js(JSValue obj) {
 
 // UTILITIES
 
-// Get system-time (ms) since unix epoch
+// Get system-time (ms) since unix epoch.
 static JSValue js_current_time(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u64_to_js(current_time());
 }
-// Get the change in time (seconds) since the last update run
+// Get the change in time (seconds) since the last update run.
 static JSValue js_delta_time(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return f32_to_js(delta_time());
 }
-// Get a random integer between 2 numbers
+// Get a random integer between 2 numbers.
 static JSValue js_random_int(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return i32_to_js(random_int(i32_from_js(argv[0]), i32_from_js(argv[1])));
 }
-// Get the random-seed
+// Get the random-seed.
 static JSValue js_random_seed_get(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u64_to_js(random_seed_get());
 }
-// Set the random-seed
+// Set the random-seed.
 static JSValue js_random_seed_set(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  random_seed_set(u64_from_js(argv[0]));
  return JS_UNDEFINED;
 }
 
+// TYPES
+
+
 // SOUND
 
-// Load a sound from a file in cart
+// Load a sound from a file in cart.
 static JSValue js_load_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(load_sound(string_from_js(argv[0])));
 }
-// Play a sound
+// Play a sound.
 static JSValue js_play_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  play_sound(u32_from_js(argv[0]), bool_from_js(argv[1]));
  return JS_UNDEFINED;
 }
-// Stop a sound
+// Stop a sound.
 static JSValue js_stop_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  stop_sound(u32_from_js(argv[0]));
  return JS_UNDEFINED;
 }
-// Unload a sound
+// Unload a sound.
 static JSValue js_unload_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  unload_sound(u32_from_js(argv[0]));
  return JS_UNDEFINED;
@@ -375,7 +378,7 @@ static JSValue js_unload_sound(JSContext *ctx, JSValueConst this_val, int argc, 
 
 // INPUT
 
-// Has the key been pressed? (tracks unpress/read correctly)
+// Has the key been pressed? (tracks unpress/read correctly.)
 static JSValue js_key_pressed(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return bool_to_js(key_pressed(i32_from_js(argv[0])));
 }
@@ -383,7 +386,7 @@ static JSValue js_key_pressed(JSContext *ctx, JSValueConst this_val, int argc, J
 static JSValue js_key_down(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return bool_to_js(key_down(i32_from_js(argv[0])));
 }
-// Has the key been released? (tracks press/read correctly)
+// Has the key been released? (tracks press/read correctly.)
 static JSValue js_key_released(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return bool_to_js(key_released(i32_from_js(argv[0])));
 }
@@ -391,7 +394,7 @@ static JSValue js_key_released(JSContext *ctx, JSValueConst this_val, int argc, 
 static JSValue js_key_up(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return bool_to_js(key_up(i32_from_js(argv[0])));
 }
-// Has the button been pressed? (tracks unpress/read correctly)
+// Has the button been pressed? (tracks unpress/read correctly.)
 static JSValue js_gamepad_button_pressed(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return bool_to_js(gamepad_button_pressed(i32_from_js(argv[0]), i32_from_js(argv[1])));
 }
@@ -399,16 +402,16 @@ static JSValue js_gamepad_button_pressed(JSContext *ctx, JSValueConst this_val, 
 static JSValue js_gamepad_button_down(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return bool_to_js(gamepad_button_down(i32_from_js(argv[0]), i32_from_js(argv[1])));
 }
-// Has the button been released? (tracks press/read correctly)
+// Has the button been released? (tracks press/read correctly.)
 static JSValue js_gamepad_button_released(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return bool_to_js(gamepad_button_released(i32_from_js(argv[0]), i32_from_js(argv[1])));
 }
-// Get current position of mouse
+// Get current position of mouse.
 static JSValue js_mouse_position(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  Vector* ret = mouse_position();
  return vector_to_js(*ret);
 }
-// Has the button been pressed? (tracks unpress/read correctly)
+// Has the button been pressed? (tracks unpress/read correctly.)
 static JSValue js_mouse_button_pressed(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return bool_to_js(mouse_button_pressed(i32_from_js(argv[0])));
 }
@@ -416,7 +419,7 @@ static JSValue js_mouse_button_pressed(JSContext *ctx, JSValueConst this_val, in
 static JSValue js_mouse_button_down(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return bool_to_js(mouse_button_down(i32_from_js(argv[0])));
 }
-// Has the button been released? (tracks press/read correctly)
+// Has the button been released? (tracks press/read correctly.)
 static JSValue js_mouse_button_released(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return bool_to_js(mouse_button_released(i32_from_js(argv[0])));
 }
@@ -427,365 +430,365 @@ static JSValue js_mouse_button_up(JSContext *ctx, JSValueConst this_val, int arg
 
 // GRAPHICS
 
-// Create a new blank image
+// Create a new blank image.
 static JSValue js_new_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(new_image(i32_from_js(argv[0]), i32_from_js(argv[1]), color_from_js(argv[2])));
 }
-// Copy an image to a new image
+// Copy an image to a new image.
 static JSValue js_image_copy(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(image_copy(u32_from_js(argv[0])));
 }
-// Create an image from a region of another image
+// Create an image from a region of another image.
 static JSValue js_image_subimage(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(image_subimage(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4])));
 }
-// Clear the screen
+// Clear the screen.
 static JSValue js_clear(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  clear(color_from_js(argv[0]));
  return JS_UNDEFINED;
 }
-// Draw a single pixel on the screen
+// Draw a single pixel on the screen.
 static JSValue js_draw_point(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_point(i32_from_js(argv[0]), i32_from_js(argv[1]), color_from_js(argv[2]));
  return JS_UNDEFINED;
 }
-// Draw a line on the screen
+// Draw a line on the screen.
 static JSValue js_draw_line(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_line(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), color_from_js(argv[4]));
  return JS_UNDEFINED;
 }
-// Draw a filled rectangle on the screen
+// Draw a filled rectangle on the screen.
 static JSValue js_draw_rectangle(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_rectangle(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), color_from_js(argv[4]));
  return JS_UNDEFINED;
 }
-// Draw a filled triangle on the screen
+// Draw a filled triangle on the screen.
 static JSValue js_draw_triangle(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_triangle(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), color_from_js(argv[6]));
  return JS_UNDEFINED;
 }
-// Draw a filled ellipse on the screen
+// Draw a filled ellipse on the screen.
 static JSValue js_draw_ellipse(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_ellipse(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), color_from_js(argv[4]));
  return JS_UNDEFINED;
 }
-// Draw a filled circle on the screen
+// Draw a filled circle on the screen.
 static JSValue js_draw_circle(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_circle(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), color_from_js(argv[3]));
  return JS_UNDEFINED;
 }
-// Draw a filled polygon on the screen
+// Draw a filled polygon on the screen.
 static JSValue js_draw_polygon(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  size_t outlen = 0;
  draw_polygon(vector_array_from_js(argv[0], &outlen), outlen, color_from_js(argv[1]));
  return JS_UNDEFINED;
 }
-// Draw a filled arc on the screen
+// Draw a filled arc on the screen.
 static JSValue js_draw_arc(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_arc(i32_from_js(argv[0]), i32_from_js(argv[1]), f32_from_js(argv[2]), f32_from_js(argv[3]), f32_from_js(argv[4]), i32_from_js(argv[5]), color_from_js(argv[6]));
  return JS_UNDEFINED;
 }
-// Draw a filled round-rectangle on the screen
+// Draw a filled round-rectangle on the screen.
 static JSValue js_draw_rectangle_rounded(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_rectangle_rounded(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), color_from_js(argv[5]));
  return JS_UNDEFINED;
 }
-// Draw an image on the screen
+// Draw an image on the screen.
 static JSValue js_draw_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]));
  return JS_UNDEFINED;
 }
-// Draw a tinted image on the screen
+// Draw a tinted image on the screen.
 static JSValue js_draw_image_tint(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_image_tint(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), color_from_js(argv[3]));
  return JS_UNDEFINED;
 }
-// Draw an image, rotated, on the screen
+// Draw an image, rotated, on the screen.
 static JSValue js_draw_image_rotated(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_image_rotated(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), f32_from_js(argv[3]), f32_from_js(argv[4]), f32_from_js(argv[5]), i32_from_js(argv[6]));
  return JS_UNDEFINED;
 }
-// Draw an image, flipped, on the screen
+// Draw an image, flipped, on the screen.
 static JSValue js_draw_image_flipped(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_image_flipped(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), bool_from_js(argv[3]), bool_from_js(argv[4]), bool_from_js(argv[5]));
  return JS_UNDEFINED;
 }
-// Draw an image, scaled, on the screen
+// Draw an image, scaled, on the screen.
 static JSValue js_draw_image_scaled(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_image_scaled(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), f32_from_js(argv[3]), f32_from_js(argv[4]), f32_from_js(argv[5]), f32_from_js(argv[6]), i32_from_js(argv[7]));
  return JS_UNDEFINED;
 }
-// Draw some text on the screen
+// Draw some text on the screen.
 static JSValue js_draw_text(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_text(u32_from_js(argv[0]), string_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), color_from_js(argv[4]));
  return JS_UNDEFINED;
 }
-// Save an image to persistant storage
+// Save an image to persistant storage.
 static JSValue js_save_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  save_image(u32_from_js(argv[0]), string_from_js(argv[1]));
  return JS_UNDEFINED;
 }
-// Load an image from a file in cart
+// Load an image from a file in cart.
 static JSValue js_load_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(load_image(string_from_js(argv[0])));
 }
-// Resize an image, return copy
+// Resize an image, return copy.
 static JSValue js_image_resize(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(image_resize(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3])));
 }
-// Scale an image, return copy
+// Scale an image, return copy.
 static JSValue js_image_scale(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(image_scale(u32_from_js(argv[0]), f32_from_js(argv[1]), f32_from_js(argv[2]), i32_from_js(argv[3])));
 }
-// Replace a color in an image, in-place
+// Replace a color in an image, in-place.
 static JSValue js_image_color_replace(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  image_color_replace(u32_from_js(argv[0]), color_from_js(argv[1]), color_from_js(argv[2]));
  return JS_UNDEFINED;
 }
-// Tint a color in an image, in-place
+// Tint a color in an image, in-place.
 static JSValue js_image_color_tint(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  image_color_tint(u32_from_js(argv[0]), color_from_js(argv[1]));
  return JS_UNDEFINED;
 }
-// Fade a color in an image, in-place
+// Fade a color in an image, in-place.
 static JSValue js_image_color_fade(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  image_color_fade(u32_from_js(argv[0]), f32_from_js(argv[1]));
  return JS_UNDEFINED;
 }
-// Copy a font to a new font
+// Copy a font to a new font.
 static JSValue js_font_copy(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(font_copy(u32_from_js(argv[0])));
 }
-// Scale a font, return a new font
+// Scale a font, return a new font.
 static JSValue js_font_scale(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(font_scale(u32_from_js(argv[0]), f32_from_js(argv[1]), f32_from_js(argv[2]), i32_from_js(argv[3])));
 }
-// Load a BMF font from a file in cart
+// Load a BMF font from a file in cart.
 static JSValue js_load_font_bmf(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(load_font_bmf(string_from_js(argv[0]), string_from_js(argv[1])));
 }
-// Load a BMF font from an image
+// Load a BMF font from an image.
 static JSValue js_load_font_bmf_from_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(load_font_bmf_from_image(u32_from_js(argv[0]), string_from_js(argv[1])));
 }
-// Measure the size of some text
+// Measure the size of some text.
 static JSValue js_measure_text(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  Dimensions* ret = measure_text(u32_from_js(argv[0]), string_from_js(argv[1]), i32_from_js(argv[2]));
  return dimensions_to_js(*ret);
 }
-// Meaure an image (use 0 for screen)
+// Meaure an image (use 0 for screen).
 static JSValue js_measure_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  Dimensions* ret = measure_image(u32_from_js(argv[0]));
  return dimensions_to_js(*ret);
 }
-// Load a TTY font from a file in cart
+// Load a TTY font from a file in cart.
 static JSValue js_load_font_tty(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(load_font_tty(string_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), string_from_js(argv[3])));
 }
-// Load a TTY font from an image
+// Load a TTY font from an image.
 static JSValue js_load_font_tty_from_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(load_font_tty_from_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), string_from_js(argv[3])));
 }
-// Load a TTF font from a file in cart
+// Load a TTF font from a file in cart.
 static JSValue js_load_font_ttf(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(load_font_ttf(string_from_js(argv[0]), i32_from_js(argv[1])));
 }
-// Invert the colors in an image, in-place
+// Invert the colors in an image, in-place.
 static JSValue js_image_color_invert(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  image_color_invert(u32_from_js(argv[0]));
  return JS_UNDEFINED;
 }
-// Calculate a rectangle representing the available alpha border in an image
+// Calculate a rectangle representing the available alpha border in an image.
 static JSValue js_image_alpha_border(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return rectangle_to_js(image_alpha_border(u32_from_js(argv[0]), f32_from_js(argv[1])));
 }
-// Crop an image, in-place
+// Crop an image, in-place.
 static JSValue js_image_crop(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  image_crop(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]));
  return JS_UNDEFINED;
 }
-// Crop an image based on the alpha border, in-place
+// Crop an image based on the alpha border, in-place.
 static JSValue js_image_alpha_crop(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  image_alpha_crop(u32_from_js(argv[0]), f32_from_js(argv[1]));
  return JS_UNDEFINED;
 }
-// Adjust the brightness of an image, in-place
+// Adjust the brightness of an image, in-place.
 static JSValue js_image_color_brightness(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  image_color_brightness(u32_from_js(argv[0]), f32_from_js(argv[1]));
  return JS_UNDEFINED;
 }
-// Flip an image, in-place
+// Flip an image, in-place.
 static JSValue js_image_flip(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  image_flip(u32_from_js(argv[0]), bool_from_js(argv[1]), bool_from_js(argv[2]));
  return JS_UNDEFINED;
 }
-// Change the contrast of an image, in-place
+// Change the contrast of an image, in-place.
 static JSValue js_image_color_contrast(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  image_color_contrast(u32_from_js(argv[0]), f32_from_js(argv[1]));
  return JS_UNDEFINED;
 }
-// Use an image as an alpha-mask on another image
+// Use an image as an alpha-mask on another image.
 static JSValue js_image_alpha_mask(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  image_alpha_mask(u32_from_js(argv[0]), u32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]));
  return JS_UNDEFINED;
 }
-// Create a new image, rotating another image
+// Create a new image, rotating another image.
 static JSValue js_image_rotate(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(image_rotate(u32_from_js(argv[0]), f32_from_js(argv[1]), i32_from_js(argv[2])));
 }
-// Create a new image of a gradient
+// Create a new image of a gradient.
 static JSValue js_image_gradient(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(image_gradient(i32_from_js(argv[0]), i32_from_js(argv[1]), color_from_js(argv[2]), color_from_js(argv[3]), color_from_js(argv[4]), color_from_js(argv[5])));
 }
-// Unload an image
+// Unload an image.
 static JSValue js_unload_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  unload_image(u32_from_js(argv[0]));
  return JS_UNDEFINED;
 }
-// Unload a font
+// Unload a font.
 static JSValue js_unload_font(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  unload_font(u32_from_js(argv[0]));
  return JS_UNDEFINED;
 }
-// Clear an image
+// Clear an image.
 static JSValue js_clear_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  clear_image(u32_from_js(argv[0]), color_from_js(argv[1]));
  return JS_UNDEFINED;
 }
-// Draw a single pixel on an image
+// Draw a single pixel on an image.
 static JSValue js_draw_point_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_point_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), color_from_js(argv[3]));
  return JS_UNDEFINED;
 }
-// Draw a line on an image
+// Draw a line on an image.
 static JSValue js_draw_line_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_line_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), color_from_js(argv[5]));
  return JS_UNDEFINED;
 }
-// Draw a filled rectangle on an image
+// Draw a filled rectangle on an image.
 static JSValue js_draw_rectangle_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_rectangle_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), color_from_js(argv[5]));
  return JS_UNDEFINED;
 }
-// Draw a filled triangle on an image
+// Draw a filled triangle on an image.
 static JSValue js_draw_triangle_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_triangle_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), i32_from_js(argv[6]), color_from_js(argv[7]));
  return JS_UNDEFINED;
 }
-// Draw a filled ellipse on an image
+// Draw a filled ellipse on an image.
 static JSValue js_draw_ellipse_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_ellipse_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), color_from_js(argv[5]));
  return JS_UNDEFINED;
 }
-// Draw a circle on an image
+// Draw a circle on an image.
 static JSValue js_draw_circle_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_circle_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), color_from_js(argv[4]));
  return JS_UNDEFINED;
 }
-// Draw a filled polygon on an image
+// Draw a filled polygon on an image.
 static JSValue js_draw_polygon_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  size_t outlen = 0;
  draw_polygon_on_image(u32_from_js(argv[0]), vector_array_from_js(argv[1], &outlen), outlen, color_from_js(argv[2]));
  return JS_UNDEFINED;
 }
-// Draw a filled round-rectangle on an image
+// Draw a filled round-rectangle on an image.
 static JSValue js_draw_rectangle_rounded_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_rectangle_rounded_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), color_from_js(argv[6]));
  return JS_UNDEFINED;
 }
-// Draw an image on an image
+// Draw an image on an image.
 static JSValue js_draw_image_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_image_on_image(u32_from_js(argv[0]), u32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]));
  return JS_UNDEFINED;
 }
-// Draw a tinted image on an image
+// Draw a tinted image on an image.
 static JSValue js_draw_image_tint_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_image_tint_on_image(u32_from_js(argv[0]), u32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), color_from_js(argv[4]));
  return JS_UNDEFINED;
 }
-// Draw an image, rotated, on an image
+// Draw an image, rotated, on an image.
 static JSValue js_draw_image_rotated_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_image_rotated_on_image(u32_from_js(argv[0]), u32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), f32_from_js(argv[4]), f32_from_js(argv[5]), f32_from_js(argv[6]), i32_from_js(argv[7]));
  return JS_UNDEFINED;
 }
-// Draw an image, flipped, on an image
+// Draw an image, flipped, on an image.
 static JSValue js_draw_image_flipped_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_image_flipped_on_image(u32_from_js(argv[0]), u32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), bool_from_js(argv[4]), bool_from_js(argv[5]), bool_from_js(argv[6]));
  return JS_UNDEFINED;
 }
-// Draw an image, scaled, on an image
+// Draw an image, scaled, on an image.
 static JSValue js_draw_image_scaled_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_image_scaled_on_image(u32_from_js(argv[0]), u32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), f32_from_js(argv[4]), f32_from_js(argv[5]), f32_from_js(argv[6]), f32_from_js(argv[7]), i32_from_js(argv[8]));
  return JS_UNDEFINED;
 }
-// Draw some text on an image
+// Draw some text on an image.
 static JSValue js_draw_text_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_text_on_image(u32_from_js(argv[0]), u32_from_js(argv[1]), string_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), color_from_js(argv[5]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) rectangle on the screen
+// Draw a outlined (with thickness) rectangle on the screen.
 static JSValue js_draw_rectangle_outline(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_rectangle_outline(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), color_from_js(argv[5]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) triangle on the screen
+// Draw a outlined (with thickness) triangle on the screen.
 static JSValue js_draw_triangle_outline(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_triangle_outline(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), i32_from_js(argv[6]), color_from_js(argv[7]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) ellipse on the screen
+// Draw a outlined (with thickness) ellipse on the screen.
 static JSValue js_draw_ellipse_outline(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_ellipse_outline(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), color_from_js(argv[5]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) circle on the screen
+// Draw a outlined (with thickness) circle on the screen.
 static JSValue js_draw_circle_outline(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_circle_outline(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), color_from_js(argv[4]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) polygon on the screen
+// Draw a outlined (with thickness) polygon on the screen.
 static JSValue js_draw_polygon_outline(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  size_t outlen = 0;
  draw_polygon_outline(vector_array_from_js(argv[0], &outlen), outlen, i32_from_js(argv[1]), color_from_js(argv[2]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) arc on the screen
+// Draw a outlined (with thickness) arc on the screen.
 static JSValue js_draw_arc_outline(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_arc_outline(i32_from_js(argv[0]), i32_from_js(argv[1]), f32_from_js(argv[2]), f32_from_js(argv[3]), f32_from_js(argv[4]), i32_from_js(argv[5]), i32_from_js(argv[6]), color_from_js(argv[7]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) round-rectangle on the screen
+// Draw a outlined (with thickness) round-rectangle on the screen.
 static JSValue js_draw_rectangle_rounded_outline(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_rectangle_rounded_outline(i32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), color_from_js(argv[6]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) rectangle on an image
+// Draw a outlined (with thickness) rectangle on an image.
 static JSValue js_draw_rectangle_outline_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_rectangle_outline_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), color_from_js(argv[6]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) triangle on an image
+// Draw a outlined (with thickness) triangle on an image.
 static JSValue js_draw_triangle_outline_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_triangle_outline_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), i32_from_js(argv[6]), i32_from_js(argv[7]), color_from_js(argv[8]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) ellipse on an image
+// Draw a outlined (with thickness) ellipse on an image.
 static JSValue js_draw_ellipse_outline_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_ellipse_outline_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), color_from_js(argv[6]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) circle on an image
+// Draw a outlined (with thickness) circle on an image.
 static JSValue js_draw_circle_outline_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_circle_outline_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), color_from_js(argv[5]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) polygon on an image
+// Draw a outlined (with thickness) polygon on an image.
 static JSValue js_draw_polygon_outline_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  size_t outlen = 0;
  draw_polygon_outline_on_image(u32_from_js(argv[0]), vector_array_from_js(argv[1], &outlen), outlen, i32_from_js(argv[2]), color_from_js(argv[3]));
  return JS_UNDEFINED;
 }
-// Draw a outlined (with thickness) round-rectangle on an image
+// Draw a outlined (with thickness) round-rectangle on an image.
 static JSValue js_draw_rectangle_rounded_outline_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  draw_rectangle_rounded_outline_on_image(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), i32_from_js(argv[6]), color_from_js(argv[7]));
  return JS_UNDEFINED;
@@ -793,37 +796,37 @@ static JSValue js_draw_rectangle_rounded_outline_on_image(JSContext *ctx, JSValu
 
 // COLORS
 
-// Tint a color with another color
+// Tint a color with another color.
 static JSValue js_color_tint(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  Color* ret = color_tint(color_from_js(argv[0]), color_from_js(argv[1]));
  return color_to_js(*ret);
 }
-// Fade a color
+// Fade a color.
 static JSValue js_color_fade(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  Color* ret = color_fade(color_from_js(argv[0]), f32_from_js(argv[1]));
  return color_to_js(*ret);
 }
-// Change the brightness of a color
+// Change the brightness of a color.
 static JSValue js_color_brightness(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  Color* ret = color_brightness(color_from_js(argv[0]), f32_from_js(argv[1]));
  return color_to_js(*ret);
 }
-// Invert a color
+// Invert a color.
 static JSValue js_color_invert(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  Color* ret = color_invert(color_from_js(argv[0]));
  return color_to_js(*ret);
 }
-// Blend 2 colors together
+// Blend 2 colors together.
 static JSValue js_color_alpha_blend(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  Color* ret = color_alpha_blend(color_from_js(argv[0]), color_from_js(argv[1]));
  return color_to_js(*ret);
 }
-// Change contrast of a color
+// Change contrast of a color.
 static JSValue js_color_contrast(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  Color* ret = color_contrast(color_from_js(argv[0]), f32_from_js(argv[1]));
  return color_to_js(*ret);
 }
-// Interpolate colors
+// Interpolate colors.
 static JSValue js_color_bilinear_interpolate(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  Color* ret = color_bilinear_interpolate(color_from_js(argv[0]), color_from_js(argv[1]), color_from_js(argv[2]), color_from_js(argv[3]), f32_from_js(argv[4]), f32_from_js(argv[5]));
  return color_to_js(*ret);

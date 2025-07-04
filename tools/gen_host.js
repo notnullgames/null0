@@ -1,5 +1,5 @@
 import { writeFile } from 'node:fs/promises'
-import { indent, createApiStream } from './utils.js'
+import { indent, getApi } from './utils.js'
 
 const out = ['#include "host_header.h"']
 
@@ -211,23 +211,18 @@ function buildBody(name, args, returns) {
   return body.join('\n')
 }
 
-const api = createApiStream()
+// TODO: I could build all of the above code with constants/enums/structs/scalars/callbacks
 
-api.on('api', (apiName) => {
+const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+for (const [apiName, funcDef] of Object.entries(api)) {
   out.push('', `// ${apiName.toUpperCase()}`, '')
-})
+  for (const [funcName, { args, returns, description }] of Object.entries(funcDef)) {
+    out.push(`// ${description}`)
+    out.push(`HOST_FUNCTION(${types[returns] || returns}, ${funcName}, (${argsMap(args)}), {`)
+    out.push(indent(buildBody(funcName, args, returns)))
+    out.push('})', '')
+  }
+}
 
-api.on('function', ({ apiName, funcName, args = {}, returns = 'void', description = '' }) => {
-  out.push(`// ${description}`)
-  out.push(`HOST_FUNCTION(${types[returns] || returns}, ${funcName}, (${argsMap(args)}), {`)
-  out.push(indent(buildBody(funcName, args, returns)))
-  out.push('})', '')
-})
-
-api.on('end', async () => {
-  await writeFile('host/src/host.c', out.join('\n'))
-})
-
-api.on('error', (e) => {
-  console.error(e)
-})
+await writeFile('host/src/host.c', out.join('\n'))

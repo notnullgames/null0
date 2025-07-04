@@ -1,6 +1,6 @@
 // This will generate the QuickJS cart for making
 import { writeFile } from 'node:fs/promises'
-import { indent, createApiStream } from './utils.js'
+import { indent, getApi } from './utils.js'
 
 const out = []
 
@@ -394,58 +394,55 @@ const argTypes = {
   'Vector[]': 'vector_array_from_js'
 }
 
-const api = createApiStream()
+// TODO: I could build a lot of the above code with constants/enums/structs/scalars/callbacks
 
 const funcs = []
 
-api.on('api', (apiName) => {
+const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+for (const [apiName, apiObj] of Object.entries(api)) {
   out.push('', `// ${apiName.toUpperCase()}`, '')
-})
+  for (const [funcName, { args, returns, description }] of Object.entries(apiObj)) {
+    funcs.push(indent(`JS_SetPropertyStr(ctx, global, "${funcName}", JS_NewCFunction(ctx, js_${funcName}, "${funcName}", ${Object.keys(args).length}));`, 2))
+    out.push(`// ${description}`)
+    out.push(`static JSValue js_${funcName}(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {`)
 
-api.on('end', async () => {
-  out.push('void expose_things_to_js() {')
-  add_colors()
-  out.push('')
-  add_consts()
-  out.push('')
-  out.push(...funcs)
-  out.push('}')
+    let hasArray = false
 
-  await writeFile('carts/c/js/main.c', out.join('\n'))
-})
+    let mappedArgs = Object.keys(args).map((name, id) => {
+      const type = args[name]
+      if (type.includes('[]')) {
+        hasArray = id + 1
+        return `${argTypes[type]}(argv[${id}], &outlen)`
+      } else {
+        return `${argTypes[type]}(argv[${hasArray ? id - 1 : id}])`
+      }
+    })
 
-api.on('function', ({ apiName, funcName, args = {}, returns = 'void', description = '' }) => {
-  funcs.push(indent(`JS_SetPropertyStr(ctx, global, "${funcName}", JS_NewCFunction(ctx, js_${funcName}, "${funcName}", ${Object.keys(args).length}));`, 2))
-  out.push(`// ${description}`)
-  out.push(`static JSValue js_${funcName}(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {`)
-
-  let hasArray = false
-
-  let mappedArgs = Object.keys(args).map((name, id) => {
-    const type = args[name]
-    if (type.includes('[]')) {
-      hasArray = id + 1
-      return `${argTypes[type]}(argv[${id}], &outlen)`
-    } else {
-      return `${argTypes[type]}(argv[${hasArray ? id - 1 : id}])`
+    if (hasArray) {
+      out.push(indent(`size_t outlen = 0;`))
+      mappedArgs = mappedArgs.filter((v, i) => i != hasArray)
+      mappedArgs.splice(hasArray, 0, 'outlen')
     }
-  })
 
-  if (hasArray) {
-    out.push(indent(`size_t outlen = 0;`))
-    mappedArgs = mappedArgs.filter((v, i) => i != hasArray)
-    mappedArgs.splice(hasArray, 0, 'outlen')
-  }
-
-  if (returns === 'void') {
-    out.push(indent(`${funcName}(${mappedArgs.join(', ')});\nreturn JS_UNDEFINED;`))
-  } else {
-    if (returnRef.includes(returns)) {
-      out.push(indent(`${returns}* ret = ${funcName}(${mappedArgs.join(', ')});`))
-      out.push(indent(`return ${returnMap[returns]}(*ret);`))
+    if (returns === 'void') {
+      out.push(indent(`${funcName}(${mappedArgs.join(', ')});\nreturn JS_UNDEFINED;`))
     } else {
-      out.push(indent(`return ${returnMap[returns]}(${funcName}(${mappedArgs.join(', ')}));`))
+      if (returnRef.includes(returns)) {
+        out.push(indent(`${returns}* ret = ${funcName}(${mappedArgs.join(', ')});`))
+        out.push(indent(`return ${returnMap[returns]}(*ret);`))
+      } else {
+        out.push(indent(`return ${returnMap[returns]}(${funcName}(${mappedArgs.join(', ')}));`))
+      }
     }
+    out.push('}')
   }
-  out.push('}')
-})
+}
+
+out.push('void expose_things_to_js() {')
+add_colors()
+out.push('')
+add_consts()
+out.push('', ...funcs, '}')
+
+await writeFile('carts/c/js/main.c', out.join('\n'))

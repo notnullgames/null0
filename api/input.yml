@@ -2,7 +2,7 @@ key_pressed:
   args:
     key: Key
   returns: bool
-  description: Has the key been pressed? (tracks unpress/read correctly)
+  description: Has the key been pressed? (tracks unpress/read correctly.)
 
 key_down:
   args:
@@ -14,7 +14,7 @@ key_released:
   args:
     key: Key
   returns: bool
-  description: Has the key been released? (tracks press/read correctly)
+  description: Has the key been released? (tracks press/read correctly.)
 
 key_up:
   args:
@@ -27,7 +27,7 @@ gamepad_button_pressed:
     gamepad: i32
     button: GamepadButton
   returns: bool
-  description: Has the button been pressed? (tracks unpress/read correctly)
+  description: Has the button been pressed? (tracks unpress/read correctly.)
 
 gamepad_button_down:
   args:
@@ -41,18 +41,18 @@ gamepad_button_released:
     gamepad: i32
     button: GamepadButton
   returns: bool
-  description: Has the button been released? (tracks press/read correctly)
+  description: Has the button been released? (tracks press/read correctly.)
 
 mouse_position:
   args: {}
   returns: Vector
-  description: Get current position of mouse
+  description: Get current position of mouse.
 
 mouse_button_pressed:
   args:
     button: MouseButton
   returns: bool
-  description: Has the button been pressed? (tracks unpress/read correctly)
+  description: Has the button been pressed? (tracks unpress/read correctly.)
 
 mouse_button_down:
   args:
@@ -64,7 +64,7 @@ mouse_button_released:
   args:
     button: MouseButton
   returns: bool
-  description: Has the button been released? (tracks press/read correctly)
+  description: Has the button been released? (tracks press/read correctly.)
 
 mouse_button_up:
   args:

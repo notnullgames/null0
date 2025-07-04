@@ -1,5 +1,5 @@
 import { writeFile } from 'node:fs/promises'
-import { indent, createApiStream } from './utils.js'
+import { indent, getApi } from './utils.js'
 
 const out = [
   `#include <stdarg.h>
@@ -310,28 +310,23 @@ const retTypes = {
   Color: 'Color*'
 }
 
+// TODO: I could build all of the above code with constants/enums/structs/scalars/callbacks
+
 // map args to host-types
 const argsMap = (args) =>
   Object.entries(args)
     .map(([name, type]) => `${argTypes[type] || type} ${name}`)
     .join(', ')
 
-const api = createApiStream()
+const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
-api.on('api', (apiName) => {
+for (const [apiName, apiObj] of Object.entries(api)) {
   out.push('', `// ${apiName.toUpperCase()}`, '')
-})
+  for (const [funcName, { args, returns, description }] of Object.entries(apiObj)) {
+    out.push(`// ${description}`)
+    out.push(`NULL0_IMPORT("${funcName}")`)
+    out.push(`extern ${retTypes[returns] || returns} ${funcName}(${argsMap(args)});`, '')
+  }
+}
 
-api.on('function', ({ apiName, funcName, args = {}, returns = 'void', description = '' }) => {
-  out.push(`// ${description}`)
-  out.push(`NULL0_IMPORT("${funcName}")`)
-  out.push(`extern ${retTypes[returns] || returns} ${funcName}(${argsMap(args)});`, '')
-})
-
-api.on('end', async () => {
-  await writeFile('carts/c/null0.h', out.join('\n'))
-})
-
-api.on('error', (e) => {
-  console.error(e)
-})
+await writeFile('carts/c/null0.h', out.join('\n'))

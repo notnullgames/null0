@@ -4,13 +4,13 @@ new_image:
     height: i32
     color: Color
   returns: Image
-  description: Create a new blank image
+  description: Create a new blank image.
 
 image_copy:
   args:
     image: Image
   returns: Image
-  description: Copy an image to a new image
+  description: Copy an image to a new image.
 
 image_subimage:
   args:
@@ -20,13 +20,13 @@ image_subimage:
     width: i32
     height: i32
   returns: Image
-  description: Create an image from a region of another image
+  description: Create an image from a region of another image.
 
 clear:
   args:
     color: Color
   returns: void
-  description: Clear the screen
+  description: Clear the screen.
 
 draw_point:
   args:
@@ -34,7 +34,7 @@ draw_point:
     y: i32
     color: Color
   returns: void
-  description: Draw a single pixel on the screen
+  description: Draw a single pixel on the screen.
 
 draw_line:
   args:
@@ -44,7 +44,7 @@ draw_line:
     endPosY: i32
     color: Color
   returns: void
-  description: Draw a line on the screen
+  description: Draw a line on the screen.
 
 draw_rectangle:
   args:
@@ -54,7 +54,7 @@ draw_rectangle:
     height: i32
     color: Color
   returns: void
-  description: Draw a filled rectangle on the screen
+  description: Draw a filled rectangle on the screen.
 
 draw_triangle:
   args:
@@ -66,7 +66,7 @@ draw_triangle:
     y3: i32
     color: Color
   returns: void
-  description: Draw a filled triangle on the screen
+  description: Draw a filled triangle on the screen.
 
 draw_ellipse:
   args:
@@ -76,7 +76,7 @@ draw_ellipse:
     radiusY: i32
     color: Color
   returns: void
-  description: Draw a filled ellipse on the screen
+  description: Draw a filled ellipse on the screen.
 
 draw_circle:
   args:
@@ -85,7 +85,7 @@ draw_circle:
     radius: i32
     color: Color
   returns: void
-  description: Draw a filled circle on the screen
+  description: Draw a filled circle on the screen.
 
 draw_polygon:
   args:
@@ -93,7 +93,7 @@ draw_polygon:
     numPoints: i32
     color: Color
   returns: void
-  description: Draw a filled polygon on the screen
+  description: Draw a filled polygon on the screen.
 
 draw_arc:
   args:
@@ -105,7 +105,7 @@ draw_arc:
     segments: i32
     color: Color
   returns: void
-  description: Draw a filled arc on the screen
+  description: Draw a filled arc on the screen.
 
 draw_rectangle_rounded:
   args:
@@ -116,7 +116,7 @@ draw_rectangle_rounded:
     cornerRadius: i32
     color: Color
   returns: void
-  description: Draw a filled round-rectangle on the screen
+  description: Draw a filled round-rectangle on the screen.
 
 draw_image:
   args:
@@ -124,7 +124,7 @@ draw_image:
     posX: i32
     posY: i32
   returns: void
-  description: Draw an image on the screen
+  description: Draw an image on the screen.
 
 draw_image_tint:
   args:
@@ -133,7 +133,7 @@ draw_image_tint:
     posY: i32
     tint: Color
   returns: void
-  description: Draw a tinted image on the screen
+  description: Draw a tinted image on the screen.
 
 draw_image_rotated:
   args:
@@ -145,7 +145,7 @@ draw_image_rotated:
     offsetY: f32
     filter: ImageFilter
   returns: void
-  description: Draw an image, rotated, on the screen
+  description: Draw an image, rotated, on the screen.
 
 draw_image_flipped:
   args:
@@ -156,7 +156,7 @@ draw_image_flipped:
     flipVertical: bool
     flipDiagonal: bool
   returns: void
-  description: Draw an image, flipped, on the screen
+  description: Draw an image, flipped, on the screen.
 
 draw_image_scaled:
   args:
@@ -169,7 +169,7 @@ draw_image_scaled:
     offsetY: f32
     filter: ImageFilter
   returns: void
-  description: Draw an image, scaled, on the screen
+  description: Draw an image, scaled, on the screen.
 
 draw_text:
   args:
@@ -179,20 +179,20 @@ draw_text:
     posY: i32
     color: Color
   returns: void
-  description: Draw some text on the screen
+  description: Draw some text on the screen.
 
 save_image:
   args:
     image: Image
     filename: string
   returns: void
-  description: Save an image to persistant storage
+  description: Save an image to persistant storage.
 
 load_image:
   args:
     filename: string
   returns: Image
-  description: Load an image from a file in cart
+  description: Load an image from a file in cart.
 
 image_resize:
   args:
@@ -201,7 +201,7 @@ image_resize:
     newHeight: i32
     filter: ImageFilter
   returns: Image
-  description: Resize an image, return copy
+  description: Resize an image, return copy.
 
 image_scale:
   args:
@@ -210,7 +210,7 @@ image_scale:
     scaleY: f32
     filter: ImageFilter
   returns: Image
-  description: Scale an image, return copy
+  description: Scale an image, return copy.
 
 image_color_replace:
   args:
@@ -218,27 +218,27 @@ image_color_replace:
     color: Color
     replace: Color
   returns: void
-  description: Replace a color in an image, in-place
+  description: Replace a color in an image, in-place.
 
 image_color_tint:
   args:
     image: Image
     color: Color
   returns: void
-  description: Tint a color in an image, in-place
+  description: Tint a color in an image, in-place.
 
 image_color_fade:
   args:
     image: Image
     alpha: f32
   returns: void
-  description: Fade a color in an image, in-place
+  description: Fade a color in an image, in-place.
 
 font_copy:
   args:
     font: Font
   returns: Font
-  description: Copy a font to a new font
+  description: Copy a font to a new font.
 
 font_scale:
   args:
@@ -247,21 +247,21 @@ font_scale:
     scaleY: f32
     filter: ImageFilter
   returns: Font
-  description: Scale a font, return a new font
+  description: Scale a font, return a new font.
 
 load_font_bmf:
   args:
     filename: string
     characters: string
   returns: Font
-  description: Load a BMF font from a file in cart
+  description: Load a BMF font from a file in cart.
 
 load_font_bmf_from_image:
   args:
     image: Image
     characters: string
   returns: Font
-  description: Load a BMF font from an image
+  description: Load a BMF font from an image.
 
 measure_text:
   args:
@@ -269,13 +269,13 @@ measure_text:
     text: string
     textLength: i32
   returns: Dimensions
-  description: Measure the size of some text
+  description: Measure the size of some text.
 
 measure_image:
   args:
     image: Image
   returns: Dimensions
-  description: Meaure an image (use 0 for screen)
+  description: Meaure an image (use 0 for screen).
 
 load_font_tty:
   args:
@@ -284,7 +284,7 @@ load_font_tty:
     glyphHeight: i32
     characters: string
   returns: Font
-  description: Load a TTY font from a file in cart
+  description: Load a TTY font from a file in cart.
 
 load_font_tty_from_image:
   args:
@@ -293,27 +293,27 @@ load_font_tty_from_image:
     glyphHeight: i32
     characters: string
   returns: Font
-  description: Load a TTY font from an image
+  description: Load a TTY font from an image.
 
 load_font_ttf:
   args:
     filename: string
     fontSize: i32
   returns: Font
-  description: Load a TTF font from a file in cart
+  description: Load a TTF font from a file in cart.
 
 image_color_invert:
   args:
     image: Image
   returns: void
-  description: Invert the colors in an image, in-place
+  description: Invert the colors in an image, in-place.
 
 image_alpha_border:
   args:
     image: Image
     threshold: f32
   returns: Rectangle
-  description: Calculate a rectangle representing the available alpha border in an image
+  description: Calculate a rectangle representing the available alpha border in an image.
 
 image_crop:
   args:
@@ -323,21 +323,21 @@ image_crop:
     width: i32
     height: i32
   returns: void
-  description: Crop an image, in-place
+  description: Crop an image, in-place.
 
 image_alpha_crop:
   args:
     image: Image
     threshold: f32
   returns: void
-  description: Crop an image based on the alpha border, in-place
+  description: Crop an image based on the alpha border, in-place.
 
 image_color_brightness:
   args:
     image: Image
     factor: f32
   returns: void
-  description: Adjust the brightness of an image, in-place
+  description: Adjust the brightness of an image, in-place.
 
 image_flip:
   args:
@@ -345,14 +345,14 @@ image_flip:
     horizontal: bool
     vertical: bool
   returns: void
-  description: Flip an image, in-place
+  description: Flip an image, in-place.
 
 image_color_contrast:
   args:
     image: Image
     contrast: f32
   returns: void
-  description: Change the contrast of an image, in-place
+  description: Change the contrast of an image, in-place.
 
 image_alpha_mask:
   args:
@@ -361,7 +361,7 @@ image_alpha_mask:
     posX: i32
     posY: i32
   returns: void
-  description: Use an image as an alpha-mask on another image
+  description: Use an image as an alpha-mask on another image.
 
 image_rotate:
   args:
@@ -369,7 +369,7 @@ image_rotate:
     degrees: f32
     filter: ImageFilter
   returns: Image
-  description: Create a new image, rotating another image
+  description: Create a new image, rotating another image.
 
 image_gradient:
   args:
@@ -380,26 +380,26 @@ image_gradient:
     bottomLeft: Color
     bottomRight: Color
   returns: Image
-  description: Create a new image of a gradient
+  description: Create a new image of a gradient.
 
 unload_image:
   args:
     image: Image
   returns: void
-  description: Unload an image
+  description: Unload an image.
 
 unload_font:
   args:
     font: Font
   returns: void
-  description: Unload a font
+  description: Unload a font.
 
 clear_image:
   args:
     destination: Image
     color: Color
   returns: void
-  description: Clear an image
+  description: Clear an image.
 
 draw_point_on_image:
   args:
@@ -408,7 +408,7 @@ draw_point_on_image:
     y: i32
     color: Color
   returns: void
-  description: Draw a single pixel on an image
+  description: Draw a single pixel on an image.
 
 draw_line_on_image:
   args:
@@ -419,7 +419,7 @@ draw_line_on_image:
     endPosY: i32
     color: Color
   returns: void
-  description: Draw a line on an image
+  description: Draw a line on an image.
 
 draw_rectangle_on_image:
   args:
@@ -430,7 +430,7 @@ draw_rectangle_on_image:
     height: i32
     color: Color
   returns: void
-  description: Draw a filled rectangle on an image
+  description: Draw a filled rectangle on an image.
 
 draw_triangle_on_image:
   args:
@@ -443,7 +443,7 @@ draw_triangle_on_image:
     y3: i32
     color: Color
   returns: void
-  description: Draw a filled triangle on an image
+  description: Draw a filled triangle on an image.
 
 draw_ellipse_on_image:
   args:
@@ -454,7 +454,7 @@ draw_ellipse_on_image:
     radiusY: i32
     color: Color
   returns: void
-  description: Draw a filled ellipse on an image
+  description: Draw a filled ellipse on an image.
 
 draw_circle_on_image:
   args:
@@ -464,7 +464,7 @@ draw_circle_on_image:
     radius: i32
     color: Color
   returns: void
-  description: Draw a circle on an image
+  description: Draw a circle on an image.
 
 draw_polygon_on_image:
   args:
@@ -473,7 +473,7 @@ draw_polygon_on_image:
     numPoints: i32
     color: Color
   returns: void
-  description: Draw a filled polygon on an image
+  description: Draw a filled polygon on an image.
 
 draw_rectangle_rounded_on_image:
   args:
@@ -485,7 +485,7 @@ draw_rectangle_rounded_on_image:
     cornerRadius: i32
     color: Color
   returns: void
-  description: Draw a filled round-rectangle on an image
+  description: Draw a filled round-rectangle on an image.
 
 draw_image_on_image:
   args:
@@ -494,7 +494,7 @@ draw_image_on_image:
     posX: i32
     posY: i32
   returns: void
-  description: Draw an image on an image
+  description: Draw an image on an image.
 
 draw_image_tint_on_image:
   args:
@@ -504,7 +504,7 @@ draw_image_tint_on_image:
     posY: i32
     tint: Color
   returns: void
-  description: Draw a tinted image on an image
+  description: Draw a tinted image on an image.
 
 draw_image_rotated_on_image:
   args:
@@ -517,7 +517,7 @@ draw_image_rotated_on_image:
     offsetY: f32
     filter: ImageFilter
   returns: void
-  description: Draw an image, rotated, on an image
+  description: Draw an image, rotated, on an image.
 
 draw_image_flipped_on_image:
   args:
@@ -529,7 +529,7 @@ draw_image_flipped_on_image:
     flipVertical: bool
     flipDiagonal: bool
   returns: void
-  description: Draw an image, flipped, on an image
+  description: Draw an image, flipped, on an image.
 
 draw_image_scaled_on_image:
   args:
@@ -543,7 +543,7 @@ draw_image_scaled_on_image:
     offsetY: f32
     filter: ImageFilter
   returns: void
-  description: Draw an image, scaled, on an image
+  description: Draw an image, scaled, on an image.
 
 draw_text_on_image:
   args:
@@ -554,7 +554,7 @@ draw_text_on_image:
     posY: i32
     color: Color
   returns: void
-  description: Draw some text on an image
+  description: Draw some text on an image.
 
 draw_rectangle_outline:
   args:
@@ -565,7 +565,7 @@ draw_rectangle_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) rectangle on the screen
+  description: Draw a outlined (with thickness) rectangle on the screen.
 
 draw_triangle_outline:
   args:
@@ -578,7 +578,7 @@ draw_triangle_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) triangle on the screen
+  description: Draw a outlined (with thickness) triangle on the screen.
 
 draw_ellipse_outline:
   args:
@@ -589,7 +589,7 @@ draw_ellipse_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) ellipse on the screen
+  description: Draw a outlined (with thickness) ellipse on the screen.
 
 draw_circle_outline:
   args:
@@ -599,7 +599,7 @@ draw_circle_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) circle on the screen
+  description: Draw a outlined (with thickness) circle on the screen.
 
 draw_polygon_outline:
   args:
@@ -608,7 +608,7 @@ draw_polygon_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) polygon on the screen
+  description: Draw a outlined (with thickness) polygon on the screen.
 
 draw_arc_outline:
   args:
@@ -621,7 +621,7 @@ draw_arc_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) arc on the screen
+  description: Draw a outlined (with thickness) arc on the screen.
 
 draw_rectangle_rounded_outline:
   args:
@@ -633,7 +633,7 @@ draw_rectangle_rounded_outline:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) round-rectangle on the screen
+  description: Draw a outlined (with thickness) round-rectangle on the screen.
 
 draw_rectangle_outline_on_image:
   args:
@@ -645,7 +645,7 @@ draw_rectangle_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) rectangle on an image
+  description: Draw a outlined (with thickness) rectangle on an image.
 
 draw_triangle_outline_on_image:
   args:
@@ -659,7 +659,7 @@ draw_triangle_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) triangle on an image
+  description: Draw a outlined (with thickness) triangle on an image.
 
 draw_ellipse_outline_on_image:
   args:
@@ -671,7 +671,7 @@ draw_ellipse_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) ellipse on an image
+  description: Draw a outlined (with thickness) ellipse on an image.
 
 draw_circle_outline_on_image:
   args:
@@ -682,7 +682,7 @@ draw_circle_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) circle on an image
+  description: Draw a outlined (with thickness) circle on an image.
 
 draw_polygon_outline_on_image:
   args:
@@ -692,7 +692,7 @@ draw_polygon_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) polygon on an image
+  description: Draw a outlined (with thickness) polygon on an image.
 
 draw_rectangle_rounded_outline_on_image:
   args:
@@ -705,4 +705,4 @@ draw_rectangle_rounded_outline_on_image:
     thickness: i32
     color: Color
   returns: void
-  description: Draw a outlined (with thickness) round-rectangle on an image
+  description: Draw a outlined (with thickness) round-rectangle on an image.

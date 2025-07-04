@@ -1,0 +1,37 @@
+buttonUp:
+  description: Mapped controller (keys and gamepad will trigger) callback for when a "button" is unpressed.
+  args:
+    button: GamepadButton
+    player: u32
+
+buttonDown:
+  description: Mapped controller (keys and gamepad will trigger) callback for when a "button" is pressed.
+  args:
+    button: GamepadButton
+    player: u32
+
+keyUp:
+  description: Called when keys are unpressed.
+  args:
+    key: Key
+
+keyDown:
+  description: Called when keys are pressed.
+  args:
+    key: Key
+
+mouseDown:
+  description: Called when mouse-button is pressed.
+  args:
+    button: MouseButton
+
+mouseUp:
+  description: Called when mouse-button is released.
+  args:
+    button: MouseButton
+
+mouseMoved:
+  description: Called when mouse is moved.
+  args:
+    x: f32
+    y: f32

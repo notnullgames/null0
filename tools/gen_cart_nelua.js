@@ -4,7 +4,7 @@
 // Generates Nelua code from the API definitions
 
 import { writeFile } from 'node:fs/promises'
-import { createApiStream } from './utils.js'
+import { getApi } from './utils.js'
 
 const out = [
   `-- null0 API for Nelua
@@ -275,26 +275,20 @@ const argsMap = (args) => {
   return params.join(', ')
 }
 
-const api = createApiStream()
+// TODO: I could build all of the above code with constants/enums/structs/scalars/callbacks
 
-api.on('api', (apiName) => {
+const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+for (const [apiName, funcDef] of Object.entries(api)) {
   out.push('', `-- ${apiName.toUpperCase()}`, '')
-})
+  for (const [funcName, { args, returns, description }] of Object.entries(funcDef)) {
+    const neluaReturn = retTypes[returns] || returns
+    const paramList = argsMap(args)
 
-api.on('function', ({ apiName, funcName, args = {}, returns = 'void', description = '' }) => {
-  const neluaReturn = retTypes[returns] || returns
-  const paramList = argsMap(args)
+    // Generate external function declaration
+    out.push(`-- ${description}`)
+    out.push(`global function ${funcName}(${paramList}): ${neluaReturn} <cimport,nodecl> end`, '')
+  }
+}
 
-  // Generate external function declaration
-  out.push(`-- ${description}`)
-  out.push(`global function ${funcName}(${paramList}): ${neluaReturn} <cimport,nodecl> end`, '')
-})
-
-api.on('end', async () => {
-  await writeFile('carts/nelua/null0.nelua', out.join('\n'))
-})
-
-api.on('error', (e) => {
-  console.error('Error generating Nelua bindings:', e)
-  process.exit(1)
-})
+await writeFile('carts/nelua/null0.nelua', out.join('\n'))
