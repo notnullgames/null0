@@ -28,19 +28,6 @@ for (const [name, { description }] of Object.entries(scalars)) {
 }
 out.push('```', '')
 
-out.push('', '### enums', '', 'This is a textual way to describe some possible options for an integer field.', '', '```c')
-for (const [name, e] of Object.entries(enums)) {
-  out.push(`// ${e.description}`, `enum ${name} {`)
-  out.push(
-    '  ' +
-      Object.entries(e.enums)
-        .map(([name, value]) => `${name} = ${value}`)
-        .join(',\n  ')
-  )
-  out.push('}', '')
-}
-out.push('```', '')
-
 out.push('', '### structs', '', 'This is a compound-object, like a row in a spreadsheet. These are used to pass multiple values as a single object.', '', '```c')
 for (const [name, e] of Object.entries(structs)) {
   out.push(`// ${e.description}`, `struct ${name} {`)
@@ -48,6 +35,19 @@ for (const [name, e] of Object.entries(structs)) {
     '  ' +
       Object.entries(e.members)
         .map(([name, type]) => `${type} ${name}`)
+        .join(',\n  ')
+  )
+  out.push('}', '')
+}
+out.push('```', '')
+
+out.push('', '### enums', '', 'This is a textual way to describe some possible options for an integer field.', '', '```c')
+for (const [name, e] of Object.entries(enums)) {
+  out.push(`// ${e.description}`, `enum ${name} {`)
+  out.push(
+    '  ' +
+      Object.entries(e.enums)
+        .map(([name, value]) => `${name} = ${value}`)
         .join(',\n  ')
   )
   out.push('}', '')

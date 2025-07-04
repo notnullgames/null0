@@ -41,6 +41,42 @@ Vector[]
 ```
 
 
+### structs
+
+This is a compound-object, like a row in a spreadsheet. These are used to pass multiple values as a single object.
+
+```c
+// The 2D size of something (width/height.)
+struct Dimensions {
+  i32 width,
+  i32 height
+}
+
+// The 2D position of something (x/y.)
+struct Vector {
+  i32 x,
+  i32 y
+}
+
+// The 2D position + size of something (x/y/w/h.)
+struct Rectangle {
+  i32 x,
+  i32 y,
+  i32 width,
+  i32 height
+}
+
+// An RGBA color.
+struct Color {
+  u8 r,
+  u8 g,
+  u8 b,
+  u8 a
+}
+
+```
+
+
 ### enums
 
 This is a textual way to describe some possible options for an integer field.
@@ -205,42 +241,6 @@ enum MouseButton {
   MOUSE_BUTTON_LEFT = 1,
   MOUSE_BUTTON_RIGHT = 2,
   MOUSE_BUTTON_MIDDLE = 3
-}
-
-```
-
-
-### structs
-
-This is a compound-object, like a row in a spreadsheet. These are used to pass multiple values as a single object.
-
-```c
-// The 2D size of something (width/height.)
-struct Dimensions {
-  i32 width,
-  i32 height
-}
-
-// The 2D position of something (x/y.)
-struct Vector {
-  i32 x,
-  i32 y
-}
-
-// The 2D position + size of something (x/y/w/h.)
-struct Rectangle {
-  i32 x,
-  i32 y,
-  i32 width,
-  i32 height
-}
-
-// An RGBA color.
-struct Color {
-  u8 r,
-  u8 g,
-  u8 b,
-  u8 a
 }
 
 ```
