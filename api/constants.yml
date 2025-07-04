@@ -1,0 +1,105 @@
+LIGHTGRAY:
+  value: [200, 200, 200, 255]
+  type: Color
+
+GRAY:
+  value: [130, 130, 130, 255]
+  type: Color
+
+DARKGRAY:
+  value: [80, 80, 80, 255]
+  type: Color
+
+YELLOW:
+  value: [253, 249, 0, 255]
+  type: Color
+
+GOLD:
+  value: [255, 203, 0, 255]
+  type: Color
+
+ORANGE:
+  value: [255, 161, 0, 255]
+  type: Color
+
+PINK:
+  value: [255, 109, 194, 255]
+  type: Color
+
+RED:
+  value: [230, 41, 55, 255]
+  type: Color
+
+MAROON:
+  value: [190, 33, 55, 255]
+  type: Color
+
+GREEN:
+  value: [0, 228, 48, 255]
+  type: Color
+
+LIME:
+  value: [0, 158, 47, 255]
+  type: Color
+
+DARKGREEN:
+  value: [0, 117, 44, 255]
+  type: Color
+
+SKYBLUE:
+  value: [102, 191, 255, 255]
+  type: Color
+
+BLUE:
+  value: [0, 121, 241, 255]
+  type: Color
+
+DARKBLUE:
+  value: [0, 82, 172, 255]
+  type: Color
+
+PURPLE:
+  value: [200, 122, 255, 255]
+  type: Color
+
+VIOLET:
+  value: [135, 60, 190, 255]
+  type: Color
+
+DARKPURPLE:
+  value: [112, 31, 126, 255]
+  type: Color
+
+BEIGE:
+  value: [211, 176, 131, 255]
+  type: Color
+
+BROWN:
+  value: [127, 106, 79, 255]
+  type: Color
+
+DARKBROWN:
+  value: [76, 63, 47, 255]
+  type: Color
+
+WHITE:
+  value: [255, 255, 255, 255]
+  type: Color
+
+BLACK:
+  value: [0, 0, 0, 255]
+  type: Color
+
+BLANK:
+  value: [0, 0, 0, 0]
+  type: Color
+  description: Completely transparent.
+
+MAGENTA:
+  value: [255, 0, 255, 255]
+  type: Color
+
+RAYWHITE:
+  value: [245, 245, 245, 255]
+  type: Color
+  description: A nice off-white, from Raylib.

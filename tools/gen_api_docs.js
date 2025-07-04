@@ -54,6 +54,15 @@ for (const [name, e] of Object.entries(structs)) {
 }
 out.push('```', '')
 
+out.push('', '### colors', '', 'These colors are pre-defined in most cart-languages:', '')
+for (const [name, e] of Object.entries(constants)) {
+  if (e.type !== 'Color') {
+    continue
+  }
+  out.push('- `' + name + '`' + (e.description ? ` - ${e.description}` : ''))
+}
+out.push('')
+
 out.push('', '## callbacks', '', 'Callbacks are how you define your game. See [cart](https://notnull.games/null0/cart) for more info.', '')
 for (const [name, def] of Object.entries(callbacks)) {
   out.push(describeFunction(name, def))

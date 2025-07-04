@@ -68,13 +68,13 @@ bool:
 
 # resources
 Image:
-  description: An image.
+  description: An image. 0 is "the screen".
   c_arg: unt32_t
   c_ret: unt32_t
   host: unt32_t
 
 Font:
-  description: A font.
+  description: A font. 0 is "the default font".
   c_arg: unt32_t
   c_ret: unt32_t
   host: unt32_t

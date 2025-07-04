@@ -23,10 +23,10 @@ f32
 // Boolean (true/false.)
 bool
 
-// An image.
+// An image. 0 is "the screen".
 Image
 
-// A font.
+// A font. 0 is "the default font".
 Font
 
 // A sound.
@@ -244,6 +244,38 @@ struct Color {
 }
 
 ```
+
+
+### colors
+
+These colors are pre-defined in most cart-languages:
+
+- `LIGHTGRAY`
+- `GRAY`
+- `DARKGRAY`
+- `YELLOW`
+- `GOLD`
+- `ORANGE`
+- `PINK`
+- `RED`
+- `MAROON`
+- `GREEN`
+- `LIME`
+- `DARKGREEN`
+- `SKYBLUE`
+- `BLUE`
+- `DARKBLUE`
+- `PURPLE`
+- `VIOLET`
+- `DARKPURPLE`
+- `BEIGE`
+- `BROWN`
+- `DARKBROWN`
+- `WHITE`
+- `BLACK`
+- `BLANK` - Completely transparent.
+- `MAGENTA`
+- `RAYWHITE` - A nice off-white, from Raylib.
 
 
 ## callbacks
