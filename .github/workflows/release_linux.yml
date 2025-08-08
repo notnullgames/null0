@@ -56,7 +56,7 @@ jobs:
             -w /work
           run: |
             apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cmake build-essential ninja-build zip \
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git cmake build-essential ninja-build zip \
               libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev
             cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
             cmake --build build --target host
