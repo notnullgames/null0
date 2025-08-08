@@ -20,12 +20,13 @@ jobs:
             os: ubuntu-24.04-arm64
             container: false
             artifacts: [null0_linux_arm64.zip, null0_linux_drm_arm64.zip]
-          - arch: armhf
-            os: ubuntu-latest
-            container: true
-            platform: linux/arm/v7
-            image: arm32v7/ubuntu:24.04
-            artifacts: [null0_linux_armhf.zip, null0_linux_drm_armhf.zip]
+          # dropping for now, because it's very slow
+          # - arch: armhf
+          #   os: ubuntu-latest
+          #   container: true
+          #   platform: linux/arm/v7
+          #   image: arm32v7/ubuntu:24.04
+          #   artifacts: [null0_linux_armhf.zip, null0_linux_drm_armhf.zip]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
