@@ -1,0 +1,41 @@
+name: Release Linux ARM
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-arm:
+    strategy:
+      matrix:
+        arch: [arm64, armhf]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/arm64,linux/arm
+      - name: Build in ARM container (${{ matrix.arch }})
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ matrix.arch == 'arm64' && 'arm64v8/ubuntu:24.04' || 'arm32v7/ubuntu:24.04' }}
+          options: |
+            --platform=${{ matrix.arch == 'arm64' && 'linux/arm64' || 'linux/arm/v7' }}
+            -v ${{ github.workspace }}:/work
+            -w /work
+          run: |
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cmake build-essential ninja-build zip \
+              libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev
+            cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+            cmake --build build --target host
+            cd build/host
+            zip ../../null0_linux_${{ matrix.arch }}.zip null0
+      - name: Upload asset to release
+        run: gh release upload ${{ github.event.release.tag_name }} null0_linux_${{ matrix.arch }}.zip
+        env:
+          GH_TOKEN: ${{ github.token }}

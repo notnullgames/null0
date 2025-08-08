@@ -1,0 +1,24 @@
+name: Release Windows
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Native Windows Host (x86_64)
+        shell: pwsh
+        run: |
+          cmake -B build -G "Visual Studio 17 2022" -A x64
+          cmake --build build --target host --config Release
+          Compress-Archive -Path build/host/Release/null0.exe -DestinationPath null0_windows.zip
+      - name: Upload asset to release
+        run: gh release upload ${{ github.event.release.tag_name }} null0_windows.zip
+        env:
+          GH_TOKEN: ${{ github.token }}
