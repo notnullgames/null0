@@ -6,6 +6,12 @@
   #ifndef NOMINMAX
     #define NOMINMAX
   #endif
+  #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+  #endif
+  #ifndef NOGDI
+    #define NOGDI
+  #endif
   #include <windows.h>   // for FILETIME, GetSystemTimeAsFileTime and base types
 #else
   #include <sys/time.h>
