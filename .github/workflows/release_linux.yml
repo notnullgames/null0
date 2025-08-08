@@ -9,43 +9,60 @@ permissions:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
           - arch: x86_64
+            os: ubuntu-latest
             container: false
             artifact: null0_linux.zip
           - arch: arm64
-            container: true
-            platform: linux/arm64
-            image: arm64v8/ubuntu:24.04
+            os: ubuntu-24.04-arm64
+            container: false
             artifact: null0_linux_arm64.zip
           - arch: armhf
+            os: ubuntu-latest
             container: true
             platform: linux/arm/v7
             image: arm32v7/ubuntu:24.04
             artifact: null0_linux_armhf.zip
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up QEMU
+      - name: Set up QEMU (for armhf)
         if: matrix.container == true
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: linux/arm64,linux/arm
+          platforms: linux/arm
 
       - name: Build Native Linux Host (x86_64)
-        if: matrix.container == false
+        if: matrix.container == false && matrix.arch == 'x86_64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev
+          sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev zip
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target host
           cd build/host
           zip ../../${{ matrix.artifact }} null0
 
-      - name: Build in ARM container (${{ matrix.arch }})
+      - name: Build Native Linux Host (arm64)
+        if: matrix.container == false && matrix.arch == 'arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ca-certificates curl git pkg-config cmake build-essential zip \
+            libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev clang
+          sudo update-ca-certificates || true
+          cmake -B build -DCMAKE_BUILD_TYPE=Release \
+            -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1 \
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument" \
+            -DCMAKE_CXX_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument"
+          cmake --build build --target host
+          cd build/host
+          zip ../../${{ matrix.artifact }} null0
+
+      - name: Build in ARM container (armhf)
         if: matrix.container == true
         uses: addnab/docker-run-action@v3
         with:
@@ -61,6 +78,7 @@ jobs:
               libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev
             update-ca-certificates || true
             cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+              -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1 \
               -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
               -DCMAKE_C_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument" \
               -DCMAKE_CXX_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument"
