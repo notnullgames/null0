@@ -6,8 +6,7 @@
   #ifndef NOMINMAX
     #define NOMINMAX
   #endif
-  #include <minwinbase.h>   // FILETIME
-  #include <sysinfoapi.h>   // GetSystemTimeAsFileTime
+  #include <windows.h>   // for FILETIME, GetSystemTimeAsFileTime and base types
 #else
   #include <sys/time.h>
 #endif
