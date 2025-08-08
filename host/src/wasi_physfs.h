@@ -12,6 +12,15 @@
 #include <sys/time.h>
 #endif
 #include <time.h>
+#if defined(_WIN32)
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  include <windows.h>
+#endif
 #if !defined(_WIN32)
 #include <unistd.h>
 #endif
@@ -396,6 +405,41 @@ static wasi_errno_t wasi_args_get(wasm_exec_env_t exec_env, uint32_t *argv_offse
 }
 
 static wasi_errno_t wasi_clock_time_get(wasm_exec_env_t exec_env, wasi_clockid_t clock_id, wasi_timestamp_t precision, wasi_timestamp_t *time) {
+#if defined(_WIN32)
+  (void)precision;
+  switch (clock_id) {
+  case WASI_CLOCK_REALTIME: {
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    ULARGE_INTEGER uli;
+    uli.LowPart = ft.dwLowDateTime;
+    uli.HighPart = ft.dwHighDateTime;
+    const uint64_t EPOCH_DIFF_100NS = 11644473600ULL * 10000000ULL; // 100ns ticks
+    uint64_t ns = (uli.QuadPart - EPOCH_DIFF_100NS) * 100ULL;
+    *time = (wasi_timestamp_t)ns;
+    return WASI_ESUCCESS;
+  }
+  case WASI_CLOCK_MONOTONIC: {
+    static LARGE_INTEGER freq = {0};
+    if (freq.QuadPart == 0) {
+      if (!QueryPerformanceFrequency(&freq)) {
+        return WASI_EIO;
+      }
+    }
+    LARGE_INTEGER ctr;
+    if (!QueryPerformanceCounter(&ctr)) {
+      return WASI_EIO;
+    }
+    uint64_t ns = (uint64_t)((ctr.QuadPart * 1000000000ULL) / (uint64_t)freq.QuadPart);
+    *time = (wasi_timestamp_t)ns;
+    return WASI_ESUCCESS;
+  }
+  case WASI_CLOCK_PROCESS_CPUTIME_ID:
+  case WASI_CLOCK_THREAD_CPUTIME_ID:
+  default:
+    return WASI_ENOSYS;
+  }
+#else
   struct timespec ts;
   int result;
 
@@ -422,9 +466,33 @@ static wasi_errno_t wasi_clock_time_get(wasm_exec_env_t exec_env, wasi_clockid_t
 
   *time = (wasi_timestamp_t)ts.tv_sec * 1000000000ULL + (wasi_timestamp_t)ts.tv_nsec;
   return WASI_ESUCCESS;
+#endif
 }
 
 static wasi_errno_t wasi_clock_res_get(wasm_exec_env_t exec_env, wasi_clockid_t clock_id, wasi_timestamp_t *resolution) {
+#if defined(_WIN32)
+  (void)exec_env;
+  switch (clock_id) {
+  case WASI_CLOCK_REALTIME:
+    // Approximate to 1ms on Windows
+    *resolution = 1000000ULL;
+    return WASI_ESUCCESS;
+  case WASI_CLOCK_MONOTONIC: {
+    LARGE_INTEGER freq;
+    if (!QueryPerformanceFrequency(&freq)) {
+      return WASI_EIO;
+    }
+    uint64_t ns_per_tick = (uint64_t)(1000000000ULL / (uint64_t)freq.QuadPart);
+    if (ns_per_tick == 0) ns_per_tick = 1;
+    *resolution = ns_per_tick;
+    return WASI_ESUCCESS;
+  }
+  case WASI_CLOCK_PROCESS_CPUTIME_ID:
+  case WASI_CLOCK_THREAD_CPUTIME_ID:
+  default:
+    return WASI_ENOSYS;
+  }
+#else
   struct timespec ts;
   int result;
 
@@ -451,6 +519,7 @@ static wasi_errno_t wasi_clock_res_get(wasm_exec_env_t exec_env, wasi_clockid_t 
 
   *resolution = (wasi_timestamp_t)ts.tv_sec * 1000000000ULL + (wasi_timestamp_t)ts.tv_nsec;
   return WASI_ESUCCESS;
+#endif
 }
 
 static wasi_errno_t wasi_environ_sizes_get(wasm_exec_env_t exec_env, uint32_t *environ_count_app, uint32_t *environ_buf_size_app) {
