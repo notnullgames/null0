@@ -105,12 +105,14 @@ extern cvector_vector_type(NativeSymbol) null0_native_symbols;
      static void __cdecl fn(void);                                    \
      __declspec(allocate(".CRT$XCU")) null0_init_func fn##_alloc = fn; \
      static void __cdecl fn(void)
+#  define EXPAND_PARAMS(...) __VA_OPT__(,) __VA_ARGS__
 #else
 #  define DEFINE_CONSTRUCTOR(fn) static void __attribute__((constructor)) fn(void)
+#  define EXPAND_PARAMS(...) , ##__VA_ARGS__
 #endif
 
 #define HOST_FUNCTION(ret_type, name, params, ...)                                       \
-  ret_type host_##name(wasm_exec_env_t exec_env params){                                  \
+  ret_type host_##name(wasm_exec_env_t exec_env EXPAND_PARAMS params){                   \
     __VA_ARGS__                                                                           \
   }                                                                                       \
   DEFINE_CONSTRUCTOR(_register_##name) {                                                  \
