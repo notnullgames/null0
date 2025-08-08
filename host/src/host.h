@@ -97,12 +97,24 @@ unsigned int add_font(pntr_font *font);
 
 extern cvector_vector_type(NativeSymbol) null0_native_symbols;
 
-#define EXPAND_PARAMS(...) , ##__VA_ARGS__
+// Portable constructor macro for registering native symbols at startup
+#if defined(_MSC_VER)
+#  pragma section(".CRT$XCU",read)
+   typedef void (__cdecl *null0_init_func)(void);
+#  define DEFINE_CONSTRUCTOR(fn)                                      \
+     static void __cdecl fn(void);                                    \
+     __declspec(allocate(".CRT$XCU")) null0_init_func fn##_alloc = fn; \
+     static void __cdecl fn(void)
+#else
+#  define DEFINE_CONSTRUCTOR(fn) static void __attribute__((constructor)) fn(void)
+#endif
+
 #define HOST_FUNCTION(ret_type, name, params, ...)                                       \
-  ret_type host_##name(wasm_exec_env_t exec_env EXPAND_PARAMS params){                   \
-    __VA_ARGS__};                                                                        \
-  static void __attribute__((constructor)) _register_##name() {                          \
-    cvector_push_back(null0_native_symbols, ((NativeSymbol){#name, host_##name, NULL})); \
+  ret_type host_##name(wasm_exec_env_t exec_env params){                                  \
+    __VA_ARGS__                                                                           \
+  }                                                                                       \
+  DEFINE_CONSTRUCTOR(_register_##name) {                                                  \
+    cvector_push_back(null0_native_symbols, ((NativeSymbol){#name, host_##name, NULL}));  \
   }
 #endif
 
