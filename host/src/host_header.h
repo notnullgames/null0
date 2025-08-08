@@ -12,6 +12,9 @@
   #ifndef NOGDI
     #define NOGDI
   #endif
+  #ifndef NOUSER
+    #define NOUSER
+  #endif
   #include <windows.h>   // for FILETIME, GetSystemTimeAsFileTime and base types
 #else
   #include <sys/time.h>
