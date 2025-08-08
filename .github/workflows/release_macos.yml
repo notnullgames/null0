@@ -26,7 +26,7 @@ jobs:
           lipo -create build_x86_64/host/null0 build_arm64/host/null0 -output build_universal/null0
           chmod +x build_universal/null0
           cd build_universal
-          zip ../../null0_macos.zip null0
+          zip ../null0_macos.zip null0
       - name: Upload asset to release
         run: gh release upload ${{ github.event.release.tag_name }} null0_macos.zip
         env:
