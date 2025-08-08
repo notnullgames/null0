@@ -9,23 +9,16 @@ permissions:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        include:
-          - os: macos-13
-            arch: x86_64
-          - os: macos-14
-            arch: arm64
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - name: Build Native macOS Host (${{ matrix.arch }})
+      - name: Build Native macOS Host (universal x86_64+arm64)
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
           cmake --build build --target host
           cd build/host
-          zip ../../null0_macos_${{ matrix.arch }}.zip null0
+          zip ../../null0_macos.zip null0
       - name: Upload asset to release
-        run: gh release upload ${{ github.event.release.tag_name }} null0_macos_${{ matrix.arch }}.zip
+        run: gh release upload ${{ github.event.release.tag_name }} null0_macos.zip
         env:
           GH_TOKEN: ${{ github.token }}
