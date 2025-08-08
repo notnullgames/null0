@@ -8,17 +8,61 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            container: false
+            artifact: null0_linux.zip
+          - arch: arm64
+            container: true
+            platform: linux/arm64
+            image: arm64v8/ubuntu:24.04
+            artifact: null0_linux_arm64.zip
+          - arch: armhf
+            container: true
+            platform: linux/arm/v7
+            image: arm32v7/ubuntu:24.04
+            artifact: null0_linux_armhf.zip
     steps:
       - uses: actions/checkout@v4
-      - name: Build Native Linux Host
+
+      - name: Set up QEMU
+        if: matrix.container == true
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/arm64,linux/arm
+
+      - name: Build Native Linux Host (x86_64)
+        if: matrix.container == false
         run: |
           sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target host
           cd build/host
-          zip ../../null0_linux.zip null0
-      - run: gh release upload ${{github.event.release.tag_name}} null0_linux.zip
+          zip ../../${{ matrix.artifact }} null0
+
+      - name: Build in ARM container (${{ matrix.arch }})
+        if: matrix.container == true
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ matrix.image }}
+          options: |
+            --platform=${{ matrix.platform }}
+            -v ${{ github.workspace }}:/work
+            -w /work
+          run: |
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cmake build-essential ninja-build zip \
+              libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev
+            cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+            cmake --build build --target host
+            cd build/host
+            zip ../../${{ matrix.artifact }} null0
+
+      - name: Upload asset to release
+        run: gh release upload ${{ github.event.release.tag_name }} ${{ matrix.artifact }}
         env:
           GH_TOKEN: ${{ github.token }}
