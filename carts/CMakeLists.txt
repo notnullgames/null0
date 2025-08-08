@@ -105,12 +105,10 @@ BUILD_CART_C("colorbars")
 BUILD_CART_C("example")
 BUILD_CART_C("gradient")
 BUILD_CART_C("input")
-BUILD_CART_C("issue6")
 BUILD_CART_C("wasi_demo")
 
 BUILD_CART_JS("demo")
 BUILD_CART_JS("input")
-BUILD_CART_JS("issue6")
 
 BUILD_CART_NELUA("basic")
 BUILD_CART_NELUA("colorbars")
