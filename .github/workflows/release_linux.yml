@@ -15,7 +15,7 @@ jobs:
           - arch: x86_64
             os: ubuntu-latest
             container: false
-            artifacts: [null0_linux.zip]
+            artifacts: [null0_linux_x86-64.zip]
           - arch: arm64
             os: ubuntu-24.04-arm64
             container: false
