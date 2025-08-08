@@ -3,8 +3,11 @@
 
 #include "host.h"
 #ifdef _WIN32
-  #define WIN32_LEAN_AND_MEAN
-  #include <windows.h>
+  #ifndef NOMINMAX
+    #define NOMINMAX
+  #endif
+  #include <minwinbase.h>   // FILETIME
+  #include <sysinfoapi.h>   // GetSystemTimeAsFileTime
 #else
   #include <sys/time.h>
 #endif
