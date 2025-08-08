@@ -50,9 +50,8 @@ jobs:
         if: matrix.container == false && matrix.arch == 'arm64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ca-certificates curl git pkg-config cmake build-essential zip \
+          sudo apt-get install -y --no-install-recommends curl git pkg-config cmake build-essential zip \
             libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev clang
-          sudo update-ca-certificates || true
           cmake -B build -DCMAKE_BUILD_TYPE=Release \
             -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1 \
             -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \

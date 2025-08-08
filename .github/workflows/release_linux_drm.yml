@@ -34,9 +34,8 @@ jobs:
         if: matrix.arch == 'arm64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ca-certificates curl git pkg-config cmake build-essential ninja-build zip \
+          sudo apt-get install -y --no-install-recommends curl git pkg-config cmake build-essential ninja-build zip \
             libdrm-dev libgbm-dev libegl1-mesa-dev libgles2-mesa-dev libasound2-dev libudev-dev libinput-dev libxkbcommon-dev clang
-          sudo update-ca-certificates || true
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DPLATFORM=DRM -DGRAPHICS=GRAPHICS_API_OPENGL_ES2 \
             -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1 \
