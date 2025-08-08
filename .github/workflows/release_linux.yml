@@ -44,7 +44,7 @@ jobs:
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target host
           cd build/host
-          zip ../../null0_linux_x86-64.zip
+          zip ../../null0_linux_x86-64.zip null0
 
       - name: Build Native Linux Hosts (arm64) - X11/Wayland and DRM
         if: matrix.container == false && matrix.arch == 'arm64'
