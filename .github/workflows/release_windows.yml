@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-all
+  group: release-windows
   cancel-in-progress: true
 
 jobs:

@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-all
+  group: release-linux
   cancel-in-progress: true
 
 jobs:
