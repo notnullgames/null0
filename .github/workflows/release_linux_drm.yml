@@ -42,13 +42,16 @@ jobs:
             export DEBIAN_FRONTEND=noninteractive
             apt-get update
             apt-get install -y --no-install-recommends \
-              ca-certificates curl git pkg-config cmake ninja-build build-essential zip \
+              ca-certificates curl git pkg-config cmake clang clang-tools ninja-build build-essential zip \
               libdrm-dev libgbm-dev libegl1-mesa-dev libgles2-mesa-dev \
               libasound2-dev libudev-dev libinput-dev libxkbcommon-dev
             update-ca-certificates || true
             cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
               -DPLATFORM=DRM -DGRAPHICS=GRAPHICS_API_OPENGL_ES2 \
-              -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
+              -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1 \
+              -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+              -DCMAKE_C_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument" \
+              -DCMAKE_CXX_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument"
             cmake --build build --target host
             cd build/host
             zip ../../${{ matrix.artifact }} null0

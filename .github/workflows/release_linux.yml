@@ -57,10 +57,13 @@ jobs:
           run: |
             apt-get update
             DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              ca-certificates curl git pkg-config cmake build-essential ninja-build zip \
+              ca-certificates curl git pkg-config cmake clang clang-tools build-essential ninja-build zip \
               libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev
             update-ca-certificates || true
-            cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+            cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+              -DCMAKE_C_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument" \
+              -DCMAKE_CXX_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument"
             cmake --build build --target host
             cd build/host
             zip ../../${{ matrix.artifact }} null0
