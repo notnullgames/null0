@@ -2,7 +2,7 @@
 // this will only be included in host.c
 
 #include "host.h"
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__MINGW64__)
   #ifndef NOMINMAX
     #define NOMINMAX
   #endif
@@ -286,7 +286,7 @@ void host_event(pntr_app_event *event) {
 // called from carts: these are lil wrappers/helpers to put things in right shape
 // return unix-time, in ms
 uint64_t null0_current_time() {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__MINGW64__)
   FILETIME ft;
   GetSystemTimeAsFileTime(&ft);
   ULARGE_INTEGER uli;

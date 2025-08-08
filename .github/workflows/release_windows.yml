@@ -7,19 +7,28 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-all
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up MSVC environment
-        uses: ilammy/msvc-dev-cmd@v1
+      - name: Install LLVM (Clang/LLD)
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: 17
       - name: Set up Ninja
         uses: seanmiddleditch/gha-setup-ninja@v3
-      - name: Build Native Windows Host (x86_64)
+      - name: Build Native Windows Host (x86_64) with Clang
         shell: pwsh
+        env:
+          CC: clang
+          CXX: clang++
         run: |
-          cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
           cmake --build build --target host
           Compress-Archive -Path build/host/null0.exe -DestinationPath null0_windows.zip
       - name: Upload asset to release
