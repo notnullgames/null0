@@ -595,26 +595,38 @@ static void wasi_proc_exit(wasm_exec_env_t exec_env, wasi_exitcode_t rval) {
 
 static wasi_errno_t wasi_random_get(wasm_exec_env_t exec_env, void *buf, uint32_t buf_len) {
   wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
-  char *native_buf = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)buf);
+  unsigned char *native_buf = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)buf);
 
   if (!native_buf) {
     return WASI_EFAULT;
   }
 
-  // Use /dev/urandom for random data
+#if defined(_WIN32)
+  // Use rand_s from the MSVCRT which is backed by BCrypt
+  uint32_t remaining = buf_len;
+  unsigned int r = 0;
+  while (remaining > 0) {
+    if (rand_s(&r) != 0) {
+      return WASI_EIO;
+    }
+    uint32_t chunk = remaining < sizeof(r) ? remaining : (uint32_t)sizeof(r);
+    memcpy(native_buf + (buf_len - remaining), &r, chunk);
+    remaining -= chunk;
+  }
+  return WASI_ESUCCESS;
+#else
+  // Use /dev/urandom for random data on POSIX
   int fd = open("/dev/urandom", O_RDONLY);
   if (fd < 0) {
     return WASI_EIO;
   }
-
   ssize_t bytes_read = read(fd, native_buf, buf_len);
   close(fd);
-
   if (bytes_read < 0 || (uint32_t)bytes_read != buf_len) {
     return WASI_EIO;
   }
-
   return WASI_ESUCCESS;
+#endif
 }
 
 // Filesystem functions using PhysFS
