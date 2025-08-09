@@ -28,9 +28,14 @@ jobs:
           CC: clang
           CXX: clang++
         run: |
-          $commonDefs = "-DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNOGDI"
+          $defs = @(
+            "-DWIN32_LEAN_AND_MEAN",
+            "-DNOMINMAX",
+            "-DNOGDI",
+            "-DCloseWindow=CloseWindowWin32"
+          ) -join ' '
           cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ `
-            -DCMAKE_C_FLAGS="$commonDefs" -DCMAKE_CXX_FLAGS="$commonDefs"
+            -DCMAKE_C_FLAGS="$defs" -DCMAKE_CXX_FLAGS="$defs"
           cmake --build build --target host
           Compress-Archive -Path build/host/null0.exe -DestinationPath null0_windows.zip
       - name: Upload asset to release
