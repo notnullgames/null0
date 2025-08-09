@@ -28,7 +28,7 @@ jobs:
           CC: clang
           CXX: clang++
         run: |
-          $commonDefs = "-DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNOGDI -DNOUSER"
+          $commonDefs = "-DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNOGDI"
           cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ `
             -DCMAKE_C_FLAGS="$commonDefs" -DCMAKE_CXX_FLAGS="$commonDefs"
           cmake --build build --target host
