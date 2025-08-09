@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(_WIN32) && !defined(_CRT_RAND_S)
+#define _CRT_RAND_S 1
+#endif
+
 #include "wasm_export.h"
 #include "fs.h"
 #include <fcntl.h>
