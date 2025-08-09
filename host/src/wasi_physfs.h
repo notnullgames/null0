@@ -606,18 +606,24 @@ static wasi_errno_t wasi_random_get(wasm_exec_env_t exec_env, void *buf, uint32_
   }
 
 #if defined(_WIN32)
-  // Use rand_s from the MSVCRT which is backed by BCrypt
-  uint32_t remaining = buf_len;
-  unsigned int r = 0;
-  while (remaining > 0) {
-    if (rand_s(&r) != 0) {
-      return WASI_EIO;
+  // Prefer BCryptGenRandom via dynamic load to avoid Windows headers
+  typedef unsigned long (__stdcall *BCryptGenRandomFn)(void*, unsigned char*, unsigned long, unsigned long);
+  __declspec(dllimport) void* __stdcall LoadLibraryA(const char*);
+  __declspec(dllimport) void* __stdcall GetProcAddress(void*, const char*);
+  __declspec(dllimport) int   __stdcall FreeLibrary(void*);
+
+  void* hBcrypt = LoadLibraryA("bcrypt.dll");
+  if (hBcrypt) {
+    BCryptGenRandomFn pBCryptGenRandom = (BCryptGenRandomFn)GetProcAddress(hBcrypt, "BCryptGenRandom");
+    if (pBCryptGenRandom) {
+      // 0x00000002 == BCRYPT_USE_SYSTEM_PREFERRED_RNG
+      unsigned long status = pBCryptGenRandom(NULL, native_buf, buf_len, 0x00000002UL);
+      FreeLibrary(hBcrypt);
+      return status == 0 ? WASI_ESUCCESS : WASI_EIO;
     }
-    uint32_t chunk = remaining < sizeof(r) ? remaining : (uint32_t)sizeof(r);
-    memcpy(native_buf + (buf_len - remaining), &r, chunk);
-    remaining -= chunk;
+    FreeLibrary(hBcrypt);
   }
-  return WASI_ESUCCESS;
+  return WASI_EIO;
 #else
   // Use /dev/urandom for random data on POSIX
   int fd = open("/dev/urandom", O_RDONLY);
