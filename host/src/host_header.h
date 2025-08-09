@@ -2,22 +2,11 @@
 // this will only be included in host.c
 
 #include "host.h"
-#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__MINGW64__)
-  #ifndef NOMINMAX
-    #define NOMINMAX
-  #endif
-  #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-  #endif
-  #ifndef NOGDI
-    #define NOGDI
-  #endif
-  #ifndef NOUSER
-    #define NOUSER
-  #endif
-  #include <windows.h>   // for FILETIME, GetSystemTimeAsFileTime and base types
+#include <time.h>
+#ifdef _WIN32
+#  include <sys/timeb.h>
 #else
-  #include <sys/time.h>
+#  include <sys/time.h>
 #endif
 #include "exists_next_to_executable.h"
 
@@ -286,20 +275,18 @@ void host_event(pntr_app_event *event) {
 // called from carts: these are lil wrappers/helpers to put things in right shape
 // return unix-time, in ms
 uint64_t null0_current_time() {
-#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__MINGW64__)
-  FILETIME ft;
-  GetSystemTimeAsFileTime(&ft);
-  ULARGE_INTEGER uli;
-  uli.LowPart = ft.dwLowDateTime;
-  uli.HighPart = ft.dwHighDateTime;
-  // Convert from 100-ns intervals since 1601-01-01 to ms since 1970-01-01
-  const uint64_t EPOCH_DIFF_MS = 11644473600000ULL;
-  return (uli.QuadPart / 10000ULL) - EPOCH_DIFF_MS;
+#ifdef _WIN32
+  struct _timeb tb;
+  _ftime64_s(&tb);
+  return (uint64_t)tb.time * 1000ULL + (uint64_t)tb.millitm;
 #else
+  struct timespec ts;
+  if (timespec_get(&ts, TIME_UTC) == TIME_UTC) {
+    return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)(ts.tv_nsec / 1000000ULL);
+  }
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  uint64_t milliseconds = (uint64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
-  return milliseconds;
+  return (uint64_t)tv.tv_sec * 1000ULL + (uint64_t)(tv.tv_usec / 1000ULL);
 #endif
 }
 
