@@ -1,8 +1,7 @@
-name: Release Carts
+name: Carts Test Build
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -32,6 +31,3 @@ jobs:
         run: cmake -B build_cart -DCMAKE_BUILD_TYPE=Release carts/ -DCMAKE_TOOLCHAIN_FILE=$WASI_SDK_PATH/share/cmake/wasi-sdk.cmake
       - name: Build Carts
         run: cmake --build build_cart
-      - run: gh release upload ${{github.event.release.tag_name}} build_cart/*.null0
-        env:
-          GH_TOKEN: ${{ github.token }}
