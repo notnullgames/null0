@@ -17,14 +17,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
+      - name: Setup Clang
+        run: |
+          # Install LLVM/Clang
+          choco install llvm --version=18.1.8 -y
+          # Add to PATH
+          echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
 
       - name: Build Native Windows Host (x64)
         run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
+          # Use Clang as the compiler
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
           cmake --build build --target host
 
           # Create zip file
