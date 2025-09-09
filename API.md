@@ -402,6 +402,18 @@ void random_seed_set(u64 seed)
 ### types
 ---
 
+### tts
+
+#### tts_sound
+
+Speak some text and return a sound. Set things to 0 for defaults.
+
+```c
+Sound tts_sound(string text, bool phonetic, i32 pitch, i32 speed, i32 throat, i32 mouth, bool sing)
+```
+
+---
+
 ### sound
 
 #### load_sound
