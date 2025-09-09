@@ -24,8 +24,8 @@ jobs:
 
       - name: Build Native Windows Host (x64)
         run: |
-          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
-          cmake --build build --config Release --target host
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
+          cmake --build build --target host
 
           # Create zip file
           cd build/host
