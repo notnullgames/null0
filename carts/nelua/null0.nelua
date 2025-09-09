@@ -240,12 +240,6 @@ global function random_seed_set(seed: uint64): void <cimport,nodecl> end
 -- TYPES
 
 
--- TTS
-
--- Speak some text and return a sound. Set things to 0 for defaults.
-global function tts_sound(text: cstring, phonetic: boolean, pitch: int32, speed: int32, throat: int32, mouth: int32, sing: boolean): uint32 <cimport,nodecl> end
-
-
 -- SOUND
 
 -- Load a sound from a file in cart.
@@ -259,6 +253,9 @@ global function stop_sound(sound: uint32): void <cimport,nodecl> end
 
 -- Unload a sound.
 global function unload_sound(sound: uint32): void <cimport,nodecl> end
+
+-- Speak some text and return a sound. Set things to 0 for defaults.
+global function tts_sound(text: cstring, phonetic: boolean, pitch: int32, speed: int32, throat: int32, mouth: int32, sing: boolean): uint32 <cimport,nodecl> end
 
 
 -- INPUT

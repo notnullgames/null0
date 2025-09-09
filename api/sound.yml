@@ -22,3 +22,15 @@ unload_sound:
     sound: Sound
   returns: void
   description: Unload a sound.
+
+tts_sound:
+  args:
+    text: string
+    phonetic: bool
+    pitch: i32
+    speed: i32
+    throat: i32
+    mouth: i32
+    sing: bool
+  returns: Sound
+  description: Speak some text and return a sound. Set things to 0 for defaults.

@@ -1,0 +1,7 @@
+{
+    "name": "mygame",
+    "version": "0.0.0",
+    "scripts": {
+        "start": "npx -y live-server"
+    }
+}

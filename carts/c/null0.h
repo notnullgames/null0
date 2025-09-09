@@ -312,13 +312,6 @@ extern void random_seed_set(u64 seed);
 // TYPES
 
 
-// TTS
-
-// Speak some text and return a sound. Set things to 0 for defaults.
-NULL0_IMPORT("tts_sound")
-extern u32 tts_sound(char* text, bool phonetic, i32 pitch, i32 speed, i32 throat, i32 mouth, bool sing);
-
-
 // SOUND
 
 // Load a sound from a file in cart.
@@ -336,6 +329,10 @@ extern void stop_sound(u32 sound);
 // Unload a sound.
 NULL0_IMPORT("unload_sound")
 extern void unload_sound(u32 sound);
+
+// Speak some text and return a sound. Set things to 0 for defaults.
+NULL0_IMPORT("tts_sound")
+extern u32 tts_sound(char* text, bool phonetic, i32 pitch, i32 speed, i32 throat, i32 mouth, bool sing);
 
 
 // INPUT
