@@ -27,6 +27,8 @@ jobs:
           mv build_web/host/null0.* webroot/wbuild/host/
           cd webroot
           mv mygame.html index.html
+          wget https://github.com/notnullgames/null0/releases/download/v0.0.1/colorbars_c.null0 -O mygame.null0
+          cp ../package-web-release.json package.json
           zip -r ../null0_webroot.zip .
       - run: gh release upload ${{github.event.release.tag_name}} null0_webroot.zip
         env:
