@@ -35,6 +35,17 @@ HOST_FUNCTION(void, random_seed_set, (uint64_t seed), {
 // TYPES
 
 
+// TTS
+
+// Speak some text and return a sound. Set things to 0 for defaults.
+HOST_FUNCTION(uint32_t, tts_sound, (uint32_t text, bool phonetic, int32_t pitch, int32_t speed, int32_t throat, int32_t mouth, bool sing), {
+ char* textHost = copy_string_from_cart(text);
+ uint32_t retHost = add_sound(null0_tts_sound(textHost, phonetic, pitch, speed, throat, mouth, sing));
+ free(textHost);
+ return retHost;
+})
+
+
 // SOUND
 
 // Load a sound from a file in cart.

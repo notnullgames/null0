@@ -9,6 +9,9 @@
 #  include <sys/time.h>
 #endif
 #include "exists_next_to_executable.h"
+#include "sam.h"
+#include "reciter.h"
+#include <ctype.h>
 
 static pntr_app *null0_app;
 
@@ -44,6 +47,118 @@ uint32_t add_sound(pntr_sound *sound) {
   uint32_t id = cvector_size(sounds);
   cvector_push_back(sounds, sound);
   return id;
+}
+
+// SAM TTS function - generates WAV data from text
+// sets byteLength and returns pointer to WAV bytes
+char* sam_tts_sound(char* text, bool phonetic, int pitch, int speed, int throat, int mouth, bool sing, unsigned int* byteLength) {
+    if (text == NULL || byteLength == NULL) return NULL;
+    
+    // Prepare input string (SAM expects uppercase)
+    char input[512];
+    int len = strlen(text);
+    if (len >= 500) len = 499; // Leave room for terminator and bracket
+    
+    int i;
+    for (i = 0; i < len; i++) {
+        input[i] = toupper((int)text[i]);
+    }
+    input[i] = '\0';
+    
+    // Set SAM parameters
+    SetPitch((unsigned char)pitch);
+    SetSpeed((unsigned char)speed); 
+    SetMouth((unsigned char)mouth);
+    SetThroat((unsigned char)throat);
+    
+    if (sing) {
+        EnableSingmode();
+    }
+    
+    // Handle phonetic vs text input
+    if (!phonetic) {
+        strcat(input, "[");
+        if (!TextToPhonemes((unsigned char*)input)) {
+            return NULL;
+        }
+    } else {
+        strcat(input, "\x9b");
+    }
+    
+    // Generate speech
+    SetInput(input);
+    if (!SAMMain()) {
+        return NULL;
+    }
+    
+    // Get the raw audio buffer
+    char* rawBuffer = GetBuffer();
+    int rawLength = GetBufferLength() / 50; // SAM divides by 50 for WAV output
+    
+    if (rawBuffer == NULL || rawLength <= 0) {
+        return NULL;
+    }
+    
+    // Calculate WAV file size
+    unsigned int wavSize = 44 + rawLength; // WAV header (44 bytes) + data
+    char* wavData = (char*)malloc(wavSize);
+    if (wavData == NULL) {
+        return NULL;
+    }
+    
+    // Build WAV header
+    char* ptr = wavData;
+    
+    // RIFF header
+    memcpy(ptr, "RIFF", 4); ptr += 4;
+    unsigned int filesize = rawLength + 36;
+    memcpy(ptr, &filesize, 4); ptr += 4;
+    memcpy(ptr, "WAVE", 4); ptr += 4;
+    
+    // Format chunk
+    memcpy(ptr, "fmt ", 4); ptr += 4;
+    unsigned int fmtlength = 16;
+    memcpy(ptr, &fmtlength, 4); ptr += 4;
+    unsigned short format = 1; // PCM
+    memcpy(ptr, &format, 2); ptr += 2;
+    unsigned short channels = 1;
+    memcpy(ptr, &channels, 2); ptr += 2;
+    unsigned int samplerate = 22050;
+    memcpy(ptr, &samplerate, 4); ptr += 4;
+    memcpy(ptr, &samplerate, 4); ptr += 4; // bytes/second
+    unsigned short blockalign = 1;
+    memcpy(ptr, &blockalign, 2); ptr += 2;
+    unsigned short bitspersample = 8;
+    memcpy(ptr, &bitspersample, 2); ptr += 2;
+    
+    // Data chunk
+    memcpy(ptr, "data", 4); ptr += 4;
+    memcpy(ptr, &rawLength, 4); ptr += 4;
+    memcpy(ptr, rawBuffer, rawLength);
+    
+    *byteLength = wavSize;
+    return wavData;
+}
+
+// wrapper around SAM TTS function to return a sound int
+pntr_sound* null0_tts_sound(char* text, bool phonetic, int pitch, int speed, int throat, int mouth, bool sing) {
+  if (pitch == 0) {
+    pitch = 64;
+  }
+  if (speed == 0) {
+    speed = 72;
+  }
+  if (throat == 0) {
+    throat = 128;
+  }
+  if (mouth == 0) {
+    mouth = 128;
+  }
+  unsigned int byteLength = 0;
+  char* wavData = sam_tts_sound(text, phonetic, pitch, speed, throat, mouth, sing, &byteLength);
+  pntr_sound* sound = pntr_load_sound_from_memory(PNTR_APP_SOUND_TYPE_WAV, (unsigned char*)wavData, byteLength);
+  // pntr_unload_memory(wavData);
+  return sound;
 }
 
 // copy a string from cart to host

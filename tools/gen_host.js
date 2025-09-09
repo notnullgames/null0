@@ -133,7 +133,8 @@ const functions = {
   color_invert: 'pntr_color_invert(',
   color_alpha_blend: 'pntr_color_alpha_blend(',
   color_contrast: 'pntr_color_contrast(',
-  color_bilinear_interpolate: 'pntr_color_bilinear_interpolate('
+  color_bilinear_interpolate: 'pntr_color_bilinear_interpolate(',
+  tts_sound: 'null0_tts_sound('
 }
 
 // map args to host-types
