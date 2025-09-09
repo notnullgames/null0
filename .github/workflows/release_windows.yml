@@ -13,16 +13,7 @@ concurrency:
 
 jobs:
   build-windows:
-    strategy:
-      matrix:
-        include:
-          - arch: x64
-            os: windows-latest
-            artifacts: [null0_windows_x64.zip]
-          - arch: x86
-            os: windows-latest
-            artifacts: [null0_windows_x86.zip]
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
