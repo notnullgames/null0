@@ -9,8 +9,29 @@ npm run build:native
 # build example carts
 npm run build:carts
 
-# run local watching web-server with webhost
+# run local watching web-server with web host
 npm start
+
+# build web, native, and carts in parallel
+npm run build
+
+# delete all built files
+npm run clean
+
+# generate shared header for web/native host
+npm run gen:host
+
+# generate cart-header for C carts
+npm run gen:cart_c
+
+# generate cart-header for javascript carts
+npm run gen:cart_js
+
+# generate cart-header for nelua carts
+npm run gen:cart_nelua
+
+# generate API.md
+npm run gen:api_docs
 ```
 
 ## distribution

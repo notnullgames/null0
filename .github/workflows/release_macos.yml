@@ -1,0 +1,37 @@
+name: Release macOS
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build arm64
+        run: |
+          cmake -B build_arm64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
+          cmake --build build_arm64 --target host
+      - name: Build x86_64
+        run: |
+          cmake -B build_x86_64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
+          cmake --build build_x86_64 --target host
+      - name: Create universal binary
+        run: |
+          mkdir -p build_universal
+          lipo -create build_x86_64/host/null0 build_arm64/host/null0 -output build_universal/null0
+          chmod +x build_universal/null0
+          cd build_universal
+          zip ../null0_macos.zip null0
+      - name: Upload asset to release
+        run: gh release upload ${{ github.event.release.tag_name }} null0_macos.zip
+        env:
+          GH_TOKEN: ${{ github.token }}

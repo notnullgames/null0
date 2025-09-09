@@ -25,8 +25,11 @@ endif()
 # enable colors for ninja
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
-# everyone wants to make an "uninstall" target
-set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
+# Prevent dependencies from creating uninstall targets (VS generator doesn't support duplicates)
+# This is cleaner than ALLOW_DUPLICATE_CUSTOM_TARGETS which doesn't work with VS generators
+set(PHYSFS_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
+set(RAYLIB_DISABLE_UNINSTALL ON CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
 include(FetchContent)
 # set(FETCHCONTENT_QUIET OFF)

@@ -2,14 +2,22 @@
 
 #pragma once
 
-#include <libgen.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+  // Windows compatibility: provide POSIX-like macros when missing
+  #ifndef S_ISDIR
+    #define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+  #endif
+#else
+  #include <libgen.h>
+  #include <unistd.h>
+#endif
 
 #include "physfs.h"
 

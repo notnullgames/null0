@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(_WIN32) && !defined(_CRT_RAND_S)
+#define _CRT_RAND_S 1
+#endif
+
 #include "wasm_export.h"
 #include "fs.h"
 #include <fcntl.h>
@@ -8,9 +12,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if !defined(_WIN32)
 #include <sys/time.h>
+#endif
 #include <time.h>
+#if defined(_WIN32)
+#  include <sys/timeb.h>
+   __declspec(dllimport) void* __stdcall LoadLibraryA(const char*);
+   __declspec(dllimport) void* __stdcall GetProcAddress(void*, const char*);
+   __declspec(dllimport) int   __stdcall FreeLibrary(void*);
+#endif
+#if !defined(_WIN32)
 #include <unistd.h>
+#endif
 #include <errno.h>
 
 // WASI type definitions (must come first)
@@ -392,6 +406,18 @@ static wasi_errno_t wasi_args_get(wasm_exec_env_t exec_env, uint32_t *argv_offse
 }
 
 static wasi_errno_t wasi_clock_time_get(wasm_exec_env_t exec_env, wasi_clockid_t clock_id, wasi_timestamp_t precision, wasi_timestamp_t *time) {
+#if defined(_WIN32)
+  (void)precision;
+  if (clock_id == WASI_CLOCK_REALTIME) {
+    struct _timeb tb = {0};
+    _ftime64_s(&tb);
+    uint64_t ns = (uint64_t)tb.time * 1000000000ULL + (uint64_t)tb.millitm * 1000000ULL;
+    *time = (wasi_timestamp_t)ns;
+    return WASI_ESUCCESS;
+  } else {
+    return WASI_ENOSYS;
+  }
+#else
   struct timespec ts;
   int result;
 
@@ -418,9 +444,19 @@ static wasi_errno_t wasi_clock_time_get(wasm_exec_env_t exec_env, wasi_clockid_t
 
   *time = (wasi_timestamp_t)ts.tv_sec * 1000000000ULL + (wasi_timestamp_t)ts.tv_nsec;
   return WASI_ESUCCESS;
+#endif
 }
 
 static wasi_errno_t wasi_clock_res_get(wasm_exec_env_t exec_env, wasi_clockid_t clock_id, wasi_timestamp_t *resolution) {
+#if defined(_WIN32)
+  (void)exec_env;
+  if (clock_id == WASI_CLOCK_REALTIME) {
+    *resolution = 1000000ULL; // ~1ms resolution
+    return WASI_ESUCCESS;
+  } else {
+    return WASI_ENOSYS;
+  }
+#else
   struct timespec ts;
   int result;
 
@@ -447,6 +483,7 @@ static wasi_errno_t wasi_clock_res_get(wasm_exec_env_t exec_env, wasi_clockid_t 
 
   *resolution = (wasi_timestamp_t)ts.tv_sec * 1000000000ULL + (wasi_timestamp_t)ts.tv_nsec;
   return WASI_ESUCCESS;
+#endif
 }
 
 static wasi_errno_t wasi_environ_sizes_get(wasm_exec_env_t exec_env, uint32_t *environ_count_app, uint32_t *environ_buf_size_app) {
@@ -522,26 +559,44 @@ static void wasi_proc_exit(wasm_exec_env_t exec_env, wasi_exitcode_t rval) {
 
 static wasi_errno_t wasi_random_get(wasm_exec_env_t exec_env, void *buf, uint32_t buf_len) {
   wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
-  char *native_buf = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)buf);
+  unsigned char *native_buf = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)buf);
 
   if (!native_buf) {
     return WASI_EFAULT;
   }
 
-  // Use /dev/urandom for random data
+#if defined(_WIN32)
+  // Prefer BCryptGenRandom via dynamic load to avoid Windows headers
+  typedef unsigned long (__stdcall *BCryptGenRandomFn)(void*, unsigned char*, unsigned long, unsigned long);
+  __declspec(dllimport) void* __stdcall LoadLibraryA(const char*);
+  __declspec(dllimport) void* __stdcall GetProcAddress(void*, const char*);
+  __declspec(dllimport) int   __stdcall FreeLibrary(void*);
+
+  void* hBcrypt = LoadLibraryA("bcrypt.dll");
+  if (hBcrypt) {
+    BCryptGenRandomFn pBCryptGenRandom = (BCryptGenRandomFn)GetProcAddress(hBcrypt, "BCryptGenRandom");
+    if (pBCryptGenRandom) {
+      // 0x00000002 == BCRYPT_USE_SYSTEM_PREFERRED_RNG
+      unsigned long status = pBCryptGenRandom(NULL, native_buf, buf_len, 0x00000002UL);
+      FreeLibrary(hBcrypt);
+      return status == 0 ? WASI_ESUCCESS : WASI_EIO;
+    }
+    FreeLibrary(hBcrypt);
+  }
+  return WASI_EIO;
+#else
+  // Use /dev/urandom for random data on POSIX
   int fd = open("/dev/urandom", O_RDONLY);
   if (fd < 0) {
     return WASI_EIO;
   }
-
   ssize_t bytes_read = read(fd, native_buf, buf_len);
   close(fd);
-
   if (bytes_read < 0 || (uint32_t)bytes_read != buf_len) {
     return WASI_EIO;
   }
-
   return WASI_ESUCCESS;
+#endif
 }
 
 // Filesystem functions using PhysFS

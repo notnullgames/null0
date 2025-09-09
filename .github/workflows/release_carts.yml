@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,6 +20,14 @@ jobs:
         uses: konsumer/install-wasi-sdk@v1
         with:
           version: '25'
+      - name: Install Nelua
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential git gcc gdb
+          git clone https://github.com/edubart/nelua-lang.git
+          cd nelua-lang
+          make
+          sudo make install
       - name: Configure Carts
         run: cmake -B build_cart -DCMAKE_BUILD_TYPE=Release carts/ -DCMAKE_TOOLCHAIN_FILE=$WASI_SDK_PATH/share/cmake/wasi-sdk.cmake
       - name: Build Carts

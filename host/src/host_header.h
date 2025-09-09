@@ -2,7 +2,12 @@
 // this will only be included in host.c
 
 #include "host.h"
-#include <sys/time.h>
+#include <time.h>
+#ifdef _WIN32
+#  include <sys/timeb.h>
+#else
+#  include <sys/time.h>
+#endif
 #include "exists_next_to_executable.h"
 
 static pntr_app *null0_app;
@@ -270,10 +275,19 @@ void host_event(pntr_app_event *event) {
 // called from carts: these are lil wrappers/helpers to put things in right shape
 // return unix-time, in ms
 uint64_t null0_current_time() {
+#ifdef _WIN32
+  struct _timeb tb;
+  _ftime64_s(&tb);
+  return (uint64_t)tb.time * 1000ULL + (uint64_t)tb.millitm;
+#else
+  struct timespec ts;
+  if (timespec_get(&ts, TIME_UTC) == TIME_UTC) {
+    return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)(ts.tv_nsec / 1000000ULL);
+  }
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  uint64_t milliseconds = (uint64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
-  return milliseconds;
+  return (uint64_t)tv.tv_sec * 1000ULL + (uint64_t)(tv.tv_usec / 1000ULL);
+#endif
 }
 
 pntr_vector null0_mouse_position() {

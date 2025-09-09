@@ -4,8 +4,15 @@
 #include <sys/stat.h>
 
 #ifdef _WIN32
-    #include <windows.h>
+    // Avoid including <windows.h> to prevent symbol clashes with raylib (CloseWindow, ShowCursor, etc.)
     #include <io.h>
+    typedef unsigned long DWORD;
+    typedef void* HMODULE;
+    typedef char* LPSTR;
+    #ifndef MAX_PATH
+      #define MAX_PATH 260
+    #endif
+    __declspec(dllimport) DWORD __stdcall GetModuleFileNameA(HMODULE hModule, LPSTR lpFilename, DWORD nSize);
     #define PATH_SEPARATOR '\\'
     #define access _access
     #define F_OK 0
