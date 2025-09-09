@@ -17,14 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Clang
-        run: |
-          # Install LLVM/Clang
-          choco install llvm --version=18.1.8 -y
-          # Add to PATH
-          echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-        shell: pwsh
-
       - name: Build Native Windows Host (x64)
         run: |
           # Use Clang as the compiler
