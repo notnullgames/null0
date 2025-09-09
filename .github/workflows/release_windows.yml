@@ -46,8 +46,8 @@ jobs:
           cmake --build build --config Release --target host
 
           # Create zip file
-          cd build/host/Release
-          Compress-Archive -Path null0.exe -DestinationPath ../../../null0_windows_${{ matrix.arch }}.zip
+          cd build/host
+          Compress-Archive -Path null0.exe -DestinationPath ../../null0_windows_${{ matrix.arch }}.zip
         shell: pwsh
 
       - name: Upload assets to release
