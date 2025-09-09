@@ -20,29 +20,20 @@ jobs:
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: ${{ matrix.arch }}
+          arch: x64
 
-      - name: Build Native Windows Host (${{ matrix.arch }})
+      - name: Build Native Windows Host (x64)
         run: |
-          # Configure CMake for Windows with specific architecture
-          if ("${{ matrix.arch }}" -eq "x64") {
-            $platform = "x64"
-            $cmake_arch = "x64"
-          } else {
-            $platform = "Win32"
-            $cmake_arch = "Win32"
-          }
-
-          cmake -B build -G "Visual Studio 17 2022" -A $cmake_arch -DCMAKE_BUILD_TYPE=Release -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
+          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
           cmake --build build --config Release --target host
 
           # Create zip file
           cd build/host
-          Compress-Archive -Path null0.exe -DestinationPath ../../null0_windows_${{ matrix.arch }}.zip
+          Compress-Archive -Path null0.exe -DestinationPath ../../null0_windows_x64.zip
         shell: pwsh
 
       - name: Upload assets to release
-        run: gh release upload ${{ github.event.release.tag_name }} ${{ join(matrix.artifacts, ' ') }}
+        run: gh release upload ${{ github.event.release.tag_name }} null0_windows_x64.zip
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
