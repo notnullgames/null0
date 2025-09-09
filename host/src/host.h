@@ -13,6 +13,7 @@
 
 #include "fs.h"
 #include "pntr_app.h"
+#include "sam.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>

@@ -354,6 +354,13 @@ static JSValue js_random_seed_set(JSContext *ctx, JSValueConst this_val, int arg
 // TYPES
 
 
+// TTS
+
+// Speak some text and return a sound. Set things to 0 for defaults.
+static JSValue js_tts_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u32_to_js(tts_sound(string_from_js(argv[0]), bool_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), bool_from_js(argv[6])));
+}
+
 // SOUND
 
 // Load a sound from a file in cart.
@@ -1015,6 +1022,7 @@ void expose_things_to_js() {
   JS_SetPropertyStr(ctx, global, "random_int", JS_NewCFunction(ctx, js_random_int, "random_int", 2));
   JS_SetPropertyStr(ctx, global, "random_seed_get", JS_NewCFunction(ctx, js_random_seed_get, "random_seed_get", 0));
   JS_SetPropertyStr(ctx, global, "random_seed_set", JS_NewCFunction(ctx, js_random_seed_set, "random_seed_set", 1));
+  JS_SetPropertyStr(ctx, global, "tts_sound", JS_NewCFunction(ctx, js_tts_sound, "tts_sound", 7));
   JS_SetPropertyStr(ctx, global, "load_sound", JS_NewCFunction(ctx, js_load_sound, "load_sound", 1));
   JS_SetPropertyStr(ctx, global, "play_sound", JS_NewCFunction(ctx, js_play_sound, "play_sound", 2));
   JS_SetPropertyStr(ctx, global, "stop_sound", JS_NewCFunction(ctx, js_stop_sound, "stop_sound", 1));
