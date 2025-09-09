@@ -27,7 +27,7 @@ jobs:
           mv build_web/host/null0.* webroot/wbuild/host/
           cd webroot
           mv mygame.html index.html
-          zip -r ../webroot.zip .
-      - run: gh release upload ${{github.event.release.tag_name}} webroot.zip
+          zip -r ../null0_webroot.zip .
+      - run: gh release upload ${{github.event.release.tag_name}} null0_webroot.zip
         env:
           GH_TOKEN: ${{ github.token }}
