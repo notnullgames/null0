@@ -222,6 +222,17 @@ global MouseButton <cimport'MouseButton', nodecl> = @enum(int32){
   MOUSE_BUTTON_MIDDLE = 3
 }
 
+global SfxPresetType <cimport'SfxPresetType', nodecl> = @enum(int32){
+  SFX_COIN = 0,
+  SFX_LASER = 1,
+  SFX_EXPLOSION = 2,
+  SFX_POWERUP = 3,
+  SFX_HURT = 4,
+  SFX_JUMP = 5,
+  SFX_SELECT = 6,
+  SFX_SYNTH = 7
+}
+
 global SCREEN: int32 = 0
 global SCREEN_WIDTH: int32 = 640
 global SCREEN_HEIGHT: int32 = 480

@@ -1080,6 +1080,14 @@ void expose_things_to_js() {
   JS_SetPropertyStr(ctx, global, "SCREEN_WIDTH", JS_NewInt32(ctx, SCREEN_WIDTH));
   JS_SetPropertyStr(ctx, global, "SCREEN_HEIGHT", JS_NewInt32(ctx, SCREEN_HEIGHT));
   JS_SetPropertyStr(ctx, global, "FONT_DEFAULT", JS_NewInt32(ctx, FONT_DEFAULT));
+  JS_SetPropertyStr(ctx, global, "SFX_COIN", JS_NewInt32(ctx, SFX_COIN));
+  JS_SetPropertyStr(ctx, global, "SFX_LASER", JS_NewInt32(ctx, SFX_LASER));
+  JS_SetPropertyStr(ctx, global, "SFX_EXPLOSION", JS_NewInt32(ctx, SFX_EXPLOSION));
+  JS_SetPropertyStr(ctx, global, "SFX_POWERUP", JS_NewInt32(ctx, SFX_POWERUP));
+  JS_SetPropertyStr(ctx, global, "SFX_HURT", JS_NewInt32(ctx, SFX_HURT));
+  JS_SetPropertyStr(ctx, global, "SFX_JUMP", JS_NewInt32(ctx, SFX_JUMP));
+  JS_SetPropertyStr(ctx, global, "SFX_SELECT", JS_NewInt32(ctx, SFX_SELECT));
+  JS_SetPropertyStr(ctx, global, "SFX_SYNTH", JS_NewInt32(ctx, SFX_SYNTH));
 
   JS_SetPropertyStr(ctx, global, "current_time", JS_NewCFunction(ctx, js_current_time, "current_time", 0));
   JS_SetPropertyStr(ctx, global, "delta_time", JS_NewCFunction(ctx, js_delta_time, "delta_time", 0));
