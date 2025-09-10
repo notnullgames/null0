@@ -291,7 +291,8 @@ const retTypes = {
   Vector: '*Vector',
   Dimensions: '*Dimensions',
   Color: 'Color',
-  Rectangle: 'Rectangle'
+  Rectangle: 'Rectangle',
+  SfxParams: 'SfxParams'
 }
 
 // Generate parameter list for function signature

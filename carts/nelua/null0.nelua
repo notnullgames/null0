@@ -287,6 +287,9 @@ global function tts_sound(text: cstring, phonetic: boolean, pitch: int32, speed:
 -- Create Sfx sound.
 global function sfx_sound(params: SfxParams): uint32 <cimport,nodecl> end
 
+-- Create Sfx parameters.
+global function sfx_generate(type: int32): SfxParams <cimport,nodecl> end
+
 
 -- INPUT
 

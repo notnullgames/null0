@@ -164,6 +164,25 @@ pntr_sound* null0_sfx_sound(SfxParams* params) {
   return pntr_app_sfx_sound(null0_app, params);
 }
 
+// generate randomized SfxParams
+SfxParams null0_sfx_generate(int type) {
+  SfxParams sp = {};
+  if (type == 1) {
+    pntr_app_sfx_gen_laser_shoot(null0_app, &sp);
+  } else if (type == 2) {
+    pntr_app_sfx_gen_explosion(null0_app, &sp);
+  } else if (type == 3) {
+    pntr_app_sfx_gen_powerup(null0_app, &sp);
+  } else if (type == 4) {
+    pntr_app_sfx_gen_hit_hurt(null0_app, &sp);
+  } else if (type == 5) {
+    pntr_app_sfx_gen_jump(null0_app, &sp);
+  } else {
+    pntr_app_sfx_gen_synth(null0_app, &sp);
+  }
+  return sp;
+}
+
 // copy a string from cart to host
 char *copy_string_from_cart(uint32_t cart_pointer) {
   uint32_t size = cart_strlen(cart_pointer) + 1;

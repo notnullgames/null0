@@ -352,6 +352,35 @@ static SfxParams sfx_params_from_js(JSValue obj) {
   return params;
 }
 
+static JSValue sfx_params_to_js(SfxParams params) {
+  JSValue obj = JS_NewObject(ctx);
+  JS_SetPropertyStr(ctx, obj, "randSeed", JS_NewUint32(ctx, params.randSeed));
+  JS_SetPropertyStr(ctx, obj, "waveType", JS_NewInt32(ctx, params.waveType));
+  JS_SetPropertyStr(ctx, obj, "attackTime", JS_NewFloat64(ctx, params.attackTime));
+  JS_SetPropertyStr(ctx, obj, "sustainTime", JS_NewFloat64(ctx, params.sustainTime));
+  JS_SetPropertyStr(ctx, obj, "sustainPunch", JS_NewFloat64(ctx, params.sustainPunch));
+  JS_SetPropertyStr(ctx, obj, "decayTime", JS_NewFloat64(ctx, params.decayTime));
+  JS_SetPropertyStr(ctx, obj, "startFrequency", JS_NewFloat64(ctx, params.startFrequency));
+  JS_SetPropertyStr(ctx, obj, "minFrequency", JS_NewFloat64(ctx, params.minFrequency));
+  JS_SetPropertyStr(ctx, obj, "slide", JS_NewFloat64(ctx, params.slide));
+  JS_SetPropertyStr(ctx, obj, "deltaSlide", JS_NewFloat64(ctx, params.deltaSlide));
+  JS_SetPropertyStr(ctx, obj, "vibratoDepth", JS_NewFloat64(ctx, params.vibratoDepth));
+  JS_SetPropertyStr(ctx, obj, "vibratoSpeed", JS_NewFloat64(ctx, params.vibratoSpeed));
+  JS_SetPropertyStr(ctx, obj, "changeAmount", JS_NewFloat64(ctx, params.changeAmount));
+  JS_SetPropertyStr(ctx, obj, "changeSpeed", JS_NewFloat64(ctx, params.changeSpeed));
+  JS_SetPropertyStr(ctx, obj, "squareDuty", JS_NewFloat64(ctx, params.squareDuty));
+  JS_SetPropertyStr(ctx, obj, "dutySweep", JS_NewFloat64(ctx, params.dutySweep));
+  JS_SetPropertyStr(ctx, obj, "repeatSpeed", JS_NewFloat64(ctx, params.repeatSpeed));
+  JS_SetPropertyStr(ctx, obj, "phaserOffset", JS_NewFloat64(ctx, params.phaserOffset));
+  JS_SetPropertyStr(ctx, obj, "phaserSweep", JS_NewFloat64(ctx, params.phaserSweep));
+  JS_SetPropertyStr(ctx, obj, "lpfCutoff", JS_NewFloat64(ctx, params.lpfCutoff));
+  JS_SetPropertyStr(ctx, obj, "lpfCutoffSweep", JS_NewFloat64(ctx, params.lpfCutoffSweep));
+  JS_SetPropertyStr(ctx, obj, "lpfResonance", JS_NewFloat64(ctx, params.lpfResonance));
+  JS_SetPropertyStr(ctx, obj, "hpfCutoff", JS_NewFloat64(ctx, params.hpfCutoff));
+  JS_SetPropertyStr(ctx, obj, "hpfCutoffSweep", JS_NewFloat64(ctx, params.hpfCutoffSweep));
+  return obj;
+}
+
 // BINDINGS
 
 
@@ -411,6 +440,11 @@ static JSValue js_tts_sound(JSContext *ctx, JSValueConst this_val, int argc, JSV
 // Create Sfx sound.
 static JSValue js_sfx_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(sfx_sound(sfx_params_from_js(argv[0])));
+}
+// Create Sfx parameters.
+static JSValue js_sfx_generate(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ SfxParams* ret = sfx_generate(i32_from_js(argv[0]));
+ return sfx_params_to_js(*ret);
 }
 
 // INPUT
@@ -1058,6 +1092,7 @@ void expose_things_to_js() {
   JS_SetPropertyStr(ctx, global, "unload_sound", JS_NewCFunction(ctx, js_unload_sound, "unload_sound", 1));
   JS_SetPropertyStr(ctx, global, "tts_sound", JS_NewCFunction(ctx, js_tts_sound, "tts_sound", 7));
   JS_SetPropertyStr(ctx, global, "sfx_sound", JS_NewCFunction(ctx, js_sfx_sound, "sfx_sound", 1));
+  JS_SetPropertyStr(ctx, global, "sfx_generate", JS_NewCFunction(ctx, js_sfx_generate, "sfx_generate", 1));
   JS_SetPropertyStr(ctx, global, "key_pressed", JS_NewCFunction(ctx, js_key_pressed, "key_pressed", 1));
   JS_SetPropertyStr(ctx, global, "key_down", JS_NewCFunction(ctx, js_key_down, "key_down", 1));
   JS_SetPropertyStr(ctx, global, "key_released", JS_NewCFunction(ctx, js_key_released, "key_released", 1));

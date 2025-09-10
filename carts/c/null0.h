@@ -384,6 +384,10 @@ extern u32 tts_sound(char* text, bool phonetic, i32 pitch, i32 speed, i32 throat
 NULL0_IMPORT("sfx_sound")
 extern u32 sfx_sound(SfxParams params);
 
+// Create Sfx parameters.
+NULL0_IMPORT("sfx_generate")
+extern SfxParams* sfx_generate(i32 type);
+
 
 // INPUT
 

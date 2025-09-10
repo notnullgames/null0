@@ -40,3 +40,9 @@ sfx_sound:
     params: SfxParams
   returns: Sound
   description: Create Sfx sound.
+
+sfx_generate:
+  args:
+    type: i32
+  returns: SfxParams
+  description: Create Sfx parameters.

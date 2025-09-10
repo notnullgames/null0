@@ -373,6 +373,35 @@ static SfxParams sfx_params_from_js(JSValue obj) {
   return params;
 }
 
+static JSValue sfx_params_to_js(SfxParams params) {
+  JSValue obj = JS_NewObject(ctx);
+  JS_SetPropertyStr(ctx, obj, "randSeed", JS_NewUint32(ctx, params.randSeed));
+  JS_SetPropertyStr(ctx, obj, "waveType", JS_NewInt32(ctx, params.waveType));
+  JS_SetPropertyStr(ctx, obj, "attackTime", JS_NewFloat64(ctx, params.attackTime));
+  JS_SetPropertyStr(ctx, obj, "sustainTime", JS_NewFloat64(ctx, params.sustainTime));
+  JS_SetPropertyStr(ctx, obj, "sustainPunch", JS_NewFloat64(ctx, params.sustainPunch));
+  JS_SetPropertyStr(ctx, obj, "decayTime", JS_NewFloat64(ctx, params.decayTime));
+  JS_SetPropertyStr(ctx, obj, "startFrequency", JS_NewFloat64(ctx, params.startFrequency));
+  JS_SetPropertyStr(ctx, obj, "minFrequency", JS_NewFloat64(ctx, params.minFrequency));
+  JS_SetPropertyStr(ctx, obj, "slide", JS_NewFloat64(ctx, params.slide));
+  JS_SetPropertyStr(ctx, obj, "deltaSlide", JS_NewFloat64(ctx, params.deltaSlide));
+  JS_SetPropertyStr(ctx, obj, "vibratoDepth", JS_NewFloat64(ctx, params.vibratoDepth));
+  JS_SetPropertyStr(ctx, obj, "vibratoSpeed", JS_NewFloat64(ctx, params.vibratoSpeed));
+  JS_SetPropertyStr(ctx, obj, "changeAmount", JS_NewFloat64(ctx, params.changeAmount));
+  JS_SetPropertyStr(ctx, obj, "changeSpeed", JS_NewFloat64(ctx, params.changeSpeed));
+  JS_SetPropertyStr(ctx, obj, "squareDuty", JS_NewFloat64(ctx, params.squareDuty));
+  JS_SetPropertyStr(ctx, obj, "dutySweep", JS_NewFloat64(ctx, params.dutySweep));
+  JS_SetPropertyStr(ctx, obj, "repeatSpeed", JS_NewFloat64(ctx, params.repeatSpeed));
+  JS_SetPropertyStr(ctx, obj, "phaserOffset", JS_NewFloat64(ctx, params.phaserOffset));
+  JS_SetPropertyStr(ctx, obj, "phaserSweep", JS_NewFloat64(ctx, params.phaserSweep));
+  JS_SetPropertyStr(ctx, obj, "lpfCutoff", JS_NewFloat64(ctx, params.lpfCutoff));
+  JS_SetPropertyStr(ctx, obj, "lpfCutoffSweep", JS_NewFloat64(ctx, params.lpfCutoffSweep));
+  JS_SetPropertyStr(ctx, obj, "lpfResonance", JS_NewFloat64(ctx, params.lpfResonance));
+  JS_SetPropertyStr(ctx, obj, "hpfCutoff", JS_NewFloat64(ctx, params.hpfCutoff));
+  JS_SetPropertyStr(ctx, obj, "hpfCutoffSweep", JS_NewFloat64(ctx, params.hpfCutoffSweep));
+  return obj;
+}
+
 // BINDINGS
 
 `)
@@ -394,11 +423,12 @@ const returnMap = {
   Vector: 'vector_to_js',
   Dimensions: 'dimensions_to_js',
   Rectangle: 'rectangle_to_js',
-  Color: 'color_to_js'
+  Color: 'color_to_js',
+  SfxParams: 'sfx_params_to_js'
 }
 
 // these types are pointers when returned from C
-const returnRef = ['Vector', 'Dimensions', 'Color']
+const returnRef = ['Vector', 'Dimensions', 'Color', 'SfxParams']
 
 // functions to map args from js into something C can handle
 const argTypes = {

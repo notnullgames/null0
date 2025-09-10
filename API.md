@@ -457,6 +457,15 @@ Create Sfx sound.
 Sound sfx_sound(SfxParams params)
 ```
 
+
+#### sfx_generate
+
+Create Sfx parameters.
+
+```c
+SfxParams sfx_generate(i32 type)
+```
+
 ---
 
 ### input

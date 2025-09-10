@@ -354,7 +354,8 @@ const retTypes = {
   'Vector[]': 'Vector*',
   Vector: 'Vector*',
   Dimensions: 'Dimensions*',
-  Color: 'Color*'
+  Color: 'Color*',
+  SfxParams: 'SfxParams*'
 }
 
 // TODO: I could build all of the above code with constants/enums/structs/scalars/callbacks

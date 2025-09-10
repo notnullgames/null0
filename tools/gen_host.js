@@ -136,7 +136,8 @@ const functions = {
   color_contrast: 'pntr_color_contrast(',
   color_bilinear_interpolate: 'pntr_color_bilinear_interpolate(',
   tts_sound: 'null0_tts_sound(',
-  sfx_sound: 'null0_sfx_sound('
+  sfx_sound: 'null0_sfx_sound(',
+  sfx_generate: 'null0_sfx_generate('
 }
 
 // map args to host-types
@@ -191,6 +192,9 @@ function buildBody(name, args, returns) {
         body.push(`uint32_t retHost = add_font(${functions[name]}${callArgs.join(', ')}));`)
       } else if (returns === 'Image') {
         body.push(`uint32_t retHost = add_image(${functions[name]}${callArgs.join(', ')}));`)
+      } else if (returns === 'SfxParams') {
+        body.push(`SfxParams retHostVal = ${functions[name]}${callArgs.join(', ')});`)
+        body.push(`uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(SfxParams));`)
       } else if (returns === 'Sound') {
         body.push(`uint32_t retHost = add_sound(${functions[name]}${callArgs.join(', ')}));`)
       } else if (returns === 'Color') {
