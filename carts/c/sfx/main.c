@@ -3,7 +3,7 @@
 u32 sound = 0;
 
 void buttonUp(GamepadButton button, unsigned int player) {
-    SfxParams* params = sfx_generate(SFX_COIN);
+    SfxParams* params = sfx_generate(SFX_LASER);
     if (sound != 0) {
         unload_sound(sound);
     }
