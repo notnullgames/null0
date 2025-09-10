@@ -46,6 +46,34 @@ Vector[]
 This is a compound-object, like a row in a spreadsheet. These are used to pass multiple values as a single object.
 
 ```c
+// Sfx parameters.
+struct SfxParams {
+  u32 randSeed,
+  i32 waveType,
+  f32 attackTime,
+  f32 sustainTime,
+  f32 sustainPunch,
+  f32 decayTime,
+  f32 startFrequency,
+  f32 minFrequency,
+  f32 slide,
+  f32 deltaSlide,
+  f32 vibratoDepth,
+  f32 vibratoSpeed,
+  f32 changeAmount,
+  f32 changeSpeed,
+  f32 squareDuty,
+  f32 dutySweep,
+  f32 repeatSpeed,
+  f32 phaserOffset,
+  f32 phaserSweep,
+  f32 lpfCutoff,
+  f32 lpfCutoffSweep,
+  f32 lpfResonance,
+  f32 hpfCutoff,
+  f32 hpfCutoffSweep
+}
+
 // The 2D size of something (width/height.)
 struct Dimensions {
   i32 width,
@@ -86,6 +114,18 @@ This is a textual way to describe some possible options for an integer field.
 enum ImageFilter {
   FILTER_NEARESTNEIGHBOR = 0,
   FILTER_BILINEAR = 1
+}
+
+// Represents a Sfx preset type.
+enum SfxPresetType {
+  SFX_COIN = 0,
+  SFX_LASER = 1,
+  SFX_EXPLOSION = 2,
+  SFX_POWERUP = 3,
+  SFX_HURT = 4,
+  SFX_JUMP = 5,
+  SFX_SELECT = 6,
+  SFX_SYNTH = 7
 }
 
 // Represents a keyboard key.

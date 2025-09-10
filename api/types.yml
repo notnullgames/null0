@@ -107,6 +107,37 @@ Vector[]:
   c_ret: Vector*
   host: pntr_vector*
 
+SfxParams:
+  description: Sfx parameters.
+  c_arg: SfxParams*
+  c_ret: SfxParams*
+  host: SfxParams*
+  members:
+    randSeed: u32
+    waveType: i32
+    attackTime: f32
+    sustainTime: f32
+    sustainPunch: f32
+    decayTime: f32
+    startFrequency: f32
+    minFrequency: f32
+    slide: f32
+    deltaSlide: f32
+    vibratoDepth: f32
+    vibratoSpeed: f32
+    changeAmount: f32
+    changeSpeed: f32
+    squareDuty: f32
+    dutySweep: f32
+    repeatSpeed: f32
+    phaserOffset: f32
+    phaserSweep: f32
+    lpfCutoff: f32
+    lpfCutoffSweep: f32
+    lpfResonance: f32
+    hpfCutoff: f32
+    hpfCutoffSweep: f32
+
 # Rectangle[]:
 #   description: An array of Rectangles
 #   requiresLength: true
@@ -172,6 +203,21 @@ ImageFilter:
   enums:
     FILTER_NEARESTNEIGHBOR: 0
     FILTER_BILINEAR: 1
+
+SfxPresetType:
+  description: Represents a Sfx preset type.
+  c_arg: SfxPresetType
+  c_ret: SfxPresetType
+  host: SfxPresetType
+  enums:
+    SFX_COIN: 0
+    SFX_LASER: 1
+    SFX_EXPLOSION: 2
+    SFX_POWERUP: 3
+    SFX_HURT: 4
+    SFX_JUMP: 5
+    SFX_SELECT: 6
+    SFX_SYNTH: 7
 
 Key:
   description: Represents a keyboard key.
