@@ -439,9 +439,6 @@ void random_seed_set(u64 seed)
 
 ---
 
-### types
----
-
 ### sound
 
 #### load_sound

@@ -71,6 +71,9 @@ for (const [name, def] of Object.entries(callbacks)) {
 out.push('', '## api', '', 'These are what make up the things you can do in your game.', '')
 const f = []
 for (const [apiName, apiFuncs] of Object.entries(api)) {
+  if (apiName === 'types' || apiName === 'constants') {
+    continue
+  }
   let s = `\n### ${apiName}\n`
   for (const [funcName, def] of Object.entries(apiFuncs)) {
     s += describeFunction(funcName, def) + '\n'
