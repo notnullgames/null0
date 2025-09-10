@@ -37,6 +37,33 @@ global Color <cimport'Color', nodecl> = @record{
   a: uint8
 }
 
+global SfxParams <cimport'SfxParams', nodecl> = @record{
+  randSeed: uint32,
+  waveType: int32,
+  attackTime: float32,
+  sustainTime: float32,
+  sustainPunch: float32,
+  decayTime: float32,
+  startFrequency: float32,
+  minFrequency: float32,
+  slide: float32,
+  deltaSlide: float32,
+  vibratoDepth: float32,
+  vibratoSpeed: float32,
+  changeAmount: float32,
+  changeSpeed: float32,
+  squareDuty: float32,
+  dutySweep: float32,
+  repeatSpeed: float32,
+  phaserOffset: float32,
+  phaserSweep: float32,
+  lpfCutoff: float32,
+  lpfCutoffSweep: float32,
+  lpfResonance: float32,
+  hpfCutoff: float32,
+  hpfCutoffSweep: float32
+}
+
 global ImageFilter <cimport'ImageFilter', nodecl> = @enum(int32){
   FILTER_NEARESTNEIGHBOR = 0,
   FILTER_BILINEAR = 1,
@@ -247,7 +274,8 @@ const argTypes = {
   Vector: 'Vector',
   Rectangle: 'Rectangle',
   Dimensions: 'Dimensions',
-  'Vector[]': '*Vector'
+  'Vector[]': '*Vector',
+  SfxParams: 'SfxParams'
 }
 
 const retTypes = {

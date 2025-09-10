@@ -42,6 +42,52 @@ typedef struct {
   u8 a;
 } Color;
 
+// Sound parameters (96 bytes matching rFXGen WaveParams)
+typedef struct SfxParams {
+  // Random seed used to generate the wave
+  uint32_t randSeed;
+
+  // Wave type (square, sawtooth, sine, noise)
+  int waveType;
+
+  // Wave envelope parameters
+  float attackTime;
+  float sustainTime;
+  float sustainPunch;
+  float decayTime;
+
+  // Frequency parameters
+  float startFrequency;
+  float minFrequency;
+  float slide;
+  float deltaSlide;
+  float vibratoDepth;
+  float vibratoSpeed;
+  // float vibratoPhaseDelay;      // Unused in sfxr code.
+
+  // Tone change parameters
+  float changeAmount;
+  float changeSpeed;
+
+  // Square wave parameters
+  float squareDuty;
+  float dutySweep;
+
+  // Repeat parameters
+  float repeatSpeed;
+
+  // Phaser parameters
+  float phaserOffset;
+  float phaserSweep;
+
+  // Filter parameters
+  float lpfCutoff;
+  float lpfCutoffSweep;
+  float lpfResonance;
+  float hpfCutoff;
+  float hpfCutoffSweep;
+} SfxParams;
+
 typedef enum ImageFilter {
   FILTER_NEARESTNEIGHBOR = 0,
   FILTER_BILINEAR,
@@ -333,6 +379,10 @@ extern void unload_sound(u32 sound);
 // Speak some text and return a sound. Set things to 0 for defaults.
 NULL0_IMPORT("tts_sound")
 extern u32 tts_sound(char* text, bool phonetic, i32 pitch, i32 speed, i32 throat, i32 mouth, bool sing);
+
+// Create Sfx sound.
+NULL0_IMPORT("sfx_sound")
+extern u32 sfx_sound(SfxParams params);
 
 
 // INPUT

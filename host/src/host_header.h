@@ -9,8 +9,6 @@
 #  include <sys/time.h>
 #endif
 #include "exists_next_to_executable.h"
-#include "sam.h"
-#include "reciter.h"
 #include <ctype.h>
 
 static pntr_app *null0_app;
@@ -159,6 +157,11 @@ pntr_sound* null0_tts_sound(char* text, bool phonetic, int pitch, int speed, int
   pntr_sound* sound = pntr_load_sound_from_memory(PNTR_APP_SOUND_TYPE_WAV, (unsigned char*)wavData, byteLength);
   // pntr_unload_memory(wavData);
   return sound;
+}
+
+// wrapper around pntr_app_sfx_sound
+pntr_sound* null0_sfx_sound(SfxParams* params) {
+  return pntr_app_sfx_sound(null0_app, params);
 }
 
 // copy a string from cart to host

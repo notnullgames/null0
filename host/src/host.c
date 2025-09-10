@@ -68,6 +68,14 @@ HOST_FUNCTION(uint32_t, tts_sound, (uint32_t text, bool phonetic, int32_t pitch,
  return retHost;
 })
 
+// Create Sfx sound.
+HOST_FUNCTION(uint32_t, sfx_sound, (uint32_t params), {
+ SfxParams* paramsHost = copy_memory_from_cart(params, sizeof(SfxParams));
+ uint32_t retHost = add_sound(null0_sfx_sound(paramsHost));
+ free(paramsHost);
+ return retHost;
+})
+
 
 // INPUT
 

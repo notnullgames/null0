@@ -448,6 +448,15 @@ Speak some text and return a sound. Set things to 0 for defaults.
 Sound tts_sound(string text, bool phonetic, i32 pitch, i32 speed, i32 throat, i32 mouth, bool sing)
 ```
 
+
+#### sfx_sound
+
+Create Sfx sound.
+
+```c
+Sound sfx_sound(SfxParams params)
+```
+
 ---
 
 ### input

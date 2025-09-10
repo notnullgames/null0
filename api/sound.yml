@@ -34,3 +34,9 @@ tts_sound:
     sing: bool
   returns: Sound
   description: Speak some text and return a sound. Set things to 0 for defaults.
+
+sfx_sound:
+  args:
+    params: SfxParams
+  returns: Sound
+  description: Create Sfx sound.

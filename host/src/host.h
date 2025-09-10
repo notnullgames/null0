@@ -1,7 +1,10 @@
 #ifndef NULL0_HOST_H_
 #define NULL0_HOST_H_
 
+
+#define CVECTOR_LOGARITHMIC_GROWTH
 #define PNTR_ENABLE_DEFAULT_FONT
+#define PNTR_ENABLE_MATH
 #define PNTR_ENABLE_VARGS
 #define PNTR_ENABLE_TTF
 #define PNTR_ENABLE_UTF8
@@ -13,12 +16,12 @@
 
 #include "fs.h"
 #include "pntr_app.h"
+#include "pntr_app_sfx.h"
 #include "sam.h"
+#include "reciter.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define CVECTOR_LOGARITHMIC_GROWTH
 #include "cvector.h"
 
 typedef struct {

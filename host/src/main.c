@@ -1,4 +1,5 @@
 #define PNTR_APP_IMPLEMENTATION
+#define PNTR_APP_SFX_IMPLEMENTATION
 
 #include "host.h"
 

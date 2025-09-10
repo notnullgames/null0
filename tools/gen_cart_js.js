@@ -344,6 +344,35 @@ static Color color_from_js(JSValue obj) {
   return color;
 }
 
+static SfxParams sfx_params_from_js(JSValue obj) {
+  SfxParams params = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  JSValue randSeed_val = JS_GetPropertyStr(ctx, obj, "randSeed");
+  JSValue waveType_val = JS_GetPropertyStr(ctx, obj, "waveType");
+  JSValue attackTime_val = JS_GetPropertyStr(ctx, obj, "attackTime");
+  JSValue sustainTime_val = JS_GetPropertyStr(ctx, obj, "sustainTime");
+  JSValue sustainPunch_val = JS_GetPropertyStr(ctx, obj, "sustainPunch");
+  JSValue decayTime_val = JS_GetPropertyStr(ctx, obj, "decayTime");
+  JSValue startFrequency_val = JS_GetPropertyStr(ctx, obj, "startFrequency");
+  JSValue minFrequency_val = JS_GetPropertyStr(ctx, obj, "minFrequency");
+  JSValue slide_val = JS_GetPropertyStr(ctx, obj, "slide");
+  JSValue deltaSlide_val = JS_GetPropertyStr(ctx, obj, "deltaSlide");
+  JSValue vibratoDepth_val = JS_GetPropertyStr(ctx, obj, "vibratoDepth");
+  JSValue vibratoSpeed_val = JS_GetPropertyStr(ctx, obj, "vibratoSpeed");
+  JSValue changeAmount_val = JS_GetPropertyStr(ctx, obj, "changeAmount");
+  JSValue changeSpeed_val = JS_GetPropertyStr(ctx, obj, "changeSpeed");
+  JSValue squareDuty_val = JS_GetPropertyStr(ctx, obj, "squareDuty");
+  JSValue dutySweep_val = JS_GetPropertyStr(ctx, obj, "dutySweep");
+  JSValue repeatSpeed_val = JS_GetPropertyStr(ctx, obj, "repeatSpeed");
+  JSValue phaserOffset_val = JS_GetPropertyStr(ctx, obj, "phaserOffset");
+  JSValue phaserSweep_val = JS_GetPropertyStr(ctx, obj, "phaserSweep");
+  JSValue lpfCutoff_val = JS_GetPropertyStr(ctx, obj, "lpfCutoff");
+  JSValue lpfCutoffSweep_val = JS_GetPropertyStr(ctx, obj, "lpfCutoffSweep");
+  JSValue lpfResonance_val = JS_GetPropertyStr(ctx, obj, "lpfResonance");
+  JSValue hpfCutoff_val = JS_GetPropertyStr(ctx, obj, "hpfCutoff");
+  JSValue hpfCutoffSweep_val = JS_GetPropertyStr(ctx, obj, "hpfCutoffSweep");
+  return params;
+}
+
 // BINDINGS
 
 `)
@@ -391,7 +420,8 @@ const argTypes = {
 
   // Custom struct converters
   Color: 'color_from_js',
-  'Vector[]': 'vector_array_from_js'
+  'Vector[]': 'vector_array_from_js',
+  SfxParams: 'sfx_params_from_js'
 }
 
 // TODO: I could build a lot of the above code with constants/enums/structs/scalars/callbacks

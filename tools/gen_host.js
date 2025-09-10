@@ -21,6 +21,7 @@ const types = {
   Key: 'pntr_app_key',
   GamepadButton: 'pntr_app_gamepad_button',
   MouseButton: 'pntr_app_mouse_button',
+  SfxParams: 'uint32_t',
   'Vector[]': 'uint32_t'
 }
 
@@ -134,7 +135,8 @@ const functions = {
   color_alpha_blend: 'pntr_color_alpha_blend(',
   color_contrast: 'pntr_color_contrast(',
   color_bilinear_interpolate: 'pntr_color_bilinear_interpolate(',
-  tts_sound: 'null0_tts_sound('
+  tts_sound: 'null0_tts_sound(',
+  sfx_sound: 'null0_sfx_sound('
 }
 
 // map args to host-types
@@ -170,6 +172,10 @@ function buildBody(name, args, returns) {
       callArgs.push(`${name}Host`)
     } else if (type === 'Vector[]') {
       body.push(`pntr_vector* ${name}Host = copy_memory_from_cart(${name}, ${allArgs[i + 1][0]} * sizeof(pntr_vector));`)
+      cleanup.push(`free(${name}Host);`)
+      callArgs.push(`${name}Host`)
+    } else if (type === 'SfxParams') {
+      body.push(`SfxParams* ${name}Host = copy_memory_from_cart(${name}, sizeof(SfxParams));`)
       cleanup.push(`free(${name}Host);`)
       callArgs.push(`${name}Host`)
     } else {

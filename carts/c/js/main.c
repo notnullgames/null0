@@ -323,6 +323,35 @@ static Color color_from_js(JSValue obj) {
   return color;
 }
 
+static SfxParams sfx_params_from_js(JSValue obj) {
+  SfxParams params = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  JSValue randSeed_val = JS_GetPropertyStr(ctx, obj, "randSeed");
+  JSValue waveType_val = JS_GetPropertyStr(ctx, obj, "waveType");
+  JSValue attackTime_val = JS_GetPropertyStr(ctx, obj, "attackTime");
+  JSValue sustainTime_val = JS_GetPropertyStr(ctx, obj, "sustainTime");
+  JSValue sustainPunch_val = JS_GetPropertyStr(ctx, obj, "sustainPunch");
+  JSValue decayTime_val = JS_GetPropertyStr(ctx, obj, "decayTime");
+  JSValue startFrequency_val = JS_GetPropertyStr(ctx, obj, "startFrequency");
+  JSValue minFrequency_val = JS_GetPropertyStr(ctx, obj, "minFrequency");
+  JSValue slide_val = JS_GetPropertyStr(ctx, obj, "slide");
+  JSValue deltaSlide_val = JS_GetPropertyStr(ctx, obj, "deltaSlide");
+  JSValue vibratoDepth_val = JS_GetPropertyStr(ctx, obj, "vibratoDepth");
+  JSValue vibratoSpeed_val = JS_GetPropertyStr(ctx, obj, "vibratoSpeed");
+  JSValue changeAmount_val = JS_GetPropertyStr(ctx, obj, "changeAmount");
+  JSValue changeSpeed_val = JS_GetPropertyStr(ctx, obj, "changeSpeed");
+  JSValue squareDuty_val = JS_GetPropertyStr(ctx, obj, "squareDuty");
+  JSValue dutySweep_val = JS_GetPropertyStr(ctx, obj, "dutySweep");
+  JSValue repeatSpeed_val = JS_GetPropertyStr(ctx, obj, "repeatSpeed");
+  JSValue phaserOffset_val = JS_GetPropertyStr(ctx, obj, "phaserOffset");
+  JSValue phaserSweep_val = JS_GetPropertyStr(ctx, obj, "phaserSweep");
+  JSValue lpfCutoff_val = JS_GetPropertyStr(ctx, obj, "lpfCutoff");
+  JSValue lpfCutoffSweep_val = JS_GetPropertyStr(ctx, obj, "lpfCutoffSweep");
+  JSValue lpfResonance_val = JS_GetPropertyStr(ctx, obj, "lpfResonance");
+  JSValue hpfCutoff_val = JS_GetPropertyStr(ctx, obj, "hpfCutoff");
+  JSValue hpfCutoffSweep_val = JS_GetPropertyStr(ctx, obj, "hpfCutoffSweep");
+  return params;
+}
+
 // BINDINGS
 
 
@@ -378,6 +407,10 @@ static JSValue js_unload_sound(JSContext *ctx, JSValueConst this_val, int argc, 
 // Speak some text and return a sound. Set things to 0 for defaults.
 static JSValue js_tts_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(tts_sound(string_from_js(argv[0]), bool_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), bool_from_js(argv[6])));
+}
+// Create Sfx sound.
+static JSValue js_sfx_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u32_to_js(sfx_sound(sfx_params_from_js(argv[0])));
 }
 
 // INPUT
@@ -1024,6 +1057,7 @@ void expose_things_to_js() {
   JS_SetPropertyStr(ctx, global, "stop_sound", JS_NewCFunction(ctx, js_stop_sound, "stop_sound", 1));
   JS_SetPropertyStr(ctx, global, "unload_sound", JS_NewCFunction(ctx, js_unload_sound, "unload_sound", 1));
   JS_SetPropertyStr(ctx, global, "tts_sound", JS_NewCFunction(ctx, js_tts_sound, "tts_sound", 7));
+  JS_SetPropertyStr(ctx, global, "sfx_sound", JS_NewCFunction(ctx, js_sfx_sound, "sfx_sound", 1));
   JS_SetPropertyStr(ctx, global, "key_pressed", JS_NewCFunction(ctx, js_key_pressed, "key_pressed", 1));
   JS_SetPropertyStr(ctx, global, "key_down", JS_NewCFunction(ctx, js_key_down, "key_down", 1));
   JS_SetPropertyStr(ctx, global, "key_released", JS_NewCFunction(ctx, js_key_released, "key_released", 1));
