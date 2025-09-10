@@ -92,6 +92,17 @@ typedef struct SfxParams {
   float hpfCutoffSweep;
 } SfxParams;
 
+typedef enum SfxPresetType {
+  SFX_COIN,
+  SFX_LASER,
+  SFX_EXPLOSION,
+  SFX_POWERUP,
+  SFX_HURT,
+  SFX_JUMP,
+  SFX_SELECT,
+  SFX_SYNTH
+} SfxPresetType;
+
 typedef enum ImageFilter {
   FILTER_NEARESTNEIGHBOR = 0,
   FILTER_BILINEAR,

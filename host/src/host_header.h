@@ -164,21 +164,49 @@ pntr_sound* null0_sfx_sound(SfxParams* params) {
   return pntr_app_sfx_sound(null0_app, params);
 }
 
+typedef enum SfxPresetType {
+  SFX_COIN,
+  SFX_LASER,
+  SFX_EXPLOSION,
+  SFX_POWERUP,
+  SFX_HURT,
+  SFX_JUMP,
+  SFX_SELECT,
+  SFX_SYNTH
+} SfxPresetType;
+
+
 // generate randomized SfxParams
 SfxParams null0_sfx_generate(int type) {
   SfxParams sp = {};
-  if (type == 1) {
-    pntr_app_sfx_gen_laser_shoot(null0_app, &sp);
-  } else if (type == 2) {
-    pntr_app_sfx_gen_explosion(null0_app, &sp);
-  } else if (type == 3) {
-    pntr_app_sfx_gen_powerup(null0_app, &sp);
-  } else if (type == 4) {
-    pntr_app_sfx_gen_hit_hurt(null0_app, &sp);
-  } else if (type == 5) {
-    pntr_app_sfx_gen_jump(null0_app, &sp);
-  } else {
-    pntr_app_sfx_gen_synth(null0_app, &sp);
+  switch (type) {
+    case SFX_COIN:
+      pntr_app_sfx_gen_pickup_coin(null0_app, &sp);
+      break;
+    case SFX_LASER:
+      pntr_app_sfx_gen_laser_shoot(null0_app, &sp);
+      break;
+    case SFX_EXPLOSION:
+      pntr_app_sfx_gen_explosion(null0_app, &sp);
+      break;
+    case SFX_POWERUP:
+      pntr_app_sfx_gen_powerup(null0_app, &sp);
+      break;
+    case SFX_HURT:
+      pntr_app_sfx_gen_hit_hurt(null0_app, &sp);
+      break;
+    case SFX_JUMP:
+      pntr_app_sfx_gen_jump(null0_app, &sp);
+      break;
+    case SFX_SELECT:
+      pntr_app_sfx_gen_blip_select(null0_app, &sp);
+      break;
+    case SFX_SYNTH:
+      pntr_app_sfx_gen_synth(null0_app, &sp);
+      break;
+    default:
+      pntr_app_sfx_gen_pickup_coin(null0_app, &sp);
+      break;
   }
   return sp;
 }
