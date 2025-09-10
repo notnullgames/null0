@@ -107,6 +107,7 @@ BUILD_CART_C("gradient")
 BUILD_CART_C("input")
 BUILD_CART_C("wasi_demo")
 BUILD_CART_C("speak")
+BUILD_CART_C("sfx")
 
 BUILD_CART_JS("demo")
 BUILD_CART_JS("input")
