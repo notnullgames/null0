@@ -49,11 +49,10 @@ copy /b build/host/null0.exe+build/carts/input_c.null0 tester.exe
 ## todo/ideas
 
 - [ui](https://github.com/rxi/microui)
-- add back sfx
-- add back tts
 - tiled map/sprite support
 - physics
 - plain wasm has double-free error, need to really double-check the loader part
+- there is a lot of hardcoded enums/types in codegen. Use types.yml instead
 
 ## thanks
 

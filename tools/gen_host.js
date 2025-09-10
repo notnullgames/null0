@@ -22,7 +22,8 @@ const types = {
   GamepadButton: 'pntr_app_gamepad_button',
   MouseButton: 'pntr_app_mouse_button',
   SfxParams: 'uint32_t',
-  'Vector[]': 'uint32_t'
+  'Vector[]': 'uint32_t',
+  SfxPresetType: 'SfxPresetType'
 }
 
 // map of cart function-names to host functions

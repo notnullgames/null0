@@ -447,6 +447,7 @@ const argTypes = {
   Key: 'i32_from_js',
   GamepadButton: 'i32_from_js',
   MouseButton: 'i32_from_js',
+  SfxPresetType: 'i32_from_js',
 
   // Custom struct converters
   Color: 'color_from_js',

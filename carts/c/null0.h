@@ -397,7 +397,7 @@ extern u32 sfx_sound(SfxParams params);
 
 // Create Sfx parameters.
 NULL0_IMPORT("sfx_generate")
-extern SfxParams* sfx_generate(i32 type);
+extern SfxParams* sfx_generate(SfxPresetType type);
 
 
 // INPUT

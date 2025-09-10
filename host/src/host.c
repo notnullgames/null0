@@ -77,7 +77,7 @@ HOST_FUNCTION(uint32_t, sfx_sound, (uint32_t params), {
 })
 
 // Create Sfx parameters.
-HOST_FUNCTION(uint32_t, sfx_generate, (int32_t type), {
+HOST_FUNCTION(uint32_t, sfx_generate, (SfxPresetType type), {
  SfxParams retHostVal = null0_sfx_generate(type);
  uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(SfxParams));
  return retHost;

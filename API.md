@@ -503,7 +503,7 @@ Sound sfx_sound(SfxParams params)
 Create Sfx parameters.
 
 ```c
-SfxParams sfx_generate(i32 type)
+SfxParams sfx_generate(SfxPresetType type)
 ```
 
 ---

@@ -43,6 +43,6 @@ sfx_sound:
 
 sfx_generate:
   args:
-    type: i32
+    type: SfxPresetType
   returns: SfxParams
   description: Create Sfx parameters.
