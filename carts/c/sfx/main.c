@@ -1,15 +1,18 @@
 #include "null0.h"
 
-u32 sound;
+u32 sound = 0;
 
 void buttonDown(GamepadButton button, unsigned int player) {
+    SfxParams* params = sfx_generate(SFX_COIN);
+    if (sound != 0) {
+        unload_sound(sound);
+    }
+    sound = sfx_sound(*params);
     play_sound(sound, false);
+    free(params);
 }
 
 int main() {
-    SfxParams *p = sfx_generate(SFX_COIN);
-    sound = sfx_sound(*p);
-    free(p);
     draw_text(0, "Press a button to play a SFX!", 200, 220, WHITE);
     return 0;
 }
