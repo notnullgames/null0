@@ -1,25 +1,45 @@
+import std/[macros]
+
+macro null0*(t: typed): untyped =
+  if t.kind notin {nnkProcDef, nnkFuncDef}:
+    error("Can only export procedures", t)
+  let
+    newProc = copyNimTree(t)
+    codeGen = nnkExprColonExpr.newTree(ident"codegendecl", newLit"EMSCRIPTEN_KEEPALIVE $# $#$#")
+  if newProc[4].kind == nnkEmpty:
+    newProc[4] = nnkPragma.newTree(codeGen)
+  else:
+    newProc[4].add codeGen
+  newProc[4].add ident"exportC"
+  result = newStmtList()
+  result.add:
+    quote do:
+      {.emit: "/*INCLUDESECTION*/\n#include <emscripten.h>".}
+  result.add:
+    newProc
+
 type
-  Dimensions* {.bycopy.} = object
+  Dimensions* {.byref,packed.} = object
     width*: uint32
     height*: uint32
 
-  Vector* {.bycopy.} = object
+  Vector* {.byref,packed.} = object
     x*: cint
     y*: cint
 
-  Rectangle* {.bycopy.} = object
+  Rectangle* {.byref,packed.} = object
     x*: cint
     y*: cint
     width*: cint
     height*: cint
 
-  Color* {.bycopy.} = object
+  Color* {.byref,packed.} = object
     r*: uint8
     g*: uint8
     b*: uint8
     a*: uint8
 
-  SfxParams* {.bycopy.} = object
+  SfxParams* {.byref,packed.} = object
     randSeed*: uint32
     waveType*: cint
     attackTime*: cfloat
