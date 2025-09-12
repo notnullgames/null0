@@ -1,45 +1,53 @@
-import std/[macros]
+import macros
 
+# pragma macro for exporting a  callback function
 macro null0*(t: typed): untyped =
+  ## Macro equivalent to NULL0_EXPORT - exports procedure with clang attributes
   if t.kind notin {nnkProcDef, nnkFuncDef}:
     error("Can only export procedures", t)
+
   let
     newProc = copyNimTree(t)
-    codeGen = nnkExprColonExpr.newTree(ident"codegendecl", newLit"EMSCRIPTEN_KEEPALIVE $# $#$#")
+    procName = $t.name
+    exportcPragma = nnkExprColonExpr.newTree(ident"exportc", newLit(procName))
+    cdeclPragma = ident"cdecl"
+    codeGenPragma = nnkExprColonExpr.newTree(
+      ident"codegenDecl",
+      newLit("__attribute__((export_name(\"" & procName & "\"))) $# $#$#")
+    )
+
+  # Add pragmas to the procedure
   if newProc[4].kind == nnkEmpty:
-    newProc[4] = nnkPragma.newTree(codeGen)
+    newProc[4] = nnkPragma.newTree(exportcPragma, cdeclPragma, codeGenPragma)
   else:
-    newProc[4].add codeGen
-  newProc[4].add ident"exportC"
-  result = newStmtList()
-  result.add:
-    quote do:
-      {.emit: "/*INCLUDESECTION*/\n#include <emscripten.h>".}
-  result.add:
-    newProc
+    newProc[4].add exportcPragma
+    newProc[4].add cdeclPragma
+    newProc[4].add codeGenPragma
+
+  result = newProc
 
 type
-  Dimensions* {.byref,packed.} = object
+  Dimensions* {.byref, packed.} = object
     width*: uint32
     height*: uint32
 
-  Vector* {.byref,packed.} = object
+  Vector* {.byref, packed.} = object
     x*: cint
     y*: cint
 
-  Rectangle* {.byref,packed.} = object
+  Rectangle* {.byref, packed.} = object
     x*: cint
     y*: cint
     width*: cint
     height*: cint
 
-  Color* {.byref,packed.} = object
+  Color* {.byref, packed.} = object
     r*: uint8
     g*: uint8
     b*: uint8
     a*: uint8
 
-  SfxParams* {.byref,packed.} = object
+  SfxParams* {.byref, packed.} = object
     randSeed*: uint32
     waveType*: cint
     attackTime*: cfloat
@@ -229,12 +237,75 @@ type
     MOUSE_BUTTON_RIGHT = 2,
     MOUSE_BUTTON_MIDDLE = 3
 
+# Import functions from null0 module with proper C attributes
+
+# Graphics functions
+proc draw_circle*(centerX: cint, centerY: cint, radius: cint,
+    color: Color) {.importc: "draw_circle", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"draw_circle\"))) $# $#$#".}
+proc clear*(color: Color) {.importc: "clear", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"clear\"))) $# $#$#".}
+proc draw_point*(x: cint, y: cint, color: Color) {.importc: "draw_point", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"draw_point\"))) $# $#$#".}
+proc draw_line*(startPosX: cint, startPosY: cint, endPosX: cint, endPosY: cint,
+    color: Color) {.importc: "draw_line", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"draw_line\"))) $# $#$#".}
+proc draw_rectangle*(posX: cint, posY: cint, width: cint, height: cint,
+    color: Color) {.importc: "draw_rectangle", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"draw_rectangle\"))) $# $#$#".}
+proc draw_triangle*(x1: cint, y1: cint, x2: cint, y2: cint, x3: cint, y3: cint,
+    color: Color) {.importc: "draw_triangle", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"draw_triangle\"))) $# $#$#".}
+proc draw_ellipse*(centerX: cint, centerY: cint, radiusX: cint, radiusY: cint,
+    color: Color) {.importc: "draw_ellipse", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"draw_ellipse\"))) $# $#$#".}
+proc draw_text*(font: uint32, text: cstring, posX: cint, posY: cint,
+    color: Color) {.importc: "draw_text", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"draw_text\"))) $# $#$#".}
+
+# Utility functions
+proc current_time*(): uint64 {.importc: "current_time", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"current_time\"))) $# $#$#".}
+proc delta_time*(): cfloat {.importc: "delta_time", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"delta_time\"))) $# $#$#".}
+proc random_int*(min: cint, max: cint): cint {.importc: "random_int", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"random_int\"))) $# $#$#".}
+
+# Input functions
+proc key_pressed*(key: Key): bool {.importc: "key_pressed", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"key_pressed\"))) $# $#$#".}
+proc key_down*(key: Key): bool {.importc: "key_down", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"key_down\"))) $# $#$#".}
+proc key_released*(key: Key): bool {.importc: "key_released", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"key_released\"))) $# $#$#".}
+proc key_up*(key: Key): bool {.importc: "key_up", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"key_up\"))) $# $#$#".}
+
+# Image functions
+proc load_image*(filename: cstring): uint32 {.importc: "load_image", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"load_image\"))) $# $#$#".}
+proc unload_image*(image: uint32) {.importc: "unload_image", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"unload_image\"))) $# $#$#".}
+proc draw_image*(src: uint32, posX: cint, posY: cint) {.importc: "draw_image",
+    cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"draw_image\"))) $# $#$#".}
+
+# Sound functions
+proc load_sound*(filename: cstring): uint32 {.importc: "load_sound", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"load_sound\"))) $# $#$#".}
+proc play_sound*(sound: uint32, loop: bool) {.importc: "play_sound", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"play_sound\"))) $# $#$#".}
+proc stop_sound*(sound: uint32) {.importc: "stop_sound", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"stop_sound\"))) $# $#$#".}
+proc unload_sound*(sound: uint32) {.importc: "unload_sound", cdecl,
+    codegenDecl: "__attribute__((import_module(\"null0\"), import_name(\"unload_sound\"))) $# $#$#".}
+
 const
   SCREEN* = 0
   SCREEN_WIDTH* = 640
   SCREEN_HEIGHT* = 480
   FONT_DEFAULT* = 0
-  
+
   LIGHTGRAY* = Color(r: 200, g: 200, b: 200, a: 255)
   GRAY* = Color(r: 130, g: 130, b: 130, a: 255)
   DARKGRAY* = Color(r: 80, g: 80, b: 80, a: 255)
@@ -261,3 +332,4 @@ const
   BLANK* = Color(r: 0, g: 0, b: 0, a: 0)
   MAGENTA* = Color(r: 255, g: 0, b: 255, a: 255)
   RAYWHITE* = Color(r: 245, g: 245, b: 245, a: 255)
+

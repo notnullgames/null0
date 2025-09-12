@@ -83,6 +83,24 @@ function (BUILD_CART_JS name)
   add_dependencies(carts cart_js_${name})
 endfunction()
 
+function(BUILD_CART_NIM name)
+  set(CART_DIR "${CMAKE_CURRENT_SOURCE_DIR}/nim/${name}")
+  set(CART_TEMP "${CMAKE_CURRENT_BINARY_DIR}/${name}_nim_temp/")
+  add_custom_target(cart_nim_${name} ALL
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${CART_TEMP}"
+      COMMAND ${CMAKE_COMMAND} -E copy_directory "${CART_DIR}" "${CART_TEMP}"
+      COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/*.nim"
+      # COMMAND CC=${CMAKE_C_COMPILER} nim c --cc:env -d:release -d:wasi -d:useMalloc --cpu:wasm32 --os:any --passC:"-D_WASI_EMULATED_SIGNAL" --passL:"-lwasi-emulated-signal" --passL:"-Wl,--allow-undefined" -o:${CART_TEMP}/main.wasm --path:${CART_DIR}/../ --import:null0 ${CART_DIR}/main.nim
+      COMMAND CC=${CMAKE_C_COMPILER} nim c --threads:off --noMain --cc:env -d:release -d:wasi -d:useMalloc --cpu:wasm32 --os:any --passC:"-D_WASI_EMULATED_SIGNAL" --passL:"-lwasi-emulated-signal" --passL:"-Wl,--allow-undefined" -o:${CART_TEMP}/main.wasm ${CART_DIR}/main.nim
+      COMMAND ${CMAKE_COMMAND} -E chdir "${CART_TEMP}" ${CMAKE_COMMAND} -E tar "cf" "../${name}_nim.null0" --format=zip .
+      # COMMAND ${CMAKE_COMMAND} -E rm -rf "${CART_TEMP}"
+      COMMENT "Creating cart ${name}_nim.null0"
+      VERBATIM
+    )
+    add_dependencies(carts cart_nim_${name})
+endfunction()
+
+
 # this will build a Nelua cart, by name
 set(NELUA_CFLAGS "-I ${CMAKE_CURRENT_SOURCE_DIR}/c")
 function (BUILD_CART_NELUA name)
@@ -114,3 +132,4 @@ BUILD_CART_JS("input")
 
 BUILD_CART_NELUA("basic")
 BUILD_CART_NELUA("colorbars")
+BUILD_CART_NIM("simple")
