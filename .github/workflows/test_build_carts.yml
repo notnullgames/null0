@@ -37,3 +37,8 @@ jobs:
           sudo make install
       - name: Build Carts
         run: npm run build:carts
+      - name: Output Carts
+        uses: actions/upload-artifact@v4
+        with:
+          name: carts
+          path: build/carts/*.null0
