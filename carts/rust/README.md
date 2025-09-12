@@ -51,6 +51,8 @@ pub extern "C" fn unload() {
 
 ## Building for WebAssembly
 
+### Manual Building
+
 To compile your game to WebAssembly for null0:
 
 ```bash
@@ -63,69 +65,17 @@ cargo build --target wasm32-unknown-unknown --release
 # Your .wasm file will be in target/wasm32-unknown-unknown/release/
 ```
 
-## API Reference
+### CMake Integration
 
-The crate provides bindings for all null0 API functions:
+If you're using the null0 build system, you can add Rust carts to the main CMake build by adding them to `carts/CMakeLists.txt`:
 
-### Graphics
-
-- `clear(color)` - Clear the screen
-- `draw_point(x, y, color)` - Draw a pixel
-- `draw_line(x1, y1, x2, y2, color)` - Draw a line
-- `draw_rectangle(x, y, width, height, color)` - Draw a rectangle
-- `draw_circle(x, y, radius, color)` - Draw a circle
-- `draw_text(font, text, x, y, color)` - Draw text
-- And many more...
-
-### Input
-
-- `key_pressed(key)` - Check if key was just pressed
-- `key_down(key)` - Check if key is currently held
-- `key_released(key)` - Check if key was just released
-- `key_up(key)` - Check if key is not pressed
-
-### Audio
-
-- `load_sound(filename)` - Load a sound file
-- `play_sound(sound, loop)` - Play a sound
-- `stop_sound(sound)` - Stop a sound
-- `sfx_generate(preset)` - Generate sound effects
-
-### Utilities
-
-- `current_time()` - Get current time
-- `delta_time()` - Get delta time
-- `random_int(min, max)` - Generate random integer
-
-## String Handling
-
-Use the `cstr!` macro for string literals that need to be passed to null0 functions:
-
-```rust
-draw_text(FONT_DEFAULT, cstr!("Hello World!"), 10, 10, WHITE);
+```cmake
+BUILD_CART_RUST("my_game_name")
 ```
 
-## Types
+This will:
 
-The crate provides these main types:
-
-- `Color { r, g, b, a }` - RGBA color
-- `Vector { x, y }` - 2D position
-- `Rectangle { x, y, width, height }` - 2D rectangle
-- `Dimensions { width, height }` - 2D size
-
-## Constants
-
-Pre-defined colors are available:
-
-- `BLACK`, `WHITE`, `RED`, `GREEN`, `BLUE`
-- `YELLOW`, `CYAN`, `MAGENTA`, `ORANGE`
-- `PURPLE`, `BROWN`, `GRAY`, `LIGHTGRAY`, `DARKGRAY`
-- And more...
-
-Screen constants:
-
-- `SCREEN` - Screen image ID (0)
-- `SCREEN_WIDTH` - Screen width (640)
-- `SCREEN_HEIGHT` - Screen height (480)
-- `FONT_DEFAULT` - Default font ID (0)
+1. Build your Rust project with `cargo build --target wasm32-unknown-unknown --release`
+2. Copy the generated `.wasm` file as `main.wasm`
+3. Include any assets from your cart directory
+4. Package everything into a `.null0` cart file

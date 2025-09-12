@@ -41,6 +41,14 @@ const out = [
 
 #![no_std]
 
+use core::panic::PanicInfo;
+
+/// Panic handler required for no_std
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    loop {}
+}
+
 // Type definitions`
 ]
 
@@ -149,8 +157,9 @@ for (const [colorName, colorDef] of Object.entries(constants)) {
   }
 }
 
-// Generate extern "C" block for imported functions
-out.push('', 'extern "C" {')
+// Generate extern "C" block for imported functions with WASM import module
+out.push('', '#[link(wasm_import_module = "null0")]')
+out.push('extern "C" {')
 
 // Generate function declarations
 for (const [apiName, funcDef] of Object.entries(api)) {
@@ -207,7 +216,7 @@ impl Rectangle {
 out.push(`
 impl Dimensions {
     /// Create a new Dimensions
-    pub const fn new(width: u32, height: u32) -> Self {
+    pub const fn new(width: i32, height: i32) -> Self {
         Self { width, height }
     }
 }`)
@@ -231,7 +240,6 @@ macro_rules! cstr {
     };
 }
 
-/// Re-export everything for convenience
-pub use self::*;`)
+// Types are already public in this module, no need to re-export`)
 
 await writeFile('carts/rust/src/lib.rs', out.join('\n'))

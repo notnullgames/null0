@@ -32,6 +32,14 @@
 
 #![no_std]
 
+use core::panic::PanicInfo;
+
+/// Panic handler required for no_std
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    loop {}
+}
+
 // Type definitions
 
 /// Sfx parameters.
@@ -574,7 +582,7 @@ impl Rectangle {
 
 impl Dimensions {
     /// Create a new Dimensions
-    pub const fn new(width: u32, height: u32) -> Self {
+    pub const fn new(width: i32, height: i32) -> Self {
         Self { width, height }
     }
 }
@@ -596,5 +604,4 @@ macro_rules! cstr {
     };
 }
 
-/// Re-export everything for convenience
-pub use self::*;
+// Types are already public in this module, no need to re-export

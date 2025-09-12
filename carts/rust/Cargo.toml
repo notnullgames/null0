@@ -9,7 +9,7 @@ keywords = ["gamedev", "wasm", "fantasy-console"]
 categories = ["game-development", "wasm"]
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 

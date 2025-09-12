@@ -100,6 +100,34 @@ function(BUILD_CART_NIM name)
     add_dependencies(carts cart_nim_${name})
 endfunction()
 
+# this will build a Rust cart, by name
+function(BUILD_CART_RUST name)
+  set(CART_DIR "${CMAKE_CURRENT_SOURCE_DIR}/rust/examples/${name}")
+  set(CART_TEMP "${CMAKE_CURRENT_BINARY_DIR}/${name}_rust_temp/")
+  
+  # Check if the Rust project directory exists
+  if(NOT EXISTS "${CART_DIR}/Cargo.toml")
+    message(WARNING "Rust cart '${name}' not found at ${CART_DIR} - skipping")
+    return()
+  endif()
+  
+  add_custom_target(cart_rust_${name} ALL
+      COMMAND ${CMAKE_COMMAND} -E chdir "${CART_DIR}" cargo build --target wasm32-unknown-unknown --release
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${CART_TEMP}"
+      COMMAND ${CMAKE_COMMAND} -E copy "${CART_DIR}/target/wasm32-unknown-unknown/release/${name}.wasm" "${CART_TEMP}/main.wasm"
+      COMMAND ${CMAKE_COMMAND} -E copy_directory "${CART_DIR}" "${CART_TEMP}"
+      COMMAND ${CMAKE_COMMAND} -E remove_directory "${CART_TEMP}/src"
+      COMMAND ${CMAKE_COMMAND} -E remove_directory "${CART_TEMP}/target"
+      COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/Cargo.toml"
+      COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/Cargo.lock"
+      COMMAND ${CMAKE_COMMAND} -E chdir "${CART_TEMP}" ${CMAKE_COMMAND} -E tar "cf" "../${name}_rust.null0" --format=zip .
+      COMMAND ${CMAKE_COMMAND} -E rm -rf "${CART_TEMP}"
+      COMMENT "Creating cart ${name}_rust.null0"
+      VERBATIM
+    )
+    add_dependencies(carts cart_rust_${name})
+endfunction()
+
 
 # this will build a Nelua cart, by name
 set(NELUA_CFLAGS "-I ${CMAKE_CURRENT_SOURCE_DIR}/c")
@@ -133,3 +161,6 @@ BUILD_CART_JS("input")
 BUILD_CART_NELUA("basic")
 BUILD_CART_NELUA("colorbars")
 BUILD_CART_NIM("simple")
+
+BUILD_CART_RUST("simple")
+
