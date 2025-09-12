@@ -1,14 +1,14 @@
 import ../null0
 
-proc update*() {.null0.} =
+proc update*() {.wasm.} =
   clear(BLACK)
   draw_circle(100, 100, 50, RED)
 
 # you can use load and main, but main is required
-proc load*() {.null0.} =
+proc load*() {.wasm.} =
   echo "Hello from simple(load)."
 
-proc main*(argc: cint, argv: ptr cstring): cint {.null0.} =
+proc main*(argc: cint, argv: ptr cstring): cint {.wasm.} =
   echo "Hello from simple(main)."
   return 0
 

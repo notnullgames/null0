@@ -2,7 +2,7 @@ import macros
 
 # pragma macros for exporting/importing functions
 
-macro null0*(t: typed): untyped =
+macro wasm*(t: typed): untyped =
   ## Macro equivalent to NULL0_EXPORT - exports procedure with clang attributes
   if t.kind notin {nnkProcDef, nnkFuncDef}:
     error("Can only export procedures", t)
