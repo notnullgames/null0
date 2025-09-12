@@ -23,6 +23,8 @@ jobs:
         uses: iffy/install-nim@v4 # Use the appropriate version tag
         with:
           version: 'stable'
+      - name: Install rust
+        run: rustup target add wasm32-unknown-unknown
       - name: Install Nelua
         run: |
           # sudo apt-get update
