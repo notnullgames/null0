@@ -20,6 +20,7 @@ jobs:
         uses: konsumer/install-wasi-sdk@v1
         with:
           version: '25'
+      - run: sudo apt-get install libpthread-stubs0-dev
       - name: Build JS Cart
         run: npm run build:cart_js
       - name: Upload asset to release
