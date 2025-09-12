@@ -1,14 +1,15 @@
 import ../null0
 
-proc update*() {.wasm.} =
-  clear(BLACK)
-  draw_circle(100, 100, 50, RED)
-
 proc load*() {.wasm.} =
+  clear(BLUE)
+  draw_circle(100, 100, 50, RED)
   echo "Hello from simple(load)."
 
 
 # callbacks (optional - implement as needed)
+
+# proc update*() {.wasm.} =
+#   discard
 
 # proc unload*() {.wasm.} =
 #   discard
