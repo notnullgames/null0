@@ -113,7 +113,8 @@ This is a textual way to describe some possible options for an integer field.
 // Potential image-filtering techniques for scale/etc.
 enum ImageFilter {
   FILTER_NEARESTNEIGHBOR = 0,
-  FILTER_BILINEAR = 1
+  FILTER_BILINEAR = 1,
+  FILTER_SMOOTH = 2
 }
 
 // Represents a Sfx preset type.

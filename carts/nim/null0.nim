@@ -54,26 +54,6 @@ macro null0_import*(t: typed): untyped =
   result = newProc
 
 type
-  Dimensions* {.byref, packed.} = object
-    width*: uint32
-    height*: uint32
-
-  Vector* {.byref, packed.} = object
-    x*: cint
-    y*: cint
-
-  Rectangle* {.byref, packed.} = object
-    x*: cint
-    y*: cint
-    width*: cint
-    height*: cint
-
-  Color* {.byref, packed.} = object
-    r*: uint8
-    g*: uint8
-    b*: uint8
-    a*: uint8
-
   SfxParams* {.byref, packed.} = object
     randSeed*: uint32
     waveType*: cint
@@ -100,6 +80,31 @@ type
     hpfCutoff*: cfloat
     hpfCutoffSweep*: cfloat
 
+  Dimensions* {.byref, packed.} = object
+    width*: cint
+    height*: cint
+
+  Vector* {.byref, packed.} = object
+    x*: cint
+    y*: cint
+
+  Rectangle* {.byref, packed.} = object
+    x*: cint
+    y*: cint
+    width*: cint
+    height*: cint
+
+  Color* {.byref, packed.} = object
+    r*: uint8
+    g*: uint8
+    b*: uint8
+    a*: uint8
+
+  ImageFilter* = enum
+    FILTER_NEARESTNEIGHBOR = 0,
+    FILTER_BILINEAR = 1,
+    FILTER_SMOOTH = 2
+
   SfxPresetType* = enum
     SFX_COIN = 0,
     SFX_LASER = 1,
@@ -109,11 +114,6 @@ type
     SFX_JUMP = 5,
     SFX_SELECT = 6,
     SFX_SYNTH = 7
-
-  ImageFilter* = enum
-    FILTER_NEARESTNEIGHBOR = 0,
-    FILTER_BILINEAR = 1,
-    FILTER_SMOOTH = 2
 
   Key* = enum
     KEY_INVALID = 0,
@@ -266,43 +266,123 @@ type
 
 # Import functions from null0 module with proper C attributes
 
-# Graphics functions
-proc draw_circle*(centerX: cint, centerY: cint, radius: cint,
-    color: Color) {.null0_import.}
-proc clear*(color: Color) {.null0_import.}
-proc draw_point*(x: cint, y: cint, color: Color) {.null0_import.}
-proc draw_line*(startPosX: cint, startPosY: cint, endPosX: cint, endPosY: cint,
-    color: Color) {.null0_import.}
-proc draw_rectangle*(posX: cint, posY: cint, width: cint, height: cint,
-    color: Color) {.null0_import.}
-proc draw_triangle*(x1: cint, y1: cint, x2: cint, y2: cint, x3: cint, y3: cint,
-    color: Color) {.null0_import.}
-proc draw_ellipse*(centerX: cint, centerY: cint, radiusX: cint, radiusY: cint,
-    color: Color) {.null0_import.}
-proc draw_text*(font: uint32, text: cstring, posX: cint, posY: cint,
-    color: Color) {.null0_import.}
-
-# Utility functions
+# Utilities functions
 proc current_time*(): uint64 {.null0_import.}
 proc delta_time*(): cfloat {.null0_import.}
 proc random_int*(min: cint, max: cint): cint {.null0_import.}
+proc random_seed_get*(): uint64 {.null0_import.}
+proc random_seed_set*(seed: uint64) {.null0_import.}
 
-# Input functions
-proc key_pressed*(key: Key): bool {.null0_import.}
-proc key_down*(key: Key): bool {.null0_import.}
-proc key_released*(key: Key): bool {.null0_import.}
-proc key_up*(key: Key): bool {.null0_import.}
-
-# Image functions
-proc load_image*(filename: cstring): uint32 {.null0_import.}
-proc unload_image*(image: uint32) {.null0_import.}
-proc draw_image*(src: uint32, posX: cint, posY: cint) {.null0_import.}
+# Types functions
 
 # Sound functions
 proc load_sound*(filename: cstring): uint32 {.null0_import.}
 proc play_sound*(sound: uint32, loop: bool) {.null0_import.}
 proc stop_sound*(sound: uint32) {.null0_import.}
 proc unload_sound*(sound: uint32) {.null0_import.}
+proc tts_sound*(text: cstring, phonetic: bool, pitch: cint, speed: cint, throat: cint, mouth: cint, sing: bool): uint32 {.null0_import.}
+proc sfx_sound*(params: SfxParams): uint32 {.null0_import.}
+proc sfx_generate*(`type`: SfxPresetType): SfxParams {.null0_import.}
+
+# Input functions
+proc key_pressed*(key: Key): bool {.null0_import.}
+proc key_down*(key: Key): bool {.null0_import.}
+proc key_released*(key: Key): bool {.null0_import.}
+proc key_up*(key: Key): bool {.null0_import.}
+proc gamepad_button_pressed*(gamepad: cint, button: GamepadButton): bool {.null0_import.}
+proc gamepad_button_down*(gamepad: cint, button: GamepadButton): bool {.null0_import.}
+proc gamepad_button_released*(gamepad: cint, button: GamepadButton): bool {.null0_import.}
+proc mouse_position*(): Vector {.null0_import.}
+proc mouse_button_pressed*(button: MouseButton): bool {.null0_import.}
+proc mouse_button_down*(button: MouseButton): bool {.null0_import.}
+proc mouse_button_released*(button: MouseButton): bool {.null0_import.}
+proc mouse_button_up*(button: MouseButton): bool {.null0_import.}
+
+# Graphics functions
+proc new_image*(width: cint, height: cint, color: Color): uint32 {.null0_import.}
+proc image_copy*(image: uint32): uint32 {.null0_import.}
+proc image_subimage*(image: uint32, x: cint, y: cint, width: cint, height: cint): uint32 {.null0_import.}
+proc clear*(color: Color) {.null0_import.}
+proc draw_point*(x: cint, y: cint, color: Color) {.null0_import.}
+proc draw_line*(startPosX: cint, startPosY: cint, endPosX: cint, endPosY: cint, color: Color) {.null0_import.}
+proc draw_rectangle*(posX: cint, posY: cint, width: cint, height: cint, color: Color) {.null0_import.}
+proc draw_triangle*(x1: cint, y1: cint, x2: cint, y2: cint, x3: cint, y3: cint, color: Color) {.null0_import.}
+proc draw_ellipse*(centerX: cint, centerY: cint, radiusX: cint, radiusY: cint, color: Color) {.null0_import.}
+proc draw_circle*(centerX: cint, centerY: cint, radius: cint, color: Color) {.null0_import.}
+proc draw_polygon*(points: ptr Vector, numPoints: cint, color: Color) {.null0_import.}
+proc draw_arc*(centerX: cint, centerY: cint, radius: cfloat, startAngle: cfloat, endAngle: cfloat, segments: cint, color: Color) {.null0_import.}
+proc draw_rectangle_rounded*(x: cint, y: cint, width: cint, height: cint, cornerRadius: cint, color: Color) {.null0_import.}
+proc draw_image*(src: uint32, posX: cint, posY: cint) {.null0_import.}
+proc draw_image_tint*(src: uint32, posX: cint, posY: cint, tint: Color) {.null0_import.}
+proc draw_image_rotated*(src: uint32, posX: cint, posY: cint, degrees: cfloat, offsetX: cfloat, offsetY: cfloat, filter: ImageFilter) {.null0_import.}
+proc draw_image_flipped*(src: uint32, posX: cint, posY: cint, flipHorizontal: bool, flipVertical: bool, flipDiagonal: bool) {.null0_import.}
+proc draw_image_scaled*(src: uint32, posX: cint, posY: cint, scaleX: cfloat, scaleY: cfloat, offsetX: cfloat, offsetY: cfloat, filter: ImageFilter) {.null0_import.}
+proc draw_text*(font: uint32, text: cstring, posX: cint, posY: cint, color: Color) {.null0_import.}
+proc save_image*(image: uint32, filename: cstring) {.null0_import.}
+proc load_image*(filename: cstring): uint32 {.null0_import.}
+proc image_resize*(image: uint32, newWidth: cint, newHeight: cint, filter: ImageFilter): uint32 {.null0_import.}
+proc image_scale*(image: uint32, scaleX: cfloat, scaleY: cfloat, filter: ImageFilter): uint32 {.null0_import.}
+proc image_color_replace*(image: uint32, color: Color, replace: Color) {.null0_import.}
+proc image_color_tint*(image: uint32, color: Color) {.null0_import.}
+proc image_color_fade*(image: uint32, alpha: cfloat) {.null0_import.}
+proc font_copy*(font: uint32): uint32 {.null0_import.}
+proc font_scale*(font: uint32, scaleX: cfloat, scaleY: cfloat, filter: ImageFilter): uint32 {.null0_import.}
+proc load_font_bmf*(filename: cstring, characters: cstring): uint32 {.null0_import.}
+proc load_font_bmf_from_image*(image: uint32, characters: cstring): uint32 {.null0_import.}
+proc measure_text*(font: uint32, text: cstring, textLength: cint): Dimensions {.null0_import.}
+proc measure_image*(image: uint32): Dimensions {.null0_import.}
+proc load_font_tty*(filename: cstring, glyphWidth: cint, glyphHeight: cint, characters: cstring): uint32 {.null0_import.}
+proc load_font_tty_from_image*(image: uint32, glyphWidth: cint, glyphHeight: cint, characters: cstring): uint32 {.null0_import.}
+proc load_font_ttf*(filename: cstring, fontSize: cint): uint32 {.null0_import.}
+proc image_color_invert*(image: uint32) {.null0_import.}
+proc image_alpha_border*(image: uint32, threshold: cfloat): Rectangle {.null0_import.}
+proc image_crop*(image: uint32, x: cint, y: cint, width: cint, height: cint) {.null0_import.}
+proc image_alpha_crop*(image: uint32, threshold: cfloat) {.null0_import.}
+proc image_color_brightness*(image: uint32, factor: cfloat) {.null0_import.}
+proc image_flip*(image: uint32, horizontal: bool, vertical: bool) {.null0_import.}
+proc image_color_contrast*(image: uint32, contrast: cfloat) {.null0_import.}
+proc image_alpha_mask*(image: uint32, alphaMask: uint32, posX: cint, posY: cint) {.null0_import.}
+proc image_rotate*(image: uint32, degrees: cfloat, filter: ImageFilter): uint32 {.null0_import.}
+proc image_gradient*(width: cint, height: cint, topLeft: Color, topRight: Color, bottomLeft: Color, bottomRight: Color): uint32 {.null0_import.}
+proc unload_image*(image: uint32) {.null0_import.}
+proc unload_font*(font: uint32) {.null0_import.}
+proc clear_image*(destination: uint32, color: Color) {.null0_import.}
+proc draw_point_on_image*(destination: uint32, x: cint, y: cint, color: Color) {.null0_import.}
+proc draw_line_on_image*(destination: uint32, startPosX: cint, startPosY: cint, endPosX: cint, endPosY: cint, color: Color) {.null0_import.}
+proc draw_rectangle_on_image*(destination: uint32, posX: cint, posY: cint, width: cint, height: cint, color: Color) {.null0_import.}
+proc draw_triangle_on_image*(destination: uint32, x1: cint, y1: cint, x2: cint, y2: cint, x3: cint, y3: cint, color: Color) {.null0_import.}
+proc draw_ellipse_on_image*(destination: uint32, centerX: cint, centerY: cint, radiusX: cint, radiusY: cint, color: Color) {.null0_import.}
+proc draw_circle_on_image*(destination: uint32, centerX: cint, centerY: cint, radius: cint, color: Color) {.null0_import.}
+proc draw_polygon_on_image*(destination: uint32, points: ptr Vector, numPoints: cint, color: Color) {.null0_import.}
+proc draw_rectangle_rounded_on_image*(destination: uint32, x: cint, y: cint, width: cint, height: cint, cornerRadius: cint, color: Color) {.null0_import.}
+proc draw_image_on_image*(destination: uint32, src: uint32, posX: cint, posY: cint) {.null0_import.}
+proc draw_image_tint_on_image*(destination: uint32, src: uint32, posX: cint, posY: cint, tint: Color) {.null0_import.}
+proc draw_image_rotated_on_image*(destination: uint32, src: uint32, posX: cint, posY: cint, degrees: cfloat, offsetX: cfloat, offsetY: cfloat, filter: ImageFilter) {.null0_import.}
+proc draw_image_flipped_on_image*(destination: uint32, src: uint32, posX: cint, posY: cint, flipHorizontal: bool, flipVertical: bool, flipDiagonal: bool) {.null0_import.}
+proc draw_image_scaled_on_image*(destination: uint32, src: uint32, posX: cint, posY: cint, scaleX: cfloat, scaleY: cfloat, offsetX: cfloat, offsetY: cfloat, filter: ImageFilter) {.null0_import.}
+proc draw_text_on_image*(destination: uint32, font: uint32, text: cstring, posX: cint, posY: cint, color: Color) {.null0_import.}
+proc draw_rectangle_outline*(posX: cint, posY: cint, width: cint, height: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_triangle_outline*(x1: cint, y1: cint, x2: cint, y2: cint, x3: cint, y3: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_ellipse_outline*(centerX: cint, centerY: cint, radiusX: cint, radiusY: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_circle_outline*(centerX: cint, centerY: cint, radius: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_polygon_outline*(points: ptr Vector, numPoints: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_arc_outline*(centerX: cint, centerY: cint, radius: cfloat, startAngle: cfloat, endAngle: cfloat, segments: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_rectangle_rounded_outline*(x: cint, y: cint, width: cint, height: cint, cornerRadius: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_rectangle_outline_on_image*(destination: uint32, posX: cint, posY: cint, width: cint, height: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_triangle_outline_on_image*(destination: uint32, x1: cint, y1: cint, x2: cint, y2: cint, x3: cint, y3: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_ellipse_outline_on_image*(destination: uint32, centerX: cint, centerY: cint, radiusX: cint, radiusY: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_circle_outline_on_image*(destination: uint32, centerX: cint, centerY: cint, radius: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_polygon_outline_on_image*(destination: uint32, points: ptr Vector, numPoints: cint, thickness: cint, color: Color) {.null0_import.}
+proc draw_rectangle_rounded_outline_on_image*(destination: uint32, x: cint, y: cint, width: cint, height: cint, cornerRadius: cint, thickness: cint, color: Color) {.null0_import.}
+
+# Colors functions
+proc color_tint*(color: Color, tint: Color): Color {.null0_import.}
+proc color_fade*(color: Color, alpha: cfloat): Color {.null0_import.}
+proc color_brightness*(color: Color, factor: cfloat): Color {.null0_import.}
+proc color_invert*(color: Color): Color {.null0_import.}
+proc color_alpha_blend*(dst: Color, src: Color): Color {.null0_import.}
+proc color_contrast*(color: Color, contrast: cfloat): Color {.null0_import.}
+proc color_bilinear_interpolate*(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: cfloat, coordinateY: cfloat): Color {.null0_import.}
 
 # this removes errors about nop main
 proc main*(argc: cint, argv: ptr cstring): cint {.wasm.} =
@@ -340,4 +420,3 @@ const
   BLANK* = Color(r: 0, g: 0, b: 0, a: 0)
   MAGENTA* = Color(r: 255, g: 0, b: 255, a: 255)
   RAYWHITE* = Color(r: 245, g: 245, b: 245, a: 255)
-

@@ -203,6 +203,7 @@ ImageFilter:
   enums:
     FILTER_NEARESTNEIGHBOR: 0
     FILTER_BILINEAR: 1
+    FILTER_SMOOTH: 2
 
 SfxPresetType:
   description: Represents a Sfx preset type.
