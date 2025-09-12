@@ -1,0 +1,23 @@
+[package]
+name = "null0"
+version = "0.1.0"
+edition = "2021"
+description = "Rust bindings for the null0 fantasy console API"
+license = "MIT"
+repository = "https://github.com/null0-games/null0"
+keywords = ["gamedev", "wasm", "fantasy-console"]
+categories = ["game-development", "wasm"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+panic = "abort"
