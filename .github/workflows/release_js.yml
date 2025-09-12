@@ -1,4 +1,4 @@
-name: Carts Test Build
+name: JS WASM
 
 on:
   release:
