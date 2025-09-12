@@ -149,36 +149,9 @@ endfunction()
 
 # this will build an AssemblyScript cart, by name
 function(BUILD_CART_AS name)
-  set(CART_DIR "${CMAKE_CURRENT_SOURCE_DIR}/as/${name}")
-  set(CART_TEMP "${CMAKE_CURRENT_BINARY_DIR}/${name}_as_temp/")
-  
-  # Check if the AssemblyScript project directory exists
-  if(NOT EXISTS "${CART_DIR}/main.ts")
-    message(WARNING "AssemblyScript cart '${name}' not found at ${CART_DIR} - skipping")
-    return()
-  endif()
-  
   add_custom_target(cart_as_${name} ALL
       # Build the AssemblyScript project first
-      COMMAND ${CMAKE_COMMAND} -E chdir "${CART_DIR}" npx asc main.ts --target release --exportRuntime --bindings esm --use abort= -o main.wasm
-      
-      # Create temp directory
-      COMMAND ${CMAKE_COMMAND} -E make_directory "${CART_TEMP}"
-      
-      # Copy the compiled WASM file as main.wasm
-      COMMAND ${CMAKE_COMMAND} -E copy "${CART_DIR}/main.wasm" "${CART_TEMP}/main.wasm"
-      
-      # Copy any non-source files (assets, etc.)
-      COMMAND ${CMAKE_COMMAND} -E copy_directory "${CART_DIR}" "${CART_TEMP}"
-      COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/*.ts"
-      COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/package.json"
-      COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/asconfig.json"
-      COMMAND ${CMAKE_COMMAND} -E rm -f "${CART_TEMP}/build.sh"
-      
-      # Create the cart package
-      COMMAND ${CMAKE_COMMAND} -E chdir "${CART_TEMP}" ${CMAKE_COMMAND} -E tar "cf" "../${name}_as.null0" --format=zip .
-      COMMAND ${CMAKE_COMMAND} -E rm -rf "${CART_TEMP}"
-      
+      COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}/as/" ./build.sh ${name}
       COMMENT "Creating cart ${name}_as.null0"
       VERBATIM
     )
@@ -200,7 +173,5 @@ BUILD_CART_NELUA("basic")
 BUILD_CART_NELUA("colorbars")
 BUILD_CART_NIM("simple")
 
-BUILD_CART_RUST("simple")
-
 BUILD_CART_AS("simple")
-
+BUILD_CART_RUST("simple")
