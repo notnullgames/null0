@@ -34,5 +34,11 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 include(FetchContent)
 # set(FETCHCONTENT_QUIET OFF)
 
+set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+set(CMAKE_HAVE_THREADS_LIBRARY 1)
+set(CMAKE_USE_WIN32_THREADS_INIT 0)
+set(CMAKE_USE_PTHREADS_INIT 1)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+
 add_subdirectory(host)
 add_subdirectory(carts)
