@@ -19,6 +19,8 @@ jobs:
         uses: konsumer/install-wasi-sdk@v1
         with:
           version: '25'
+      - name: Install Assemblyscript
+        run: sudo npm i -g assemblyscript
       - name: Install Nim
         uses: iffy/install-nim@v4 # Use the appropriate version tag
         with:
