@@ -304,6 +304,10 @@ proc play_sound*(sound: uint32, loop: bool) {.null0_import.}
 proc stop_sound*(sound: uint32) {.null0_import.}
 proc unload_sound*(sound: uint32) {.null0_import.}
 
+# this removes errors about nop main
+proc main*(argc: cint, argv: ptr cstring): cint {.wasm.} =
+  return 0
+
 const
   SCREEN* = 0
   SCREEN_WIDTH* = 640
