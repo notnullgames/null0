@@ -27,7 +27,5 @@ jobs:
           cd nelua-lang
           make
           sudo make install
-      - name: Configure Carts
-        run: cmake -B build_cart -DCMAKE_BUILD_TYPE=Release carts/ -DCMAKE_TOOLCHAIN_FILE=$WASI_SDK_PATH/share/cmake/wasi-sdk.cmake
       - name: Build Carts
-        run: cmake --build build_cart
+        run: npm run build:carts
