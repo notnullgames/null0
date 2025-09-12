@@ -14,26 +14,26 @@ proc main*(argc: cint, argv: ptr cstring): cint {.wasm.} =
 
 # callbacks (optional - implement as needed)
 
-# proc unload*() {.null0Export: "unload".} =
+# proc unload*() {.wasm.} =
 #   discard
 
-# proc buttonUp*(button: GamepadButton, player: cuint) {.null0Export: "buttonUp".} =
+# proc buttonUp*(button: GamepadButton, player: cuint) {.wasm.} =
 #   discard
 
-# proc buttonDown*(button: GamepadButton, player: cuint) {.null0Export: "buttonDown".} =
+# proc buttonDown*(button: GamepadButton, player: cuint) {.wasm.} =
 #   discard
 
-# proc keyUp*(key: Key) {.null0Export: "keyUp".} =
+# proc keyUp*(key: Key) {.wasm.} =
 #   discard
 
-# proc keyDown*(key: Key) {.null0Export: "keyDown".} =
+# proc keyDown*(key: Key) {.wasm.} =
 #   discard
 
-# proc mouseDown*(button: cuint) {.null0Export: "mouseDown".} =
+# proc mouseDown*(button: cuint) {.wasm.} =
 #   discard
 
-# proc mouseUp*(button: cuint) {.null0Export: "mouseUp".} =
+# proc mouseUp*(button: cuint) {.wasm.} =
 #   discard
 
-# proc mouseMoved*(x: cfloat, y: cfloat) {.null0Export: "mouseMoved".} =
+# proc mouseMoved*(x: cfloat, y: cfloat) {.wasm.} =
 #   discard
