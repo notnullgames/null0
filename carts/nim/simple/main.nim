@@ -4,6 +4,10 @@ proc update*() {.null0.} =
   clear(BLACK)
   draw_circle(100, 100, 50, RED)
 
+# you can use load and main, but main is required
+proc load*() {.null0.} =
+  echo "Hello from simple(load)."
+
 proc main*(argc: cint, argv: ptr cstring): cint {.null0.} =
   echo "Hello from simple(main)."
   return 0
