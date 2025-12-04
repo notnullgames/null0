@@ -48,10 +48,10 @@ copy /b build/host/null0.exe+build/carts/input_c.null0 tester.exe
 
 ## todo/ideas
 
-- [ui](https://github.com/rxi/microui)
-- tiled map/sprite support
-- physics
-- share wasm interpretors: all js carts should not have to include quickjs, for example
+- [ ] [ui](https://github.com/rxi/microui)
+- [ ] tiled map/sprite support
+- [ ] physics
+- [ ] share wasm interpretors: all js carts should not have to include quickjs, for example
 
 ### languages
 
