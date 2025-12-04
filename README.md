@@ -55,7 +55,7 @@ copy /b build/host/null0.exe+build/carts/input_c.null0 tester.exe
 
 ### languages
 
-I'd like to support a lot of cart-languages:
+I'd like to support a lot of cart-languages. For these to be considered "complete", they should have a header that exposes all the functions/types in an ergonomic format, at least 1 example, and maybe a template-project.
 
 **compiled**
 
@@ -88,6 +88,7 @@ I'd like to support a lot of cart-languages:
 - [ ] [wren](https://wren.io)
 - [ ] [lisp](https://github.com/janet-lang/janet)
 - [ ] [cyber](https://github.com/fubark/cyber)
+- [ ] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
 
 **config graph**
 
