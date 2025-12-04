@@ -57,7 +57,7 @@ copy /b build/host/null0.exe+build/carts/input_c.null0 tester.exe
 
 I'd like to support a lot of cart-languages:
 
-*compiled*
+**compiled**
 
 - [X] C
 - [X] assemblyscript
@@ -80,7 +80,7 @@ I'd like to support a lot of cart-languages:
 - [ ] [julia](https://github.com/tshort/WebAssemblyCompiler.jl)
 - [ ] Haskell
 
-*interpreted*
+**interpreted**
 
 - [X] javascript
 - [ ] python
@@ -89,18 +89,13 @@ I'd like to support a lot of cart-languages:
 - [ ] [lisp](https://github.com/janet-lang/janet)
 - [ ] [cyber](https://github.com/fubark/cyber)
 
+**config graph**
 
+These can sort of define functions, as a kind of graph.
 
-
-
-
-
-
-
-
-
-
-
+- [ ] [KDL](https://kdl.dev/)
+- [ ] YAML
+- [ ] JSON
 
 
 ## thanks
