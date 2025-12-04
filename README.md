@@ -79,6 +79,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [ ] R
 - [ ] [julia](https://github.com/tshort/WebAssemblyCompiler.jl)
 - [ ] Haskell
+- [ ] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
 
 **interpreted**
 
@@ -88,7 +89,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [ ] [wren](https://wren.io)
 - [ ] [lisp](https://github.com/janet-lang/janet)
 - [ ] [cyber](https://github.com/fubark/cyber)
-- [ ] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
+
 
 **config graph**
 
