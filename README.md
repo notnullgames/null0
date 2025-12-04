@@ -65,7 +65,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [X] rust
 - [X] nim
 - [ ] python
-- [ ] go
+- [ ] [go](https://tinygo.org/)
 - [ ] zig
 - [ ] [walt](https://github.com/ballercat/walt)
 - [ ] [COBOL](https://github.com/cloudflare/cobweb)
