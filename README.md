@@ -64,9 +64,9 @@ I'd like to support a lot of cart-languages:
 - [X] nelua
 - [X] rust
 - [X] nim
+- [ ] python
 - [ ] go
 - [ ] zig
-- [ ] python
 - [ ] [walt](https://github.com/ballercat/walt)
 - [ ] [COBOL](https://github.com/cloudflare/cobweb)
 - [ ] [onyx](https://onyxlang.io)
@@ -78,11 +78,11 @@ I'd like to support a lot of cart-languages:
 - [ ] [D](https://github.com/ldc-developers/ldc)
 - [ ] R
 - [ ] [julia](https://github.com/tshort/WebAssemblyCompiler.jl)
+- [ ] Haskell
 
 *interpreted*
 
 - [X] javascript
-- [ ] Haskell
 - [ ] python
 - [ ] lua
 - [ ] [wren](https://wren.io)
