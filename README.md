@@ -51,7 +51,57 @@ copy /b build/host/null0.exe+build/carts/input_c.null0 tester.exe
 - [ui](https://github.com/rxi/microui)
 - tiled map/sprite support
 - physics
-- there is a lot of hardcoded enums/types in codegen. Use types.yml instead
+- share wasm interpretors: all js carts should not have to include quickjs, for example
+
+### languages
+
+I'd like to support a lot of cart-languages:
+
+*compiled*
+
+- [X] C
+- [X] assemblyscript
+- [X] nelua
+- [X] rust
+- [X] nim
+- [ ] go
+- [ ] zig
+- [ ] python
+- [ ] [walt](https://github.com/ballercat/walt)
+- [ ] [COBOL](https://github.com/cloudflare/cobweb)
+- [ ] [onyx](https://onyxlang.io)
+- [ ] [grain](https://grain-lang.org/)
+- [ ] [never](https://github.com/never-lang/never)
+- [ ] [lisp](https://github.com/mbrock/wisp)
+- [ ] Kotlin
+- [ ] dart
+- [ ] [D](https://github.com/ldc-developers/ldc)
+- [ ] R
+- [ ] [julia](https://github.com/tshort/WebAssemblyCompiler.jl)
+
+*interpreted*
+
+- [X] javascript
+- [ ] Haskell
+- [ ] python
+- [ ] lua
+- [ ] [wren](https://wren.io)
+- [ ] [lisp](https://github.com/janet-lang/janet)
+- [ ] [cyber](https://github.com/fubark/cyber)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## thanks
 
