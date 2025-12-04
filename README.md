@@ -92,7 +92,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 
 **config graph**
 
-These can sort of define functions, as a kind of graph.
+These can sort of define functions, as a kind of graph. Think of it as an interpretor.
 
 - [ ] [KDL](https://kdl.dev/)
 - [ ] YAML
