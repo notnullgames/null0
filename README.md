@@ -80,6 +80,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [ ] [julia](https://github.com/tshort/WebAssemblyCompiler.jl)
 - [ ] Haskell
 - [ ] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
+- [ ] Ada
 
 **interpreted**
 
