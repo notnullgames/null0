@@ -82,6 +82,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [ ] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
 - [ ] Ada
 - [ ] [spaceship/orbit](https://github.com/SIE-Libraries/orbit)
+- [ ] [Zen-C](https://github.com/z-libs/Zen-C)
 
 **interpreted**
 
