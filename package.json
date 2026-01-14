@@ -1,6 +1,6 @@
 {
   "name": "null0",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "private": true,
   "scripts": {
@@ -8,7 +8,6 @@
     "host:native": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build",
     "host:web": "emcmake cmake -G Ninja -B wbuild -DCMAKE_BUILD_TYPE=Release && cmake --build wbuild --target host",
     "host": "npm-run-all --parallel 'host:*'",
-
     "cart:colorbars_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-c colorbars_c",
     "cart:example_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/example:/src -v ./build/carts:/out konsumer/null0-cart-c example_c",
     "cart:gradient_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/gradient:/src -v ./build/carts:/out konsumer/null0-cart-c gradient_c",
@@ -20,7 +19,6 @@
     "cart:demo_js": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/js/demo:/src -v ./build/carts:/out konsumer/null0-cart-quickjs demo_js",
     "cart:input_js": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/js/input:/src -v ./build/carts:/out konsumer/null0-cart-quickjs input_js",
     "carts": "npm-run-all --parallel 'cart:*' && cd build/carts && ls *.null0 > list.txt",
-
     "docker_setup": "docker buildx create --name multiarch --driver docker-container --bootstrap && docker buildx use multiarch && docker run --privileged --rm tonistiigi/binfmt --install all",
     "docker:cart_c": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-c . -f tools/docker/null0-cart-c.Dockerfile",
     "docker:cart_assemblyscript": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-assemblyscript . -f tools/docker/null0-cart-assemblyscript.Dockerfile",
@@ -28,10 +26,8 @@
     "docker:cart_nim": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-nim . -f tools/docker/null0-cart-nim.Dockerfile",
     "docker:cart_quickjs": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-quickjs . -f tools/docker/null0-cart-quickjs.Dockerfile",
     "docker": "npm-run-all --serial 'docker:*'",
-
     "start": "live-server --mount=/carts:./build/carts --mount=/null0.mjs:./wbuild/host/null0.mjs --mount=/carts:./build/carts webroot",
     "prestart": "npm-run-all --parallel host:web carts",
-    
     "gen:host": "node tools/gen_host.js",
     "gen:cart_c": "node tools/gen_cart_c.js",
     "gen:cart_js": "node tools/gen_cart_js.js",
