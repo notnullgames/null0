@@ -1,13 +1,6 @@
 on:
-  push:
-    branches:
-      - main
-    tags-ignore:
-      - '**'  # don't build main if it's tagged
-  push:
-    tags:
-      - '**'  # build on tags, seperately
- 
+  push
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
