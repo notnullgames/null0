@@ -326,62 +326,23 @@ pub const BLANK: Color = Color { r: 0, g: 0, b: 0, a: 0 };
 pub const MAGENTA: Color = Color { r: 255, g: 0, b: 255, a: 255 };
 pub const RAYWHITE: Color = Color { r: 245, g: 245, b: 245, a: 255 };
 
+#[link(wasm_import_module = "null0")]
 extern "C" {
-    // Utilities functions
-    /// Get system-time (ms) since unix epoch.
-    pub fn current_time() -> u64;
-    /// Get the change in time (seconds) since the last update run.
-    pub fn delta_time() -> f32;
-    /// Get a random integer between 2 numbers.
-    pub fn random_int(min: i32, max: i32) -> i32;
-    /// Get the random-seed.
-    pub fn random_seed_get() -> u64;
-    /// Set the random-seed.
-    pub fn random_seed_set(seed: u64);
-
-    // Types functions
-
-    // Sound functions
-    /// Load a sound from a file in cart.
-    pub fn load_sound(filename: *const u8) -> u32;
-    /// Play a sound.
-    pub fn play_sound(sound: u32, r#loop: bool);
-    /// Stop a sound.
-    pub fn stop_sound(sound: u32);
-    /// Unload a sound.
-    pub fn unload_sound(sound: u32);
-    /// Speak some text and return a sound. Set things to 0 for defaults.
-    pub fn tts_sound(text: *const u8, phonetic: bool, pitch: i32, speed: i32, throat: i32, mouth: i32, sing: bool) -> u32;
-    /// Create Sfx sound.
-    pub fn sfx_sound(params: SfxParams) -> u32;
-    /// Create Sfx parameters.
-    pub fn sfx_generate(r#type: SfxPresetType) -> SfxParams;
-
-    // Input functions
-    /// Has the key been pressed? (tracks unpress/read correctly.)
-    pub fn key_pressed(key: Key) -> bool;
-    /// Is the key currently down?
-    pub fn key_down(key: Key) -> bool;
-    /// Has the key been released? (tracks press/read correctly.)
-    pub fn key_released(key: Key) -> bool;
-    /// Is the key currently up?
-    pub fn key_up(key: Key) -> bool;
-    /// Has the button been pressed? (tracks unpress/read correctly.)
-    pub fn gamepad_button_pressed(gamepad: i32, button: GamepadButton) -> bool;
-    /// Is the button currently down?
-    pub fn gamepad_button_down(gamepad: i32, button: GamepadButton) -> bool;
-    /// Has the button been released? (tracks press/read correctly.)
-    pub fn gamepad_button_released(gamepad: i32, button: GamepadButton) -> bool;
-    /// Get current position of mouse.
-    pub fn mouse_position() -> Vector;
-    /// Has the button been pressed? (tracks unpress/read correctly.)
-    pub fn mouse_button_pressed(button: MouseButton) -> bool;
-    /// Is the button currently down?
-    pub fn mouse_button_down(button: MouseButton) -> bool;
-    /// Has the button been released? (tracks press/read correctly.)
-    pub fn mouse_button_released(button: MouseButton) -> bool;
-    /// Is the button currently up?
-    pub fn mouse_button_up(button: MouseButton) -> bool;
+    // Colors functions
+    /// Tint a color with another color.
+    pub fn color_tint(color: Color, tint: Color) -> Color;
+    /// Fade a color.
+    pub fn color_fade(color: Color, alpha: f32) -> Color;
+    /// Change the brightness of a color.
+    pub fn color_brightness(color: Color, factor: f32) -> Color;
+    /// Invert a color.
+    pub fn color_invert(color: Color) -> Color;
+    /// Blend 2 colors together.
+    pub fn color_alpha_blend(dst: Color, src: Color) -> Color;
+    /// Change contrast of a color.
+    pub fn color_contrast(color: Color, contrast: f32) -> Color;
+    /// Interpolate colors.
+    pub fn color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32) -> Color;
 
     // Graphics functions
     /// Create a new blank image.
@@ -535,21 +496,61 @@ extern "C" {
     /// Draw a outlined (with thickness) round-rectangle on an image.
     pub fn draw_rectangle_rounded_outline_on_image(destination: u32, x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, thickness: i32, color: Color);
 
-    // Colors functions
-    /// Tint a color with another color.
-    pub fn color_tint(color: Color, tint: Color) -> Color;
-    /// Fade a color.
-    pub fn color_fade(color: Color, alpha: f32) -> Color;
-    /// Change the brightness of a color.
-    pub fn color_brightness(color: Color, factor: f32) -> Color;
-    /// Invert a color.
-    pub fn color_invert(color: Color) -> Color;
-    /// Blend 2 colors together.
-    pub fn color_alpha_blend(dst: Color, src: Color) -> Color;
-    /// Change contrast of a color.
-    pub fn color_contrast(color: Color, contrast: f32) -> Color;
-    /// Interpolate colors.
-    pub fn color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32) -> Color;
+    // Input functions
+    /// Has the key been pressed? (tracks unpress/read correctly.)
+    pub fn key_pressed(key: Key) -> bool;
+    /// Is the key currently down?
+    pub fn key_down(key: Key) -> bool;
+    /// Has the key been released? (tracks press/read correctly.)
+    pub fn key_released(key: Key) -> bool;
+    /// Is the key currently up?
+    pub fn key_up(key: Key) -> bool;
+    /// Has the button been pressed? (tracks unpress/read correctly.)
+    pub fn gamepad_button_pressed(gamepad: i32, button: GamepadButton) -> bool;
+    /// Is the button currently down?
+    pub fn gamepad_button_down(gamepad: i32, button: GamepadButton) -> bool;
+    /// Has the button been released? (tracks press/read correctly.)
+    pub fn gamepad_button_released(gamepad: i32, button: GamepadButton) -> bool;
+    /// Get current position of mouse.
+    pub fn mouse_position() -> Vector;
+    /// Has the button been pressed? (tracks unpress/read correctly.)
+    pub fn mouse_button_pressed(button: MouseButton) -> bool;
+    /// Is the button currently down?
+    pub fn mouse_button_down(button: MouseButton) -> bool;
+    /// Has the button been released? (tracks press/read correctly.)
+    pub fn mouse_button_released(button: MouseButton) -> bool;
+    /// Is the button currently up?
+    pub fn mouse_button_up(button: MouseButton) -> bool;
+
+    // Sound functions
+    /// Load a sound from a file in cart.
+    pub fn load_sound(filename: *const u8) -> u32;
+    /// Play a sound.
+    pub fn play_sound(sound: u32, r#loop: bool);
+    /// Stop a sound.
+    pub fn stop_sound(sound: u32);
+    /// Unload a sound.
+    pub fn unload_sound(sound: u32);
+    /// Speak some text and return a sound. Set things to 0 for defaults.
+    pub fn tts_sound(text: *const u8, phonetic: bool, pitch: i32, speed: i32, throat: i32, mouth: i32, sing: bool) -> u32;
+    /// Create Sfx sound.
+    pub fn sfx_sound(params: SfxParams) -> u32;
+    /// Create Sfx parameters.
+    pub fn sfx_generate(r#type: SfxPresetType) -> SfxParams;
+
+    // Types functions
+
+    // Utilities functions
+    /// Get system-time (ms) since unix epoch.
+    pub fn current_time() -> u64;
+    /// Get the change in time (seconds) since the last update run.
+    pub fn delta_time() -> f32;
+    /// Get a random integer between 2 numbers.
+    pub fn random_int(min: i32, max: i32) -> i32;
+    /// Get the random-seed.
+    pub fn random_seed_get() -> u64;
+    /// Set the random-seed.
+    pub fn random_seed_set(seed: u64);
 
 }
 

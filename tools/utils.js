@@ -1,6 +1,5 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, glob } from 'node:fs/promises'
 import { basename } from 'node:path'
-import { glob } from 'glob'
 import YAML from 'yaml'
 
 // Indent a string
@@ -8,7 +7,7 @@ export const indent = (str, count = 1, istr = ' ') => str.replace(/^/gm, istr.re
 
 export async function getApi() {
   const out = { enums: [], structs: [], scalars: [] }
-  for (const f of await glob('api/**/*.yml')) {
+  for await (const f of glob('api/**/*.yml')) {
     const apiName = basename(f, '.yml')
     out[apiName] = {}
     for (const [name, info] of Object.entries(YAML.parse(await readFile(f, 'utf8')) || {})) {

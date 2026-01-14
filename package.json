@@ -31,7 +31,6 @@
     "gen": "npx -y npm-run-all --parallel gen:*"
   },
   "devDependencies": {
-    "glob": "^11.0.3",
     "yaml": "^2.8.0"
   },
   "dependencies": {

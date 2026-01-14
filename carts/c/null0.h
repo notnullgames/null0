@@ -343,112 +343,35 @@ void mouseUp(unsigned int button);
 NULL0_EXPORT("mouseMoved")
 void mouseMoved(float x, float y);
 
-// UTILITIES
+// COLORS
 
-// Get system-time (ms) since unix epoch.
-NULL0_IMPORT("current_time")
-extern u64 current_time();
+// Tint a color with another color.
+NULL0_IMPORT("color_tint")
+extern Color* color_tint(Color color, Color tint);
 
-// Get the change in time (seconds) since the last update run.
-NULL0_IMPORT("delta_time")
-extern f32 delta_time();
+// Fade a color.
+NULL0_IMPORT("color_fade")
+extern Color* color_fade(Color color, f32 alpha);
 
-// Get a random integer between 2 numbers.
-NULL0_IMPORT("random_int")
-extern i32 random_int(i32 min, i32 max);
+// Change the brightness of a color.
+NULL0_IMPORT("color_brightness")
+extern Color* color_brightness(Color color, f32 factor);
 
-// Get the random-seed.
-NULL0_IMPORT("random_seed_get")
-extern u64 random_seed_get();
+// Invert a color.
+NULL0_IMPORT("color_invert")
+extern Color* color_invert(Color color);
 
-// Set the random-seed.
-NULL0_IMPORT("random_seed_set")
-extern void random_seed_set(u64 seed);
+// Blend 2 colors together.
+NULL0_IMPORT("color_alpha_blend")
+extern Color* color_alpha_blend(Color dst, Color src);
 
+// Change contrast of a color.
+NULL0_IMPORT("color_contrast")
+extern Color* color_contrast(Color color, f32 contrast);
 
-// TYPES
-
-
-// SOUND
-
-// Load a sound from a file in cart.
-NULL0_IMPORT("load_sound")
-extern u32 load_sound(char* filename);
-
-// Play a sound.
-NULL0_IMPORT("play_sound")
-extern void play_sound(u32 sound, bool loop);
-
-// Stop a sound.
-NULL0_IMPORT("stop_sound")
-extern void stop_sound(u32 sound);
-
-// Unload a sound.
-NULL0_IMPORT("unload_sound")
-extern void unload_sound(u32 sound);
-
-// Speak some text and return a sound. Set things to 0 for defaults.
-NULL0_IMPORT("tts_sound")
-extern u32 tts_sound(char* text, bool phonetic, i32 pitch, i32 speed, i32 throat, i32 mouth, bool sing);
-
-// Create Sfx sound.
-NULL0_IMPORT("sfx_sound")
-extern u32 sfx_sound(SfxParams params);
-
-// Create Sfx parameters.
-NULL0_IMPORT("sfx_generate")
-extern SfxParams* sfx_generate(SfxPresetType type);
-
-
-// INPUT
-
-// Has the key been pressed? (tracks unpress/read correctly.)
-NULL0_IMPORT("key_pressed")
-extern bool key_pressed(Key key);
-
-// Is the key currently down?
-NULL0_IMPORT("key_down")
-extern bool key_down(Key key);
-
-// Has the key been released? (tracks press/read correctly.)
-NULL0_IMPORT("key_released")
-extern bool key_released(Key key);
-
-// Is the key currently up?
-NULL0_IMPORT("key_up")
-extern bool key_up(Key key);
-
-// Has the button been pressed? (tracks unpress/read correctly.)
-NULL0_IMPORT("gamepad_button_pressed")
-extern bool gamepad_button_pressed(i32 gamepad, GamepadButton button);
-
-// Is the button currently down?
-NULL0_IMPORT("gamepad_button_down")
-extern bool gamepad_button_down(i32 gamepad, GamepadButton button);
-
-// Has the button been released? (tracks press/read correctly.)
-NULL0_IMPORT("gamepad_button_released")
-extern bool gamepad_button_released(i32 gamepad, GamepadButton button);
-
-// Get current position of mouse.
-NULL0_IMPORT("mouse_position")
-extern Vector* mouse_position();
-
-// Has the button been pressed? (tracks unpress/read correctly.)
-NULL0_IMPORT("mouse_button_pressed")
-extern bool mouse_button_pressed(MouseButton button);
-
-// Is the button currently down?
-NULL0_IMPORT("mouse_button_down")
-extern bool mouse_button_down(MouseButton button);
-
-// Has the button been released? (tracks press/read correctly.)
-NULL0_IMPORT("mouse_button_released")
-extern bool mouse_button_released(MouseButton button);
-
-// Is the button currently up?
-NULL0_IMPORT("mouse_button_up")
-extern bool mouse_button_up(MouseButton button);
+// Interpolate colors.
+NULL0_IMPORT("color_bilinear_interpolate")
+extern Color* color_bilinear_interpolate(Color color00, Color color01, Color color10, Color color11, f32 coordinateX, f32 coordinateY);
 
 
 // GRAPHICS
@@ -754,32 +677,109 @@ NULL0_IMPORT("draw_rectangle_rounded_outline_on_image")
 extern void draw_rectangle_rounded_outline_on_image(u32 destination, i32 x, i32 y, i32 width, i32 height, i32 cornerRadius, i32 thickness, Color color);
 
 
-// COLORS
+// INPUT
 
-// Tint a color with another color.
-NULL0_IMPORT("color_tint")
-extern Color* color_tint(Color color, Color tint);
+// Has the key been pressed? (tracks unpress/read correctly.)
+NULL0_IMPORT("key_pressed")
+extern bool key_pressed(Key key);
 
-// Fade a color.
-NULL0_IMPORT("color_fade")
-extern Color* color_fade(Color color, f32 alpha);
+// Is the key currently down?
+NULL0_IMPORT("key_down")
+extern bool key_down(Key key);
 
-// Change the brightness of a color.
-NULL0_IMPORT("color_brightness")
-extern Color* color_brightness(Color color, f32 factor);
+// Has the key been released? (tracks press/read correctly.)
+NULL0_IMPORT("key_released")
+extern bool key_released(Key key);
 
-// Invert a color.
-NULL0_IMPORT("color_invert")
-extern Color* color_invert(Color color);
+// Is the key currently up?
+NULL0_IMPORT("key_up")
+extern bool key_up(Key key);
 
-// Blend 2 colors together.
-NULL0_IMPORT("color_alpha_blend")
-extern Color* color_alpha_blend(Color dst, Color src);
+// Has the button been pressed? (tracks unpress/read correctly.)
+NULL0_IMPORT("gamepad_button_pressed")
+extern bool gamepad_button_pressed(i32 gamepad, GamepadButton button);
 
-// Change contrast of a color.
-NULL0_IMPORT("color_contrast")
-extern Color* color_contrast(Color color, f32 contrast);
+// Is the button currently down?
+NULL0_IMPORT("gamepad_button_down")
+extern bool gamepad_button_down(i32 gamepad, GamepadButton button);
 
-// Interpolate colors.
-NULL0_IMPORT("color_bilinear_interpolate")
-extern Color* color_bilinear_interpolate(Color color00, Color color01, Color color10, Color color11, f32 coordinateX, f32 coordinateY);
+// Has the button been released? (tracks press/read correctly.)
+NULL0_IMPORT("gamepad_button_released")
+extern bool gamepad_button_released(i32 gamepad, GamepadButton button);
+
+// Get current position of mouse.
+NULL0_IMPORT("mouse_position")
+extern Vector* mouse_position();
+
+// Has the button been pressed? (tracks unpress/read correctly.)
+NULL0_IMPORT("mouse_button_pressed")
+extern bool mouse_button_pressed(MouseButton button);
+
+// Is the button currently down?
+NULL0_IMPORT("mouse_button_down")
+extern bool mouse_button_down(MouseButton button);
+
+// Has the button been released? (tracks press/read correctly.)
+NULL0_IMPORT("mouse_button_released")
+extern bool mouse_button_released(MouseButton button);
+
+// Is the button currently up?
+NULL0_IMPORT("mouse_button_up")
+extern bool mouse_button_up(MouseButton button);
+
+
+// SOUND
+
+// Load a sound from a file in cart.
+NULL0_IMPORT("load_sound")
+extern u32 load_sound(char* filename);
+
+// Play a sound.
+NULL0_IMPORT("play_sound")
+extern void play_sound(u32 sound, bool loop);
+
+// Stop a sound.
+NULL0_IMPORT("stop_sound")
+extern void stop_sound(u32 sound);
+
+// Unload a sound.
+NULL0_IMPORT("unload_sound")
+extern void unload_sound(u32 sound);
+
+// Speak some text and return a sound. Set things to 0 for defaults.
+NULL0_IMPORT("tts_sound")
+extern u32 tts_sound(char* text, bool phonetic, i32 pitch, i32 speed, i32 throat, i32 mouth, bool sing);
+
+// Create Sfx sound.
+NULL0_IMPORT("sfx_sound")
+extern u32 sfx_sound(SfxParams params);
+
+// Create Sfx parameters.
+NULL0_IMPORT("sfx_generate")
+extern SfxParams* sfx_generate(SfxPresetType type);
+
+
+// TYPES
+
+
+// UTILITIES
+
+// Get system-time (ms) since unix epoch.
+NULL0_IMPORT("current_time")
+extern u64 current_time();
+
+// Get the change in time (seconds) since the last update run.
+NULL0_IMPORT("delta_time")
+extern f32 delta_time();
+
+// Get a random integer between 2 numbers.
+NULL0_IMPORT("random_int")
+extern i32 random_int(i32 min, i32 max);
+
+// Get the random-seed.
+NULL0_IMPORT("random_seed_get")
+extern u64 random_seed_get();
+
+// Set the random-seed.
+NULL0_IMPORT("random_seed_set")
+extern void random_seed_set(u64 seed);

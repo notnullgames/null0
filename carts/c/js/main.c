@@ -385,118 +385,42 @@ static JSValue sfx_params_to_js(SfxParams params) {
 
 
 
-// UTILITIES
+// COLORS
 
-// Get system-time (ms) since unix epoch.
-static JSValue js_current_time(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return u64_to_js(current_time());
+// Tint a color with another color.
+static JSValue js_color_tint(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Color* ret = color_tint(color_from_js(argv[0]), color_from_js(argv[1]));
+ return color_to_js(*ret);
 }
-// Get the change in time (seconds) since the last update run.
-static JSValue js_delta_time(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return f32_to_js(delta_time());
+// Fade a color.
+static JSValue js_color_fade(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Color* ret = color_fade(color_from_js(argv[0]), f32_from_js(argv[1]));
+ return color_to_js(*ret);
 }
-// Get a random integer between 2 numbers.
-static JSValue js_random_int(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return i32_to_js(random_int(i32_from_js(argv[0]), i32_from_js(argv[1])));
+// Change the brightness of a color.
+static JSValue js_color_brightness(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Color* ret = color_brightness(color_from_js(argv[0]), f32_from_js(argv[1]));
+ return color_to_js(*ret);
 }
-// Get the random-seed.
-static JSValue js_random_seed_get(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return u64_to_js(random_seed_get());
+// Invert a color.
+static JSValue js_color_invert(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Color* ret = color_invert(color_from_js(argv[0]));
+ return color_to_js(*ret);
 }
-// Set the random-seed.
-static JSValue js_random_seed_set(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- random_seed_set(u64_from_js(argv[0]));
- return JS_UNDEFINED;
+// Blend 2 colors together.
+static JSValue js_color_alpha_blend(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Color* ret = color_alpha_blend(color_from_js(argv[0]), color_from_js(argv[1]));
+ return color_to_js(*ret);
 }
-
-// TYPES
-
-
-// SOUND
-
-// Load a sound from a file in cart.
-static JSValue js_load_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return u32_to_js(load_sound(string_from_js(argv[0])));
+// Change contrast of a color.
+static JSValue js_color_contrast(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Color* ret = color_contrast(color_from_js(argv[0]), f32_from_js(argv[1]));
+ return color_to_js(*ret);
 }
-// Play a sound.
-static JSValue js_play_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- play_sound(u32_from_js(argv[0]), bool_from_js(argv[1]));
- return JS_UNDEFINED;
-}
-// Stop a sound.
-static JSValue js_stop_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- stop_sound(u32_from_js(argv[0]));
- return JS_UNDEFINED;
-}
-// Unload a sound.
-static JSValue js_unload_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- unload_sound(u32_from_js(argv[0]));
- return JS_UNDEFINED;
-}
-// Speak some text and return a sound. Set things to 0 for defaults.
-static JSValue js_tts_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return u32_to_js(tts_sound(string_from_js(argv[0]), bool_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), bool_from_js(argv[6])));
-}
-// Create Sfx sound.
-static JSValue js_sfx_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return u32_to_js(sfx_sound(sfx_params_from_js(argv[0])));
-}
-// Create Sfx parameters.
-static JSValue js_sfx_generate(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- SfxParams* ret = sfx_generate(i32_from_js(argv[0]));
- return sfx_params_to_js(*ret);
-}
-
-// INPUT
-
-// Has the key been pressed? (tracks unpress/read correctly.)
-static JSValue js_key_pressed(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(key_pressed(i32_from_js(argv[0])));
-}
-// Is the key currently down?
-static JSValue js_key_down(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(key_down(i32_from_js(argv[0])));
-}
-// Has the key been released? (tracks press/read correctly.)
-static JSValue js_key_released(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(key_released(i32_from_js(argv[0])));
-}
-// Is the key currently up?
-static JSValue js_key_up(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(key_up(i32_from_js(argv[0])));
-}
-// Has the button been pressed? (tracks unpress/read correctly.)
-static JSValue js_gamepad_button_pressed(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(gamepad_button_pressed(i32_from_js(argv[0]), i32_from_js(argv[1])));
-}
-// Is the button currently down?
-static JSValue js_gamepad_button_down(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(gamepad_button_down(i32_from_js(argv[0]), i32_from_js(argv[1])));
-}
-// Has the button been released? (tracks press/read correctly.)
-static JSValue js_gamepad_button_released(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(gamepad_button_released(i32_from_js(argv[0]), i32_from_js(argv[1])));
-}
-// Get current position of mouse.
-static JSValue js_mouse_position(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- Vector* ret = mouse_position();
- return vector_to_js(*ret);
-}
-// Has the button been pressed? (tracks unpress/read correctly.)
-static JSValue js_mouse_button_pressed(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(mouse_button_pressed(i32_from_js(argv[0])));
-}
-// Is the button currently down?
-static JSValue js_mouse_button_down(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(mouse_button_down(i32_from_js(argv[0])));
-}
-// Has the button been released? (tracks press/read correctly.)
-static JSValue js_mouse_button_released(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(mouse_button_released(i32_from_js(argv[0])));
-}
-// Is the button currently up?
-static JSValue js_mouse_button_up(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return bool_to_js(mouse_button_up(i32_from_js(argv[0])));
+// Interpolate colors.
+static JSValue js_color_bilinear_interpolate(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Color* ret = color_bilinear_interpolate(color_from_js(argv[0]), color_from_js(argv[1]), color_from_js(argv[2]), color_from_js(argv[3]), f32_from_js(argv[4]), f32_from_js(argv[5]));
+ return color_to_js(*ret);
 }
 
 // GRAPHICS
@@ -865,42 +789,118 @@ static JSValue js_draw_rectangle_rounded_outline_on_image(JSContext *ctx, JSValu
  return JS_UNDEFINED;
 }
 
-// COLORS
+// INPUT
 
-// Tint a color with another color.
-static JSValue js_color_tint(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- Color* ret = color_tint(color_from_js(argv[0]), color_from_js(argv[1]));
- return color_to_js(*ret);
+// Has the key been pressed? (tracks unpress/read correctly.)
+static JSValue js_key_pressed(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(key_pressed(i32_from_js(argv[0])));
 }
-// Fade a color.
-static JSValue js_color_fade(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- Color* ret = color_fade(color_from_js(argv[0]), f32_from_js(argv[1]));
- return color_to_js(*ret);
+// Is the key currently down?
+static JSValue js_key_down(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(key_down(i32_from_js(argv[0])));
 }
-// Change the brightness of a color.
-static JSValue js_color_brightness(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- Color* ret = color_brightness(color_from_js(argv[0]), f32_from_js(argv[1]));
- return color_to_js(*ret);
+// Has the key been released? (tracks press/read correctly.)
+static JSValue js_key_released(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(key_released(i32_from_js(argv[0])));
 }
-// Invert a color.
-static JSValue js_color_invert(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- Color* ret = color_invert(color_from_js(argv[0]));
- return color_to_js(*ret);
+// Is the key currently up?
+static JSValue js_key_up(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(key_up(i32_from_js(argv[0])));
 }
-// Blend 2 colors together.
-static JSValue js_color_alpha_blend(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- Color* ret = color_alpha_blend(color_from_js(argv[0]), color_from_js(argv[1]));
- return color_to_js(*ret);
+// Has the button been pressed? (tracks unpress/read correctly.)
+static JSValue js_gamepad_button_pressed(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(gamepad_button_pressed(i32_from_js(argv[0]), i32_from_js(argv[1])));
 }
-// Change contrast of a color.
-static JSValue js_color_contrast(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- Color* ret = color_contrast(color_from_js(argv[0]), f32_from_js(argv[1]));
- return color_to_js(*ret);
+// Is the button currently down?
+static JSValue js_gamepad_button_down(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(gamepad_button_down(i32_from_js(argv[0]), i32_from_js(argv[1])));
 }
-// Interpolate colors.
-static JSValue js_color_bilinear_interpolate(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- Color* ret = color_bilinear_interpolate(color_from_js(argv[0]), color_from_js(argv[1]), color_from_js(argv[2]), color_from_js(argv[3]), f32_from_js(argv[4]), f32_from_js(argv[5]));
- return color_to_js(*ret);
+// Has the button been released? (tracks press/read correctly.)
+static JSValue js_gamepad_button_released(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(gamepad_button_released(i32_from_js(argv[0]), i32_from_js(argv[1])));
+}
+// Get current position of mouse.
+static JSValue js_mouse_position(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Vector* ret = mouse_position();
+ return vector_to_js(*ret);
+}
+// Has the button been pressed? (tracks unpress/read correctly.)
+static JSValue js_mouse_button_pressed(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(mouse_button_pressed(i32_from_js(argv[0])));
+}
+// Is the button currently down?
+static JSValue js_mouse_button_down(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(mouse_button_down(i32_from_js(argv[0])));
+}
+// Has the button been released? (tracks press/read correctly.)
+static JSValue js_mouse_button_released(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(mouse_button_released(i32_from_js(argv[0])));
+}
+// Is the button currently up?
+static JSValue js_mouse_button_up(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(mouse_button_up(i32_from_js(argv[0])));
+}
+
+// SOUND
+
+// Load a sound from a file in cart.
+static JSValue js_load_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u32_to_js(load_sound(string_from_js(argv[0])));
+}
+// Play a sound.
+static JSValue js_play_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ play_sound(u32_from_js(argv[0]), bool_from_js(argv[1]));
+ return JS_UNDEFINED;
+}
+// Stop a sound.
+static JSValue js_stop_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ stop_sound(u32_from_js(argv[0]));
+ return JS_UNDEFINED;
+}
+// Unload a sound.
+static JSValue js_unload_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ unload_sound(u32_from_js(argv[0]));
+ return JS_UNDEFINED;
+}
+// Speak some text and return a sound. Set things to 0 for defaults.
+static JSValue js_tts_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u32_to_js(tts_sound(string_from_js(argv[0]), bool_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]), i32_from_js(argv[5]), bool_from_js(argv[6])));
+}
+// Create Sfx sound.
+static JSValue js_sfx_sound(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u32_to_js(sfx_sound(sfx_params_from_js(argv[0])));
+}
+// Create Sfx parameters.
+static JSValue js_sfx_generate(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ SfxParams* ret = sfx_generate(i32_from_js(argv[0]));
+ return sfx_params_to_js(*ret);
+}
+
+// TYPES
+
+
+// UTILITIES
+
+// Get system-time (ms) since unix epoch.
+static JSValue js_current_time(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u64_to_js(current_time());
+}
+// Get the change in time (seconds) since the last update run.
+static JSValue js_delta_time(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return f32_to_js(delta_time());
+}
+// Get a random integer between 2 numbers.
+static JSValue js_random_int(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(random_int(i32_from_js(argv[0]), i32_from_js(argv[1])));
+}
+// Get the random-seed.
+static JSValue js_random_seed_get(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u64_to_js(random_seed_get());
+}
+// Set the random-seed.
+static JSValue js_random_seed_set(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ random_seed_set(u64_from_js(argv[0]));
+ return JS_UNDEFINED;
 }
 void expose_things_to_js() {
   JS_SetPropertyStr(ctx, global, "LIGHTGRAY", color_to_js(LIGHTGRAY));
@@ -1089,30 +1089,13 @@ void expose_things_to_js() {
   JS_SetPropertyStr(ctx, global, "SFX_SELECT", JS_NewInt32(ctx, SFX_SELECT));
   JS_SetPropertyStr(ctx, global, "SFX_SYNTH", JS_NewInt32(ctx, SFX_SYNTH));
 
-  JS_SetPropertyStr(ctx, global, "current_time", JS_NewCFunction(ctx, js_current_time, "current_time", 0));
-  JS_SetPropertyStr(ctx, global, "delta_time", JS_NewCFunction(ctx, js_delta_time, "delta_time", 0));
-  JS_SetPropertyStr(ctx, global, "random_int", JS_NewCFunction(ctx, js_random_int, "random_int", 2));
-  JS_SetPropertyStr(ctx, global, "random_seed_get", JS_NewCFunction(ctx, js_random_seed_get, "random_seed_get", 0));
-  JS_SetPropertyStr(ctx, global, "random_seed_set", JS_NewCFunction(ctx, js_random_seed_set, "random_seed_set", 1));
-  JS_SetPropertyStr(ctx, global, "load_sound", JS_NewCFunction(ctx, js_load_sound, "load_sound", 1));
-  JS_SetPropertyStr(ctx, global, "play_sound", JS_NewCFunction(ctx, js_play_sound, "play_sound", 2));
-  JS_SetPropertyStr(ctx, global, "stop_sound", JS_NewCFunction(ctx, js_stop_sound, "stop_sound", 1));
-  JS_SetPropertyStr(ctx, global, "unload_sound", JS_NewCFunction(ctx, js_unload_sound, "unload_sound", 1));
-  JS_SetPropertyStr(ctx, global, "tts_sound", JS_NewCFunction(ctx, js_tts_sound, "tts_sound", 7));
-  JS_SetPropertyStr(ctx, global, "sfx_sound", JS_NewCFunction(ctx, js_sfx_sound, "sfx_sound", 1));
-  JS_SetPropertyStr(ctx, global, "sfx_generate", JS_NewCFunction(ctx, js_sfx_generate, "sfx_generate", 1));
-  JS_SetPropertyStr(ctx, global, "key_pressed", JS_NewCFunction(ctx, js_key_pressed, "key_pressed", 1));
-  JS_SetPropertyStr(ctx, global, "key_down", JS_NewCFunction(ctx, js_key_down, "key_down", 1));
-  JS_SetPropertyStr(ctx, global, "key_released", JS_NewCFunction(ctx, js_key_released, "key_released", 1));
-  JS_SetPropertyStr(ctx, global, "key_up", JS_NewCFunction(ctx, js_key_up, "key_up", 1));
-  JS_SetPropertyStr(ctx, global, "gamepad_button_pressed", JS_NewCFunction(ctx, js_gamepad_button_pressed, "gamepad_button_pressed", 2));
-  JS_SetPropertyStr(ctx, global, "gamepad_button_down", JS_NewCFunction(ctx, js_gamepad_button_down, "gamepad_button_down", 2));
-  JS_SetPropertyStr(ctx, global, "gamepad_button_released", JS_NewCFunction(ctx, js_gamepad_button_released, "gamepad_button_released", 2));
-  JS_SetPropertyStr(ctx, global, "mouse_position", JS_NewCFunction(ctx, js_mouse_position, "mouse_position", 0));
-  JS_SetPropertyStr(ctx, global, "mouse_button_pressed", JS_NewCFunction(ctx, js_mouse_button_pressed, "mouse_button_pressed", 1));
-  JS_SetPropertyStr(ctx, global, "mouse_button_down", JS_NewCFunction(ctx, js_mouse_button_down, "mouse_button_down", 1));
-  JS_SetPropertyStr(ctx, global, "mouse_button_released", JS_NewCFunction(ctx, js_mouse_button_released, "mouse_button_released", 1));
-  JS_SetPropertyStr(ctx, global, "mouse_button_up", JS_NewCFunction(ctx, js_mouse_button_up, "mouse_button_up", 1));
+  JS_SetPropertyStr(ctx, global, "color_tint", JS_NewCFunction(ctx, js_color_tint, "color_tint", 2));
+  JS_SetPropertyStr(ctx, global, "color_fade", JS_NewCFunction(ctx, js_color_fade, "color_fade", 2));
+  JS_SetPropertyStr(ctx, global, "color_brightness", JS_NewCFunction(ctx, js_color_brightness, "color_brightness", 2));
+  JS_SetPropertyStr(ctx, global, "color_invert", JS_NewCFunction(ctx, js_color_invert, "color_invert", 1));
+  JS_SetPropertyStr(ctx, global, "color_alpha_blend", JS_NewCFunction(ctx, js_color_alpha_blend, "color_alpha_blend", 2));
+  JS_SetPropertyStr(ctx, global, "color_contrast", JS_NewCFunction(ctx, js_color_contrast, "color_contrast", 2));
+  JS_SetPropertyStr(ctx, global, "color_bilinear_interpolate", JS_NewCFunction(ctx, js_color_bilinear_interpolate, "color_bilinear_interpolate", 6));
   JS_SetPropertyStr(ctx, global, "new_image", JS_NewCFunction(ctx, js_new_image, "new_image", 3));
   JS_SetPropertyStr(ctx, global, "image_copy", JS_NewCFunction(ctx, js_image_copy, "image_copy", 1));
   JS_SetPropertyStr(ctx, global, "image_subimage", JS_NewCFunction(ctx, js_image_subimage, "image_subimage", 5));
@@ -1188,11 +1171,28 @@ void expose_things_to_js() {
   JS_SetPropertyStr(ctx, global, "draw_circle_outline_on_image", JS_NewCFunction(ctx, js_draw_circle_outline_on_image, "draw_circle_outline_on_image", 6));
   JS_SetPropertyStr(ctx, global, "draw_polygon_outline_on_image", JS_NewCFunction(ctx, js_draw_polygon_outline_on_image, "draw_polygon_outline_on_image", 5));
   JS_SetPropertyStr(ctx, global, "draw_rectangle_rounded_outline_on_image", JS_NewCFunction(ctx, js_draw_rectangle_rounded_outline_on_image, "draw_rectangle_rounded_outline_on_image", 8));
-  JS_SetPropertyStr(ctx, global, "color_tint", JS_NewCFunction(ctx, js_color_tint, "color_tint", 2));
-  JS_SetPropertyStr(ctx, global, "color_fade", JS_NewCFunction(ctx, js_color_fade, "color_fade", 2));
-  JS_SetPropertyStr(ctx, global, "color_brightness", JS_NewCFunction(ctx, js_color_brightness, "color_brightness", 2));
-  JS_SetPropertyStr(ctx, global, "color_invert", JS_NewCFunction(ctx, js_color_invert, "color_invert", 1));
-  JS_SetPropertyStr(ctx, global, "color_alpha_blend", JS_NewCFunction(ctx, js_color_alpha_blend, "color_alpha_blend", 2));
-  JS_SetPropertyStr(ctx, global, "color_contrast", JS_NewCFunction(ctx, js_color_contrast, "color_contrast", 2));
-  JS_SetPropertyStr(ctx, global, "color_bilinear_interpolate", JS_NewCFunction(ctx, js_color_bilinear_interpolate, "color_bilinear_interpolate", 6));
+  JS_SetPropertyStr(ctx, global, "key_pressed", JS_NewCFunction(ctx, js_key_pressed, "key_pressed", 1));
+  JS_SetPropertyStr(ctx, global, "key_down", JS_NewCFunction(ctx, js_key_down, "key_down", 1));
+  JS_SetPropertyStr(ctx, global, "key_released", JS_NewCFunction(ctx, js_key_released, "key_released", 1));
+  JS_SetPropertyStr(ctx, global, "key_up", JS_NewCFunction(ctx, js_key_up, "key_up", 1));
+  JS_SetPropertyStr(ctx, global, "gamepad_button_pressed", JS_NewCFunction(ctx, js_gamepad_button_pressed, "gamepad_button_pressed", 2));
+  JS_SetPropertyStr(ctx, global, "gamepad_button_down", JS_NewCFunction(ctx, js_gamepad_button_down, "gamepad_button_down", 2));
+  JS_SetPropertyStr(ctx, global, "gamepad_button_released", JS_NewCFunction(ctx, js_gamepad_button_released, "gamepad_button_released", 2));
+  JS_SetPropertyStr(ctx, global, "mouse_position", JS_NewCFunction(ctx, js_mouse_position, "mouse_position", 0));
+  JS_SetPropertyStr(ctx, global, "mouse_button_pressed", JS_NewCFunction(ctx, js_mouse_button_pressed, "mouse_button_pressed", 1));
+  JS_SetPropertyStr(ctx, global, "mouse_button_down", JS_NewCFunction(ctx, js_mouse_button_down, "mouse_button_down", 1));
+  JS_SetPropertyStr(ctx, global, "mouse_button_released", JS_NewCFunction(ctx, js_mouse_button_released, "mouse_button_released", 1));
+  JS_SetPropertyStr(ctx, global, "mouse_button_up", JS_NewCFunction(ctx, js_mouse_button_up, "mouse_button_up", 1));
+  JS_SetPropertyStr(ctx, global, "load_sound", JS_NewCFunction(ctx, js_load_sound, "load_sound", 1));
+  JS_SetPropertyStr(ctx, global, "play_sound", JS_NewCFunction(ctx, js_play_sound, "play_sound", 2));
+  JS_SetPropertyStr(ctx, global, "stop_sound", JS_NewCFunction(ctx, js_stop_sound, "stop_sound", 1));
+  JS_SetPropertyStr(ctx, global, "unload_sound", JS_NewCFunction(ctx, js_unload_sound, "unload_sound", 1));
+  JS_SetPropertyStr(ctx, global, "tts_sound", JS_NewCFunction(ctx, js_tts_sound, "tts_sound", 7));
+  JS_SetPropertyStr(ctx, global, "sfx_sound", JS_NewCFunction(ctx, js_sfx_sound, "sfx_sound", 1));
+  JS_SetPropertyStr(ctx, global, "sfx_generate", JS_NewCFunction(ctx, js_sfx_generate, "sfx_generate", 1));
+  JS_SetPropertyStr(ctx, global, "current_time", JS_NewCFunction(ctx, js_current_time, "current_time", 0));
+  JS_SetPropertyStr(ctx, global, "delta_time", JS_NewCFunction(ctx, js_delta_time, "delta_time", 0));
+  JS_SetPropertyStr(ctx, global, "random_int", JS_NewCFunction(ctx, js_random_int, "random_int", 2));
+  JS_SetPropertyStr(ctx, global, "random_seed_get", JS_NewCFunction(ctx, js_random_seed_get, "random_seed_get", 0));
+  JS_SetPropertyStr(ctx, global, "random_seed_set", JS_NewCFunction(ctx, js_random_seed_set, "random_seed_set", 1));
 }

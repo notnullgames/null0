@@ -257,88 +257,28 @@ global MAGENTA: Color <cimport, nodecl>
 global RAYWHITE: Color <cimport, nodecl>
 
 
--- UTILITIES
+-- COLORS
 
--- Get system-time (ms) since unix epoch.
-global function current_time(): uint64 <cimport,nodecl> end
+-- Tint a color with another color.
+global function color_tint(color: Color, tint: Color): Color <cimport,nodecl> end
 
--- Get the change in time (seconds) since the last update run.
-global function delta_time(): float32 <cimport,nodecl> end
+-- Fade a color.
+global function color_fade(color: Color, alpha: float32): Color <cimport,nodecl> end
 
--- Get a random integer between 2 numbers.
-global function random_int(min: int32, max: int32): int32 <cimport,nodecl> end
+-- Change the brightness of a color.
+global function color_brightness(color: Color, factor: float32): Color <cimport,nodecl> end
 
--- Get the random-seed.
-global function random_seed_get(): uint64 <cimport,nodecl> end
+-- Invert a color.
+global function color_invert(color: Color): Color <cimport,nodecl> end
 
--- Set the random-seed.
-global function random_seed_set(seed: uint64): void <cimport,nodecl> end
+-- Blend 2 colors together.
+global function color_alpha_blend(dst: Color, src: Color): Color <cimport,nodecl> end
 
+-- Change contrast of a color.
+global function color_contrast(color: Color, contrast: float32): Color <cimport,nodecl> end
 
--- TYPES
-
-
--- SOUND
-
--- Load a sound from a file in cart.
-global function load_sound(filename: cstring): uint32 <cimport,nodecl> end
-
--- Play a sound.
-global function play_sound(sound: uint32, loop: boolean): void <cimport,nodecl> end
-
--- Stop a sound.
-global function stop_sound(sound: uint32): void <cimport,nodecl> end
-
--- Unload a sound.
-global function unload_sound(sound: uint32): void <cimport,nodecl> end
-
--- Speak some text and return a sound. Set things to 0 for defaults.
-global function tts_sound(text: cstring, phonetic: boolean, pitch: int32, speed: int32, throat: int32, mouth: int32, sing: boolean): uint32 <cimport,nodecl> end
-
--- Create Sfx sound.
-global function sfx_sound(params: SfxParams): uint32 <cimport,nodecl> end
-
--- Create Sfx parameters.
-global function sfx_generate(type: SfxPresetType): SfxParams <cimport,nodecl> end
-
-
--- INPUT
-
--- Has the key been pressed? (tracks unpress/read correctly.)
-global function key_pressed(key: Key): boolean <cimport,nodecl> end
-
--- Is the key currently down?
-global function key_down(key: Key): boolean <cimport,nodecl> end
-
--- Has the key been released? (tracks press/read correctly.)
-global function key_released(key: Key): boolean <cimport,nodecl> end
-
--- Is the key currently up?
-global function key_up(key: Key): boolean <cimport,nodecl> end
-
--- Has the button been pressed? (tracks unpress/read correctly.)
-global function gamepad_button_pressed(gamepad: int32, button: GamepadButton): boolean <cimport,nodecl> end
-
--- Is the button currently down?
-global function gamepad_button_down(gamepad: int32, button: GamepadButton): boolean <cimport,nodecl> end
-
--- Has the button been released? (tracks press/read correctly.)
-global function gamepad_button_released(gamepad: int32, button: GamepadButton): boolean <cimport,nodecl> end
-
--- Get current position of mouse.
-global function mouse_position(): *Vector <cimport,nodecl> end
-
--- Has the button been pressed? (tracks unpress/read correctly.)
-global function mouse_button_pressed(button: MouseButton): boolean <cimport,nodecl> end
-
--- Is the button currently down?
-global function mouse_button_down(button: MouseButton): boolean <cimport,nodecl> end
-
--- Has the button been released? (tracks press/read correctly.)
-global function mouse_button_released(button: MouseButton): boolean <cimport,nodecl> end
-
--- Is the button currently up?
-global function mouse_button_up(button: MouseButton): boolean <cimport,nodecl> end
+-- Interpolate colors.
+global function color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: float32, coordinateY: float32): Color <cimport,nodecl> end
 
 
 -- GRAPHICS
@@ -569,25 +509,85 @@ global function draw_polygon_outline_on_image(destination: uint32, points: *Vect
 global function draw_rectangle_rounded_outline_on_image(destination: uint32, x: int32, y: int32, width: int32, height: int32, cornerRadius: int32, thickness: int32, color: Color): void <cimport,nodecl> end
 
 
--- COLORS
+-- INPUT
 
--- Tint a color with another color.
-global function color_tint(color: Color, tint: Color): Color <cimport,nodecl> end
+-- Has the key been pressed? (tracks unpress/read correctly.)
+global function key_pressed(key: Key): boolean <cimport,nodecl> end
 
--- Fade a color.
-global function color_fade(color: Color, alpha: float32): Color <cimport,nodecl> end
+-- Is the key currently down?
+global function key_down(key: Key): boolean <cimport,nodecl> end
 
--- Change the brightness of a color.
-global function color_brightness(color: Color, factor: float32): Color <cimport,nodecl> end
+-- Has the key been released? (tracks press/read correctly.)
+global function key_released(key: Key): boolean <cimport,nodecl> end
 
--- Invert a color.
-global function color_invert(color: Color): Color <cimport,nodecl> end
+-- Is the key currently up?
+global function key_up(key: Key): boolean <cimport,nodecl> end
 
--- Blend 2 colors together.
-global function color_alpha_blend(dst: Color, src: Color): Color <cimport,nodecl> end
+-- Has the button been pressed? (tracks unpress/read correctly.)
+global function gamepad_button_pressed(gamepad: int32, button: GamepadButton): boolean <cimport,nodecl> end
 
--- Change contrast of a color.
-global function color_contrast(color: Color, contrast: float32): Color <cimport,nodecl> end
+-- Is the button currently down?
+global function gamepad_button_down(gamepad: int32, button: GamepadButton): boolean <cimport,nodecl> end
 
--- Interpolate colors.
-global function color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: float32, coordinateY: float32): Color <cimport,nodecl> end
+-- Has the button been released? (tracks press/read correctly.)
+global function gamepad_button_released(gamepad: int32, button: GamepadButton): boolean <cimport,nodecl> end
+
+-- Get current position of mouse.
+global function mouse_position(): *Vector <cimport,nodecl> end
+
+-- Has the button been pressed? (tracks unpress/read correctly.)
+global function mouse_button_pressed(button: MouseButton): boolean <cimport,nodecl> end
+
+-- Is the button currently down?
+global function mouse_button_down(button: MouseButton): boolean <cimport,nodecl> end
+
+-- Has the button been released? (tracks press/read correctly.)
+global function mouse_button_released(button: MouseButton): boolean <cimport,nodecl> end
+
+-- Is the button currently up?
+global function mouse_button_up(button: MouseButton): boolean <cimport,nodecl> end
+
+
+-- SOUND
+
+-- Load a sound from a file in cart.
+global function load_sound(filename: cstring): uint32 <cimport,nodecl> end
+
+-- Play a sound.
+global function play_sound(sound: uint32, loop: boolean): void <cimport,nodecl> end
+
+-- Stop a sound.
+global function stop_sound(sound: uint32): void <cimport,nodecl> end
+
+-- Unload a sound.
+global function unload_sound(sound: uint32): void <cimport,nodecl> end
+
+-- Speak some text and return a sound. Set things to 0 for defaults.
+global function tts_sound(text: cstring, phonetic: boolean, pitch: int32, speed: int32, throat: int32, mouth: int32, sing: boolean): uint32 <cimport,nodecl> end
+
+-- Create Sfx sound.
+global function sfx_sound(params: SfxParams): uint32 <cimport,nodecl> end
+
+-- Create Sfx parameters.
+global function sfx_generate(type: SfxPresetType): SfxParams <cimport,nodecl> end
+
+
+-- TYPES
+
+
+-- UTILITIES
+
+-- Get system-time (ms) since unix epoch.
+global function current_time(): uint64 <cimport,nodecl> end
+
+-- Get the change in time (seconds) since the last update run.
+global function delta_time(): float32 <cimport,nodecl> end
+
+-- Get a random integer between 2 numbers.
+global function random_int(min: int32, max: int32): int32 <cimport,nodecl> end
+
+-- Get the random-seed.
+global function random_seed_get(): uint64 <cimport,nodecl> end
+
+-- Set the random-seed.
+global function random_seed_set(seed: uint64): void <cimport,nodecl> end

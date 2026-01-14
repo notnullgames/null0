@@ -266,37 +266,14 @@ type
 
 # Import functions from null0 module with proper C attributes
 
-# Utilities functions
-proc current_time*(): uint64 {.null0_import.}
-proc delta_time*(): cfloat {.null0_import.}
-proc random_int*(min: cint, max: cint): cint {.null0_import.}
-proc random_seed_get*(): uint64 {.null0_import.}
-proc random_seed_set*(seed: uint64) {.null0_import.}
-
-# Types functions
-
-# Sound functions
-proc load_sound*(filename: cstring): uint32 {.null0_import.}
-proc play_sound*(sound: uint32, loop: bool) {.null0_import.}
-proc stop_sound*(sound: uint32) {.null0_import.}
-proc unload_sound*(sound: uint32) {.null0_import.}
-proc tts_sound*(text: cstring, phonetic: bool, pitch: cint, speed: cint, throat: cint, mouth: cint, sing: bool): uint32 {.null0_import.}
-proc sfx_sound*(params: SfxParams): uint32 {.null0_import.}
-proc sfx_generate*(`type`: SfxPresetType): SfxParams {.null0_import.}
-
-# Input functions
-proc key_pressed*(key: Key): bool {.null0_import.}
-proc key_down*(key: Key): bool {.null0_import.}
-proc key_released*(key: Key): bool {.null0_import.}
-proc key_up*(key: Key): bool {.null0_import.}
-proc gamepad_button_pressed*(gamepad: cint, button: GamepadButton): bool {.null0_import.}
-proc gamepad_button_down*(gamepad: cint, button: GamepadButton): bool {.null0_import.}
-proc gamepad_button_released*(gamepad: cint, button: GamepadButton): bool {.null0_import.}
-proc mouse_position*(): Vector {.null0_import.}
-proc mouse_button_pressed*(button: MouseButton): bool {.null0_import.}
-proc mouse_button_down*(button: MouseButton): bool {.null0_import.}
-proc mouse_button_released*(button: MouseButton): bool {.null0_import.}
-proc mouse_button_up*(button: MouseButton): bool {.null0_import.}
+# Colors functions
+proc color_tint*(color: Color, tint: Color): Color {.null0_import.}
+proc color_fade*(color: Color, alpha: cfloat): Color {.null0_import.}
+proc color_brightness*(color: Color, factor: cfloat): Color {.null0_import.}
+proc color_invert*(color: Color): Color {.null0_import.}
+proc color_alpha_blend*(dst: Color, src: Color): Color {.null0_import.}
+proc color_contrast*(color: Color, contrast: cfloat): Color {.null0_import.}
+proc color_bilinear_interpolate*(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: cfloat, coordinateY: cfloat): Color {.null0_import.}
 
 # Graphics functions
 proc new_image*(width: cint, height: cint, color: Color): uint32 {.null0_import.}
@@ -375,14 +352,37 @@ proc draw_circle_outline_on_image*(destination: uint32, centerX: cint, centerY: 
 proc draw_polygon_outline_on_image*(destination: uint32, points: ptr Vector, numPoints: cint, thickness: cint, color: Color) {.null0_import.}
 proc draw_rectangle_rounded_outline_on_image*(destination: uint32, x: cint, y: cint, width: cint, height: cint, cornerRadius: cint, thickness: cint, color: Color) {.null0_import.}
 
-# Colors functions
-proc color_tint*(color: Color, tint: Color): Color {.null0_import.}
-proc color_fade*(color: Color, alpha: cfloat): Color {.null0_import.}
-proc color_brightness*(color: Color, factor: cfloat): Color {.null0_import.}
-proc color_invert*(color: Color): Color {.null0_import.}
-proc color_alpha_blend*(dst: Color, src: Color): Color {.null0_import.}
-proc color_contrast*(color: Color, contrast: cfloat): Color {.null0_import.}
-proc color_bilinear_interpolate*(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: cfloat, coordinateY: cfloat): Color {.null0_import.}
+# Input functions
+proc key_pressed*(key: Key): bool {.null0_import.}
+proc key_down*(key: Key): bool {.null0_import.}
+proc key_released*(key: Key): bool {.null0_import.}
+proc key_up*(key: Key): bool {.null0_import.}
+proc gamepad_button_pressed*(gamepad: cint, button: GamepadButton): bool {.null0_import.}
+proc gamepad_button_down*(gamepad: cint, button: GamepadButton): bool {.null0_import.}
+proc gamepad_button_released*(gamepad: cint, button: GamepadButton): bool {.null0_import.}
+proc mouse_position*(): Vector {.null0_import.}
+proc mouse_button_pressed*(button: MouseButton): bool {.null0_import.}
+proc mouse_button_down*(button: MouseButton): bool {.null0_import.}
+proc mouse_button_released*(button: MouseButton): bool {.null0_import.}
+proc mouse_button_up*(button: MouseButton): bool {.null0_import.}
+
+# Sound functions
+proc load_sound*(filename: cstring): uint32 {.null0_import.}
+proc play_sound*(sound: uint32, loop: bool) {.null0_import.}
+proc stop_sound*(sound: uint32) {.null0_import.}
+proc unload_sound*(sound: uint32) {.null0_import.}
+proc tts_sound*(text: cstring, phonetic: bool, pitch: cint, speed: cint, throat: cint, mouth: cint, sing: bool): uint32 {.null0_import.}
+proc sfx_sound*(params: SfxParams): uint32 {.null0_import.}
+proc sfx_generate*(`type`: SfxPresetType): SfxParams {.null0_import.}
+
+# Types functions
+
+# Utilities functions
+proc current_time*(): uint64 {.null0_import.}
+proc delta_time*(): cfloat {.null0_import.}
+proc random_int*(min: cint, max: cint): cint {.null0_import.}
+proc random_seed_get*(): uint64 {.null0_import.}
+proc random_seed_set*(seed: uint64) {.null0_import.}
 
 # this removes errors about nop main
 proc main*(argc: cint, argv: ptr cstring): cint {.wasm.} =

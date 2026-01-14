@@ -1,161 +1,58 @@
 #include "host_header.h"
 
-// UTILITIES
+// COLORS
 
-// Get system-time (ms) since unix epoch.
-HOST_FUNCTION(uint64_t, current_time, (), {
- uint64_t retHost = null0_current_time();
+// Tint a color with another color.
+HOST_FUNCTION(uint32_t, color_tint, (uint32_t color, uint32_t tint), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ pntr_color tintHost = copy_color_from_cart(tint);
+ uint32_t retHost = copy_color_to_cart(pntr_color_tint(colorHost, tintHost));
  return retHost;
 })
 
-// Get the change in time (seconds) since the last update run.
-HOST_FUNCTION(float, delta_time, (), {
- float retHost = pntr_app_delta_time(null0_app);
+// Fade a color.
+HOST_FUNCTION(uint32_t, color_fade, (uint32_t color, float alpha), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ uint32_t retHost = copy_color_to_cart(pntr_color_fade(colorHost, alpha));
  return retHost;
 })
 
-// Get a random integer between 2 numbers.
-HOST_FUNCTION(int32_t, random_int, (int32_t min, int32_t max), {
- int32_t retHost = pntr_app_random(null0_app, min, max);
+// Change the brightness of a color.
+HOST_FUNCTION(uint32_t, color_brightness, (uint32_t color, float factor), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ uint32_t retHost = copy_color_to_cart(pntr_color_brightness(colorHost, factor));
  return retHost;
 })
 
-// Get the random-seed.
-HOST_FUNCTION(uint64_t, random_seed_get, (), {
- uint64_t retHost = pntr_app_random_seed(null0_app);
+// Invert a color.
+HOST_FUNCTION(uint32_t, color_invert, (uint32_t color), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ uint32_t retHost = copy_color_to_cart(pntr_color_invert(colorHost));
  return retHost;
 })
 
-// Set the random-seed.
-HOST_FUNCTION(void, random_seed_set, (uint64_t seed), {
- pntr_app_random_set_seed(null0_app, seed);
-})
-
-
-// TYPES
-
-
-// SOUND
-
-// Load a sound from a file in cart.
-HOST_FUNCTION(uint32_t, load_sound, (uint32_t filename), {
- char* filenameHost = copy_string_from_cart(filename);
- uint32_t retHost = add_sound(pntr_load_sound(filenameHost));
- free(filenameHost);
+// Blend 2 colors together.
+HOST_FUNCTION(uint32_t, color_alpha_blend, (uint32_t dst, uint32_t src), {
+ pntr_color dstHost = copy_color_from_cart(dst);
+ pntr_color srcHost = copy_color_from_cart(src);
+ uint32_t retHost = copy_color_to_cart(pntr_color_alpha_blend(dstHost, srcHost));
  return retHost;
 })
 
-// Play a sound.
-HOST_FUNCTION(void, play_sound, (uint32_t sound, bool loop), {
- pntr_play_sound(sounds[sound], loop);
-})
-
-// Stop a sound.
-HOST_FUNCTION(void, stop_sound, (uint32_t sound), {
- pntr_stop_sound(sounds[sound]);
-})
-
-// Unload a sound.
-HOST_FUNCTION(void, unload_sound, (uint32_t sound), {
- pntr_unload_sound(sounds[sound]);
-})
-
-// Speak some text and return a sound. Set things to 0 for defaults.
-HOST_FUNCTION(uint32_t, tts_sound, (uint32_t text, bool phonetic, int32_t pitch, int32_t speed, int32_t throat, int32_t mouth, bool sing), {
- char* textHost = copy_string_from_cart(text);
- uint32_t retHost = add_sound(null0_tts_sound(textHost, phonetic, pitch, speed, throat, mouth, sing));
- free(textHost);
+// Change contrast of a color.
+HOST_FUNCTION(uint32_t, color_contrast, (uint32_t color, float contrast), {
+ pntr_color colorHost = copy_color_from_cart(color);
+ uint32_t retHost = copy_color_to_cart(pntr_color_contrast(colorHost, contrast));
  return retHost;
 })
 
-// Create Sfx sound.
-HOST_FUNCTION(uint32_t, sfx_sound, (uint32_t params), {
- SfxParams* paramsHost = copy_memory_from_cart(params, sizeof(SfxParams));
- uint32_t retHost = add_sound(null0_sfx_sound(paramsHost));
- free(paramsHost);
- return retHost;
-})
-
-// Create Sfx parameters.
-HOST_FUNCTION(uint32_t, sfx_generate, (SfxPresetType type), {
- SfxParams retHostVal = null0_sfx_generate(type);
- uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(SfxParams));
- return retHost;
-})
-
-
-// INPUT
-
-// Has the key been pressed? (tracks unpress/read correctly.)
-HOST_FUNCTION(bool, key_pressed, (pntr_app_key key), {
- bool retHost = pntr_app_key_pressed(null0_app, key);
- return retHost;
-})
-
-// Is the key currently down?
-HOST_FUNCTION(bool, key_down, (pntr_app_key key), {
- bool retHost = pntr_app_key_down(null0_app, key);
- return retHost;
-})
-
-// Has the key been released? (tracks press/read correctly.)
-HOST_FUNCTION(bool, key_released, (pntr_app_key key), {
- bool retHost = pntr_app_key_released(null0_app, key);
- return retHost;
-})
-
-// Is the key currently up?
-HOST_FUNCTION(bool, key_up, (pntr_app_key key), {
- bool retHost = pntr_app_key_up(null0_app, key);
- return retHost;
-})
-
-// Has the button been pressed? (tracks unpress/read correctly.)
-HOST_FUNCTION(bool, gamepad_button_pressed, (int32_t gamepad, pntr_app_gamepad_button button), {
- bool retHost = pntr_app_gamepad_button_pressed(null0_app, gamepad, button);
- return retHost;
-})
-
-// Is the button currently down?
-HOST_FUNCTION(bool, gamepad_button_down, (int32_t gamepad, pntr_app_gamepad_button button), {
- bool retHost = pntr_app_gamepad_button_down(null0_app, gamepad, button);
- return retHost;
-})
-
-// Has the button been released? (tracks press/read correctly.)
-HOST_FUNCTION(bool, gamepad_button_released, (int32_t gamepad, pntr_app_gamepad_button button), {
- bool retHost = pntr_app_gamepad_button_released(null0_app, gamepad, button);
- return retHost;
-})
-
-// Get current position of mouse.
-HOST_FUNCTION(uint32_t, mouse_position, (), {
- pntr_vector retHostVal = null0_mouse_position();
- uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(pntr_vector));
- return retHost;
-})
-
-// Has the button been pressed? (tracks unpress/read correctly.)
-HOST_FUNCTION(bool, mouse_button_pressed, (pntr_app_mouse_button button), {
- bool retHost = pntr_app_mouse_button_pressed(null0_app, button);
- return retHost;
-})
-
-// Is the button currently down?
-HOST_FUNCTION(bool, mouse_button_down, (pntr_app_mouse_button button), {
- bool retHost = pntr_app_mouse_button_down(null0_app, button);
- return retHost;
-})
-
-// Has the button been released? (tracks press/read correctly.)
-HOST_FUNCTION(bool, mouse_button_released, (pntr_app_mouse_button button), {
- bool retHost = pntr_app_mouse_button_released(null0_app, button);
- return retHost;
-})
-
-// Is the button currently up?
-HOST_FUNCTION(bool, mouse_button_up, (pntr_app_mouse_button button), {
- bool retHost = pntr_app_mouse_button_up(null0_app, button);
+// Interpolate colors.
+HOST_FUNCTION(uint32_t, color_bilinear_interpolate, (uint32_t color00, uint32_t color01, uint32_t color10, uint32_t color11, float coordinateX, float coordinateY), {
+ pntr_color color00Host = copy_color_from_cart(color00);
+ pntr_color color01Host = copy_color_from_cart(color01);
+ pntr_color color10Host = copy_color_from_cart(color10);
+ pntr_color color11Host = copy_color_from_cart(color11);
+ uint32_t retHost = copy_color_to_cart(pntr_color_bilinear_interpolate(color00Host, color01Host, color10Host, color11Host, coordinateX, coordinateY));
  return retHost;
 })
 
@@ -635,58 +532,161 @@ HOST_FUNCTION(void, draw_rectangle_rounded_outline_on_image, (uint32_t destinati
 })
 
 
-// COLORS
+// INPUT
 
-// Tint a color with another color.
-HOST_FUNCTION(uint32_t, color_tint, (uint32_t color, uint32_t tint), {
- pntr_color colorHost = copy_color_from_cart(color);
- pntr_color tintHost = copy_color_from_cart(tint);
- uint32_t retHost = copy_color_to_cart(pntr_color_tint(colorHost, tintHost));
+// Has the key been pressed? (tracks unpress/read correctly.)
+HOST_FUNCTION(bool, key_pressed, (pntr_app_key key), {
+ bool retHost = pntr_app_key_pressed(null0_app, key);
  return retHost;
 })
 
-// Fade a color.
-HOST_FUNCTION(uint32_t, color_fade, (uint32_t color, float alpha), {
- pntr_color colorHost = copy_color_from_cart(color);
- uint32_t retHost = copy_color_to_cart(pntr_color_fade(colorHost, alpha));
+// Is the key currently down?
+HOST_FUNCTION(bool, key_down, (pntr_app_key key), {
+ bool retHost = pntr_app_key_down(null0_app, key);
  return retHost;
 })
 
-// Change the brightness of a color.
-HOST_FUNCTION(uint32_t, color_brightness, (uint32_t color, float factor), {
- pntr_color colorHost = copy_color_from_cart(color);
- uint32_t retHost = copy_color_to_cart(pntr_color_brightness(colorHost, factor));
+// Has the key been released? (tracks press/read correctly.)
+HOST_FUNCTION(bool, key_released, (pntr_app_key key), {
+ bool retHost = pntr_app_key_released(null0_app, key);
  return retHost;
 })
 
-// Invert a color.
-HOST_FUNCTION(uint32_t, color_invert, (uint32_t color), {
- pntr_color colorHost = copy_color_from_cart(color);
- uint32_t retHost = copy_color_to_cart(pntr_color_invert(colorHost));
+// Is the key currently up?
+HOST_FUNCTION(bool, key_up, (pntr_app_key key), {
+ bool retHost = pntr_app_key_up(null0_app, key);
  return retHost;
 })
 
-// Blend 2 colors together.
-HOST_FUNCTION(uint32_t, color_alpha_blend, (uint32_t dst, uint32_t src), {
- pntr_color dstHost = copy_color_from_cart(dst);
- pntr_color srcHost = copy_color_from_cart(src);
- uint32_t retHost = copy_color_to_cart(pntr_color_alpha_blend(dstHost, srcHost));
+// Has the button been pressed? (tracks unpress/read correctly.)
+HOST_FUNCTION(bool, gamepad_button_pressed, (int32_t gamepad, pntr_app_gamepad_button button), {
+ bool retHost = pntr_app_gamepad_button_pressed(null0_app, gamepad, button);
  return retHost;
 })
 
-// Change contrast of a color.
-HOST_FUNCTION(uint32_t, color_contrast, (uint32_t color, float contrast), {
- pntr_color colorHost = copy_color_from_cart(color);
- uint32_t retHost = copy_color_to_cart(pntr_color_contrast(colorHost, contrast));
+// Is the button currently down?
+HOST_FUNCTION(bool, gamepad_button_down, (int32_t gamepad, pntr_app_gamepad_button button), {
+ bool retHost = pntr_app_gamepad_button_down(null0_app, gamepad, button);
  return retHost;
 })
 
-// Interpolate colors.
-HOST_FUNCTION(uint32_t, color_bilinear_interpolate, (uint32_t color00, uint32_t color01, uint32_t color10, uint32_t color11, float coordinateX, float coordinateY), {
- pntr_color color00Host = copy_color_from_cart(color00);
- pntr_color color01Host = copy_color_from_cart(color01);
- pntr_color color10Host = copy_color_from_cart(color10);
- pntr_color color11Host = copy_color_from_cart(color11);
- uint32_t retHost = copy_color_to_cart(pntr_color_bilinear_interpolate(color00Host, color01Host, color10Host, color11Host, coordinateX, coordinateY));
+// Has the button been released? (tracks press/read correctly.)
+HOST_FUNCTION(bool, gamepad_button_released, (int32_t gamepad, pntr_app_gamepad_button button), {
+ bool retHost = pntr_app_gamepad_button_released(null0_app, gamepad, button);
  return retHost;
+})
+
+// Get current position of mouse.
+HOST_FUNCTION(uint32_t, mouse_position, (), {
+ pntr_vector retHostVal = null0_mouse_position();
+ uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(pntr_vector));
+ return retHost;
+})
+
+// Has the button been pressed? (tracks unpress/read correctly.)
+HOST_FUNCTION(bool, mouse_button_pressed, (pntr_app_mouse_button button), {
+ bool retHost = pntr_app_mouse_button_pressed(null0_app, button);
+ return retHost;
+})
+
+// Is the button currently down?
+HOST_FUNCTION(bool, mouse_button_down, (pntr_app_mouse_button button), {
+ bool retHost = pntr_app_mouse_button_down(null0_app, button);
+ return retHost;
+})
+
+// Has the button been released? (tracks press/read correctly.)
+HOST_FUNCTION(bool, mouse_button_released, (pntr_app_mouse_button button), {
+ bool retHost = pntr_app_mouse_button_released(null0_app, button);
+ return retHost;
+})
+
+// Is the button currently up?
+HOST_FUNCTION(bool, mouse_button_up, (pntr_app_mouse_button button), {
+ bool retHost = pntr_app_mouse_button_up(null0_app, button);
+ return retHost;
+})
+
+
+// SOUND
+
+// Load a sound from a file in cart.
+HOST_FUNCTION(uint32_t, load_sound, (uint32_t filename), {
+ char* filenameHost = copy_string_from_cart(filename);
+ uint32_t retHost = add_sound(pntr_load_sound(filenameHost));
+ free(filenameHost);
+ return retHost;
+})
+
+// Play a sound.
+HOST_FUNCTION(void, play_sound, (uint32_t sound, bool loop), {
+ pntr_play_sound(sounds[sound], loop);
+})
+
+// Stop a sound.
+HOST_FUNCTION(void, stop_sound, (uint32_t sound), {
+ pntr_stop_sound(sounds[sound]);
+})
+
+// Unload a sound.
+HOST_FUNCTION(void, unload_sound, (uint32_t sound), {
+ pntr_unload_sound(sounds[sound]);
+})
+
+// Speak some text and return a sound. Set things to 0 for defaults.
+HOST_FUNCTION(uint32_t, tts_sound, (uint32_t text, bool phonetic, int32_t pitch, int32_t speed, int32_t throat, int32_t mouth, bool sing), {
+ char* textHost = copy_string_from_cart(text);
+ uint32_t retHost = add_sound(null0_tts_sound(textHost, phonetic, pitch, speed, throat, mouth, sing));
+ free(textHost);
+ return retHost;
+})
+
+// Create Sfx sound.
+HOST_FUNCTION(uint32_t, sfx_sound, (uint32_t params), {
+ SfxParams* paramsHost = copy_memory_from_cart(params, sizeof(SfxParams));
+ uint32_t retHost = add_sound(null0_sfx_sound(paramsHost));
+ free(paramsHost);
+ return retHost;
+})
+
+// Create Sfx parameters.
+HOST_FUNCTION(uint32_t, sfx_generate, (SfxPresetType type), {
+ SfxParams retHostVal = null0_sfx_generate(type);
+ uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(SfxParams));
+ return retHost;
+})
+
+
+// TYPES
+
+
+// UTILITIES
+
+// Get system-time (ms) since unix epoch.
+HOST_FUNCTION(uint64_t, current_time, (), {
+ uint64_t retHost = null0_current_time();
+ return retHost;
+})
+
+// Get the change in time (seconds) since the last update run.
+HOST_FUNCTION(float, delta_time, (), {
+ float retHost = pntr_app_delta_time(null0_app);
+ return retHost;
+})
+
+// Get a random integer between 2 numbers.
+HOST_FUNCTION(int32_t, random_int, (int32_t min, int32_t max), {
+ int32_t retHost = pntr_app_random(null0_app, min, max);
+ return retHost;
+})
+
+// Get the random-seed.
+HOST_FUNCTION(uint64_t, random_seed_get, (), {
+ uint64_t retHost = pntr_app_random_seed(null0_app);
+ return retHost;
+})
+
+// Set the random-seed.
+HOST_FUNCTION(void, random_seed_set, (uint64_t seed), {
+ pntr_app_random_set_seed(null0_app, seed);
 })

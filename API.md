@@ -392,227 +392,68 @@ void mouseMoved(f32 x, f32 y)
 These are what make up the things you can do in your game.
 
 
-### utilities
+### colors
 
-#### current_time
+#### color_tint
 
-Get system-time (ms) since unix epoch.
+Tint a color with another color.
 
 ```c
-u64 current_time()
+Color color_tint(Color color, Color tint)
 ```
 
 
-#### delta_time
+#### color_fade
 
-Get the change in time (seconds) since the last update run.
+Fade a color.
 
 ```c
-f32 delta_time()
+Color color_fade(Color color, f32 alpha)
 ```
 
 
-#### random_int
+#### color_brightness
 
-Get a random integer between 2 numbers.
+Change the brightness of a color.
 
 ```c
-i32 random_int(i32 min, i32 max)
+Color color_brightness(Color color, f32 factor)
 ```
 
 
-#### random_seed_get
+#### color_invert
 
-Get the random-seed.
+Invert a color.
 
 ```c
-u64 random_seed_get()
+Color color_invert(Color color)
 ```
 
 
-#### random_seed_set
+#### color_alpha_blend
 
-Set the random-seed.
-
-```c
-void random_seed_set(u64 seed)
-```
-
----
-
-### sound
-
-#### load_sound
-
-Load a sound from a file in cart.
+Blend 2 colors together.
 
 ```c
-Sound load_sound(string filename)
+Color color_alpha_blend(Color dst, Color src)
 ```
 
 
-#### play_sound
+#### color_contrast
 
-Play a sound.
+Change contrast of a color.
 
 ```c
-void play_sound(Sound sound, bool loop)
+Color color_contrast(Color color, f32 contrast)
 ```
 
 
-#### stop_sound
+#### color_bilinear_interpolate
 
-Stop a sound.
-
-```c
-void stop_sound(Sound sound)
-```
-
-
-#### unload_sound
-
-Unload a sound.
+Interpolate colors.
 
 ```c
-void unload_sound(Sound sound)
-```
-
-
-#### tts_sound
-
-Speak some text and return a sound. Set things to 0 for defaults.
-
-```c
-Sound tts_sound(string text, bool phonetic, i32 pitch, i32 speed, i32 throat, i32 mouth, bool sing)
-```
-
-
-#### sfx_sound
-
-Create Sfx sound.
-
-```c
-Sound sfx_sound(SfxParams params)
-```
-
-
-#### sfx_generate
-
-Create Sfx parameters.
-
-```c
-SfxParams sfx_generate(SfxPresetType type)
-```
-
----
-
-### input
-
-#### key_pressed
-
-Has the key been pressed? (tracks unpress/read correctly.)
-
-```c
-bool key_pressed(Key key)
-```
-
-
-#### key_down
-
-Is the key currently down?
-
-```c
-bool key_down(Key key)
-```
-
-
-#### key_released
-
-Has the key been released? (tracks press/read correctly.)
-
-```c
-bool key_released(Key key)
-```
-
-
-#### key_up
-
-Is the key currently up?
-
-```c
-bool key_up(Key key)
-```
-
-
-#### gamepad_button_pressed
-
-Has the button been pressed? (tracks unpress/read correctly.)
-
-```c
-bool gamepad_button_pressed(i32 gamepad, GamepadButton button)
-```
-
-
-#### gamepad_button_down
-
-Is the button currently down?
-
-```c
-bool gamepad_button_down(i32 gamepad, GamepadButton button)
-```
-
-
-#### gamepad_button_released
-
-Has the button been released? (tracks press/read correctly.)
-
-```c
-bool gamepad_button_released(i32 gamepad, GamepadButton button)
-```
-
-
-#### mouse_position
-
-Get current position of mouse.
-
-```c
-Vector mouse_position()
-```
-
-
-#### mouse_button_pressed
-
-Has the button been pressed? (tracks unpress/read correctly.)
-
-```c
-bool mouse_button_pressed(MouseButton button)
-```
-
-
-#### mouse_button_down
-
-Is the button currently down?
-
-```c
-bool mouse_button_down(MouseButton button)
-```
-
-
-#### mouse_button_released
-
-Has the button been released? (tracks press/read correctly.)
-
-```c
-bool mouse_button_released(MouseButton button)
-```
-
-
-#### mouse_button_up
-
-Is the button currently up?
-
-```c
-bool mouse_button_up(MouseButton button)
+Color color_bilinear_interpolate(Color color00, Color color01, Color color10, Color color11, f32 coordinateX, f32 coordinateY)
 ```
 
 ---
@@ -1295,67 +1136,226 @@ void draw_rectangle_rounded_outline_on_image(Image destination, i32 x, i32 y, i3
 
 ---
 
-### colors
+### input
 
-#### color_tint
+#### key_pressed
 
-Tint a color with another color.
+Has the key been pressed? (tracks unpress/read correctly.)
 
 ```c
-Color color_tint(Color color, Color tint)
+bool key_pressed(Key key)
 ```
 
 
-#### color_fade
+#### key_down
 
-Fade a color.
+Is the key currently down?
 
 ```c
-Color color_fade(Color color, f32 alpha)
+bool key_down(Key key)
 ```
 
 
-#### color_brightness
+#### key_released
 
-Change the brightness of a color.
+Has the key been released? (tracks press/read correctly.)
 
 ```c
-Color color_brightness(Color color, f32 factor)
+bool key_released(Key key)
 ```
 
 
-#### color_invert
+#### key_up
 
-Invert a color.
+Is the key currently up?
 
 ```c
-Color color_invert(Color color)
+bool key_up(Key key)
 ```
 
 
-#### color_alpha_blend
+#### gamepad_button_pressed
 
-Blend 2 colors together.
+Has the button been pressed? (tracks unpress/read correctly.)
 
 ```c
-Color color_alpha_blend(Color dst, Color src)
+bool gamepad_button_pressed(i32 gamepad, GamepadButton button)
 ```
 
 
-#### color_contrast
+#### gamepad_button_down
 
-Change contrast of a color.
+Is the button currently down?
 
 ```c
-Color color_contrast(Color color, f32 contrast)
+bool gamepad_button_down(i32 gamepad, GamepadButton button)
 ```
 
 
-#### color_bilinear_interpolate
+#### gamepad_button_released
 
-Interpolate colors.
+Has the button been released? (tracks press/read correctly.)
 
 ```c
-Color color_bilinear_interpolate(Color color00, Color color01, Color color10, Color color11, f32 coordinateX, f32 coordinateY)
+bool gamepad_button_released(i32 gamepad, GamepadButton button)
+```
+
+
+#### mouse_position
+
+Get current position of mouse.
+
+```c
+Vector mouse_position()
+```
+
+
+#### mouse_button_pressed
+
+Has the button been pressed? (tracks unpress/read correctly.)
+
+```c
+bool mouse_button_pressed(MouseButton button)
+```
+
+
+#### mouse_button_down
+
+Is the button currently down?
+
+```c
+bool mouse_button_down(MouseButton button)
+```
+
+
+#### mouse_button_released
+
+Has the button been released? (tracks press/read correctly.)
+
+```c
+bool mouse_button_released(MouseButton button)
+```
+
+
+#### mouse_button_up
+
+Is the button currently up?
+
+```c
+bool mouse_button_up(MouseButton button)
+```
+
+---
+
+### sound
+
+#### load_sound
+
+Load a sound from a file in cart.
+
+```c
+Sound load_sound(string filename)
+```
+
+
+#### play_sound
+
+Play a sound.
+
+```c
+void play_sound(Sound sound, bool loop)
+```
+
+
+#### stop_sound
+
+Stop a sound.
+
+```c
+void stop_sound(Sound sound)
+```
+
+
+#### unload_sound
+
+Unload a sound.
+
+```c
+void unload_sound(Sound sound)
+```
+
+
+#### tts_sound
+
+Speak some text and return a sound. Set things to 0 for defaults.
+
+```c
+Sound tts_sound(string text, bool phonetic, i32 pitch, i32 speed, i32 throat, i32 mouth, bool sing)
+```
+
+
+#### sfx_sound
+
+Create Sfx sound.
+
+```c
+Sound sfx_sound(SfxParams params)
+```
+
+
+#### sfx_generate
+
+Create Sfx parameters.
+
+```c
+SfxParams sfx_generate(SfxPresetType type)
+```
+
+---
+
+### utilities
+
+#### current_time
+
+Get system-time (ms) since unix epoch.
+
+```c
+u64 current_time()
+```
+
+
+#### delta_time
+
+Get the change in time (seconds) since the last update run.
+
+```c
+f32 delta_time()
+```
+
+
+#### random_int
+
+Get a random integer between 2 numbers.
+
+```c
+i32 random_int(i32 min, i32 max)
+```
+
+
+#### random_seed_get
+
+Get the random-seed.
+
+```c
+u64 random_seed_get()
+```
+
+
+#### random_seed_set
+
+Set the random-seed.
+
+```c
+void random_seed_set(u64 seed)
 ```
 

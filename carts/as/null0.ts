@@ -343,88 +343,30 @@ export const BLANK: Color = new Color(0, 0, 0, 0);
 export const MAGENTA: Color = new Color(255, 0, 255, 255);
 export const RAYWHITE: Color = new Color(245, 245, 245, 255);
 
-
 // Import functions from null0 module
 
-// Utilities functions
-/** Get system-time (ms) since unix epoch. */
-@external("null0", "current_time")
-export declare function current_time(): u64;
-/** Get the change in time (seconds) since the last update run. */
-@external("null0", "delta_time")
-export declare function delta_time(): f32;
-/** Get a random integer between 2 numbers. */
-@external("null0", "random_int")
-export declare function random_int(min: i32, max: i32): i32;
-/** Get the random-seed. */
-@external("null0", "random_seed_get")
-export declare function random_seed_get(): u64;
-/** Set the random-seed. */
-@external("null0", "random_seed_set")
-export declare function random_seed_set(seed: u64): void;
-
-// Types functions
-
-// Sound functions
-/** Load a sound from a file in cart. */
-@external("null0", "load_sound")
-export declare function load_sound(filename: usize): u32;
-/** Play a sound. */
-@external("null0", "play_sound")
-export declare function play_sound(sound: u32, loop: bool): void;
-/** Stop a sound. */
-@external("null0", "stop_sound")
-export declare function stop_sound(sound: u32): void;
-/** Unload a sound. */
-@external("null0", "unload_sound")
-export declare function unload_sound(sound: u32): void;
-/** Speak some text and return a sound. Set things to 0 for defaults. */
-@external("null0", "tts_sound")
-export declare function tts_sound(text: usize, phonetic: bool, pitch: i32, speed: i32, throat: i32, mouth: i32, sing: bool): u32;
-/** Create Sfx sound. */
-@external("null0", "sfx_sound")
-export declare function sfx_sound(params: SfxParams): u32;
-/** Create Sfx parameters. */
-@external("null0", "sfx_generate")
-export declare function sfx_generate(type: SfxPresetType): SfxParams;
-
-// Input functions
-/** Has the key been pressed? (tracks unpress/read correctly.) */
-@external("null0", "key_pressed")
-export declare function key_pressed(key: Key): bool;
-/** Is the key currently down? */
-@external("null0", "key_down")
-export declare function key_down(key: Key): bool;
-/** Has the key been released? (tracks press/read correctly.) */
-@external("null0", "key_released")
-export declare function key_released(key: Key): bool;
-/** Is the key currently up? */
-@external("null0", "key_up")
-export declare function key_up(key: Key): bool;
-/** Has the button been pressed? (tracks unpress/read correctly.) */
-@external("null0", "gamepad_button_pressed")
-export declare function gamepad_button_pressed(gamepad: i32, button: GamepadButton): bool;
-/** Is the button currently down? */
-@external("null0", "gamepad_button_down")
-export declare function gamepad_button_down(gamepad: i32, button: GamepadButton): bool;
-/** Has the button been released? (tracks press/read correctly.) */
-@external("null0", "gamepad_button_released")
-export declare function gamepad_button_released(gamepad: i32, button: GamepadButton): bool;
-/** Get current position of mouse. */
-@external("null0", "mouse_position")
-export declare function mouse_position(): Vector;
-/** Has the button been pressed? (tracks unpress/read correctly.) */
-@external("null0", "mouse_button_pressed")
-export declare function mouse_button_pressed(button: MouseButton): bool;
-/** Is the button currently down? */
-@external("null0", "mouse_button_down")
-export declare function mouse_button_down(button: MouseButton): bool;
-/** Has the button been released? (tracks press/read correctly.) */
-@external("null0", "mouse_button_released")
-export declare function mouse_button_released(button: MouseButton): bool;
-/** Is the button currently up? */
-@external("null0", "mouse_button_up")
-export declare function mouse_button_up(button: MouseButton): bool;
+// Colors functions
+/** Tint a color with another color. */
+@external("null0", "color_tint")
+export declare function color_tint(color: Color, tint: Color): Color;
+/** Fade a color. */
+@external("null0", "color_fade")
+export declare function color_fade(color: Color, alpha: f32): Color;
+/** Change the brightness of a color. */
+@external("null0", "color_brightness")
+export declare function color_brightness(color: Color, factor: f32): Color;
+/** Invert a color. */
+@external("null0", "color_invert")
+export declare function color_invert(color: Color): Color;
+/** Blend 2 colors together. */
+@external("null0", "color_alpha_blend")
+export declare function color_alpha_blend(dst: Color, src: Color): Color;
+/** Change contrast of a color. */
+@external("null0", "color_contrast")
+export declare function color_contrast(color: Color, contrast: f32): Color;
+/** Interpolate colors. */
+@external("null0", "color_bilinear_interpolate")
+export declare function color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32): Color;
 
 // Graphics functions
 /** Create a new blank image. */
@@ -653,28 +595,85 @@ export declare function draw_polygon_outline_on_image(destination: u32, points: 
 @external("null0", "draw_rectangle_rounded_outline_on_image")
 export declare function draw_rectangle_rounded_outline_on_image(destination: u32, x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, thickness: i32, color: Color): void;
 
-// Colors functions
-/** Tint a color with another color. */
-@external("null0", "color_tint")
-export declare function color_tint(color: Color, tint: Color): Color;
-/** Fade a color. */
-@external("null0", "color_fade")
-export declare function color_fade(color: Color, alpha: f32): Color;
-/** Change the brightness of a color. */
-@external("null0", "color_brightness")
-export declare function color_brightness(color: Color, factor: f32): Color;
-/** Invert a color. */
-@external("null0", "color_invert")
-export declare function color_invert(color: Color): Color;
-/** Blend 2 colors together. */
-@external("null0", "color_alpha_blend")
-export declare function color_alpha_blend(dst: Color, src: Color): Color;
-/** Change contrast of a color. */
-@external("null0", "color_contrast")
-export declare function color_contrast(color: Color, contrast: f32): Color;
-/** Interpolate colors. */
-@external("null0", "color_bilinear_interpolate")
-export declare function color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32): Color;
+// Input functions
+/** Has the key been pressed? (tracks unpress/read correctly.) */
+@external("null0", "key_pressed")
+export declare function key_pressed(key: Key): bool;
+/** Is the key currently down? */
+@external("null0", "key_down")
+export declare function key_down(key: Key): bool;
+/** Has the key been released? (tracks press/read correctly.) */
+@external("null0", "key_released")
+export declare function key_released(key: Key): bool;
+/** Is the key currently up? */
+@external("null0", "key_up")
+export declare function key_up(key: Key): bool;
+/** Has the button been pressed? (tracks unpress/read correctly.) */
+@external("null0", "gamepad_button_pressed")
+export declare function gamepad_button_pressed(gamepad: i32, button: GamepadButton): bool;
+/** Is the button currently down? */
+@external("null0", "gamepad_button_down")
+export declare function gamepad_button_down(gamepad: i32, button: GamepadButton): bool;
+/** Has the button been released? (tracks press/read correctly.) */
+@external("null0", "gamepad_button_released")
+export declare function gamepad_button_released(gamepad: i32, button: GamepadButton): bool;
+/** Get current position of mouse. */
+@external("null0", "mouse_position")
+export declare function mouse_position(): Vector;
+/** Has the button been pressed? (tracks unpress/read correctly.) */
+@external("null0", "mouse_button_pressed")
+export declare function mouse_button_pressed(button: MouseButton): bool;
+/** Is the button currently down? */
+@external("null0", "mouse_button_down")
+export declare function mouse_button_down(button: MouseButton): bool;
+/** Has the button been released? (tracks press/read correctly.) */
+@external("null0", "mouse_button_released")
+export declare function mouse_button_released(button: MouseButton): bool;
+/** Is the button currently up? */
+@external("null0", "mouse_button_up")
+export declare function mouse_button_up(button: MouseButton): bool;
+
+// Sound functions
+/** Load a sound from a file in cart. */
+@external("null0", "load_sound")
+export declare function load_sound(filename: usize): u32;
+/** Play a sound. */
+@external("null0", "play_sound")
+export declare function play_sound(sound: u32, loop: bool): void;
+/** Stop a sound. */
+@external("null0", "stop_sound")
+export declare function stop_sound(sound: u32): void;
+/** Unload a sound. */
+@external("null0", "unload_sound")
+export declare function unload_sound(sound: u32): void;
+/** Speak some text and return a sound. Set things to 0 for defaults. */
+@external("null0", "tts_sound")
+export declare function tts_sound(text: usize, phonetic: bool, pitch: i32, speed: i32, throat: i32, mouth: i32, sing: bool): u32;
+/** Create Sfx sound. */
+@external("null0", "sfx_sound")
+export declare function sfx_sound(params: SfxParams): u32;
+/** Create Sfx parameters. */
+@external("null0", "sfx_generate")
+export declare function sfx_generate(type: SfxPresetType): SfxParams;
+
+// Types functions
+
+// Utilities functions
+/** Get system-time (ms) since unix epoch. */
+@external("null0", "current_time")
+export declare function current_time(): u64;
+/** Get the change in time (seconds) since the last update run. */
+@external("null0", "delta_time")
+export declare function delta_time(): f32;
+/** Get a random integer between 2 numbers. */
+@external("null0", "random_int")
+export declare function random_int(min: i32, max: i32): i32;
+/** Get the random-seed. */
+@external("null0", "random_seed_get")
+export declare function random_seed_get(): u64;
+/** Set the random-seed. */
+@external("null0", "random_seed_set")
+export declare function random_seed_set(seed: u64): void;
 
 // Helper functions for working with Vector arrays
 /** Convert StaticArray<Vector> to pointer for WASM FFI */
