@@ -1,4 +1,4 @@
-This combines ideas from [pntr_app_starter](https://github.com/RobLoach/pntr_app_starter) with [wamr](https://github.com/bytecodealliance/wasm-micro-runtime) to make null0 game-engine (native runtime & libretro core.)
+The basic idea here is a small game-engine where you make "carts", in whatever language you like, which will run on native, libretro, or web.
 
 [Read the docs](https://notnull.games/null0) to find out more.
 
