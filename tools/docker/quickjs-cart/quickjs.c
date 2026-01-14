@@ -77,6 +77,9 @@
 #endif
 
 
+#define CONFIG_VERSION "null0"
+
+
 /* dump object free */
 //#define DUMP_FREE
 //#define DUMP_CLOSURE

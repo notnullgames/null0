@@ -10,20 +10,63 @@
       }
     </script>
     <script type="module" src="null0-cart.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+        background: black;
+        color: white;
+      }
+      
+      #demos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      
+      h1 {
+        line-height: 0;
+        margin: 0;
+      }
+
+      h3 {
+        line-height: 0;
+        margin-top:5px;
+      }
+
+      .democard {
+        border: 1px solid white;
+        color: black;
+        background: lightgrey;
+        padding: 10px;
+        border-radius: 10px;
+      }
+    </style>
   </head>
   <body>
-    <null0-cart src="carts/colorbars_c.null0"></null0-cart>
-    <null0-cart src="carts/input_js.null0"></null0-cart>
-    <null0-cart src="carts/sfx_c.null0"></null0-cart>
-    <null0-cart src="carts/simple_nim.null0"></null0-cart>
-    <!-- <null0-cart src="carts/speak_c.null0"></null0-cart> -->
-    <!-- <null0-cart src="carts/gradient_c.null0"></null0-cart> -->
-    <!-- <null0-cart src="carts/input_c.null0"></null0-cart> -->
-    <!-- <null0-cart src="carts/basic_nelua.null0"></null0-cart> -->
-    <!-- <null0-cart src="carts/colorbars_nelua.null0"></null0-cart> -->
-    <!-- <null0-cart src="carts/demo_js.null0"></null0-cart> -->
-    <!-- <null0-cart src="carts/example_c.null0"></null0-cart> -->
-    <!-- <null0-cart src="carts/wasi_demo_c.null0"></null0-cart> -->
+    <h1>Null0 Carts</h1>
+    <p>These are the currently build demo-carts.</p>
+    <!-- instead of my demo code, you could just do something like this: --> 
+    <!-- <null0-cart src="carts/colorbars_c.null0"></null0-cart> -->
+
+    <div id="demos">
+      
+    </div>
   </body>
-  </body>
+  <script type="module">
+    // this is more wonky than you need to do, but I want to automate loading whatever carts were built
+
+    // get list of carts (specific to my demo)
+    const carts = await fetch('carts/list.txt').then(r => r.text()).then(t => t.trim().split('\n'))
+
+    // load all carts
+    for (const cn of carts.sort()) {
+      document.getElementById('demos').innerHTML += `
+        <div class="democard">
+        <h3>${cn.replace('.null0', '')}</h3>
+        <null0-cart src="carts/${cn}"></null0-cart>
+        </div>
+      `
+    }
+  </script>
 </html>

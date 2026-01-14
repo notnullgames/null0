@@ -2,50 +2,6 @@ This combines ideas from [pntr_app_starter](https://github.com/RobLoach/pntr_app
 
 [Read the docs](https://notnullgames.vercel.app/null0) to find out more.
 
-```bash
-# build native-host
-npm run build:native
-
-# build example carts
-npm run build:carts
-
-# run local watching web-server with web host
-npm start
-
-# build web, native, and carts in parallel
-npm run build
-
-# delete all built files
-npm run clean
-
-# generate shared header for web/native host
-npm run gen:host
-
-# generate cart-header for C carts
-npm run gen:cart_c
-
-# generate cart-header for javascript carts
-npm run gen:cart_js
-
-# generate cart-header for nelua carts
-npm run gen:cart_nelua
-
-# generate API.md
-npm run gen:api_docs
-```
-
-## distribution
-
-To distribute your game, you can either save your cart as main.null0, alongside the native runtime (and name that whatever you want) or you can embed it all in one executable:
-
-```sh
-# linux or mac
-cat build/host/null0 build/carts/input_c.null0 > tester
-
-# windows
-copy /b build/host/null0.exe+build/carts/input_c.null0 tester.exe
-```
-
 ## todo/ideas
 
 - [ ] [ui](https://github.com/rxi/microui)
@@ -64,7 +20,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [X] nelua
 - [X] rust
 - [X] nim
-- [ ] python
+- [ ] [python](https://github.com/wasmerio/py2wasm)
 - [ ] [go](https://tinygo.org/)
 - [ ] zig
 - [ ] [walt](https://github.com/ballercat/walt)

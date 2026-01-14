@@ -38,6 +38,8 @@ int main() {
 
   int d = SCREEN_HEIGHT / 4;
   int i = 0;
+
+  // draw a target so you can see the clear one
   while (d) {
     draw_circle(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, d -= bar_width, i++ % 2 ? WHITE : RED);
   }

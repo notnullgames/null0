@@ -34,9 +34,4 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 include(FetchContent)
 # set(FETCHCONTENT_QUIET OFF)
 
-option(CART_ONLY "Only build carts" OFF)
-
-if(NOT CART_ONLY)
-  add_subdirectory(host)
-endif()
-add_subdirectory(carts)
+add_subdirectory(host)

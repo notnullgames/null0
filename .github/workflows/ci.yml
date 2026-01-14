@@ -1,0 +1,285 @@
+on: push
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# TODO: codegen before each step
+# TODO: publish dockers automatically (so they have up-to-date headers)
+# TODO: should I provide "sdk" releases for each cart-type?
+
+jobs:
+  # TODO: seperate these into different steps and remove matrix?
+  host_linux:
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            os: ubuntu-latest
+          - arch: arm64
+            os: ubuntu-24.04-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Linux Host (x86_64)
+        if: matrix.container == false && matrix.arch == 'x86_64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev zip
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --target host
+          cd build/host
+          zip ../../null0_linux_x86-64.zip null0
+      - name: Upload Linux Host (x86_64) artifact
+        if: matrix.container == false && matrix.arch == 'x86_64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: null0_host_linux_x86-64
+          path: null0_linux_x86-64.zip
+
+      - name: Build Linux Hosts (arm64) - X11/Wayland and DRM
+        if: matrix.container == false && matrix.arch == 'arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends curl git pkg-config cmake build-essential ninja-build zip \
+            libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev \
+            libdrm-dev libgbm-dev libegl1-mesa-dev libgles2-mesa-dev libasound2-dev libudev-dev libinput-dev clang
+          # Regular (desktop) build
+          cmake -B build_desktop -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1 \
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument" \
+            -DCMAKE_CXX_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument"
+          cmake --build build_desktop --target host
+          (cd build_desktop/host && zip ../../null0_linux_arm64.zip null0)
+          # DRM build
+          cmake -B build_drm -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DPLATFORM=DRM -DGRAPHICS=GRAPHICS_API_OPENGL_ES2 \
+            -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1 \
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument" \
+            -DCMAKE_CXX_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument"
+          cmake --build build_drm --target host
+          (cd build_drm/host && zip ../../null0_linux_drm_arm64.zip null0)
+      - name: Upload  Linux Hosts (arm64) artifact
+        if: matrix.container == false && matrix.arch == 'arm64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: null0_host_linux_arm64
+          path: null0_linux_arm64.zip
+      - name: Upload  Linux Hosts (drm_arm64) artifact
+        if: matrix.container == false && matrix.arch == 'arm64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: null0_host_linux_drm_arm64
+          path: null0_linux_drm_arm64.zip
+
+  host_mac:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build arm64
+        run: |
+          cmake -B build_arm64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
+          cmake --build build_arm64 --target host
+      - name: Build x86_64
+        run: |
+          cmake -B build_x86_64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
+          cmake --build build_x86_64 --target host
+      - name: Create universal binary
+        run: |
+          mkdir -p build_universal
+          lipo -create build_x86_64/host/null0 build_arm64/host/null0 -output build_universal/null0
+          chmod +x build_universal/null0
+          cd build_universal
+          zip ../null0_macos.zip null0
+      - name: Upload Mac Host artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: null0_host_mac
+          path: null0_macos.zip
+
+  host_windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Build Native Windows Host (x64)
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1
+          cmake --build build --target host
+          cd build/host
+          Compress-Archive -Path null0.exe -DestinationPath ../../null0_windows_x64.zip
+        shell: pwsh
+      - name: Upload Windows Host artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: null0_host_windows
+          path: null0_windows_x64.zip
+
+  host_web:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 'latest'
+      - name: Build Web Host
+        run: npm run build:web
+      - name: Upload Web Host artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: null0_host_web
+          path: wbuild/host/null0.mjs
+
+  cart_c:
+    name: C Carts
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cart:
+          - colorbars
+          - example
+          - gradient
+          - input
+          - sfx
+          - speak
+          - wasi_demo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build C ${{ matrix.cart }} cart
+        run: docker run -v ./carts/c/${{ matrix.cart }}:/src -v .:/out konsumer/null0-cart-c ${{ matrix.cart }}_c
+      - name: Upload C ${{ matrix.cart }} cart artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.cart }}_c
+          path: ${{ matrix.cart }}_c.null0
+
+  cart_js:
+    name: JS Carts
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cart:
+          - demo
+          - input
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build JS ${{ matrix.cart }} cart
+        run: docker run -v ./carts/js/${{ matrix.cart }}:/src -v .:/out konsumer/null0-cart-quickjs ${{ matrix.cart }}_js
+      - name: Upload JS ${{ matrix.cart }} cart artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.cart }}_js
+          path: ${{ matrix.cart }}_js.null0
+
+  cart_as:
+    name: Assemblyscript Carts
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cart:
+          - simple
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build Assemblyscript ${{ matrix.cart }} cart
+        run: docker run -v ./carts/as/${{ matrix.cart }}:/src -v .:/out konsumer/null0-cart-assemblyscript ${{ matrix.cart }}_as
+      - name: Upload Assemblyscript ${{ matrix.cart }} cart artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.cart }}_as
+          path: ${{ matrix.cart }}_as.null0
+
+  cart_nelua:
+    name: Nelua Carts
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cart:
+          - basic
+          - colorbars
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build Nelua ${{ matrix.cart }} cart
+        run: docker run -v ./carts/nelua/${{ matrix.cart }}:/src -v .:/out konsumer/null0-cart-nelua ${{ matrix.cart }}_nelua
+      - name: Upload Nelua ${{ matrix.cart }} cart artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.cart }}_nelua
+          path: ${{ matrix.cart }}_nelua.null0
+  
+  # cart_nim:
+  #   name: Nim Carts
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       cart:
+  #         - simple
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Build Nim ${{ matrix.cart }} cart
+  #       run: docker run -v ./carts/nim/${{ matrix.cart }}:/src -v .:/out konsumer/null0-cart-nim ${{ matrix.cart }}_nim
+  #     - name: Upload Nim ${{ matrix.cart }} cart artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: ${{ matrix.cart }}_nim
+  #         path: ${{ matrix.cart }}_nim.null0
+  
+  # this creates a release on any tag, and attaches all the artifacts to it, then uploads demo page
+  release:
+    name: Release Tag
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    needs:
+      - cart_c
+      - cart_js
+      - cart_as
+      - cart_nelua
+      - host_linux
+      - host_mac
+      - host_windows
+      - host_web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - run: ls -al artifacts
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+      - name: Setup website
+        run: |
+          cd webroot
+          mv ../artifacts/null0.mjs .
+          mkdir -p carts
+          mv ../artifacts/**/*.null0 carts/
+          cd carts
+          ls *.null0 > list.txt
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'webroot'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

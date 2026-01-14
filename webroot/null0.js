@@ -2,7 +2,7 @@ import WasiPreview1 from '@easywasm/wasi'
 import fflatefs from './fflatefs.js'
 
 // this is output from emscripten
-import loadHost from './wbuild/host/null0.mjs'
+import loadHost from './null0.mjs'
 
 const debug = false
 

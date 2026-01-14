@@ -4,22 +4,34 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "configure:native": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release",
-    "prebuild:native": "npm run configure:native",
-    "build:native": "cmake --build build --target host",
-    "configure:web": "emcmake cmake -G Ninja -B wbuild -DCMAKE_BUILD_TYPE=Release",
-    "prebuild:web": "npm run configure:web",
-    "build:web": "cmake --build wbuild --target host",
-    "prebuild:carts": "npm run configure:native -- -DCART_ONLY=1",
-    "build:carts": "cmake --build build --target carts",
-    "build:native_carts": "cmake --build build",
-    "prebuild:native_carts": "npm run configure:native",
-    "build:cart_js": "cmake --build build --target cart-js",
-    "prebuild:cart_js": "npm run configure:native -- -DCART_ONLY=1",
-    "build": "npx -y npm-run-all --parallel build:native_carts build:web",
     "clean": "rm -rf build wbuild",
-    "start": "npx -y live-server --mount=/carts:./build/carts --mount=/wbuild:./wbuild webroot",
-    "prestart": "npm run build:web && npm run build:carts",
+    "host:native": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build",
+    "host:web": "emcmake cmake -G Ninja -B wbuild -DCMAKE_BUILD_TYPE=Release && cmake --build wbuild --target host",
+    "host": "npm-run-all --parallel 'host:*'",
+
+    "cart:colorbars_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-c colorbars_c",
+    "cart:example_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/example:/src -v ./build/carts:/out konsumer/null0-cart-c example_c",
+    "cart:gradient_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/gradient:/src -v ./build/carts:/out konsumer/null0-cart-c gradient_c",
+    "cart:input_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/input:/src -v ./build/carts:/out konsumer/null0-cart-c input_c",
+    "cart:sfx_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/sfx:/src -v ./build/carts:/out konsumer/null0-cart-c sfx_c",
+    "cart:speak_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/speak:/src -v ./build/carts:/out konsumer/null0-cart-c speak_c",
+    "cart:wasi_demo_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/wasi_demo:/src -v ./build/carts:/out konsumer/null0-cart-c wasi_demo_c",
+    "cart:simple_as": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/as/simple:/src -v ./build/carts:/out konsumer/null0-cart-assemblyscript simple_as",
+    "cart:demo_js": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/js/demo:/src -v ./build/carts:/out konsumer/null0-cart-quickjs demo_js",
+    "cart:input_js": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/js/input:/src -v ./build/carts:/out konsumer/null0-cart-quickjs input_js",
+    "carts": "npm-run-all --parallel 'cart:*' && cd build/carts && ls *.null0 > list.txt",
+
+    "docker_setup": "docker buildx create --name multiarch --driver docker-container --bootstrap && docker buildx use multiarch && docker run --privileged --rm tonistiigi/binfmt --install all",
+    "docker:cart_c": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-c . -f tools/docker/null0-cart-c.Dockerfile",
+    "docker:cart_assemblyscript": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-assemblyscript . -f tools/docker/null0-cart-assemblyscript.Dockerfile",
+    "docker:cart_nelua": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-nelua . -f tools/docker/null0-cart-nelua.Dockerfile",
+    "docker:cart_nim": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-nim . -f tools/docker/null0-cart-nim.Dockerfile",
+    "docker:cart_quickjs": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-quickjs . -f tools/docker/null0-cart-quickjs.Dockerfile",
+    "docker": "npm-run-all --serial 'docker:*'",
+
+    "start": "live-server --mount=/carts:./build/carts --mount=/null0.mjs:./wbuild/host/null0.mjs --mount=/carts:./build/carts webroot",
+    "prestart": "npm-run-all --parallel host:web carts",
+    
     "gen:host": "node tools/gen_host.js",
     "gen:cart_c": "node tools/gen_cart_c.js",
     "gen:cart_js": "node tools/gen_cart_js.js",
@@ -28,13 +40,11 @@
     "gen:cart_rust": "node tools/gen_cart_rust.js",
     "gen:cart_as": "node tools/gen_cart_as.js",
     "gen:api_docs": "node tools/gen_api_docs.js",
-    "gen": "npx -y npm-run-all --parallel gen:*"
+    "gen": "npm-run-all --parallel 'gen:*'"
   },
   "devDependencies": {
-    "yaml": "^2.8.0"
-  },
-  "dependencies": {
-    "@easywasm/wasi": "^0.0.8",
-    "fflate": "^0.8.2"
+    "yaml": "latest",
+    "npm-run-all": "latest",
+    "live-server": "latest"
   }
 }

@@ -506,4 +506,4 @@ out.push('')
 add_consts()
 out.push('', ...funcs, '}')
 
-await writeFile('carts/c/js/main.c', out.join('\n'))
+await writeFile('tools/docker/quickjs-cart/main.c', out.join('\n'))
