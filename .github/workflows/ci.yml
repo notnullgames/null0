@@ -41,7 +41,7 @@ jobs:
           path: null0_linux_x86-64.zip
 
       - name: Build Linux Hosts (arm64) - X11/Wayland and DRM
-        if: matrix.container == false && matrix.arch == 'arm64'
+        if: matrix.container == false && matrix.arch == 'arm64' && false # skipped because github is being really slow about arm
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends curl git pkg-config cmake build-essential ninja-build zip \
@@ -135,7 +135,7 @@ jobs:
         with:
           version: 'latest'
       - name: Build Web Host
-        run: npm run build:web
+        run: npm run host:web
       - name: Upload Web Host artifact
         uses: actions/upload-artifact@v4
         with:
