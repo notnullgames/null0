@@ -1,6 +1,6 @@
 This combines ideas from [pntr_app_starter](https://github.com/RobLoach/pntr_app_starter) with [wamr](https://github.com/bytecodealliance/wasm-micro-runtime) to make null0 game-engine (native runtime & libretro core.)
 
-[Read the docs](https://notnullgames.vercel.app/null0) to find out more.
+[Read the docs](https://notnull.games/null0) to find out more.
 
 ## todo/ideas
 
