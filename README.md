@@ -4,10 +4,11 @@ The basic idea here is a small game-engine where you make "carts", in whatever l
 
 ## todo/ideas
 
+You can currently do all of these things yourself, or use a library for your language, but I think it would be cool to abstract them into the engine:
+
 - [ ] [ui](https://github.com/rxi/microui)
-- [ ] tiled map/sprite support
+- [ ] tiled map/sprite
 - [ ] physics
-- [ ] share wasm interpretors: all js carts should not have to include quickjs, for example
 
 ### languages
 
