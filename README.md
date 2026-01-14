@@ -12,7 +12,7 @@ You can currently do all of these things yourself, or use a library for your lan
 
 ### languages
 
-I'd like to support a lot of cart-languages. For these to be considered "complete", they should have a header that exposes all the functions/types in an ergonomic format, at least 1 example, and maybe a template-project.
+I'd like to support a lot of cart-languages. For these to be considered "complete", they should have a header that exposes all the functions/types in an ergonomic format, at least 1 example, and maybe a template-project & docker for building carts.
 
 **compiled**
 
@@ -49,15 +49,6 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [ ] [wren](https://wren.io)
 - [ ] [lisp](https://github.com/janet-lang/janet)
 - [ ] [cyber](https://github.com/fubark/cyber)
-
-
-**config graph**
-
-These can sort of define functions, as a kind of graph. Think of it as an interpretor.
-
-- [ ] [KDL](https://kdl.dev/)
-- [ ] YAML
-- [ ] JSON
 
 
 ## thanks
