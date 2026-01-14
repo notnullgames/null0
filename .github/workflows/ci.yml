@@ -2,11 +2,11 @@ on:
   push
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: global-ci # any run will cancel the others
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
