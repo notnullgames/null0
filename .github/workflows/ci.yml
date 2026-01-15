@@ -120,7 +120,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: host_windows
-          path: cd build/host/null0.exe
+          path: build/host/null0.exe
 
   host_web:
     runs-on: windows-latest
