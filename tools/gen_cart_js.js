@@ -209,8 +209,8 @@ static uint64_t u64_from_js(JSValue val) {
   return result;
 }
 
-static const char* string_from_js(JSValue val) {
-  return JS_ToCString(ctx, val);
+static char* string_from_js(JSValue val) {
+  return (char*)JS_ToCString(ctx, val);
 }
 
 static JSValue dimensions_to_js(Dimensions dims) {
@@ -245,7 +245,7 @@ static JSValue color_to_js(Color color) {
   return obj;
 }
 
-static Vector* vector_array_from_js(JSValue vecArray, uint32_t* lenPointer) {
+static Vector* vector_array_from_js(JSValue vecArray, size_t* lenPointer) {
   // Check if the input is actually an array
   if (!JS_IsArray(vecArray)) {
     return NULL;
@@ -259,7 +259,7 @@ static Vector* vector_array_from_js(JSValue vecArray, uint32_t* lenPointer) {
 
   if (len == 0) return NULL;
 
-  *lenPointer = len;
+  *lenPointer = (size_t)len;
 
   // Allocate memory for the Vector array (caller must free)
   Vector *vecs = malloc(len * sizeof(Vector));
@@ -290,33 +290,33 @@ static Vector* vector_array_from_js(JSValue vecArray, uint32_t* lenPointer) {
 }
 
 
-static Dimensions dimensions_from_js(JSValue obj) {
+__attribute__((unused)) static Dimensions dimensions_from_js(JSValue obj) {
   Dimensions dims = {0, 0}; // Default values
-  
+
   JSValue width_val = JS_GetPropertyStr(ctx, obj, "width");
   JSValue height_val = JS_GetPropertyStr(ctx, obj, "height");
-  
+
   JS_ToUint32(ctx, &dims.width, width_val);
   JS_ToUint32(ctx, &dims.height, height_val);
-  
+
   JS_FreeValue(ctx, width_val);
   JS_FreeValue(ctx, height_val);
   return dims;
 }
 
-static Rectangle rectangle_from_js(JSValue obj) {
+__attribute__((unused)) static Rectangle rectangle_from_js(JSValue obj) {
   Rectangle rect = {0, 0, 0, 0}; // Default values
-  
+
   JSValue x_val = JS_GetPropertyStr(ctx, obj, "x");
   JSValue y_val = JS_GetPropertyStr(ctx, obj, "y");
   JSValue width_val = JS_GetPropertyStr(ctx, obj, "width");
   JSValue height_val = JS_GetPropertyStr(ctx, obj, "height");
-  
+
   JS_ToInt32(ctx, &rect.x, x_val);
   JS_ToInt32(ctx, &rect.y, y_val);
   JS_ToInt32(ctx, &rect.width, width_val);
   JS_ToInt32(ctx, &rect.height, height_val);
-  
+
   JS_FreeValue(ctx, x_val);
   JS_FreeValue(ctx, y_val);
   JS_FreeValue(ctx, width_val);
@@ -371,6 +371,57 @@ static SfxParams sfx_params_from_js(JSValue obj) {
   JSValue lpfResonance_val = JS_GetPropertyStr(ctx, obj, "lpfResonance");
   JSValue hpfCutoff_val = JS_GetPropertyStr(ctx, obj, "hpfCutoff");
   JSValue hpfCutoffSweep_val = JS_GetPropertyStr(ctx, obj, "hpfCutoffSweep");
+
+  JS_ToUint32(ctx, &params.randSeed, randSeed_val);
+  JS_ToInt32(ctx, &params.waveType, waveType_val);
+  JS_ToFloat64(ctx, (double*)&params.attackTime, attackTime_val);
+  JS_ToFloat64(ctx, (double*)&params.sustainTime, sustainTime_val);
+  JS_ToFloat64(ctx, (double*)&params.sustainPunch, sustainPunch_val);
+  JS_ToFloat64(ctx, (double*)&params.decayTime, decayTime_val);
+  JS_ToFloat64(ctx, (double*)&params.startFrequency, startFrequency_val);
+  JS_ToFloat64(ctx, (double*)&params.minFrequency, minFrequency_val);
+  JS_ToFloat64(ctx, (double*)&params.slide, slide_val);
+  JS_ToFloat64(ctx, (double*)&params.deltaSlide, deltaSlide_val);
+  JS_ToFloat64(ctx, (double*)&params.vibratoDepth, vibratoDepth_val);
+  JS_ToFloat64(ctx, (double*)&params.vibratoSpeed, vibratoSpeed_val);
+  JS_ToFloat64(ctx, (double*)&params.changeAmount, changeAmount_val);
+  JS_ToFloat64(ctx, (double*)&params.changeSpeed, changeSpeed_val);
+  JS_ToFloat64(ctx, (double*)&params.squareDuty, squareDuty_val);
+  JS_ToFloat64(ctx, (double*)&params.dutySweep, dutySweep_val);
+  JS_ToFloat64(ctx, (double*)&params.repeatSpeed, repeatSpeed_val);
+  JS_ToFloat64(ctx, (double*)&params.phaserOffset, phaserOffset_val);
+  JS_ToFloat64(ctx, (double*)&params.phaserSweep, phaserSweep_val);
+  JS_ToFloat64(ctx, (double*)&params.lpfCutoff, lpfCutoff_val);
+  JS_ToFloat64(ctx, (double*)&params.lpfCutoffSweep, lpfCutoffSweep_val);
+  JS_ToFloat64(ctx, (double*)&params.lpfResonance, lpfResonance_val);
+  JS_ToFloat64(ctx, (double*)&params.hpfCutoff, hpfCutoff_val);
+  JS_ToFloat64(ctx, (double*)&params.hpfCutoffSweep, hpfCutoffSweep_val);
+
+  JS_FreeValue(ctx, randSeed_val);
+  JS_FreeValue(ctx, waveType_val);
+  JS_FreeValue(ctx, attackTime_val);
+  JS_FreeValue(ctx, sustainTime_val);
+  JS_FreeValue(ctx, sustainPunch_val);
+  JS_FreeValue(ctx, decayTime_val);
+  JS_FreeValue(ctx, startFrequency_val);
+  JS_FreeValue(ctx, minFrequency_val);
+  JS_FreeValue(ctx, slide_val);
+  JS_FreeValue(ctx, deltaSlide_val);
+  JS_FreeValue(ctx, vibratoDepth_val);
+  JS_FreeValue(ctx, vibratoSpeed_val);
+  JS_FreeValue(ctx, changeAmount_val);
+  JS_FreeValue(ctx, changeSpeed_val);
+  JS_FreeValue(ctx, squareDuty_val);
+  JS_FreeValue(ctx, dutySweep_val);
+  JS_FreeValue(ctx, repeatSpeed_val);
+  JS_FreeValue(ctx, phaserOffset_val);
+  JS_FreeValue(ctx, phaserSweep_val);
+  JS_FreeValue(ctx, lpfCutoff_val);
+  JS_FreeValue(ctx, lpfCutoffSweep_val);
+  JS_FreeValue(ctx, lpfResonance_val);
+  JS_FreeValue(ctx, hpfCutoff_val);
+  JS_FreeValue(ctx, hpfCutoffSweep_val);
+
   return params;
 }
 
