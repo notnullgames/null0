@@ -21,7 +21,16 @@ export default async function loadCart(cartUrl, canvas) {
         const wasmBytes = h.HEAPU8.subarray(wasmBytesPtr, wasmBytesPtr + wasmSize)
 
         const wasi_snapshot_preview1 = new WasiPreview1({ fs })
-        const imports = { wasi_snapshot_preview1, null0: {} }
+        const imports = {
+          wasi_snapshot_preview1,
+          null0: {},
+          env: {
+            // these are for assemblyscript
+            abort(...args) {
+              console.log('unhandled abort', args)
+            }
+          }
+        }
 
         // expose host-functions that are named _host_whatever as null0.whatever
         for (const f of Object.keys(h)) {

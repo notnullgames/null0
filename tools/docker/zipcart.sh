@@ -35,20 +35,23 @@ matches_pattern() {
     [[ "$pattern" == */ ]] && pattern="${pattern}*"
     
     # Check if file matches pattern (anywhere in path or at root)
+    # Note: pattern must be unquoted for glob matching to work
+    # shellcheck disable=SC2053
     [[ "$file" == $pattern || "$file" == */$pattern ]]
 }
 
 should_ignore() {
     local file="$1"
     local ignore_file="$2"
-    
-    while IFS= read -r pattern; do
+
+    # Read patterns line by line, handling files without trailing newline
+    while IFS= read -r pattern || [[ -n "$pattern" ]]; do
         # Skip empty lines and comments
         [[ -z "$pattern" || "$pattern" =~ ^[[:space:]]*# ]] && continue
-        
+
         # Trim whitespace
         pattern=$(echo "$pattern" | xargs)
-        
+
         # Handle negation patterns (!)
         if [[ "$pattern" == !* ]]; then
             pattern="${pattern#!}"
@@ -57,7 +60,7 @@ should_ignore() {
             matches_pattern "$file" "$pattern" && return 0  # Ignore
         fi
     done < "$ignore_file"
-    
+
     return 1  # Don't ignore by default
 }
 

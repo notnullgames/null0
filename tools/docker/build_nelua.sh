@@ -17,7 +17,8 @@ echo "Compiling nelua cart from /src/ to /out/"
 
 mkdir -p "/tmp/${CART_NAME}"
 
-cp -R /src/* /src/.* "/tmp/${CART_NAME}/" 2>/dev/null
+# Copy all files including hidden files (like .cartignore)
+cp -R /src/. "/tmp/${CART_NAME}/"
 cd "/tmp/${CART_NAME}/"
 nelua --cflags="-I /usr/local/include/" -L /usr/local/include/ main.nelua -r --cc /opt/wasi-sdk/bin/clang -o main.wasm
 

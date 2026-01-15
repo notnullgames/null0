@@ -17,7 +17,8 @@ echo "Compiling Nim cart from /src/ to /out/"
 
 mkdir -p "/tmp/${CART_NAME}"
 
-cp -R /src/* /src/.* "/tmp/${CART_NAME}/" 2>/dev/null
+# Copy all files including hidden files (like .cartignore)
+cp -R /src/. "/tmp/${CART_NAME}/"
 cd "/tmp/${CART_NAME}/"
 nim c --threads:off --noMain --cc:env -d:release -d:wasi -d:useMalloc --cpu:wasm32 --os:any --passC:"-D_WASI_EMULATED_SIGNAL" --passL:"-lwasi-emulated-signal" --passL:"-Wl,--allow-undefined" -o:main.wasm main.nim
 

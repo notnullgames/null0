@@ -20,7 +20,8 @@ clang --version
 
 mkdir -p "/tmp/${CART_NAME}"
 
-cp -R /src/* /src/.* "/tmp/${CART_NAME}/" 2>/dev/null
+# Copy all files including hidden files (like .cartignore)
+cp -R /src/. "/tmp/${CART_NAME}/"
 cd "/tmp/${CART_NAME}/"
 clang -I /usr/local/include/ -Wl,--initial-memory=67108864,--max-memory=67108864,-z,stack-size=8388608 -o main.wasm main.c 
 

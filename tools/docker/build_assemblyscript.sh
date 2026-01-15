@@ -17,7 +17,8 @@ echo "Compiling Assemblyscript cart from /src/ to /out/"
 
 mkdir -p "/tmp/${CART_NAME}"
 
-cp -R /src/* /src/.* "/tmp/${CART_NAME}/" 2>/dev/null
+# Copy all files including hidden files (like .cartignore)
+cp -R /src/. "/tmp/${CART_NAME}/"
 cd "/tmp/${CART_NAME}/"
 asc --lib /usr/local/include --optimize -o main.wasm main.ts
 

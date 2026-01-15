@@ -354,7 +354,9 @@ bool host_init(pntr_app *app) {
   add_font(pntr_load_font_default());
 
   bool ret = cart_init(app, wasmBytes, wasmSize);
-  if (cartBytes) free(cartBytes);
+  // NOTE: Do NOT free cartBytes here! PHYSFS_mountMemory keeps a pointer to it.
+  // It will be freed when PHYSFS_deinit() is called at shutdown.
+  // if (cartBytes) free(cartBytes);
   free(wasmBytes);
   return ret;
 }

@@ -17,6 +17,8 @@ echo "Compiling QuickJS cart from /src/ to /out/"
 
 mkdir -p "/tmp/${CART_NAME}"
 
-cp -R /src/* /src/.* /usr/local/lib/main.wasm "/tmp/${CART_NAME}/" 2>/dev/null
+# Copy all files including hidden files (like .cartignore)
+cp -R /src/. "/tmp/${CART_NAME}/"
+cp /usr/local/lib/main.wasm "/tmp/${CART_NAME}/"
 
 /usr/local/bin/zipcart.sh "${CART_NAME}" "/tmp/${CART_NAME}/" /out
