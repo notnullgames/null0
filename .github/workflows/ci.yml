@@ -35,7 +35,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev zip
           cmake -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --target host0
+          cmake --build build --target host
       - name: Upload Linux Host (x86_64) artifact
         if: matrix.container == false && matrix.arch == 'x86_64'
         uses: actions/upload-artifact@v4
