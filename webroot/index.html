@@ -15,9 +15,9 @@
         font-family: sans-serif;
         background: black;
         color: white;
-        padding:20px;
+        padding: 20px;
       }
-      
+
       #demos {
         display: flex;
         flex-wrap: wrap;
@@ -51,25 +51,26 @@
     </style>
   </head>
   <body>
-    <!-- instead of my demo code, you could just do something like this: --> 
+    <!-- instead of my demo code, you could just do something like this: -->
     <!-- <null0-cart src="carts/colorbars_c.null0"></null0-cart> -->
-    <div id="demos">
-    </div>
+    <div id="demos"></div>
   </body>
   <script type="module">
     // this is more wonky than you need to do, but I want to automate loading whatever carts were built
-    // I also wanted to handle URL hash, so I can just show 1 (better for testing a single problem) 
+    // I also wanted to handle URL hash, so I can just show 1 (better for testing a single problem)
 
     let carts = []
 
     // handle #cart URL
     if (document.location.hash) {
       carts = [document.location.hash.slice(1) + '.null0']
-    }else {
+    } else {
       // get list of carts (specific to my demo)
-      carts = await fetch('carts/list.txt').then(r => r.text()).then(t => t.trim().split('\n'))
+      carts = await fetch('carts/list.txt')
+        .then((r) => r.text())
+        .then((t) => t.trim().split('\n'))
     }
-    
+
     window.addEventListener('hashchange', () => {
       // reload is required to clear it out
       document.location.reload()

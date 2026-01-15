@@ -10,6 +10,7 @@
 #define PNTR_ENABLE_UTF8
 #define PNTR_ENABLE_MATH
 #define PNTR_ENABLE_JPEG
+#define PNTR_CUTE_PNG
 #define PNTR_PIXELFORMAT_RGBA
 #define PNTR_LOAD_FILE fs_load_file
 #define PNTR_SAVE_FILE fs_save_file
