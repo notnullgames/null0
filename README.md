@@ -2,14 +2,6 @@ The basic idea here is a small game-engine where you make "carts", in whatever l
 
 [Read the docs](https://notnull.games/null0) to find out more.
 
-## todo/ideas
-
-You can currently do all of these things yourself, or use a library for your language, but I think it would be cool to abstract them into the engine:
-
-- [ ] [ui](https://github.com/rxi/microui)
-- [ ] tiled map/sprite
-- [ ] physics
-
 ### languages
 
 I'd like to support a lot of cart-languages. For these to be considered "complete", they should have a header that exposes all the functions/types in an ergonomic format, at least 1 example, and maybe a template-project & docker for building carts.
@@ -50,6 +42,14 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [ ] [lisp](https://github.com/janet-lang/janet)
 - [ ] [cyber](https://github.com/fubark/cyber)
 
+
+## todo/ideas
+
+You can currently do all of these things yourself, or use a library for your language, but I think it would be cool to abstract them into the engine:
+
+- [ ] [ui](https://github.com/rxi/microui)
+- [ ] tiled map/sprite
+- [ ] physics
 
 ## thanks
 
