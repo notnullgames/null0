@@ -63,6 +63,15 @@ for (const [name, e] of Object.entries(constants)) {
 }
 out.push('')
 
+out.push('', '### constants', '', 'Other defined constants:', '')
+for (const [name, e] of Object.entries(constants)) {
+  if (e.type === 'Color') {
+    continue
+  }
+  out.push('- `' + name + '` = `' + e.value + '`' + (e.description ? ` - ${e.description}` : '') )
+}
+out.push('')
+
 out.push('', '## callbacks', '', 'Callbacks are how you define your game. See [cart](https://notnull.games/null0/cart) for more info.', '')
 for (const [name, def] of Object.entries(callbacks)) {
   out.push(describeFunction(name, def))

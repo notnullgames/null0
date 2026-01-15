@@ -2,6 +2,9 @@ import { readFile, glob } from 'node:fs/promises'
 import { basename } from 'node:path'
 import YAML from 'yaml'
 
+const NULL0_VERSION = JSON.parse(await readFile('package.json')).version
+
+
 // Indent a string
 export const indent = (str, count = 1, istr = ' ') => str.replace(/^/gm, istr.repeat(count))
 
@@ -11,7 +14,7 @@ export async function getApi() {
     const apiName = basename(f, '.yml')
     out[apiName] = {}
     for (const [name, info] of Object.entries(YAML.parse(await readFile(f, 'utf8')) || {})) {
-      if (!['types', 'contants'].includes(apiName)) {
+      if (!['types', 'constants'].includes(apiName)) {
         if (!info.args) {
           info.args = {}
         }
@@ -34,6 +37,9 @@ export async function getApi() {
       }
     }
   }
+
+  out.constants.NULL0_VERSION = { value: NULL0_VERSION, type: 'string', description: 'The current tagged version of null0 engine' }
+
   return out
 }
 

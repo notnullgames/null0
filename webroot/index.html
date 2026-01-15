@@ -13,25 +13,15 @@
     <style>
       body {
         font-family: sans-serif;
-        padding: 20px;
         background: black;
         color: white;
+        padding:20px;
       }
       
       #demos {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-      }
-      
-      h1 {
-        line-height: 0;
-        margin: 0;
-      }
-
-      h3 {
-        line-height: 0;
-        margin-top:5px;
       }
 
       .democard {
@@ -41,23 +31,49 @@
         padding: 10px;
         border-radius: 10px;
       }
+
+      /* When there's only one card, center it full screen */
+      .democard:only-child {
+        margin: auto;
+        max-width: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+      }
+
+      /* Apply parent centering styles when there's only one child */
+      #demos:has(.democard:only-child) {
+        height: 100%;
+        max-height: calc(100vh - 40px);
+        justify-content: center;
+        align-items: center;
+      }
     </style>
   </head>
   <body>
-    <h1>Null0 Carts</h1>
-    <p>These are the currently build demo-carts.</p>
     <!-- instead of my demo code, you could just do something like this: --> 
     <!-- <null0-cart src="carts/colorbars_c.null0"></null0-cart> -->
-
     <div id="demos">
-      
     </div>
   </body>
   <script type="module">
     // this is more wonky than you need to do, but I want to automate loading whatever carts were built
+    // I also wanted to handle URL hash, so I can just show 1 (better for testing a single problem) 
 
-    // get list of carts (specific to my demo)
-    const carts = await fetch('carts/list.txt').then(r => r.text()).then(t => t.trim().split('\n'))
+    let carts = []
+
+    // handle #cart URL
+    if (document.location.hash) {
+      carts = [document.location.hash.slice(1) + '.null0']
+    }else {
+      // get list of carts (specific to my demo)
+      carts = await fetch('carts/list.txt').then(r => r.text()).then(t => t.trim().split('\n'))
+    }
+    
+    window.addEventListener('hashchange', () => {
+      // reload is required to clear it out
+      document.location.reload()
+    })
 
     // load all carts
     for (const cn of carts.sort()) {

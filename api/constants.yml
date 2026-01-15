@@ -103,3 +103,24 @@ RAYWHITE:
   value: [245, 245, 245, 255]
   type: Color
   description: A nice off-white, from Raylib.
+
+
+FONT_DEFAULT:
+  value: 0
+  type: u32
+  description: The default fonts's number is 0
+
+SCREEN:
+  value: 0
+  type: u32
+  description: The screen's image number is 0
+
+SCREEN_WIDTH:
+  value: 640
+  type: i32
+  description: the width of the screen (in pixels)
+
+SCREEN_HEIGHT:
+  value: 480
+  type: i32
+  description: the height of the screen (in pixels)

@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 
   JS_SetMemoryLimit(rt, 0x4000000); // 64 Mb
   JS_SetMaxStackSize(rt, 0x10000); // 64 Kb
-  JS_SetModuleLoaderFunc(rt, NULL, js_module_loader, NULL);
+  JS_SetModuleLoaderFunc2(rt, NULL, js_module_loader, NULL, NULL);
   js_std_add_helpers(ctx, 0, NULL);
 
   expose_things_to_js();
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
   std_val = js_std_await(ctx, std_val);
   
   if (!JS_IsException(std_val)) {
-    js_module_set_import_meta(ctx, std_val, 1, 1);
+    js_module_set_import_meta(ctx, std_val, true, true);
     std_val = JS_EvalFunction(ctx, std_val);
   } else {
     js_std_dump_error(ctx);
@@ -175,7 +175,7 @@ static uint64_t u64_from_js(JSValue val) {
     }
   }
   // Handle BigInt values
-  else if (JS_IsBigInt(ctx, val)) {
+  else if (JS_IsBigInt(val)) {
     // For BigInt, we need to use a different approach
     // Convert to string and parse, or use JS_ToBigInt64 if available
     int64_t signed_result = 0;
@@ -225,7 +225,7 @@ static JSValue color_to_js(Color color) {
 
 static Vector* vector_array_from_js(JSValue vecArray, uint32_t* lenPointer) {
   // Check if the input is actually an array
-  if (!JS_IsArray(ctx, vecArray)) {
+  if (!JS_IsArray(vecArray)) {
     return NULL;
   }
 

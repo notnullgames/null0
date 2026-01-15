@@ -126,17 +126,13 @@ for (const [enumName, enumDef] of Object.entries(enums)) {
 }
 
 // Generate constants
-out.push('', '// Screen and font constants')
-out.push('export const SCREEN: u32 = 0;')
-out.push('export const SCREEN_WIDTH: i32 = 640;')
-out.push('export const SCREEN_HEIGHT: i32 = 480;')
-out.push('export const FONT_DEFAULT: u32 = 0;')
-
-out.push('', '// Color constants')
+out.push('', '// Constants')
 for (const [colorName, colorDef] of Object.entries(constants)) {
   if (colorDef.type === 'Color') {
     const [r, g, b, a] = colorDef.value
     out.push(`export const ${colorName}: Color = new Color(${r}, ${g}, ${b}, ${a});`)
+  } else {
+    out.push(`export const ${colorName}: ${colorDef.type} = ${JSON.stringify(colorDef.value)};`)
   }
 }
 

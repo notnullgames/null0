@@ -309,13 +309,7 @@ export enum MouseButton {
   MOUSE_BUTTON_MIDDLE = 3,
 }
 
-// Screen and font constants
-export const SCREEN: u32 = 0;
-export const SCREEN_WIDTH: i32 = 640;
-export const SCREEN_HEIGHT: i32 = 480;
-export const FONT_DEFAULT: u32 = 0;
-
-// Color constants
+// Constants
 export const LIGHTGRAY: Color = new Color(200, 200, 200, 255);
 export const GRAY: Color = new Color(130, 130, 130, 255);
 export const DARKGRAY: Color = new Color(80, 80, 80, 255);
@@ -342,6 +336,11 @@ export const BLACK: Color = new Color(0, 0, 0, 255);
 export const BLANK: Color = new Color(0, 0, 0, 0);
 export const MAGENTA: Color = new Color(255, 0, 255, 255);
 export const RAYWHITE: Color = new Color(245, 245, 245, 255);
+export const FONT_DEFAULT: u32 = 0;
+export const SCREEN: u32 = 0;
+export const SCREEN_WIDTH: i32 = 640;
+export const SCREEN_HEIGHT: i32 = 480;
+export const NULL0_VERSION: string = "0.0.8";
 
 // Import functions from null0 module
 

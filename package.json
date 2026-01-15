@@ -24,7 +24,7 @@
     "docker:cart_assemblyscript": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-assemblyscript . -f tools/docker/null0-cart-assemblyscript.Dockerfile",
     "docker:cart_nelua": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-nelua . -f tools/docker/null0-cart-nelua.Dockerfile",
     "docker:cart_nim": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-nim . -f tools/docker/null0-cart-nim.Dockerfile",
-    "docker:cart_quickjs": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-quickjs . -f tools/docker/null0-cart-quickjs.Dockerfile",
+    "docker:cart_quickjs": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-quickjs . -f tools/docker/null0-cart-quickjs-ng.Dockerfile",
     "docker": "npm-run-all --serial 'docker:*'",
     "start": "live-server --mount=/carts:./build/carts --mount=/null0.mjs:./wbuild/host/null0.mjs --mount=/carts:./build/carts webroot",
     "prestart": "npm-run-all --parallel host:web carts",
