@@ -32,6 +32,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [ ] Ada
 - [ ] [spaceship/orbit](https://github.com/SIE-Libraries/orbit)
 - [ ] [Zen-C](https://github.com/z-libs/Zen-C)
+- [ ] [Haxe](https://github.com/back2dos/wasmix)
 
 **interpreted**
 
