@@ -1,0 +1,444 @@
+(* null0 - Never bindings for the null0 fantasy console
+
+   NOTE: experimental. Never programs run on the Never VM, which cannot
+   currently import null0 host functions. These bindings document the
+   API surface for a future null0-aware Never runtime.
+
+   Usage:
+
+   func load() -> int
+   {
+       clear(BLUE);
+       draw_circle(100, 100, 50, RED);
+       0
+   }
+
+   ABI notes:
+   - handles (Image/Font/Sound), enums and bools are int
+   - Color is 4 bytes packed into a single int: r | g<<8 | b<<16 | a<<24
+*)
+
+
+(* constants *)
+let SCREEN = 0;
+let SCREEN_WIDTH = 640;
+let SCREEN_HEIGHT = 480;
+let FONT_DEFAULT = 0;
+
+(* colors, packed r | g<<8 | b<<16 | a<<24 *)
+let LIGHTGRAY = 4291348680; (* rgba(200, 200, 200, 255) *)
+let GRAY = 4286743170; (* rgba(130, 130, 130, 255) *)
+let DARKGRAY = 4283453520; (* rgba(80, 80, 80, 255) *)
+let YELLOW = 4278254077; (* rgba(253, 249, 0, 255) *)
+let GOLD = 4278242303; (* rgba(255, 203, 0, 255) *)
+let ORANGE = 4278231551; (* rgba(255, 161, 0, 255) *)
+let PINK = 4290932223; (* rgba(255, 109, 194, 255) *)
+let RED = 4281805286; (* rgba(230, 41, 55, 255) *)
+let MAROON = 4281803198; (* rgba(190, 33, 55, 255) *)
+let GREEN = 4281394176; (* rgba(0, 228, 48, 255) *)
+let LIME = 4281310720; (* rgba(0, 158, 47, 255) *)
+let DARKGREEN = 4281103616; (* rgba(0, 117, 44, 255) *)
+let SKYBLUE = 4294950758; (* rgba(102, 191, 255, 255) *)
+let BLUE = 4294015232; (* rgba(0, 121, 241, 255) *)
+let DARKBLUE = 4289483264; (* rgba(0, 82, 172, 255) *)
+let PURPLE = 4294933192; (* rgba(200, 122, 255, 255) *)
+let VIOLET = 4290657415; (* rgba(135, 60, 190, 255) *)
+let DARKPURPLE = 4286455664; (* rgba(112, 31, 126, 255) *)
+let BEIGE = 4286820563; (* rgba(211, 176, 131, 255) *)
+let BROWN = 4283394687; (* rgba(127, 106, 79, 255) *)
+let DARKBROWN = 4281286476; (* rgba(76, 63, 47, 255) *)
+let WHITE = 4294967295; (* rgba(255, 255, 255, 255) *)
+let BLACK = 4278190080; (* rgba(0, 0, 0, 255) *)
+let BLANK = 0; (* rgba(0, 0, 0, 0) *)
+let MAGENTA = 4294902015; (* rgba(255, 0, 255, 255) *)
+let RAYWHITE = 4294309365; (* rgba(245, 245, 245, 255) *)
+
+
+(* ImageFilter: Potential image-filtering techniques for scale/etc. *)
+let FILTER_NEARESTNEIGHBOR = 0;
+let FILTER_BILINEAR = 1;
+let FILTER_SMOOTH = 2;
+
+(* SfxPresetType: Represents a Sfx preset type. *)
+let SFX_COIN = 0;
+let SFX_LASER = 1;
+let SFX_EXPLOSION = 2;
+let SFX_POWERUP = 3;
+let SFX_HURT = 4;
+let SFX_JUMP = 5;
+let SFX_SELECT = 6;
+let SFX_SYNTH = 7;
+
+(* Key: Represents a keyboard key. *)
+let KEY_INVALID = 0;
+let KEY_SPACE = 32;
+let KEY_APOSTROPHE = 39;
+let KEY_COMMA = 44;
+let KEY_MINUS = 45;
+let KEY_PERIOD = 46;
+let KEY_SLASH = 47;
+let KEY_0 = 48;
+let KEY_1 = 49;
+let KEY_2 = 50;
+let KEY_3 = 51;
+let KEY_4 = 52;
+let KEY_5 = 53;
+let KEY_6 = 54;
+let KEY_7 = 55;
+let KEY_8 = 56;
+let KEY_9 = 57;
+let KEY_SEMICOLON = 59;
+let KEY_EQUAL = 61;
+let KEY_A = 65;
+let KEY_B = 66;
+let KEY_C = 67;
+let KEY_D = 68;
+let KEY_E = 69;
+let KEY_F = 70;
+let KEY_G = 71;
+let KEY_H = 72;
+let KEY_I = 73;
+let KEY_J = 74;
+let KEY_K = 75;
+let KEY_L = 76;
+let KEY_M = 77;
+let KEY_N = 78;
+let KEY_O = 79;
+let KEY_P = 80;
+let KEY_Q = 81;
+let KEY_R = 82;
+let KEY_S = 83;
+let KEY_T = 84;
+let KEY_U = 85;
+let KEY_V = 86;
+let KEY_W = 87;
+let KEY_X = 88;
+let KEY_Y = 89;
+let KEY_Z = 90;
+let KEY_LEFT_BRACKET = 91;
+let KEY_BACKSLASH = 92;
+let KEY_RIGHT_BRACKET = 93;
+let KEY_GRAVE_ACCENT = 96;
+let KEY_WORLD_1 = 161;
+let KEY_WORLD_2 = 162;
+let KEY_ESCAPE = 256;
+let KEY_ENTER = 257;
+let KEY_TAB = 258;
+let KEY_BACKSPACE = 259;
+let KEY_INSERT = 260;
+let KEY_DELETE = 261;
+let KEY_RIGHT = 262;
+let KEY_LEFT = 263;
+let KEY_DOWN = 264;
+let KEY_UP = 265;
+let KEY_PAGE_UP = 266;
+let KEY_PAGE_DOWN = 267;
+let KEY_HOME = 268;
+let KEY_END = 269;
+let KEY_CAPS_LOCK = 280;
+let KEY_SCROLL_LOCK = 281;
+let KEY_NUM_LOCK = 282;
+let KEY_PRINT_SCREEN = 283;
+let KEY_PAUSE = 284;
+let KEY_F1 = 290;
+let KEY_F2 = 291;
+let KEY_F3 = 292;
+let KEY_F4 = 293;
+let KEY_F5 = 294;
+let KEY_F6 = 295;
+let KEY_F7 = 296;
+let KEY_F8 = 297;
+let KEY_F9 = 298;
+let KEY_F10 = 299;
+let KEY_F11 = 300;
+let KEY_F12 = 301;
+let KEY_F13 = 302;
+let KEY_F14 = 303;
+let KEY_F15 = 304;
+let KEY_F16 = 305;
+let KEY_F17 = 306;
+let KEY_F18 = 307;
+let KEY_F19 = 308;
+let KEY_F20 = 309;
+let KEY_F21 = 310;
+let KEY_F22 = 311;
+let KEY_F23 = 312;
+let KEY_F24 = 313;
+let KEY_F25 = 314;
+let KEY_KP_0 = 320;
+let KEY_KP_1 = 321;
+let KEY_KP_2 = 322;
+let KEY_KP_3 = 323;
+let KEY_KP_4 = 324;
+let KEY_KP_5 = 325;
+let KEY_KP_6 = 326;
+let KEY_KP_7 = 327;
+let KEY_KP_8 = 328;
+let KEY_KP_9 = 329;
+let KEY_KP_DECIMAL = 330;
+let KEY_KP_DIVIDE = 331;
+let KEY_KP_MULTIPLY = 332;
+let KEY_KP_SUBTRACT = 333;
+let KEY_KP_ADD = 334;
+let KEY_KP_ENTER = 335;
+let KEY_KP_EQUAL = 336;
+let KEY_LEFT_SHIFT = 340;
+let KEY_LEFT_CONTROL = 341;
+let KEY_LEFT_ALT = 342;
+let KEY_LEFT_SUPER = 343;
+let KEY_RIGHT_SHIFT = 344;
+let KEY_RIGHT_CONTROL = 345;
+let KEY_RIGHT_ALT = 346;
+let KEY_RIGHT_SUPER = 347;
+let KEY_MENU = 348;
+
+(* GamepadButton: Represents a gamepad button. *)
+let GAMEPAD_BUTTON_UNKNOWN = 0;
+let GAMEPAD_BUTTON_UP = 1;
+let GAMEPAD_BUTTON_RIGHT = 2;
+let GAMEPAD_BUTTON_DOWN = 3;
+let GAMEPAD_BUTTON_LEFT = 4;
+let GAMEPAD_BUTTON_Y = 5;
+let GAMEPAD_BUTTON_B = 6;
+let GAMEPAD_BUTTON_A = 7;
+let GAMEPAD_BUTTON_X = 8;
+let GAMEPAD_BUTTON_LEFT_SHOULDER = 9;
+let GAMEPAD_BUTTON_LEFT_TRIGGER = 10;
+let GAMEPAD_BUTTON_RIGHT_SHOULDER = 11;
+let GAMEPAD_BUTTON_RIGHT_TRIGGER = 12;
+let GAMEPAD_BUTTON_SELECT = 13;
+let GAMEPAD_BUTTON_MENU = 14;
+let GAMEPAD_BUTTON_START = 15;
+let GAMEPAD_BUTTON_LEFT_THUMB = 16;
+let GAMEPAD_BUTTON_RIGHT_THUMB = 17;
+
+(* MouseButton: Represents a mouse button. *)
+let MOUSE_BUTTON_UNKNOWN = 0;
+let MOUSE_BUTTON_LEFT = 1;
+let MOUSE_BUTTON_RIGHT = 2;
+let MOUSE_BUTTON_MIDDLE = 3;
+
+
+(* -- COLORS -- *)
+(* Tint a color with another color. *)
+(* func color_tint(color: int, tint: int) -> int *)
+(* Fade a color. *)
+(* func color_fade(color: int, alpha: float) -> int *)
+(* Change the brightness of a color. *)
+(* func color_brightness(color: int, factor: float) -> int *)
+(* Invert a color. *)
+(* func color_invert(color: int) -> int *)
+(* Blend 2 colors together. *)
+(* func color_alpha_blend(dst: int, src: int) -> int *)
+(* Change contrast of a color. *)
+(* func color_contrast(color: int, contrast: float) -> int *)
+(* Interpolate colors. *)
+(* func color_bilinear_interpolate(color00: int, color01: int, color10: int, color11: int, coordinateX: float, coordinateY: float) -> int *)
+
+(* -- GRAPHICS -- *)
+(* Create a new blank image. *)
+(* func new_image(width: int, height: int, color: int) -> int *)
+(* Copy an image to a new image. *)
+(* func image_copy(image: int) -> int *)
+(* Create an image from a region of another image. *)
+(* func image_subimage(image: int, x: int, y: int, width: int, height: int) -> int *)
+(* Clear the screen. *)
+(* func clear(color: int) -> int *)
+(* Draw a single pixel on the screen. *)
+(* func draw_point(x: int, y: int, color: int) -> int *)
+(* Draw a line on the screen. *)
+(* func draw_line(startPosX: int, startPosY: int, endPosX: int, endPosY: int, color: int) -> int *)
+(* Draw a filled rectangle on the screen. *)
+(* func draw_rectangle(posX: int, posY: int, width: int, height: int, color: int) -> int *)
+(* Draw a filled triangle on the screen. *)
+(* func draw_triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, color: int) -> int *)
+(* Draw a filled ellipse on the screen. *)
+(* func draw_ellipse(centerX: int, centerY: int, radiusX: int, radiusY: int, color: int) -> int *)
+(* Draw a filled circle on the screen. *)
+(* func draw_circle(centerX: int, centerY: int, radius: int, color: int) -> int *)
+(* Draw a filled polygon on the screen. *)
+(* func draw_polygon(points: int, numPoints: int, color: int) -> int *)
+(* Draw a filled arc on the screen. *)
+(* func draw_arc(centerX: int, centerY: int, radius: float, startAngle: float, endAngle: float, segments: int, color: int) -> int *)
+(* Draw a filled round-rectangle on the screen. *)
+(* func draw_rectangle_rounded(x: int, y: int, width: int, height: int, cornerRadius: int, color: int) -> int *)
+(* Draw an image on the screen. *)
+(* func draw_image(src: int, posX: int, posY: int) -> int *)
+(* Draw a tinted image on the screen. *)
+(* func draw_image_tint(src: int, posX: int, posY: int, tint: int) -> int *)
+(* Draw an image, rotated, on the screen. *)
+(* func draw_image_rotated(src: int, posX: int, posY: int, degrees: float, offsetX: float, offsetY: float, filter: int) -> int *)
+(* Draw an image, flipped, on the screen. *)
+(* func draw_image_flipped(src: int, posX: int, posY: int, flipHorizontal: int, flipVertical: int, flipDiagonal: int) -> int *)
+(* Draw an image, scaled, on the screen. *)
+(* func draw_image_scaled(src: int, posX: int, posY: int, scaleX: float, scaleY: float, offsetX: float, offsetY: float, filter: int) -> int *)
+(* Draw some text on the screen. *)
+(* func draw_text(font: int, text: int, posX: int, posY: int, color: int) -> int *)
+(* Save an image to persistant storage. *)
+(* func save_image(image: int, filename: int) -> int *)
+(* Load an image from a file in cart. *)
+(* func load_image(filename: int) -> int *)
+(* Resize an image, return copy. *)
+(* func image_resize(image: int, newWidth: int, newHeight: int, filter: int) -> int *)
+(* Scale an image, return copy. *)
+(* func image_scale(image: int, scaleX: float, scaleY: float, filter: int) -> int *)
+(* Replace a color in an image, in-place. *)
+(* func image_color_replace(image: int, color: int, replace: int) -> int *)
+(* Tint a color in an image, in-place. *)
+(* func image_color_tint(image: int, color: int) -> int *)
+(* Fade a color in an image, in-place. *)
+(* func image_color_fade(image: int, alpha: float) -> int *)
+(* Copy a font to a new font. *)
+(* func font_copy(font: int) -> int *)
+(* Scale a font, return a new font. *)
+(* func font_scale(font: int, scaleX: float, scaleY: float, filter: int) -> int *)
+(* Load a BMF font from a file in cart. *)
+(* func load_font_bmf(filename: int, characters: int) -> int *)
+(* Load a BMF font from an image. *)
+(* func load_font_bmf_from_image(image: int, characters: int) -> int *)
+(* Measure the size of some text. *)
+(* func measure_text(font: int, text: int, textLength: int) -> int *)
+(* Meaure an image (use 0 for screen). *)
+(* func measure_image(image: int) -> int *)
+(* Load a TTY font from a file in cart. *)
+(* func load_font_tty(filename: int, glyphWidth: int, glyphHeight: int, characters: int) -> int *)
+(* Load a TTY font from an image. *)
+(* func load_font_tty_from_image(image: int, glyphWidth: int, glyphHeight: int, characters: int) -> int *)
+(* Load a TTF font from a file in cart. *)
+(* func load_font_ttf(filename: int, fontSize: int) -> int *)
+(* Invert the colors in an image, in-place. *)
+(* func image_color_invert(image: int) -> int *)
+(* Calculate a rectangle representing the available alpha border in an image. *)
+(* func image_alpha_border(image: int, threshold: float) -> int *)
+(* Crop an image, in-place. *)
+(* func image_crop(image: int, x: int, y: int, width: int, height: int) -> int *)
+(* Crop an image based on the alpha border, in-place. *)
+(* func image_alpha_crop(image: int, threshold: float) -> int *)
+(* Adjust the brightness of an image, in-place. *)
+(* func image_color_brightness(image: int, factor: float) -> int *)
+(* Flip an image, in-place. *)
+(* func image_flip(image: int, horizontal: int, vertical: int) -> int *)
+(* Change the contrast of an image, in-place. *)
+(* func image_color_contrast(image: int, contrast: float) -> int *)
+(* Use an image as an alpha-mask on another image. *)
+(* func image_alpha_mask(image: int, alphaMask: int, posX: int, posY: int) -> int *)
+(* Create a new image, rotating another image. *)
+(* func image_rotate(image: int, degrees: float, filter: int) -> int *)
+(* Create a new image of a gradient. *)
+(* func image_gradient(width: int, height: int, topLeft: int, topRight: int, bottomLeft: int, bottomRight: int) -> int *)
+(* Unload an image. *)
+(* func unload_image(image: int) -> int *)
+(* Unload a font. *)
+(* func unload_font(font: int) -> int *)
+(* Clear an image. *)
+(* func clear_image(destination: int, color: int) -> int *)
+(* Draw a single pixel on an image. *)
+(* func draw_point_on_image(destination: int, x: int, y: int, color: int) -> int *)
+(* Draw a line on an image. *)
+(* func draw_line_on_image(destination: int, startPosX: int, startPosY: int, endPosX: int, endPosY: int, color: int) -> int *)
+(* Draw a filled rectangle on an image. *)
+(* func draw_rectangle_on_image(destination: int, posX: int, posY: int, width: int, height: int, color: int) -> int *)
+(* Draw a filled triangle on an image. *)
+(* func draw_triangle_on_image(destination: int, x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, color: int) -> int *)
+(* Draw a filled ellipse on an image. *)
+(* func draw_ellipse_on_image(destination: int, centerX: int, centerY: int, radiusX: int, radiusY: int, color: int) -> int *)
+(* Draw a circle on an image. *)
+(* func draw_circle_on_image(destination: int, centerX: int, centerY: int, radius: int, color: int) -> int *)
+(* Draw a filled polygon on an image. *)
+(* func draw_polygon_on_image(destination: int, points: int, numPoints: int, color: int) -> int *)
+(* Draw a filled round-rectangle on an image. *)
+(* func draw_rectangle_rounded_on_image(destination: int, x: int, y: int, width: int, height: int, cornerRadius: int, color: int) -> int *)
+(* Draw an image on an image. *)
+(* func draw_image_on_image(destination: int, src: int, posX: int, posY: int) -> int *)
+(* Draw a tinted image on an image. *)
+(* func draw_image_tint_on_image(destination: int, src: int, posX: int, posY: int, tint: int) -> int *)
+(* Draw an image, rotated, on an image. *)
+(* func draw_image_rotated_on_image(destination: int, src: int, posX: int, posY: int, degrees: float, offsetX: float, offsetY: float, filter: int) -> int *)
+(* Draw an image, flipped, on an image. *)
+(* func draw_image_flipped_on_image(destination: int, src: int, posX: int, posY: int, flipHorizontal: int, flipVertical: int, flipDiagonal: int) -> int *)
+(* Draw an image, scaled, on an image. *)
+(* func draw_image_scaled_on_image(destination: int, src: int, posX: int, posY: int, scaleX: float, scaleY: float, offsetX: float, offsetY: float, filter: int) -> int *)
+(* Draw some text on an image. *)
+(* func draw_text_on_image(destination: int, font: int, text: int, posX: int, posY: int, color: int) -> int *)
+(* Draw a outlined (with thickness) rectangle on the screen. *)
+(* func draw_rectangle_outline(posX: int, posY: int, width: int, height: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) triangle on the screen. *)
+(* func draw_triangle_outline(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) ellipse on the screen. *)
+(* func draw_ellipse_outline(centerX: int, centerY: int, radiusX: int, radiusY: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) circle on the screen. *)
+(* func draw_circle_outline(centerX: int, centerY: int, radius: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) polygon on the screen. *)
+(* func draw_polygon_outline(points: int, numPoints: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) arc on the screen. *)
+(* func draw_arc_outline(centerX: int, centerY: int, radius: float, startAngle: float, endAngle: float, segments: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) round-rectangle on the screen. *)
+(* func draw_rectangle_rounded_outline(x: int, y: int, width: int, height: int, cornerRadius: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) rectangle on an image. *)
+(* func draw_rectangle_outline_on_image(destination: int, posX: int, posY: int, width: int, height: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) triangle on an image. *)
+(* func draw_triangle_outline_on_image(destination: int, x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) ellipse on an image. *)
+(* func draw_ellipse_outline_on_image(destination: int, centerX: int, centerY: int, radiusX: int, radiusY: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) circle on an image. *)
+(* func draw_circle_outline_on_image(destination: int, centerX: int, centerY: int, radius: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) polygon on an image. *)
+(* func draw_polygon_outline_on_image(destination: int, points: int, numPoints: int, thickness: int, color: int) -> int *)
+(* Draw a outlined (with thickness) round-rectangle on an image. *)
+(* func draw_rectangle_rounded_outline_on_image(destination: int, x: int, y: int, width: int, height: int, cornerRadius: int, thickness: int, color: int) -> int *)
+
+(* -- INPUT -- *)
+(* Has the key been pressed? (tracks unpress/read correctly.) *)
+(* func key_pressed(key: int) -> int *)
+(* Is the key currently down? *)
+(* func key_down(key: int) -> int *)
+(* Has the key been released? (tracks press/read correctly.) *)
+(* func key_released(key: int) -> int *)
+(* Is the key currently up? *)
+(* func key_up(key: int) -> int *)
+(* Has the button been pressed? (tracks unpress/read correctly.) *)
+(* func gamepad_button_pressed(gamepad: int, button: int) -> int *)
+(* Is the button currently down? *)
+(* func gamepad_button_down(gamepad: int, button: int) -> int *)
+(* Has the button been released? (tracks press/read correctly.) *)
+(* func gamepad_button_released(gamepad: int, button: int) -> int *)
+(* Get current position of mouse. *)
+(* func mouse_position() -> int *)
+(* Has the button been pressed? (tracks unpress/read correctly.) *)
+(* func mouse_button_pressed(button: int) -> int *)
+(* Is the button currently down? *)
+(* func mouse_button_down(button: int) -> int *)
+(* Has the button been released? (tracks press/read correctly.) *)
+(* func mouse_button_released(button: int) -> int *)
+(* Is the button currently up? *)
+(* func mouse_button_up(button: int) -> int *)
+
+(* -- SOUND -- *)
+(* Load a sound from a file in cart. *)
+(* func load_sound(filename: int) -> int *)
+(* Play a sound. *)
+(* func play_sound(sound: int, loop: int) -> int *)
+(* Stop a sound. *)
+(* func stop_sound(sound: int) -> int *)
+(* Unload a sound. *)
+(* func unload_sound(sound: int) -> int *)
+(* Speak some text and return a sound. Set things to 0 for defaults. *)
+(* func tts_sound(text: int, phonetic: int, pitch: int, speed: int, throat: int, mouth: int, sing: int) -> int *)
+(* Create Sfx sound. *)
+(* func sfx_sound(params: int) -> int *)
+(* Create Sfx parameters. *)
+(* func sfx_generate(type: int) -> int *)
+
+(* -- TYPES -- *)
+
+(* -- UTILITIES -- *)
+(* Get system-time (ms) since unix epoch. *)
+(* func current_time() -> int *)
+(* Get the change in time (seconds) since the last update run. *)
+(* func delta_time() -> float *)
+(* Get a random integer between 2 numbers. *)
+(* func random_int(min: int, max: int) -> int *)
+(* Get the random-seed. *)
+(* func random_seed_get() -> int *)
+(* Set the random-seed. *)
+(* func random_seed_set(seed: int) -> int *)

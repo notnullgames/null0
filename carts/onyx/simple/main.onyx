@@ -1,0 +1,39 @@
+#load "null0.onyx"
+
+// onyx needs a main, null0 will call load/update/etc itself
+main :: () {}
+
+load :: () {
+    clear(BLUE);
+    draw_circle(100, 100, 50, RED);
+}
+#export "load" load
+
+// callbacks (optional - implement as needed)
+
+// update :: () {}
+// #export "update" update
+
+// unload :: () {}
+// #export "unload" unload
+
+// buttonUp :: (button: i32, player: u32) {}
+// #export "buttonUp" buttonUp
+
+// buttonDown :: (button: i32, player: u32) {}
+// #export "buttonDown" buttonDown
+
+// keyUp :: (key: i32) {}
+// #export "keyUp" keyUp
+
+// keyDown :: (key: i32) {}
+// #export "keyDown" keyDown
+
+// mouseDown :: (button: i32) {}
+// #export "mouseDown" mouseDown
+
+// mouseUp :: (button: i32) {}
+// #export "mouseUp" mouseUp
+
+// mouseMoved :: (x: f32, y: f32) {}
+// #export "mouseMoved" mouseMoved

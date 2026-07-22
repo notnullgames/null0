@@ -1,0 +1,42 @@
+module Main
+
+from "runtime/unsafe/wasmi32" include WasmI32
+
+// null0 imports (see null0.gr for the full list)
+foreign wasm clear: (WasmI32) => Void from "null0"
+foreign wasm draw_circle: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+
+// colors, packed as r | g<<8 | b<<16 | a<<24
+let blue = 0xfff17900
+let red = 0xff3729e6
+
+// called on load
+@unsafe
+provide let load = () => {
+  clear(WasmI32.fromGrain(blue))
+  draw_circle(
+    WasmI32.fromGrain(100),
+    WasmI32.fromGrain(100),
+    WasmI32.fromGrain(50),
+    WasmI32.fromGrain(red))
+}
+
+// called on every frame
+provide let update = () => void
+
+// other callbacks you can implement:
+// provide let unload = () => void
+// @unsafe
+// provide let buttonUp = (button: WasmI32, player: WasmI32) => void
+// @unsafe
+// provide let buttonDown = (button: WasmI32, player: WasmI32) => void
+// @unsafe
+// provide let keyUp = (key: WasmI32) => void
+// @unsafe
+// provide let keyDown = (key: WasmI32) => void
+// @unsafe
+// provide let mouseDown = (button: WasmI32) => void
+// @unsafe
+// provide let mouseUp = (button: WasmI32) => void
+// @unsafe
+// provide let mouseMoved = (x: WasmF32, y: WasmF32) => void

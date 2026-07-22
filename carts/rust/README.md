@@ -51,6 +51,20 @@ pub extern "C" fn unload() {
 
 ## Building for WebAssembly
 
+### Docker (recommended)
+
+```bash
+# from your cart directory (containing Cargo.toml)
+docker run -it -v .:/src -v .:/out konsumer/null0-cart-rust mycart
+```
+
+This produces `mycart.null0`. Your `Cargo.toml` should depend on the bindings with a path (it will be rewritten to the bundled bindings inside the container):
+
+```toml
+[dependencies]
+null0 = { path = "path/to/null0/carts/rust" }
+```
+
 ### Manual Building
 
 To compile your game to WebAssembly for null0:

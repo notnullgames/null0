@@ -1,0 +1,27 @@
+// simple walt cart for null0 (see null0.wat-style bindings in null0.walt)
+
+const BLUE: i32 = 0xfff17900;
+const RED: i32 = 0xff3729e6;
+
+type Clear = (i32) => void;
+type DrawCircle = (i32, i32, i32, i32) => void;
+import { clear: Clear, draw_circle: DrawCircle } from 'null0';
+
+// called on load
+export function load(): void {
+  clear(BLUE);
+  draw_circle(100, 100, 50, RED);
+}
+
+// called on every frame
+export function update(): void {}
+
+// other callbacks you can implement:
+// export function unload(): void {}
+// export function buttonUp(button: i32, player: i32): void {}
+// export function buttonDown(button: i32, player: i32): void {}
+// export function keyUp(key: i32): void {}
+// export function keyDown(key: i32): void {}
+// export function mouseDown(button: i32): void {}
+// export function mouseUp(button: i32): void {}
+// export function mouseMoved(x: f32, y: f32): void {}

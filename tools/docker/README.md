@@ -7,12 +7,23 @@ This directory is docker-builders of different carts.
 - `konsumer/null0-cart-nelua`
 - `konsumer/null0-cart-assemblyscript`
 - `konsumer/null0-cart-nim`
-
-I haven't finished demos/headers/etc for these:
-
 - `konsumer/null0-cart-zig`
+- `konsumer/null0-cart-go` (tinygo)
+- `konsumer/null0-cart-wat`
+- `konsumer/null0-cart-walt`
+- `konsumer/null0-cart-d` (ldc)
+- `konsumer/null0-cart-odin`
+- `konsumer/null0-cart-c3`
+- `konsumer/null0-cart-onyx`
+- `konsumer/null0-cart-grain`
 - `konsumer/null0-cart-rust`
-- `konsumer/null0-cart-py2wasm`
+
+experimental (bindings/examples exist, but the toolchain can't call null0 host-functions yet):
+
+- `konsumer/null0-cart-python` (py2wasm, via wasmer)
+- `konsumer/null0-cart-cobol` (cobweb)
+- `konsumer/null0-cart-never`
+- `konsumer/null0-cart-wisp`
 
 ### example usage
 
@@ -66,6 +77,16 @@ docker build -t konsumer/null0-cart-quickjs . -f tools/docker/null0-cart-quickjs
 docker build -t konsumer/null0-cart-assemblyscript . -f tools/docker/null0-cart-assemblyscript.Dockerfile
 docker build -t konsumer/null0-cart-nelua . -f tools/docker/null0-cart-nelua.Dockerfile
 docker build -t konsumer/null0-cart-nim . -f tools/docker/null0-cart-nim.Dockerfile
+docker build -t konsumer/null0-cart-zig . -f tools/docker/null0-cart-zig.Dockerfile
+docker build -t konsumer/null0-cart-go . -f tools/docker/null0-cart-go.Dockerfile
+docker build -t konsumer/null0-cart-wat . -f tools/docker/null0-cart-wat.Dockerfile
+docker build -t konsumer/null0-cart-walt . -f tools/docker/null0-cart-walt.Dockerfile
+docker build -t konsumer/null0-cart-d . -f tools/docker/null0-cart-d.Dockerfile
+docker build -t konsumer/null0-cart-odin . -f tools/docker/null0-cart-odin.Dockerfile
+docker build -t konsumer/null0-cart-c3 . -f tools/docker/null0-cart-c3.Dockerfile
+docker build -t konsumer/null0-cart-onyx . -f tools/docker/null0-cart-onyx.Dockerfile
+docker build -t konsumer/null0-cart-grain . -f tools/docker/null0-cart-grain.Dockerfile
+docker build -t konsumer/null0-cart-rust . -f tools/docker/null0-cart-rust.Dockerfile
 
 # build & publish (needed on API change)
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-c . -f tools/docker/null0-cart-c.Dockerfile
@@ -73,6 +94,16 @@ docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-assemblyscript . -f tools/docker/null0-cart-assemblyscript.Dockerfile
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-nelua . -f tools/docker/null0-cart-nelua.Dockerfile
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-nim . -f tools/docker/null0-cart-nim.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-zig . -f tools/docker/null0-cart-zig.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-go . -f tools/docker/null0-cart-go.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-wat . -f tools/docker/null0-cart-wat.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-walt . -f tools/docker/null0-cart-walt.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-d . -f tools/docker/null0-cart-d.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-odin . -f tools/docker/null0-cart-odin.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-c3 . -f tools/docker/null0-cart-c3.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-onyx . -f tools/docker/null0-cart-onyx.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-grain . -f tools/docker/null0-cart-grain.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-rust . -f tools/docker/null0-cart-rust.Dockerfile
 
 # test
 docker run -it -v ./carts/c/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-c colorbars_c
@@ -92,4 +123,16 @@ docker run -it -v ./carts/nelua/basic:/src -v ./build/carts:/out konsumer/null0-
 docker run -it -v ./carts/nelua/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-nelua colorbars_nelua
 
 docker run -it -v ./carts/nim/simple:/src -v ./build/carts:/out konsumer/null0-cart-nim simple_nim
+
+docker run -it -v ./carts/zig/simple:/src -v ./build/carts:/out konsumer/null0-cart-zig simple_zig
+docker run -it -v ./carts/go/simple:/src -v ./build/carts:/out konsumer/null0-cart-go simple_go
+docker run -it -v ./carts/wat/simple:/src -v ./build/carts:/out konsumer/null0-cart-wat simple_wat
+docker run -it -v ./carts/walt/simple:/src -v ./build/carts:/out konsumer/null0-cart-walt simple_walt
+docker run -it -v ./carts/d/simple:/src -v ./build/carts:/out konsumer/null0-cart-d simple_d
+docker run -it -v ./carts/odin/simple:/src -v ./build/carts:/out konsumer/null0-cart-odin simple_odin
+docker run -it -v ./carts/c3/simple:/src -v ./build/carts:/out konsumer/null0-cart-c3 simple_c3
+docker run -it -v ./carts/onyx/simple:/src -v ./build/carts:/out konsumer/null0-cart-onyx simple_onyx
+docker run -it -v ./carts/grain/simple:/src -v ./build/carts:/out konsumer/null0-cart-grain simple_grain
+
+docker run -it -v ./carts/rust/examples/simple:/src -v ./build/carts:/out konsumer/null0-cart-rust simple_rust
 ```

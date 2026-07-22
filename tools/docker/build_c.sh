@@ -25,4 +25,9 @@ cp -R /src/. "/tmp/${CART_NAME}/"
 cd "/tmp/${CART_NAME}/"
 clang -I /usr/local/include/ -Wl,--initial-memory=67108864,--max-memory=67108864,-z,stack-size=8388608 -o main.wasm main.c 
 
-/usr/local/bin/zipcart.sh "${CART_NAME}" "/tmp/${CART_NAME}/" /out
+# package only main.wasm + assets as the cart
+mkdir -p "/tmp/${CART_NAME}.pkg"
+cp main.wasm "/tmp/${CART_NAME}.pkg/"
+[ -d assets ] && cp -R assets "/tmp/${CART_NAME}.pkg/"
+
+/usr/local/bin/zipcart.sh "${CART_NAME}" "/tmp/${CART_NAME}.pkg" /out

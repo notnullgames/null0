@@ -1,4 +1,4 @@
-import ../null0
+import null0
 
 proc load*() {.wasm.} =
   clear(BLUE)

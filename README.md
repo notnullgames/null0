@@ -13,22 +13,24 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [X] nelua
 - [X] rust
 - [X] nim
-- [ ] [python](https://github.com/wasmerio/py2wasm)
-- [ ] [go](https://tinygo.org/)
-- [ ] zig
-- [ ] [walt](https://github.com/ballercat/walt)
-- [ ] [COBOL](https://github.com/cloudflare/cobweb)
-- [ ] [onyx](https://onyxlang.io)
-- [ ] [grain](https://grain-lang.org/)
-- [ ] [never](https://github.com/never-lang/never)
-- [ ] [lisp](https://github.com/mbrock/wisp)
+- [X] [go](https://tinygo.org/)
+- [X] zig
+- [X] [walt](https://github.com/ballercat/walt)
+- [X] [onyx](https://onyxlang.io)
+- [X] [grain](https://grain-lang.org/)
+- [X] [D](https://github.com/ldc-developers/ldc)
+- [X] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
+- [X] [odin](https://odin-lang.org/)
+- [X] [c3](https://c3-lang.org/)
+- [ ] [python](https://wasmer.io/posts/py2wasm-a-python-to-wasm-compiler) (header/example/docker exist, but py2wasm was removed from the wasmer registry, and can't declare host-imports)
+- [ ] [COBOL](https://github.com/cloudflare/cobweb) (experimental)
+- [ ] [never](https://github.com/never-lang/never) (experimental - VM-based)
+- [ ] [lisp](https://github.com/mbrock/wisp) (experimental - very early-stage)
 - [ ] Kotlin
 - [ ] dart
-- [ ] [D](https://github.com/ldc-developers/ldc)
 - [ ] R
 - [ ] [julia](https://github.com/tshort/WebAssemblyCompiler.jl)
 - [ ] Haskell
-- [ ] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
 - [ ] Ada
 - [ ] [spaceship/orbit](https://github.com/SIE-Libraries/orbit)
 - [ ] [Zen-C](https://github.com/z-libs/Zen-C)

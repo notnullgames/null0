@@ -22,6 +22,11 @@ cp -R /src/. "/tmp/${CART_NAME}/"
 cd "/tmp/${CART_NAME}/"
 nelua --cflags="-I /usr/local/include/" -L /usr/local/include/ main.nelua -r --cc /opt/wasi-sdk/bin/clang -o main.wasm
 
-/usr/local/bin/zipcart.sh "${CART_NAME}" "/tmp/${CART_NAME}/" /out
+# package only main.wasm + assets as the cart
+mkdir -p "/tmp/${CART_NAME}.pkg"
+cp main.wasm "/tmp/${CART_NAME}.pkg/"
+[ -d assets ] && cp -R assets "/tmp/${CART_NAME}.pkg/"
+
+/usr/local/bin/zipcart.sh "${CART_NAME}" "/tmp/${CART_NAME}.pkg" /out
 
 

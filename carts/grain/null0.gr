@@ -1,0 +1,505 @@
+// null0 - Grain bindings for the null0 fantasy console
+//
+// Grain needs foreign declarations inside your own module, so copy the
+// ones you need from this file, like:
+//
+//   module Main
+//
+//   from "runtime/unsafe/wasmi32" include WasmI32
+//
+//   foreign wasm clear: (WasmI32) => Void from "null0"
+//
+//   @unsafe
+//   provide let load = () => {
+//     clear(WasmI32.fromGrain(blue))
+//   }
+//
+//   provide let update = () => void
+//
+// ABI notes:
+// - all handles (Image/Font/Sound), enums, bools and pointers are WasmI32
+// - string is a pointer to a null-terminated UTF8 string in memory (WasmI32)
+// - Color is 4 bytes packed into a single i32: r | g<<8 | b<<16 | a<<24
+//   (the color constants below are plain Numbers, wrap them with
+//   WasmI32.fromGrain() when calling)
+// - functions returning structs (Vector/Dimensions/Rectangle/Color/SfxParams)
+//   return a pointer (WasmI32) into your memory
+// - anything touching Wasm types needs an @unsafe attribute
+
+// constants
+
+let SCREEN = 0
+let SCREEN_WIDTH = 640
+let SCREEN_HEIGHT = 480
+let FONT_DEFAULT = 0
+
+// colors (packed r | g<<8 | b<<16 | a<<24)
+let lightgray = 0xffc8c8c8 // LIGHTGRAY = rgba(200, 200, 200, 255)
+let gray = 0xff828282 // GRAY = rgba(130, 130, 130, 255)
+let darkgray = 0xff505050 // DARKGRAY = rgba(80, 80, 80, 255)
+let yellow = 0xff00f9fd // YELLOW = rgba(253, 249, 0, 255)
+let gold = 0xff00cbff // GOLD = rgba(255, 203, 0, 255)
+let orange = 0xff00a1ff // ORANGE = rgba(255, 161, 0, 255)
+let pink = 0xffc26dff // PINK = rgba(255, 109, 194, 255)
+let red = 0xff3729e6 // RED = rgba(230, 41, 55, 255)
+let maroon = 0xff3721be // MAROON = rgba(190, 33, 55, 255)
+let green = 0xff30e400 // GREEN = rgba(0, 228, 48, 255)
+let lime = 0xff2f9e00 // LIME = rgba(0, 158, 47, 255)
+let darkgreen = 0xff2c7500 // DARKGREEN = rgba(0, 117, 44, 255)
+let skyblue = 0xffffbf66 // SKYBLUE = rgba(102, 191, 255, 255)
+let blue = 0xfff17900 // BLUE = rgba(0, 121, 241, 255)
+let darkblue = 0xffac5200 // DARKBLUE = rgba(0, 82, 172, 255)
+let purple = 0xffff7ac8 // PURPLE = rgba(200, 122, 255, 255)
+let violet = 0xffbe3c87 // VIOLET = rgba(135, 60, 190, 255)
+let darkpurple = 0xff7e1f70 // DARKPURPLE = rgba(112, 31, 126, 255)
+let beige = 0xff83b0d3 // BEIGE = rgba(211, 176, 131, 255)
+let brown = 0xff4f6a7f // BROWN = rgba(127, 106, 79, 255)
+let darkbrown = 0xff2f3f4c // DARKBROWN = rgba(76, 63, 47, 255)
+let white = 0xffffffff // WHITE = rgba(255, 255, 255, 255)
+let black = 0xff000000 // BLACK = rgba(0, 0, 0, 255)
+let blank = 0x00000000 // BLANK = rgba(0, 0, 0, 0)
+let magenta = 0xffff00ff // MAGENTA = rgba(255, 0, 255, 255)
+let raywhite = 0xfff5f5f5 // RAYWHITE = rgba(245, 245, 245, 255)
+
+
+// ImageFilter: Potential image-filtering techniques for scale/etc.
+let filter_nearestneighbor = 0
+let filter_bilinear = 1
+let filter_smooth = 2
+
+// SfxPresetType: Represents a Sfx preset type.
+let sfx_coin = 0
+let sfx_laser = 1
+let sfx_explosion = 2
+let sfx_powerup = 3
+let sfx_hurt = 4
+let sfx_jump = 5
+let sfx_select = 6
+let sfx_synth = 7
+
+// Key: Represents a keyboard key.
+let key_invalid = 0
+let key_space = 32
+let key_apostrophe = 39
+let key_comma = 44
+let key_minus = 45
+let key_period = 46
+let key_slash = 47
+let key_0 = 48
+let key_1 = 49
+let key_2 = 50
+let key_3 = 51
+let key_4 = 52
+let key_5 = 53
+let key_6 = 54
+let key_7 = 55
+let key_8 = 56
+let key_9 = 57
+let key_semicolon = 59
+let key_equal = 61
+let key_a = 65
+let key_b = 66
+let key_c = 67
+let key_d = 68
+let key_e = 69
+let key_f = 70
+let key_g = 71
+let key_h = 72
+let key_i = 73
+let key_j = 74
+let key_k = 75
+let key_l = 76
+let key_m = 77
+let key_n = 78
+let key_o = 79
+let key_p = 80
+let key_q = 81
+let key_r = 82
+let key_s = 83
+let key_t = 84
+let key_u = 85
+let key_v = 86
+let key_w = 87
+let key_x = 88
+let key_y = 89
+let key_z = 90
+let key_left_bracket = 91
+let key_backslash = 92
+let key_right_bracket = 93
+let key_grave_accent = 96
+let key_world_1 = 161
+let key_world_2 = 162
+let key_escape = 256
+let key_enter = 257
+let key_tab = 258
+let key_backspace = 259
+let key_insert = 260
+let key_delete = 261
+let key_right = 262
+let key_left = 263
+let key_down = 264
+let key_up = 265
+let key_page_up = 266
+let key_page_down = 267
+let key_home = 268
+let key_end = 269
+let key_caps_lock = 280
+let key_scroll_lock = 281
+let key_num_lock = 282
+let key_print_screen = 283
+let key_pause = 284
+let key_f1 = 290
+let key_f2 = 291
+let key_f3 = 292
+let key_f4 = 293
+let key_f5 = 294
+let key_f6 = 295
+let key_f7 = 296
+let key_f8 = 297
+let key_f9 = 298
+let key_f10 = 299
+let key_f11 = 300
+let key_f12 = 301
+let key_f13 = 302
+let key_f14 = 303
+let key_f15 = 304
+let key_f16 = 305
+let key_f17 = 306
+let key_f18 = 307
+let key_f19 = 308
+let key_f20 = 309
+let key_f21 = 310
+let key_f22 = 311
+let key_f23 = 312
+let key_f24 = 313
+let key_f25 = 314
+let key_kp_0 = 320
+let key_kp_1 = 321
+let key_kp_2 = 322
+let key_kp_3 = 323
+let key_kp_4 = 324
+let key_kp_5 = 325
+let key_kp_6 = 326
+let key_kp_7 = 327
+let key_kp_8 = 328
+let key_kp_9 = 329
+let key_kp_decimal = 330
+let key_kp_divide = 331
+let key_kp_multiply = 332
+let key_kp_subtract = 333
+let key_kp_add = 334
+let key_kp_enter = 335
+let key_kp_equal = 336
+let key_left_shift = 340
+let key_left_control = 341
+let key_left_alt = 342
+let key_left_super = 343
+let key_right_shift = 344
+let key_right_control = 345
+let key_right_alt = 346
+let key_right_super = 347
+let key_menu = 348
+
+// GamepadButton: Represents a gamepad button.
+let gamepad_button_unknown = 0
+let gamepad_button_up = 1
+let gamepad_button_right = 2
+let gamepad_button_down = 3
+let gamepad_button_left = 4
+let gamepad_button_y = 5
+let gamepad_button_b = 6
+let gamepad_button_a = 7
+let gamepad_button_x = 8
+let gamepad_button_left_shoulder = 9
+let gamepad_button_left_trigger = 10
+let gamepad_button_right_shoulder = 11
+let gamepad_button_right_trigger = 12
+let gamepad_button_select = 13
+let gamepad_button_menu = 14
+let gamepad_button_start = 15
+let gamepad_button_left_thumb = 16
+let gamepad_button_right_thumb = 17
+
+// MouseButton: Represents a mouse button.
+let mouse_button_unknown = 0
+let mouse_button_left = 1
+let mouse_button_right = 2
+let mouse_button_middle = 3
+
+
+// struct SfxParams: Sfx parameters.
+//   offset 0: randSeed (u32)
+//   offset 4: waveType (i32)
+//   offset 8: attackTime (f32)
+//   offset 12: sustainTime (f32)
+//   offset 16: sustainPunch (f32)
+//   offset 20: decayTime (f32)
+//   offset 24: startFrequency (f32)
+//   offset 28: minFrequency (f32)
+//   offset 32: slide (f32)
+//   offset 36: deltaSlide (f32)
+//   offset 40: vibratoDepth (f32)
+//   offset 44: vibratoSpeed (f32)
+//   offset 48: changeAmount (f32)
+//   offset 52: changeSpeed (f32)
+//   offset 56: squareDuty (f32)
+//   offset 60: dutySweep (f32)
+//   offset 64: repeatSpeed (f32)
+//   offset 68: phaserOffset (f32)
+//   offset 72: phaserSweep (f32)
+//   offset 76: lpfCutoff (f32)
+//   offset 80: lpfCutoffSweep (f32)
+//   offset 84: lpfResonance (f32)
+//   offset 88: hpfCutoff (f32)
+//   offset 92: hpfCutoffSweep (f32)
+
+// struct Dimensions: The 2D size of something (width/height.)
+//   offset 0: width (i32)
+//   offset 4: height (i32)
+
+// struct Vector: The 2D position of something (x/y.)
+//   offset 0: x (i32)
+//   offset 4: y (i32)
+
+// struct Rectangle: The 2D position + size of something (x/y/w/h.)
+//   offset 0: x (i32)
+//   offset 4: y (i32)
+//   offset 8: width (i32)
+//   offset 12: height (i32)
+
+// struct Color: An RGBA color.
+//   offset 0: r (u8)
+//   offset 1: g (u8)
+//   offset 2: b (u8)
+//   offset 3: a (u8)
+
+
+// -- COLORS --
+
+// Tint a color with another color.
+foreign wasm color_tint: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Fade a color.
+foreign wasm color_fade: (WasmI32, WasmF32) => WasmI32 from "null0"
+// Change the brightness of a color.
+foreign wasm color_brightness: (WasmI32, WasmF32) => WasmI32 from "null0"
+// Invert a color.
+foreign wasm color_invert: (WasmI32) => WasmI32 from "null0"
+// Blend 2 colors together.
+foreign wasm color_alpha_blend: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Change contrast of a color.
+foreign wasm color_contrast: (WasmI32, WasmF32) => WasmI32 from "null0"
+// Interpolate colors.
+foreign wasm color_bilinear_interpolate: (WasmI32, WasmI32, WasmI32, WasmI32, WasmF32, WasmF32) => WasmI32 from "null0"
+
+// -- GRAPHICS --
+
+// Create a new blank image.
+foreign wasm new_image: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Copy an image to a new image.
+foreign wasm image_copy: (WasmI32) => WasmI32 from "null0"
+// Create an image from a region of another image.
+foreign wasm image_subimage: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Clear the screen.
+foreign wasm clear: (WasmI32) => Void from "null0"
+// Draw a single pixel on the screen.
+foreign wasm draw_point: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a line on the screen.
+foreign wasm draw_line: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled rectangle on the screen.
+foreign wasm draw_rectangle: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled triangle on the screen.
+foreign wasm draw_triangle: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled ellipse on the screen.
+foreign wasm draw_ellipse: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled circle on the screen.
+foreign wasm draw_circle: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled polygon on the screen.
+foreign wasm draw_polygon: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled arc on the screen.
+foreign wasm draw_arc: (WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled round-rectangle on the screen.
+foreign wasm draw_rectangle_rounded: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw an image on the screen.
+foreign wasm draw_image: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a tinted image on the screen.
+foreign wasm draw_image_tint: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw an image, rotated, on the screen.
+foreign wasm draw_image_rotated: (WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
+// Draw an image, flipped, on the screen.
+foreign wasm draw_image_flipped: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw an image, scaled, on the screen.
+foreign wasm draw_image_scaled: (WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
+// Draw some text on the screen.
+foreign wasm draw_text: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Save an image to persistant storage.
+foreign wasm save_image: (WasmI32, WasmI32) => Void from "null0"
+// Load an image from a file in cart.
+foreign wasm load_image: (WasmI32) => WasmI32 from "null0"
+// Resize an image, return copy.
+foreign wasm image_resize: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Scale an image, return copy.
+foreign wasm image_scale: (WasmI32, WasmF32, WasmF32, WasmI32) => WasmI32 from "null0"
+// Replace a color in an image, in-place.
+foreign wasm image_color_replace: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Tint a color in an image, in-place.
+foreign wasm image_color_tint: (WasmI32, WasmI32) => Void from "null0"
+// Fade a color in an image, in-place.
+foreign wasm image_color_fade: (WasmI32, WasmF32) => Void from "null0"
+// Copy a font to a new font.
+foreign wasm font_copy: (WasmI32) => WasmI32 from "null0"
+// Scale a font, return a new font.
+foreign wasm font_scale: (WasmI32, WasmF32, WasmF32, WasmI32) => WasmI32 from "null0"
+// Load a BMF font from a file in cart.
+foreign wasm load_font_bmf: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Load a BMF font from an image.
+foreign wasm load_font_bmf_from_image: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Measure the size of some text.
+foreign wasm measure_text: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Meaure an image (use 0 for screen).
+foreign wasm measure_image: (WasmI32) => WasmI32 from "null0"
+// Load a TTY font from a file in cart.
+foreign wasm load_font_tty: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Load a TTY font from an image.
+foreign wasm load_font_tty_from_image: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Load a TTF font from a file in cart.
+foreign wasm load_font_ttf: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Invert the colors in an image, in-place.
+foreign wasm image_color_invert: (WasmI32) => Void from "null0"
+// Calculate a rectangle representing the available alpha border in an image.
+foreign wasm image_alpha_border: (WasmI32, WasmF32) => WasmI32 from "null0"
+// Crop an image, in-place.
+foreign wasm image_crop: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Crop an image based on the alpha border, in-place.
+foreign wasm image_alpha_crop: (WasmI32, WasmF32) => Void from "null0"
+// Adjust the brightness of an image, in-place.
+foreign wasm image_color_brightness: (WasmI32, WasmF32) => Void from "null0"
+// Flip an image, in-place.
+foreign wasm image_flip: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Change the contrast of an image, in-place.
+foreign wasm image_color_contrast: (WasmI32, WasmF32) => Void from "null0"
+// Use an image as an alpha-mask on another image.
+foreign wasm image_alpha_mask: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Create a new image, rotating another image.
+foreign wasm image_rotate: (WasmI32, WasmF32, WasmI32) => WasmI32 from "null0"
+// Create a new image of a gradient.
+foreign wasm image_gradient: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Unload an image.
+foreign wasm unload_image: (WasmI32) => Void from "null0"
+// Unload a font.
+foreign wasm unload_font: (WasmI32) => Void from "null0"
+// Clear an image.
+foreign wasm clear_image: (WasmI32, WasmI32) => Void from "null0"
+// Draw a single pixel on an image.
+foreign wasm draw_point_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a line on an image.
+foreign wasm draw_line_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled rectangle on an image.
+foreign wasm draw_rectangle_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled triangle on an image.
+foreign wasm draw_triangle_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled ellipse on an image.
+foreign wasm draw_ellipse_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a circle on an image.
+foreign wasm draw_circle_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled polygon on an image.
+foreign wasm draw_polygon_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a filled round-rectangle on an image.
+foreign wasm draw_rectangle_rounded_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw an image on an image.
+foreign wasm draw_image_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a tinted image on an image.
+foreign wasm draw_image_tint_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw an image, rotated, on an image.
+foreign wasm draw_image_rotated_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
+// Draw an image, flipped, on an image.
+foreign wasm draw_image_flipped_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw an image, scaled, on an image.
+foreign wasm draw_image_scaled_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
+// Draw some text on an image.
+foreign wasm draw_text_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) rectangle on the screen.
+foreign wasm draw_rectangle_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) triangle on the screen.
+foreign wasm draw_triangle_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) ellipse on the screen.
+foreign wasm draw_ellipse_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) circle on the screen.
+foreign wasm draw_circle_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) polygon on the screen.
+foreign wasm draw_polygon_outline: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) arc on the screen.
+foreign wasm draw_arc_outline: (WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) round-rectangle on the screen.
+foreign wasm draw_rectangle_rounded_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) rectangle on an image.
+foreign wasm draw_rectangle_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) triangle on an image.
+foreign wasm draw_triangle_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) ellipse on an image.
+foreign wasm draw_ellipse_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) circle on an image.
+foreign wasm draw_circle_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) polygon on an image.
+foreign wasm draw_polygon_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a outlined (with thickness) round-rectangle on an image.
+foreign wasm draw_rectangle_rounded_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+
+// -- INPUT --
+
+// Has the key been pressed? (tracks unpress/read correctly.)
+foreign wasm key_pressed: (WasmI32) => WasmI32 from "null0"
+// Is the key currently down?
+foreign wasm key_down: (WasmI32) => WasmI32 from "null0"
+// Has the key been released? (tracks press/read correctly.)
+foreign wasm key_released: (WasmI32) => WasmI32 from "null0"
+// Is the key currently up?
+foreign wasm key_up: (WasmI32) => WasmI32 from "null0"
+// Has the button been pressed? (tracks unpress/read correctly.)
+foreign wasm gamepad_button_pressed: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Is the button currently down?
+foreign wasm gamepad_button_down: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Has the button been released? (tracks press/read correctly.)
+foreign wasm gamepad_button_released: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get current position of mouse.
+foreign wasm mouse_position: () => WasmI32 from "null0"
+// Has the button been pressed? (tracks unpress/read correctly.)
+foreign wasm mouse_button_pressed: (WasmI32) => WasmI32 from "null0"
+// Is the button currently down?
+foreign wasm mouse_button_down: (WasmI32) => WasmI32 from "null0"
+// Has the button been released? (tracks press/read correctly.)
+foreign wasm mouse_button_released: (WasmI32) => WasmI32 from "null0"
+// Is the button currently up?
+foreign wasm mouse_button_up: (WasmI32) => WasmI32 from "null0"
+
+// -- SOUND --
+
+// Load a sound from a file in cart.
+foreign wasm load_sound: (WasmI32) => WasmI32 from "null0"
+// Play a sound.
+foreign wasm play_sound: (WasmI32, WasmI32) => Void from "null0"
+// Stop a sound.
+foreign wasm stop_sound: (WasmI32) => Void from "null0"
+// Unload a sound.
+foreign wasm unload_sound: (WasmI32) => Void from "null0"
+// Speak some text and return a sound. Set things to 0 for defaults.
+foreign wasm tts_sound: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Create Sfx sound.
+foreign wasm sfx_sound: (WasmI32) => WasmI32 from "null0"
+// Create Sfx parameters.
+foreign wasm sfx_generate: (WasmI32) => WasmI32 from "null0"
+
+// -- TYPES --
+
+
+// -- UTILITIES --
+
+// Get system-time (ms) since unix epoch.
+foreign wasm current_time: () => WasmI64 from "null0"
+// Get the change in time (seconds) since the last update run.
+foreign wasm delta_time: () => WasmF32 from "null0"
+// Get a random integer between 2 numbers.
+foreign wasm random_int: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the random-seed.
+foreign wasm random_seed_get: () => WasmI64 from "null0"
+// Set the random-seed.
+foreign wasm random_seed_set: (WasmI64) => Void from "null0"

@@ -9,7 +9,7 @@ COPY tools/docker/quickjs-cart.c /tmp/quickjs-master/qjs.c
 
 # build cart wasm & wipe source
 RUN cd /tmp/quickjs-master && \
-  cmake -B build -DCMAKE_TOOLCHAIN_FILE=/opt/wasi-sdk/share/cmake/wasi-sdk.cmake \
+  cmake -B build     -DCMAKE_TOOLCHAIN_FILE=/opt/wasi-sdk/share/cmake/wasi-sdk-p1.cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF \
     -DQJS_BUILD_EXAMPLES=OFF \

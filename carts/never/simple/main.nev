@@ -1,0 +1,13 @@
+(* simple Never cart for null0 (experimental)
+
+   Never runs on its own VM, so the null0 host calls are not wired up yet.
+   This example shows what a cart would look like.
+*)
+
+func main() -> int
+{
+    (* see null0.nev for the full API surface *)
+    (* clear(BLUE); *)
+    (* draw_circle(100, 100, 50, RED); *)
+    0
+}

@@ -1,6 +1,7 @@
 #!/bin/bash
+set -e
 
-# this will compile a nim cart for null0
+# this will compile an onyx cart for null0
 
 # Check if all required arguments are provided
 if [ -z "${1}" ]; then
@@ -13,7 +14,7 @@ fi
 
 CART_NAME="${1}"
 
-echo "Compiling Nim cart from /src/ to /out/"
+echo "Compiling onyx cart from /src/ to /out/"
 
 mkdir -p "/tmp/${CART_NAME}"
 
@@ -21,12 +22,12 @@ mkdir -p "/tmp/${CART_NAME}"
 cp -R /src/. "/tmp/${CART_NAME}/"
 cd "/tmp/${CART_NAME}/"
 
-# make the null0 bindings available to `import null0`
-if [ ! -f null0.nim ]; then
-    cp /usr/local/include/null0.nim .
+# make the null0 bindings available to #load
+if [ ! -f null0.onyx ]; then
+    cp /usr/local/include/null0.onyx .
 fi
 
-nim c --threads:off --noMain --cc:env -d:release -d:wasi -d:useMalloc -d:StandaloneHeapSize=16777216 --mm:arc --exceptions:goto --cpu:wasm32 --os:any --passC:"-D_WASI_EMULATED_SIGNAL" --passL:"-lwasi-emulated-signal" --passL:"-Wl,--allow-undefined" -o:main.wasm main.nim
+onyx build -r wasi -o main.wasm main.onyx
 
 # package only main.wasm + assets as the cart
 mkdir -p "/tmp/${CART_NAME}.pkg"

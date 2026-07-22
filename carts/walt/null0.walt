@@ -1,0 +1,602 @@
+// null0 - walt bindings for the null0 fantasy console
+//
+// walt imports are per-module, so copy the imports you need from this file
+// into your own cart, like:
+//
+//   type Clear = (i32) => void;
+//   import { clear: Clear } from 'null0';
+//
+//   export function load(): void {
+//     clear(BLUE);
+//   }
+//
+// ABI notes:
+// - all handles (Image/Font/Sound), enums, bools and pointers are i32
+// - string is a pointer to a null-terminated UTF8 string in memory (i32)
+// - Color is 4 bytes packed into a single i32: r | g<<8 | b<<16 | a<<24
+// - functions returning structs (Vector/Dimensions/Rectangle/Color/SfxParams)
+//   return a pointer (i32) into your memory
+
+// constants
+
+const SCREEN: i32 = 0;
+const SCREEN_WIDTH: i32 = 640;
+const SCREEN_HEIGHT: i32 = 480;
+const FONT_DEFAULT: i32 = 0;
+
+// colors
+const LIGHTGRAY: i32 = 0xffc8c8c8; // rgba(200, 200, 200, 255)
+const GRAY: i32 = 0xff828282; // rgba(130, 130, 130, 255)
+const DARKGRAY: i32 = 0xff505050; // rgba(80, 80, 80, 255)
+const YELLOW: i32 = 0xff00f9fd; // rgba(253, 249, 0, 255)
+const GOLD: i32 = 0xff00cbff; // rgba(255, 203, 0, 255)
+const ORANGE: i32 = 0xff00a1ff; // rgba(255, 161, 0, 255)
+const PINK: i32 = 0xffc26dff; // rgba(255, 109, 194, 255)
+const RED: i32 = 0xff3729e6; // rgba(230, 41, 55, 255)
+const MAROON: i32 = 0xff3721be; // rgba(190, 33, 55, 255)
+const GREEN: i32 = 0xff30e400; // rgba(0, 228, 48, 255)
+const LIME: i32 = 0xff2f9e00; // rgba(0, 158, 47, 255)
+const DARKGREEN: i32 = 0xff2c7500; // rgba(0, 117, 44, 255)
+const SKYBLUE: i32 = 0xffffbf66; // rgba(102, 191, 255, 255)
+const BLUE: i32 = 0xfff17900; // rgba(0, 121, 241, 255)
+const DARKBLUE: i32 = 0xffac5200; // rgba(0, 82, 172, 255)
+const PURPLE: i32 = 0xffff7ac8; // rgba(200, 122, 255, 255)
+const VIOLET: i32 = 0xffbe3c87; // rgba(135, 60, 190, 255)
+const DARKPURPLE: i32 = 0xff7e1f70; // rgba(112, 31, 126, 255)
+const BEIGE: i32 = 0xff83b0d3; // rgba(211, 176, 131, 255)
+const BROWN: i32 = 0xff4f6a7f; // rgba(127, 106, 79, 255)
+const DARKBROWN: i32 = 0xff2f3f4c; // rgba(76, 63, 47, 255)
+const WHITE: i32 = 0xffffffff; // rgba(255, 255, 255, 255)
+const BLACK: i32 = 0xff000000; // rgba(0, 0, 0, 255)
+const BLANK: i32 = 0x00000000; // rgba(0, 0, 0, 0)
+const MAGENTA: i32 = 0xffff00ff; // rgba(255, 0, 255, 255)
+const RAYWHITE: i32 = 0xfff5f5f5; // rgba(245, 245, 245, 255)
+
+
+// ImageFilter: Potential image-filtering techniques for scale/etc.
+const FILTER_NEARESTNEIGHBOR: i32 = 0;
+const FILTER_BILINEAR: i32 = 1;
+const FILTER_SMOOTH: i32 = 2;
+
+// SfxPresetType: Represents a Sfx preset type.
+const SFX_COIN: i32 = 0;
+const SFX_LASER: i32 = 1;
+const SFX_EXPLOSION: i32 = 2;
+const SFX_POWERUP: i32 = 3;
+const SFX_HURT: i32 = 4;
+const SFX_JUMP: i32 = 5;
+const SFX_SELECT: i32 = 6;
+const SFX_SYNTH: i32 = 7;
+
+// Key: Represents a keyboard key.
+const KEY_INVALID: i32 = 0;
+const KEY_SPACE: i32 = 32;
+const KEY_APOSTROPHE: i32 = 39;
+const KEY_COMMA: i32 = 44;
+const KEY_MINUS: i32 = 45;
+const KEY_PERIOD: i32 = 46;
+const KEY_SLASH: i32 = 47;
+const KEY_0: i32 = 48;
+const KEY_1: i32 = 49;
+const KEY_2: i32 = 50;
+const KEY_3: i32 = 51;
+const KEY_4: i32 = 52;
+const KEY_5: i32 = 53;
+const KEY_6: i32 = 54;
+const KEY_7: i32 = 55;
+const KEY_8: i32 = 56;
+const KEY_9: i32 = 57;
+const KEY_SEMICOLON: i32 = 59;
+const KEY_EQUAL: i32 = 61;
+const KEY_A: i32 = 65;
+const KEY_B: i32 = 66;
+const KEY_C: i32 = 67;
+const KEY_D: i32 = 68;
+const KEY_E: i32 = 69;
+const KEY_F: i32 = 70;
+const KEY_G: i32 = 71;
+const KEY_H: i32 = 72;
+const KEY_I: i32 = 73;
+const KEY_J: i32 = 74;
+const KEY_K: i32 = 75;
+const KEY_L: i32 = 76;
+const KEY_M: i32 = 77;
+const KEY_N: i32 = 78;
+const KEY_O: i32 = 79;
+const KEY_P: i32 = 80;
+const KEY_Q: i32 = 81;
+const KEY_R: i32 = 82;
+const KEY_S: i32 = 83;
+const KEY_T: i32 = 84;
+const KEY_U: i32 = 85;
+const KEY_V: i32 = 86;
+const KEY_W: i32 = 87;
+const KEY_X: i32 = 88;
+const KEY_Y: i32 = 89;
+const KEY_Z: i32 = 90;
+const KEY_LEFT_BRACKET: i32 = 91;
+const KEY_BACKSLASH: i32 = 92;
+const KEY_RIGHT_BRACKET: i32 = 93;
+const KEY_GRAVE_ACCENT: i32 = 96;
+const KEY_WORLD_1: i32 = 161;
+const KEY_WORLD_2: i32 = 162;
+const KEY_ESCAPE: i32 = 256;
+const KEY_ENTER: i32 = 257;
+const KEY_TAB: i32 = 258;
+const KEY_BACKSPACE: i32 = 259;
+const KEY_INSERT: i32 = 260;
+const KEY_DELETE: i32 = 261;
+const KEY_RIGHT: i32 = 262;
+const KEY_LEFT: i32 = 263;
+const KEY_DOWN: i32 = 264;
+const KEY_UP: i32 = 265;
+const KEY_PAGE_UP: i32 = 266;
+const KEY_PAGE_DOWN: i32 = 267;
+const KEY_HOME: i32 = 268;
+const KEY_END: i32 = 269;
+const KEY_CAPS_LOCK: i32 = 280;
+const KEY_SCROLL_LOCK: i32 = 281;
+const KEY_NUM_LOCK: i32 = 282;
+const KEY_PRINT_SCREEN: i32 = 283;
+const KEY_PAUSE: i32 = 284;
+const KEY_F1: i32 = 290;
+const KEY_F2: i32 = 291;
+const KEY_F3: i32 = 292;
+const KEY_F4: i32 = 293;
+const KEY_F5: i32 = 294;
+const KEY_F6: i32 = 295;
+const KEY_F7: i32 = 296;
+const KEY_F8: i32 = 297;
+const KEY_F9: i32 = 298;
+const KEY_F10: i32 = 299;
+const KEY_F11: i32 = 300;
+const KEY_F12: i32 = 301;
+const KEY_F13: i32 = 302;
+const KEY_F14: i32 = 303;
+const KEY_F15: i32 = 304;
+const KEY_F16: i32 = 305;
+const KEY_F17: i32 = 306;
+const KEY_F18: i32 = 307;
+const KEY_F19: i32 = 308;
+const KEY_F20: i32 = 309;
+const KEY_F21: i32 = 310;
+const KEY_F22: i32 = 311;
+const KEY_F23: i32 = 312;
+const KEY_F24: i32 = 313;
+const KEY_F25: i32 = 314;
+const KEY_KP_0: i32 = 320;
+const KEY_KP_1: i32 = 321;
+const KEY_KP_2: i32 = 322;
+const KEY_KP_3: i32 = 323;
+const KEY_KP_4: i32 = 324;
+const KEY_KP_5: i32 = 325;
+const KEY_KP_6: i32 = 326;
+const KEY_KP_7: i32 = 327;
+const KEY_KP_8: i32 = 328;
+const KEY_KP_9: i32 = 329;
+const KEY_KP_DECIMAL: i32 = 330;
+const KEY_KP_DIVIDE: i32 = 331;
+const KEY_KP_MULTIPLY: i32 = 332;
+const KEY_KP_SUBTRACT: i32 = 333;
+const KEY_KP_ADD: i32 = 334;
+const KEY_KP_ENTER: i32 = 335;
+const KEY_KP_EQUAL: i32 = 336;
+const KEY_LEFT_SHIFT: i32 = 340;
+const KEY_LEFT_CONTROL: i32 = 341;
+const KEY_LEFT_ALT: i32 = 342;
+const KEY_LEFT_SUPER: i32 = 343;
+const KEY_RIGHT_SHIFT: i32 = 344;
+const KEY_RIGHT_CONTROL: i32 = 345;
+const KEY_RIGHT_ALT: i32 = 346;
+const KEY_RIGHT_SUPER: i32 = 347;
+const KEY_MENU: i32 = 348;
+
+// GamepadButton: Represents a gamepad button.
+const GAMEPAD_BUTTON_UNKNOWN: i32 = 0;
+const GAMEPAD_BUTTON_UP: i32 = 1;
+const GAMEPAD_BUTTON_RIGHT: i32 = 2;
+const GAMEPAD_BUTTON_DOWN: i32 = 3;
+const GAMEPAD_BUTTON_LEFT: i32 = 4;
+const GAMEPAD_BUTTON_Y: i32 = 5;
+const GAMEPAD_BUTTON_B: i32 = 6;
+const GAMEPAD_BUTTON_A: i32 = 7;
+const GAMEPAD_BUTTON_X: i32 = 8;
+const GAMEPAD_BUTTON_LEFT_SHOULDER: i32 = 9;
+const GAMEPAD_BUTTON_LEFT_TRIGGER: i32 = 10;
+const GAMEPAD_BUTTON_RIGHT_SHOULDER: i32 = 11;
+const GAMEPAD_BUTTON_RIGHT_TRIGGER: i32 = 12;
+const GAMEPAD_BUTTON_SELECT: i32 = 13;
+const GAMEPAD_BUTTON_MENU: i32 = 14;
+const GAMEPAD_BUTTON_START: i32 = 15;
+const GAMEPAD_BUTTON_LEFT_THUMB: i32 = 16;
+const GAMEPAD_BUTTON_RIGHT_THUMB: i32 = 17;
+
+// MouseButton: Represents a mouse button.
+const MOUSE_BUTTON_UNKNOWN: i32 = 0;
+const MOUSE_BUTTON_LEFT: i32 = 1;
+const MOUSE_BUTTON_RIGHT: i32 = 2;
+const MOUSE_BUTTON_MIDDLE: i32 = 3;
+
+
+// struct SfxParams: Sfx parameters.
+//   offset 0: randSeed (u32)
+//   offset 4: waveType (i32)
+//   offset 8: attackTime (f32)
+//   offset 12: sustainTime (f32)
+//   offset 16: sustainPunch (f32)
+//   offset 20: decayTime (f32)
+//   offset 24: startFrequency (f32)
+//   offset 28: minFrequency (f32)
+//   offset 32: slide (f32)
+//   offset 36: deltaSlide (f32)
+//   offset 40: vibratoDepth (f32)
+//   offset 44: vibratoSpeed (f32)
+//   offset 48: changeAmount (f32)
+//   offset 52: changeSpeed (f32)
+//   offset 56: squareDuty (f32)
+//   offset 60: dutySweep (f32)
+//   offset 64: repeatSpeed (f32)
+//   offset 68: phaserOffset (f32)
+//   offset 72: phaserSweep (f32)
+//   offset 76: lpfCutoff (f32)
+//   offset 80: lpfCutoffSweep (f32)
+//   offset 84: lpfResonance (f32)
+//   offset 88: hpfCutoff (f32)
+//   offset 92: hpfCutoffSweep (f32)
+
+// struct Dimensions: The 2D size of something (width/height.)
+//   offset 0: width (i32)
+//   offset 4: height (i32)
+
+// struct Vector: The 2D position of something (x/y.)
+//   offset 0: x (i32)
+//   offset 4: y (i32)
+
+// struct Rectangle: The 2D position + size of something (x/y/w/h.)
+//   offset 0: x (i32)
+//   offset 4: y (i32)
+//   offset 8: width (i32)
+//   offset 12: height (i32)
+
+// struct Color: An RGBA color.
+//   offset 0: r (u8)
+//   offset 1: g (u8)
+//   offset 2: b (u8)
+//   offset 3: a (u8)
+
+
+// -- COLORS --
+
+// Tint a color with another color.
+type ColorTint = (i32, i32) => i32;
+// import { color_tint: ColorTint } from 'null0';
+// Fade a color.
+type ColorFade = (i32, f32) => i32;
+// import { color_fade: ColorFade } from 'null0';
+// Change the brightness of a color.
+type ColorBrightness = (i32, f32) => i32;
+// import { color_brightness: ColorBrightness } from 'null0';
+// Invert a color.
+type ColorInvert = (i32) => i32;
+// import { color_invert: ColorInvert } from 'null0';
+// Blend 2 colors together.
+type ColorAlphaBlend = (i32, i32) => i32;
+// import { color_alpha_blend: ColorAlphaBlend } from 'null0';
+// Change contrast of a color.
+type ColorContrast = (i32, f32) => i32;
+// import { color_contrast: ColorContrast } from 'null0';
+// Interpolate colors.
+type ColorBilinearInterpolate = (i32, i32, i32, i32, f32, f32) => i32;
+// import { color_bilinear_interpolate: ColorBilinearInterpolate } from 'null0';
+
+// -- GRAPHICS --
+
+// Create a new blank image.
+type NewImage = (i32, i32, i32) => i32;
+// import { new_image: NewImage } from 'null0';
+// Copy an image to a new image.
+type ImageCopy = (i32) => i32;
+// import { image_copy: ImageCopy } from 'null0';
+// Create an image from a region of another image.
+type ImageSubimage = (i32, i32, i32, i32, i32) => i32;
+// import { image_subimage: ImageSubimage } from 'null0';
+// Clear the screen.
+type Clear = (i32) => void;
+// import { clear: Clear } from 'null0';
+// Draw a single pixel on the screen.
+type DrawPoint = (i32, i32, i32) => void;
+// import { draw_point: DrawPoint } from 'null0';
+// Draw a line on the screen.
+type DrawLine = (i32, i32, i32, i32, i32) => void;
+// import { draw_line: DrawLine } from 'null0';
+// Draw a filled rectangle on the screen.
+type DrawRectangle = (i32, i32, i32, i32, i32) => void;
+// import { draw_rectangle: DrawRectangle } from 'null0';
+// Draw a filled triangle on the screen.
+type DrawTriangle = (i32, i32, i32, i32, i32, i32, i32) => void;
+// import { draw_triangle: DrawTriangle } from 'null0';
+// Draw a filled ellipse on the screen.
+type DrawEllipse = (i32, i32, i32, i32, i32) => void;
+// import { draw_ellipse: DrawEllipse } from 'null0';
+// Draw a filled circle on the screen.
+type DrawCircle = (i32, i32, i32, i32) => void;
+// import { draw_circle: DrawCircle } from 'null0';
+// Draw a filled polygon on the screen.
+type DrawPolygon = (i32, i32, i32) => void;
+// import { draw_polygon: DrawPolygon } from 'null0';
+// Draw a filled arc on the screen.
+type DrawArc = (i32, i32, f32, f32, f32, i32, i32) => void;
+// import { draw_arc: DrawArc } from 'null0';
+// Draw a filled round-rectangle on the screen.
+type DrawRectangleRounded = (i32, i32, i32, i32, i32, i32) => void;
+// import { draw_rectangle_rounded: DrawRectangleRounded } from 'null0';
+// Draw an image on the screen.
+type DrawImage = (i32, i32, i32) => void;
+// import { draw_image: DrawImage } from 'null0';
+// Draw a tinted image on the screen.
+type DrawImageTint = (i32, i32, i32, i32) => void;
+// import { draw_image_tint: DrawImageTint } from 'null0';
+// Draw an image, rotated, on the screen.
+type DrawImageRotated = (i32, i32, i32, f32, f32, f32, i32) => void;
+// import { draw_image_rotated: DrawImageRotated } from 'null0';
+// Draw an image, flipped, on the screen.
+type DrawImageFlipped = (i32, i32, i32, i32, i32, i32) => void;
+// import { draw_image_flipped: DrawImageFlipped } from 'null0';
+// Draw an image, scaled, on the screen.
+type DrawImageScaled = (i32, i32, i32, f32, f32, f32, f32, i32) => void;
+// import { draw_image_scaled: DrawImageScaled } from 'null0';
+// Draw some text on the screen.
+type DrawText = (i32, i32, i32, i32, i32) => void;
+// import { draw_text: DrawText } from 'null0';
+// Save an image to persistant storage.
+type SaveImage = (i32, i32) => void;
+// import { save_image: SaveImage } from 'null0';
+// Load an image from a file in cart.
+type LoadImage = (i32) => i32;
+// import { load_image: LoadImage } from 'null0';
+// Resize an image, return copy.
+type ImageResize = (i32, i32, i32, i32) => i32;
+// import { image_resize: ImageResize } from 'null0';
+// Scale an image, return copy.
+type ImageScale = (i32, f32, f32, i32) => i32;
+// import { image_scale: ImageScale } from 'null0';
+// Replace a color in an image, in-place.
+type ImageColorReplace = (i32, i32, i32) => void;
+// import { image_color_replace: ImageColorReplace } from 'null0';
+// Tint a color in an image, in-place.
+type ImageColorTint = (i32, i32) => void;
+// import { image_color_tint: ImageColorTint } from 'null0';
+// Fade a color in an image, in-place.
+type ImageColorFade = (i32, f32) => void;
+// import { image_color_fade: ImageColorFade } from 'null0';
+// Copy a font to a new font.
+type FontCopy = (i32) => i32;
+// import { font_copy: FontCopy } from 'null0';
+// Scale a font, return a new font.
+type FontScale = (i32, f32, f32, i32) => i32;
+// import { font_scale: FontScale } from 'null0';
+// Load a BMF font from a file in cart.
+type LoadFontBmf = (i32, i32) => i32;
+// import { load_font_bmf: LoadFontBmf } from 'null0';
+// Load a BMF font from an image.
+type LoadFontBmfFromImage = (i32, i32) => i32;
+// import { load_font_bmf_from_image: LoadFontBmfFromImage } from 'null0';
+// Measure the size of some text.
+type MeasureText = (i32, i32, i32) => i32;
+// import { measure_text: MeasureText } from 'null0';
+// Meaure an image (use 0 for screen).
+type MeasureImage = (i32) => i32;
+// import { measure_image: MeasureImage } from 'null0';
+// Load a TTY font from a file in cart.
+type LoadFontTty = (i32, i32, i32, i32) => i32;
+// import { load_font_tty: LoadFontTty } from 'null0';
+// Load a TTY font from an image.
+type LoadFontTtyFromImage = (i32, i32, i32, i32) => i32;
+// import { load_font_tty_from_image: LoadFontTtyFromImage } from 'null0';
+// Load a TTF font from a file in cart.
+type LoadFontTtf = (i32, i32) => i32;
+// import { load_font_ttf: LoadFontTtf } from 'null0';
+// Invert the colors in an image, in-place.
+type ImageColorInvert = (i32) => void;
+// import { image_color_invert: ImageColorInvert } from 'null0';
+// Calculate a rectangle representing the available alpha border in an image.
+type ImageAlphaBorder = (i32, f32) => i32;
+// import { image_alpha_border: ImageAlphaBorder } from 'null0';
+// Crop an image, in-place.
+type ImageCrop = (i32, i32, i32, i32, i32) => void;
+// import { image_crop: ImageCrop } from 'null0';
+// Crop an image based on the alpha border, in-place.
+type ImageAlphaCrop = (i32, f32) => void;
+// import { image_alpha_crop: ImageAlphaCrop } from 'null0';
+// Adjust the brightness of an image, in-place.
+type ImageColorBrightness = (i32, f32) => void;
+// import { image_color_brightness: ImageColorBrightness } from 'null0';
+// Flip an image, in-place.
+type ImageFlip = (i32, i32, i32) => void;
+// import { image_flip: ImageFlip } from 'null0';
+// Change the contrast of an image, in-place.
+type ImageColorContrast = (i32, f32) => void;
+// import { image_color_contrast: ImageColorContrast } from 'null0';
+// Use an image as an alpha-mask on another image.
+type ImageAlphaMask = (i32, i32, i32, i32) => void;
+// import { image_alpha_mask: ImageAlphaMask } from 'null0';
+// Create a new image, rotating another image.
+type ImageRotate = (i32, f32, i32) => i32;
+// import { image_rotate: ImageRotate } from 'null0';
+// Create a new image of a gradient.
+type ImageGradient = (i32, i32, i32, i32, i32, i32) => i32;
+// import { image_gradient: ImageGradient } from 'null0';
+// Unload an image.
+type UnloadImage = (i32) => void;
+// import { unload_image: UnloadImage } from 'null0';
+// Unload a font.
+type UnloadFont = (i32) => void;
+// import { unload_font: UnloadFont } from 'null0';
+// Clear an image.
+type ClearImage = (i32, i32) => void;
+// import { clear_image: ClearImage } from 'null0';
+// Draw a single pixel on an image.
+type DrawPointOnImage = (i32, i32, i32, i32) => void;
+// import { draw_point_on_image: DrawPointOnImage } from 'null0';
+// Draw a line on an image.
+type DrawLineOnImage = (i32, i32, i32, i32, i32, i32) => void;
+// import { draw_line_on_image: DrawLineOnImage } from 'null0';
+// Draw a filled rectangle on an image.
+type DrawRectangleOnImage = (i32, i32, i32, i32, i32, i32) => void;
+// import { draw_rectangle_on_image: DrawRectangleOnImage } from 'null0';
+// Draw a filled triangle on an image.
+type DrawTriangleOnImage = (i32, i32, i32, i32, i32, i32, i32, i32) => void;
+// import { draw_triangle_on_image: DrawTriangleOnImage } from 'null0';
+// Draw a filled ellipse on an image.
+type DrawEllipseOnImage = (i32, i32, i32, i32, i32, i32) => void;
+// import { draw_ellipse_on_image: DrawEllipseOnImage } from 'null0';
+// Draw a circle on an image.
+type DrawCircleOnImage = (i32, i32, i32, i32, i32) => void;
+// import { draw_circle_on_image: DrawCircleOnImage } from 'null0';
+// Draw a filled polygon on an image.
+type DrawPolygonOnImage = (i32, i32, i32, i32) => void;
+// import { draw_polygon_on_image: DrawPolygonOnImage } from 'null0';
+// Draw a filled round-rectangle on an image.
+type DrawRectangleRoundedOnImage = (i32, i32, i32, i32, i32, i32, i32) => void;
+// import { draw_rectangle_rounded_on_image: DrawRectangleRoundedOnImage } from 'null0';
+// Draw an image on an image.
+type DrawImageOnImage = (i32, i32, i32, i32) => void;
+// import { draw_image_on_image: DrawImageOnImage } from 'null0';
+// Draw a tinted image on an image.
+type DrawImageTintOnImage = (i32, i32, i32, i32, i32) => void;
+// import { draw_image_tint_on_image: DrawImageTintOnImage } from 'null0';
+// Draw an image, rotated, on an image.
+type DrawImageRotatedOnImage = (i32, i32, i32, i32, f32, f32, f32, i32) => void;
+// import { draw_image_rotated_on_image: DrawImageRotatedOnImage } from 'null0';
+// Draw an image, flipped, on an image.
+type DrawImageFlippedOnImage = (i32, i32, i32, i32, i32, i32, i32) => void;
+// import { draw_image_flipped_on_image: DrawImageFlippedOnImage } from 'null0';
+// Draw an image, scaled, on an image.
+type DrawImageScaledOnImage = (i32, i32, i32, i32, f32, f32, f32, f32, i32) => void;
+// import { draw_image_scaled_on_image: DrawImageScaledOnImage } from 'null0';
+// Draw some text on an image.
+type DrawTextOnImage = (i32, i32, i32, i32, i32, i32) => void;
+// import { draw_text_on_image: DrawTextOnImage } from 'null0';
+// Draw a outlined (with thickness) rectangle on the screen.
+type DrawRectangleOutline = (i32, i32, i32, i32, i32, i32) => void;
+// import { draw_rectangle_outline: DrawRectangleOutline } from 'null0';
+// Draw a outlined (with thickness) triangle on the screen.
+type DrawTriangleOutline = (i32, i32, i32, i32, i32, i32, i32, i32) => void;
+// import { draw_triangle_outline: DrawTriangleOutline } from 'null0';
+// Draw a outlined (with thickness) ellipse on the screen.
+type DrawEllipseOutline = (i32, i32, i32, i32, i32, i32) => void;
+// import { draw_ellipse_outline: DrawEllipseOutline } from 'null0';
+// Draw a outlined (with thickness) circle on the screen.
+type DrawCircleOutline = (i32, i32, i32, i32, i32) => void;
+// import { draw_circle_outline: DrawCircleOutline } from 'null0';
+// Draw a outlined (with thickness) polygon on the screen.
+type DrawPolygonOutline = (i32, i32, i32, i32) => void;
+// import { draw_polygon_outline: DrawPolygonOutline } from 'null0';
+// Draw a outlined (with thickness) arc on the screen.
+type DrawArcOutline = (i32, i32, f32, f32, f32, i32, i32, i32) => void;
+// import { draw_arc_outline: DrawArcOutline } from 'null0';
+// Draw a outlined (with thickness) round-rectangle on the screen.
+type DrawRectangleRoundedOutline = (i32, i32, i32, i32, i32, i32, i32) => void;
+// import { draw_rectangle_rounded_outline: DrawRectangleRoundedOutline } from 'null0';
+// Draw a outlined (with thickness) rectangle on an image.
+type DrawRectangleOutlineOnImage = (i32, i32, i32, i32, i32, i32, i32) => void;
+// import { draw_rectangle_outline_on_image: DrawRectangleOutlineOnImage } from 'null0';
+// Draw a outlined (with thickness) triangle on an image.
+type DrawTriangleOutlineOnImage = (i32, i32, i32, i32, i32, i32, i32, i32, i32) => void;
+// import { draw_triangle_outline_on_image: DrawTriangleOutlineOnImage } from 'null0';
+// Draw a outlined (with thickness) ellipse on an image.
+type DrawEllipseOutlineOnImage = (i32, i32, i32, i32, i32, i32, i32) => void;
+// import { draw_ellipse_outline_on_image: DrawEllipseOutlineOnImage } from 'null0';
+// Draw a outlined (with thickness) circle on an image.
+type DrawCircleOutlineOnImage = (i32, i32, i32, i32, i32, i32) => void;
+// import { draw_circle_outline_on_image: DrawCircleOutlineOnImage } from 'null0';
+// Draw a outlined (with thickness) polygon on an image.
+type DrawPolygonOutlineOnImage = (i32, i32, i32, i32, i32) => void;
+// import { draw_polygon_outline_on_image: DrawPolygonOutlineOnImage } from 'null0';
+// Draw a outlined (with thickness) round-rectangle on an image.
+type DrawRectangleRoundedOutlineOnImage = (i32, i32, i32, i32, i32, i32, i32, i32) => void;
+// import { draw_rectangle_rounded_outline_on_image: DrawRectangleRoundedOutlineOnImage } from 'null0';
+
+// -- INPUT --
+
+// Has the key been pressed? (tracks unpress/read correctly.)
+type KeyPressed = (i32) => i32;
+// import { key_pressed: KeyPressed } from 'null0';
+// Is the key currently down?
+type KeyDown = (i32) => i32;
+// import { key_down: KeyDown } from 'null0';
+// Has the key been released? (tracks press/read correctly.)
+type KeyReleased = (i32) => i32;
+// import { key_released: KeyReleased } from 'null0';
+// Is the key currently up?
+type KeyUp = (i32) => i32;
+// import { key_up: KeyUp } from 'null0';
+// Has the button been pressed? (tracks unpress/read correctly.)
+type GamepadButtonPressed = (i32, i32) => i32;
+// import { gamepad_button_pressed: GamepadButtonPressed } from 'null0';
+// Is the button currently down?
+type GamepadButtonDown = (i32, i32) => i32;
+// import { gamepad_button_down: GamepadButtonDown } from 'null0';
+// Has the button been released? (tracks press/read correctly.)
+type GamepadButtonReleased = (i32, i32) => i32;
+// import { gamepad_button_released: GamepadButtonReleased } from 'null0';
+// Get current position of mouse.
+type MousePosition = () => i32;
+// import { mouse_position: MousePosition } from 'null0';
+// Has the button been pressed? (tracks unpress/read correctly.)
+type MouseButtonPressed = (i32) => i32;
+// import { mouse_button_pressed: MouseButtonPressed } from 'null0';
+// Is the button currently down?
+type MouseButtonDown = (i32) => i32;
+// import { mouse_button_down: MouseButtonDown } from 'null0';
+// Has the button been released? (tracks press/read correctly.)
+type MouseButtonReleased = (i32) => i32;
+// import { mouse_button_released: MouseButtonReleased } from 'null0';
+// Is the button currently up?
+type MouseButtonUp = (i32) => i32;
+// import { mouse_button_up: MouseButtonUp } from 'null0';
+
+// -- SOUND --
+
+// Load a sound from a file in cart.
+type LoadSound = (i32) => i32;
+// import { load_sound: LoadSound } from 'null0';
+// Play a sound.
+type PlaySound = (i32, i32) => void;
+// import { play_sound: PlaySound } from 'null0';
+// Stop a sound.
+type StopSound = (i32) => void;
+// import { stop_sound: StopSound } from 'null0';
+// Unload a sound.
+type UnloadSound = (i32) => void;
+// import { unload_sound: UnloadSound } from 'null0';
+// Speak some text and return a sound. Set things to 0 for defaults.
+type TtsSound = (i32, i32, i32, i32, i32, i32, i32) => i32;
+// import { tts_sound: TtsSound } from 'null0';
+// Create Sfx sound.
+type SfxSound = (i32) => i32;
+// import { sfx_sound: SfxSound } from 'null0';
+// Create Sfx parameters.
+type SfxGenerate = (i32) => i32;
+// import { sfx_generate: SfxGenerate } from 'null0';
+
+// -- TYPES --
+
+
+// -- UTILITIES --
+
+// Get system-time (ms) since unix epoch.
+type CurrentTime = () => i64;
+// import { current_time: CurrentTime } from 'null0';
+// Get the change in time (seconds) since the last update run.
+type DeltaTime = () => f32;
+// import { delta_time: DeltaTime } from 'null0';
+// Get a random integer between 2 numbers.
+type RandomInt = (i32, i32) => i32;
+// import { random_int: RandomInt } from 'null0';
+// Get the random-seed.
+type RandomSeedGet = () => i64;
+// import { random_seed_get: RandomSeedGet } from 'null0';
+// Set the random-seed.
+type RandomSeedSet = (i64) => void;
+// import { random_seed_set: RandomSeedSet } from 'null0';
