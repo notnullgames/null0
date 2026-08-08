@@ -36,6 +36,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [ ] [Zen-C](https://github.com/z-libs/Zen-C)
 - [ ] [Haxe](https://github.com/back2dos/wasmix)
 - [ ] [Jik](https://jik-lang.org/)
+- [ ] [wyzer](https://github.com/Wyzer-Lang/wyzer)
 
 **interpreted**
 
