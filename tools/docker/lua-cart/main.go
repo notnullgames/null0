@@ -2009,13 +2009,28 @@ func registerAPI(L *lua.LState) {
 
 var L *lua.LState
 
+// lua has a load() of its own, so the globals a callback could shadow are
+// remembered before the cart runs: if one still holds the same value
+// afterwards, the cart did not define that callback and we leave it alone
+var stdGlobals = map[string]lua.LValue{}
+
+func rememberStdGlobals(names ...string) {
+	for _, name := range names {
+		stdGlobals[name] = L.GetGlobal(name)
+	}
+}
+
 // call a global lua function, if the cart defined one. errors are printed
 // (Protect uses lua's pcall under the hood) instead of killing the cart
 func callCart(name string, args ...lua.LValue) {
 	if L == nil {
 		return
 	}
-	fn, ok := L.GetGlobal(name).(*lua.LFunction)
+	value := L.GetGlobal(name)
+	if std, isStd := stdGlobals[name]; isStd && std == value {
+		return
+	}
+	fn, ok := value.(*lua.LFunction)
 	if !ok {
 		return
 	}
@@ -2041,6 +2056,8 @@ func load() {
 	if pkg, ok := L.GetGlobal("package").(*lua.LTable); ok {
 		pkg.RawSetString("path", lua.LString("/?.lua;/?/init.lua"))
 	}
+
+	rememberStdGlobals("load", "update", "unload", "buttonUp", "buttonDown", "keyUp", "keyDown", "mouseDown", "mouseUp", "mouseMoved")
 
 	if err := L.DoString(string(source)); err != nil {
 		fmt.Println("lua:", err)

@@ -72,6 +72,9 @@ char *fs_get_cart_name(const char *filename);
 // get the real location of write-dir
 char *fs_get_write_dir();
 
+// point the write-dir at a per-cart directory in the user's pref-dir, and mount it
+bool fs_set_write_dir(const char *cartFilename);
+
 // Check if executable has embedded cart data
 bool fs_has_embedded_cart(const char *exe_path);
 

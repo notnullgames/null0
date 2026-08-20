@@ -350,6 +350,9 @@ bool host_init(pntr_app *app) {
     }
   }
 
+  // give the cart somewhere to save things (save_image, and friends)
+  fs_set_write_dir(app->argFile);
+
   add_image(app->screen);
   add_font(pntr_load_font_default());
 

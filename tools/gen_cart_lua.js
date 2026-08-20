@@ -368,13 +368,28 @@ go.push(`// CART
 
 var L *lua.LState
 
+// lua has a load() of its own, so the globals a callback could shadow are
+// remembered before the cart runs: if one still holds the same value
+// afterwards, the cart did not define that callback and we leave it alone
+var stdGlobals = map[string]lua.LValue{}
+
+func rememberStdGlobals(names ...string) {
+\tfor _, name := range names {
+\t\tstdGlobals[name] = L.GetGlobal(name)
+\t}
+}
+
 // call a global lua function, if the cart defined one. errors are printed
 // (Protect uses lua's pcall under the hood) instead of killing the cart
 func callCart(name string, args ...lua.LValue) {
 \tif L == nil {
 \t\treturn
 \t}
-\tfn, ok := L.GetGlobal(name).(*lua.LFunction)
+\tvalue := L.GetGlobal(name)
+\tif std, isStd := stdGlobals[name]; isStd && std == value {
+\t\treturn
+\t}
+\tfn, ok := value.(*lua.LFunction)
 \tif !ok {
 \t\treturn
 \t}
@@ -400,6 +415,8 @@ func load() {
 \tif pkg, ok := L.GetGlobal("package").(*lua.LTable); ok {
 \t\tpkg.RawSetString("path", lua.LString("/?.lua;/?/init.lua"))
 \t}
+
+\trememberStdGlobals(${['load', 'update', 'unload'].concat(Object.keys(callbacks)).map((name) => `"${name}"`).join(', ')})
 
 \tif err := L.DoString(string(source)); err != nil {
 \t\tfmt.Println("lua:", err)

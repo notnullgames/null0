@@ -37,15 +37,32 @@ unsigned char *fs_load_file_real(const char *filename, unsigned int *bytesRead) 
 // load a file from physfs filesystem
 unsigned char *fs_load_file(const char *filename, uint32_t *bytesRead) {
   PHYSFS_Stat stat = {};
-  PHYSFS_stat(filename, &stat);
-  if (stat.filesize == 0 || stat.filetype != PHYSFS_FILETYPE_REGULAR ) {
+  if (!PHYSFS_stat(filename, &stat)) {
+    *bytesRead = 0;
+    fprintf(stderr, "Could not find file %s (%s)\n", filename, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+    return NULL;
+  }
+
+  if (stat.filesize == 0 || stat.filetype != PHYSFS_FILETYPE_REGULAR) {
     *bytesRead = 0;
     fprintf(stderr, "Could not load file %s (size: %llu type: %d)\n", filename, stat.filesize, stat.filetype);
     return NULL;
   }
 
   PHYSFS_File *f = PHYSFS_openRead(filename);
+  if (f == NULL) {
+    *bytesRead = 0;
+    fprintf(stderr, "Could not read file %s (%s)\n", filename, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+    return NULL;
+  }
+
   unsigned char *b = (unsigned char *)malloc(stat.filesize);
+  if (b == NULL) {
+    *bytesRead = 0;
+    PHYSFS_close(f);
+    return NULL;
+  }
+
   PHYSFS_sint64 br = PHYSFS_readBytes(f, b, stat.filesize);
   *bytesRead = br;
   PHYSFS_close(f);
@@ -80,6 +97,10 @@ bool fs_save_file_real(const char *filename, const void *data, uint32_t byteSize
 // save a file to physfs filesystem
 bool fs_save_file(const char *filename, const void *data, uint32_t byteSize) {
   PHYSFS_File *f = PHYSFS_openWrite(filename);
+  if (f == NULL) {
+    fprintf(stderr, "Could not write file %s (%s)\n", filename, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+    return false;
+  }
   PHYSFS_sint64 bytesWritten = PHYSFS_writeBytes(f, data, byteSize);
   PHYSFS_close(f);
   if (byteSize != bytesWritten) {
@@ -90,6 +111,10 @@ bool fs_save_file(const char *filename, const void *data, uint32_t byteSize) {
 
 bool fs_append_file(const char *filename, const void *data, uint32_t byteSize) {
   PHYSFS_File *f = PHYSFS_openAppend(filename);
+  if (f == NULL) {
+    fprintf(stderr, "Could not append to file %s (%s)\n", filename, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+    return false;
+  }
   PHYSFS_sint64 bytesWritten = PHYSFS_writeBytes(f, data, byteSize);
   PHYSFS_close(f);
   if (byteSize != bytesWritten) {
@@ -180,14 +205,73 @@ DetectFileType fs_detect_type(const char *filename) {
   uint32_t magic_number = 0;
   PHYSFS_sint64 br =
     PHYSFS_readBytes(f, (unsigned char *)&magic_number, sizeof(uint32_t));
+  PHYSFS_close(f);
   if (br != sizeof(uint32_t)) {
     return FILE_TYPE_UNKNOWN;
   }
-  PHYSFS_close(f);
   return fs_parse_magic_bytes(magic_number);
 }
 
 
+// get the short-name of cart, using filename ("/carts/simple_lua.null0" -> "simple_lua")
+char *fs_get_cart_name(const char *filename) {
+  if (filename == NULL) {
+    return NULL;
+  }
+
+  // just the name, without any directories
+  const char *name = filename;
+  for (const char *c = filename; *c != '\0'; c++) {
+    if (*c == '/' || *c == '\\') {
+      name = c + 1;
+    }
+  }
+
+  // ... and without the extension
+  const char *dot = strrchr(name, '.');
+  size_t length = dot == NULL || dot == name ? strlen(name) : (size_t)(dot - name);
+  if (length == 0) {
+    return NULL;
+  }
+
+  char *out = (char *)malloc(length + 1);
+  if (out == NULL) {
+    return NULL;
+  }
+  memcpy(out, name, length);
+  out[length] = '\0';
+  return out;
+}
+
+// get the real location of write-dir
+char *fs_get_write_dir() {
+  return (char *)PHYSFS_getWriteDir();
+}
+
+// point the write-dir at a per-cart directory in the user's pref-dir, and
+// mount it, so a cart can save files (save_image, and friends) and load them
+// again later. it's mounted last, so files in the cart itself still win
+bool fs_set_write_dir(const char *cartFilename) {
+  char *cartName = fs_get_cart_name(cartFilename);
+  if (cartName == NULL) {
+    return false;
+  }
+
+  const char *writeDir = PHYSFS_getPrefDir("null0", cartName);
+  free(cartName);
+
+  if (writeDir == NULL) {
+    fprintf(stderr, "Could not find anywhere to save files (%s)\n", PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+    return false;
+  }
+
+  if (!PHYSFS_setWriteDir(writeDir)) {
+    fprintf(stderr, "Could not save files in %s (%s)\n", writeDir, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+    return false;
+  }
+
+  return PHYSFS_mount(writeDir, NULL, 1) != 0;
+}
 
 // Check if executable has embedded cart data
 bool fs_has_embedded_cart(const char *exe_path) {
