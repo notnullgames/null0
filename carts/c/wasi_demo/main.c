@@ -12,9 +12,9 @@ long get_file_size_stat(const char *filename) {
 int main() {
   printf("hello from WASI\n");
 
-  long filesize = get_file_size_stat("cyber.txt");
+  long filesize = get_file_size_stat("assets/cyber.txt");
   printf("filesize: %lu\n", filesize);
-  FILE *file = fopen("cyber.txt", "r");
+  FILE *file = fopen("assets/cyber.txt", "r");
 
   if (file && filesize) {
     char *data = malloc(filesize + 1); // +1 for null terminator

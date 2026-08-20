@@ -28,12 +28,9 @@ type Font = uint32
 // Sound is a handle to a sound.
 type Sound = uint32
 
-// Color is an RGBA color packed into a uint32.
-type Color uint32
-
 // NewColor creates a Color from r, g, b, a components.
 func NewColor(r, g, b, a uint8) Color {
-	return Color(uint32(r) | uint32(g)<<8 | uint32(b)<<16 | uint32(a)<<24)
+	return Color{R: r, G: g, B: b, A: a}
 }
 
 // RGB creates an opaque Color from r, g, b components.
@@ -109,6 +106,14 @@ type Rectangle struct {
 	Y int32
 	Width int32
 	Height int32
+}
+
+// An RGBA color.
+type Color struct {
+	R uint8
+	G uint8
+	B uint8
+	A uint8
 }
 
 // Potential image-filtering techniques for scale/etc.
@@ -304,33 +309,33 @@ const (
 )
 
 // Colors
-const (
-	LIGHTGRAY Color = 0xffc8c8c8
-	GRAY Color = 0xff828282
-	DARKGRAY Color = 0xff505050
-	YELLOW Color = 0xff00f9fd
-	GOLD Color = 0xff00cbff
-	ORANGE Color = 0xff00a1ff
-	PINK Color = 0xffc26dff
-	RED Color = 0xff3729e6
-	MAROON Color = 0xff3721be
-	GREEN Color = 0xff30e400
-	LIME Color = 0xff2f9e00
-	DARKGREEN Color = 0xff2c7500
-	SKYBLUE Color = 0xffffbf66
-	BLUE Color = 0xfff17900
-	DARKBLUE Color = 0xffac5200
-	PURPLE Color = 0xffff7ac8
-	VIOLET Color = 0xffbe3c87
-	DARKPURPLE Color = 0xff7e1f70
-	BEIGE Color = 0xff83b0d3
-	BROWN Color = 0xff4f6a7f
-	DARKBROWN Color = 0xff2f3f4c
-	WHITE Color = 0xffffffff
-	BLACK Color = 0xff000000
-	BLANK Color = 0x00000000
-	MAGENTA Color = 0xffff00ff
-	RAYWHITE Color = 0xfff5f5f5
+var (
+	LIGHTGRAY = Color{R: 200, G: 200, B: 200, A: 255}
+	GRAY = Color{R: 130, G: 130, B: 130, A: 255}
+	DARKGRAY = Color{R: 80, G: 80, B: 80, A: 255}
+	YELLOW = Color{R: 253, G: 249, B: 0, A: 255}
+	GOLD = Color{R: 255, G: 203, B: 0, A: 255}
+	ORANGE = Color{R: 255, G: 161, B: 0, A: 255}
+	PINK = Color{R: 255, G: 109, B: 194, A: 255}
+	RED = Color{R: 230, G: 41, B: 55, A: 255}
+	MAROON = Color{R: 190, G: 33, B: 55, A: 255}
+	GREEN = Color{R: 0, G: 228, B: 48, A: 255}
+	LIME = Color{R: 0, G: 158, B: 47, A: 255}
+	DARKGREEN = Color{R: 0, G: 117, B: 44, A: 255}
+	SKYBLUE = Color{R: 102, G: 191, B: 255, A: 255}
+	BLUE = Color{R: 0, G: 121, B: 241, A: 255}
+	DARKBLUE = Color{R: 0, G: 82, B: 172, A: 255}
+	PURPLE = Color{R: 200, G: 122, B: 255, A: 255}
+	VIOLET = Color{R: 135, G: 60, B: 190, A: 255}
+	DARKPURPLE = Color{R: 112, G: 31, B: 126, A: 255}
+	BEIGE = Color{R: 211, G: 176, B: 131, A: 255}
+	BROWN = Color{R: 127, G: 106, B: 79, A: 255}
+	DARKBROWN = Color{R: 76, G: 63, B: 47, A: 255}
+	WHITE = Color{R: 255, G: 255, B: 255, A: 255}
+	BLACK = Color{R: 0, G: 0, B: 0, A: 255}
+	BLANK = Color{R: 0, G: 0, B: 0, A: 0}
+	MAGENTA = Color{R: 255, G: 0, B: 255, A: 255}
+	RAYWHITE = Color{R: 245, G: 245, B: 245, A: 255}
 )
 
 // helpers used by wrappers
@@ -352,69 +357,69 @@ func vectorSliceToPtr(vectors []Vector) unsafe.Pointer {
 // COLORS
 
 //go:wasmimport null0 color_tint
-func color_tint(color uint32, tint uint32) unsafe.Pointer
+func color_tint(color unsafe.Pointer, tint unsafe.Pointer) unsafe.Pointer
 
 // ColorTint: Tint a color with another color.
 func ColorTint(color Color, tint Color) Color {
-	return *(*Color)(color_tint(uint32(color), uint32(tint)))
+	return *(*Color)(color_tint(unsafe.Pointer(&color), unsafe.Pointer(&tint)))
 }
 
 //go:wasmimport null0 color_fade
-func color_fade(color uint32, alpha float32) unsafe.Pointer
+func color_fade(color unsafe.Pointer, alpha float32) unsafe.Pointer
 
 // ColorFade: Fade a color.
 func ColorFade(color Color, alpha float32) Color {
-	return *(*Color)(color_fade(uint32(color), alpha))
+	return *(*Color)(color_fade(unsafe.Pointer(&color), alpha))
 }
 
 //go:wasmimport null0 color_brightness
-func color_brightness(color uint32, factor float32) unsafe.Pointer
+func color_brightness(color unsafe.Pointer, factor float32) unsafe.Pointer
 
 // ColorBrightness: Change the brightness of a color.
 func ColorBrightness(color Color, factor float32) Color {
-	return *(*Color)(color_brightness(uint32(color), factor))
+	return *(*Color)(color_brightness(unsafe.Pointer(&color), factor))
 }
 
 //go:wasmimport null0 color_invert
-func color_invert(color uint32) unsafe.Pointer
+func color_invert(color unsafe.Pointer) unsafe.Pointer
 
 // ColorInvert: Invert a color.
 func ColorInvert(color Color) Color {
-	return *(*Color)(color_invert(uint32(color)))
+	return *(*Color)(color_invert(unsafe.Pointer(&color)))
 }
 
 //go:wasmimport null0 color_alpha_blend
-func color_alpha_blend(dst uint32, src uint32) unsafe.Pointer
+func color_alpha_blend(dst unsafe.Pointer, src unsafe.Pointer) unsafe.Pointer
 
 // ColorAlphaBlend: Blend 2 colors together.
 func ColorAlphaBlend(dst Color, src Color) Color {
-	return *(*Color)(color_alpha_blend(uint32(dst), uint32(src)))
+	return *(*Color)(color_alpha_blend(unsafe.Pointer(&dst), unsafe.Pointer(&src)))
 }
 
 //go:wasmimport null0 color_contrast
-func color_contrast(color uint32, contrast float32) unsafe.Pointer
+func color_contrast(color unsafe.Pointer, contrast float32) unsafe.Pointer
 
 // ColorContrast: Change contrast of a color.
 func ColorContrast(color Color, contrast float32) Color {
-	return *(*Color)(color_contrast(uint32(color), contrast))
+	return *(*Color)(color_contrast(unsafe.Pointer(&color), contrast))
 }
 
 //go:wasmimport null0 color_bilinear_interpolate
-func color_bilinear_interpolate(color00 uint32, color01 uint32, color10 uint32, color11 uint32, coordinateX float32, coordinateY float32) unsafe.Pointer
+func color_bilinear_interpolate(color00 unsafe.Pointer, color01 unsafe.Pointer, color10 unsafe.Pointer, color11 unsafe.Pointer, coordinateX float32, coordinateY float32) unsafe.Pointer
 
 // ColorBilinearInterpolate: Interpolate colors.
 func ColorBilinearInterpolate(color00 Color, color01 Color, color10 Color, color11 Color, coordinateX float32, coordinateY float32) Color {
-	return *(*Color)(color_bilinear_interpolate(uint32(color00), uint32(color01), uint32(color10), uint32(color11), coordinateX, coordinateY))
+	return *(*Color)(color_bilinear_interpolate(unsafe.Pointer(&color00), unsafe.Pointer(&color01), unsafe.Pointer(&color10), unsafe.Pointer(&color11), coordinateX, coordinateY))
 }
 
 // GRAPHICS
 
 //go:wasmimport null0 new_image
-func new_image(width int32, height int32, color uint32) uint32
+func new_image(width int32, height int32, color unsafe.Pointer) uint32
 
 // NewImage: Create a new blank image.
 func NewImage(width int32, height int32, color Color) Image {
-	return new_image(width, height, uint32(color))
+	return new_image(width, height, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 image_copy
@@ -434,83 +439,83 @@ func ImageSubimage(image Image, x int32, y int32, width int32, height int32) Ima
 }
 
 //go:wasmimport null0 clear
-func clear(color uint32)
+func clear(color unsafe.Pointer)
 
 // Clear: Clear the screen.
 func Clear(color Color) {
-	clear(uint32(color))
+	clear(unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_point
-func draw_point(x int32, y int32, color uint32)
+func draw_point(x int32, y int32, color unsafe.Pointer)
 
 // DrawPoint: Draw a single pixel on the screen.
 func DrawPoint(x int32, y int32, color Color) {
-	draw_point(x, y, uint32(color))
+	draw_point(x, y, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_line
-func draw_line(startPosX int32, startPosY int32, endPosX int32, endPosY int32, color uint32)
+func draw_line(startPosX int32, startPosY int32, endPosX int32, endPosY int32, color unsafe.Pointer)
 
 // DrawLine: Draw a line on the screen.
 func DrawLine(startPosX int32, startPosY int32, endPosX int32, endPosY int32, color Color) {
-	draw_line(startPosX, startPosY, endPosX, endPosY, uint32(color))
+	draw_line(startPosX, startPosY, endPosX, endPosY, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_rectangle
-func draw_rectangle(posX int32, posY int32, width int32, height int32, color uint32)
+func draw_rectangle(posX int32, posY int32, width int32, height int32, color unsafe.Pointer)
 
 // DrawRectangle: Draw a filled rectangle on the screen.
 func DrawRectangle(posX int32, posY int32, width int32, height int32, color Color) {
-	draw_rectangle(posX, posY, width, height, uint32(color))
+	draw_rectangle(posX, posY, width, height, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_triangle
-func draw_triangle(x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, color uint32)
+func draw_triangle(x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, color unsafe.Pointer)
 
 // DrawTriangle: Draw a filled triangle on the screen.
 func DrawTriangle(x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, color Color) {
-	draw_triangle(x1, y1, x2, y2, x3, y3, uint32(color))
+	draw_triangle(x1, y1, x2, y2, x3, y3, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_ellipse
-func draw_ellipse(centerX int32, centerY int32, radiusX int32, radiusY int32, color uint32)
+func draw_ellipse(centerX int32, centerY int32, radiusX int32, radiusY int32, color unsafe.Pointer)
 
 // DrawEllipse: Draw a filled ellipse on the screen.
 func DrawEllipse(centerX int32, centerY int32, radiusX int32, radiusY int32, color Color) {
-	draw_ellipse(centerX, centerY, radiusX, radiusY, uint32(color))
+	draw_ellipse(centerX, centerY, radiusX, radiusY, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_circle
-func draw_circle(centerX int32, centerY int32, radius int32, color uint32)
+func draw_circle(centerX int32, centerY int32, radius int32, color unsafe.Pointer)
 
 // DrawCircle: Draw a filled circle on the screen.
 func DrawCircle(centerX int32, centerY int32, radius int32, color Color) {
-	draw_circle(centerX, centerY, radius, uint32(color))
+	draw_circle(centerX, centerY, radius, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_polygon
-func draw_polygon(points unsafe.Pointer, numPoints int32, color uint32)
+func draw_polygon(points unsafe.Pointer, numPoints int32, color unsafe.Pointer)
 
 // DrawPolygon: Draw a filled polygon on the screen.
 func DrawPolygon(points []Vector, numPoints int32, color Color) {
-	draw_polygon(vectorSliceToPtr(points), numPoints, uint32(color))
+	draw_polygon(vectorSliceToPtr(points), numPoints, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_arc
-func draw_arc(centerX int32, centerY int32, radius float32, startAngle float32, endAngle float32, segments int32, color uint32)
+func draw_arc(centerX int32, centerY int32, radius float32, startAngle float32, endAngle float32, segments int32, color unsafe.Pointer)
 
 // DrawArc: Draw a filled arc on the screen.
 func DrawArc(centerX int32, centerY int32, radius float32, startAngle float32, endAngle float32, segments int32, color Color) {
-	draw_arc(centerX, centerY, radius, startAngle, endAngle, segments, uint32(color))
+	draw_arc(centerX, centerY, radius, startAngle, endAngle, segments, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_rectangle_rounded
-func draw_rectangle_rounded(x int32, y int32, width int32, height int32, cornerRadius int32, color uint32)
+func draw_rectangle_rounded(x int32, y int32, width int32, height int32, cornerRadius int32, color unsafe.Pointer)
 
 // DrawRectangleRounded: Draw a filled round-rectangle on the screen.
 func DrawRectangleRounded(x int32, y int32, width int32, height int32, cornerRadius int32, color Color) {
-	draw_rectangle_rounded(x, y, width, height, cornerRadius, uint32(color))
+	draw_rectangle_rounded(x, y, width, height, cornerRadius, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_image
@@ -522,11 +527,11 @@ func DrawImage(src Image, posX int32, posY int32) {
 }
 
 //go:wasmimport null0 draw_image_tint
-func draw_image_tint(src uint32, posX int32, posY int32, tint uint32)
+func draw_image_tint(src uint32, posX int32, posY int32, tint unsafe.Pointer)
 
 // DrawImageTint: Draw a tinted image on the screen.
 func DrawImageTint(src Image, posX int32, posY int32, tint Color) {
-	draw_image_tint(src, posX, posY, uint32(tint))
+	draw_image_tint(src, posX, posY, unsafe.Pointer(&tint))
 }
 
 //go:wasmimport null0 draw_image_rotated
@@ -554,11 +559,11 @@ func DrawImageScaled(src Image, posX int32, posY int32, scaleX float32, scaleY f
 }
 
 //go:wasmimport null0 draw_text
-func draw_text(font uint32, text unsafe.Pointer, posX int32, posY int32, color uint32)
+func draw_text(font uint32, text unsafe.Pointer, posX int32, posY int32, color unsafe.Pointer)
 
 // DrawText: Draw some text on the screen.
 func DrawText(font Font, text string, posX int32, posY int32, color Color) {
-	draw_text(font, cstr(text), posX, posY, uint32(color))
+	draw_text(font, cstr(text), posX, posY, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 save_image
@@ -594,19 +599,19 @@ func ImageScale(image Image, scaleX float32, scaleY float32, filter ImageFilter)
 }
 
 //go:wasmimport null0 image_color_replace
-func image_color_replace(image uint32, color uint32, replace uint32)
+func image_color_replace(image uint32, color unsafe.Pointer, replace unsafe.Pointer)
 
 // ImageColorReplace: Replace a color in an image, in-place.
 func ImageColorReplace(image Image, color Color, replace Color) {
-	image_color_replace(image, uint32(color), uint32(replace))
+	image_color_replace(image, unsafe.Pointer(&color), unsafe.Pointer(&replace))
 }
 
 //go:wasmimport null0 image_color_tint
-func image_color_tint(image uint32, color uint32)
+func image_color_tint(image uint32, color unsafe.Pointer)
 
 // ImageColorTint: Tint a color in an image, in-place.
 func ImageColorTint(image Image, color Color) {
-	image_color_tint(image, uint32(color))
+	image_color_tint(image, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 image_color_fade
@@ -762,11 +767,11 @@ func ImageRotate(image Image, degrees float32, filter ImageFilter) Image {
 }
 
 //go:wasmimport null0 image_gradient
-func image_gradient(width int32, height int32, topLeft uint32, topRight uint32, bottomLeft uint32, bottomRight uint32) uint32
+func image_gradient(width int32, height int32, topLeft unsafe.Pointer, topRight unsafe.Pointer, bottomLeft unsafe.Pointer, bottomRight unsafe.Pointer) uint32
 
 // ImageGradient: Create a new image of a gradient.
 func ImageGradient(width int32, height int32, topLeft Color, topRight Color, bottomLeft Color, bottomRight Color) Image {
-	return image_gradient(width, height, uint32(topLeft), uint32(topRight), uint32(bottomLeft), uint32(bottomRight))
+	return image_gradient(width, height, unsafe.Pointer(&topLeft), unsafe.Pointer(&topRight), unsafe.Pointer(&bottomLeft), unsafe.Pointer(&bottomRight))
 }
 
 //go:wasmimport null0 unload_image
@@ -786,75 +791,75 @@ func UnloadFont(font Font) {
 }
 
 //go:wasmimport null0 clear_image
-func clear_image(destination uint32, color uint32)
+func clear_image(destination uint32, color unsafe.Pointer)
 
 // ClearImage: Clear an image.
 func ClearImage(destination Image, color Color) {
-	clear_image(destination, uint32(color))
+	clear_image(destination, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_point_on_image
-func draw_point_on_image(destination uint32, x int32, y int32, color uint32)
+func draw_point_on_image(destination uint32, x int32, y int32, color unsafe.Pointer)
 
 // DrawPointOnImage: Draw a single pixel on an image.
 func DrawPointOnImage(destination Image, x int32, y int32, color Color) {
-	draw_point_on_image(destination, x, y, uint32(color))
+	draw_point_on_image(destination, x, y, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_line_on_image
-func draw_line_on_image(destination uint32, startPosX int32, startPosY int32, endPosX int32, endPosY int32, color uint32)
+func draw_line_on_image(destination uint32, startPosX int32, startPosY int32, endPosX int32, endPosY int32, color unsafe.Pointer)
 
 // DrawLineOnImage: Draw a line on an image.
 func DrawLineOnImage(destination Image, startPosX int32, startPosY int32, endPosX int32, endPosY int32, color Color) {
-	draw_line_on_image(destination, startPosX, startPosY, endPosX, endPosY, uint32(color))
+	draw_line_on_image(destination, startPosX, startPosY, endPosX, endPosY, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_rectangle_on_image
-func draw_rectangle_on_image(destination uint32, posX int32, posY int32, width int32, height int32, color uint32)
+func draw_rectangle_on_image(destination uint32, posX int32, posY int32, width int32, height int32, color unsafe.Pointer)
 
 // DrawRectangleOnImage: Draw a filled rectangle on an image.
 func DrawRectangleOnImage(destination Image, posX int32, posY int32, width int32, height int32, color Color) {
-	draw_rectangle_on_image(destination, posX, posY, width, height, uint32(color))
+	draw_rectangle_on_image(destination, posX, posY, width, height, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_triangle_on_image
-func draw_triangle_on_image(destination uint32, x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, color uint32)
+func draw_triangle_on_image(destination uint32, x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, color unsafe.Pointer)
 
 // DrawTriangleOnImage: Draw a filled triangle on an image.
 func DrawTriangleOnImage(destination Image, x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, color Color) {
-	draw_triangle_on_image(destination, x1, y1, x2, y2, x3, y3, uint32(color))
+	draw_triangle_on_image(destination, x1, y1, x2, y2, x3, y3, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_ellipse_on_image
-func draw_ellipse_on_image(destination uint32, centerX int32, centerY int32, radiusX int32, radiusY int32, color uint32)
+func draw_ellipse_on_image(destination uint32, centerX int32, centerY int32, radiusX int32, radiusY int32, color unsafe.Pointer)
 
 // DrawEllipseOnImage: Draw a filled ellipse on an image.
 func DrawEllipseOnImage(destination Image, centerX int32, centerY int32, radiusX int32, radiusY int32, color Color) {
-	draw_ellipse_on_image(destination, centerX, centerY, radiusX, radiusY, uint32(color))
+	draw_ellipse_on_image(destination, centerX, centerY, radiusX, radiusY, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_circle_on_image
-func draw_circle_on_image(destination uint32, centerX int32, centerY int32, radius int32, color uint32)
+func draw_circle_on_image(destination uint32, centerX int32, centerY int32, radius int32, color unsafe.Pointer)
 
 // DrawCircleOnImage: Draw a circle on an image.
 func DrawCircleOnImage(destination Image, centerX int32, centerY int32, radius int32, color Color) {
-	draw_circle_on_image(destination, centerX, centerY, radius, uint32(color))
+	draw_circle_on_image(destination, centerX, centerY, radius, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_polygon_on_image
-func draw_polygon_on_image(destination uint32, points unsafe.Pointer, numPoints int32, color uint32)
+func draw_polygon_on_image(destination uint32, points unsafe.Pointer, numPoints int32, color unsafe.Pointer)
 
 // DrawPolygonOnImage: Draw a filled polygon on an image.
 func DrawPolygonOnImage(destination Image, points []Vector, numPoints int32, color Color) {
-	draw_polygon_on_image(destination, vectorSliceToPtr(points), numPoints, uint32(color))
+	draw_polygon_on_image(destination, vectorSliceToPtr(points), numPoints, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_rectangle_rounded_on_image
-func draw_rectangle_rounded_on_image(destination uint32, x int32, y int32, width int32, height int32, cornerRadius int32, color uint32)
+func draw_rectangle_rounded_on_image(destination uint32, x int32, y int32, width int32, height int32, cornerRadius int32, color unsafe.Pointer)
 
 // DrawRectangleRoundedOnImage: Draw a filled round-rectangle on an image.
 func DrawRectangleRoundedOnImage(destination Image, x int32, y int32, width int32, height int32, cornerRadius int32, color Color) {
-	draw_rectangle_rounded_on_image(destination, x, y, width, height, cornerRadius, uint32(color))
+	draw_rectangle_rounded_on_image(destination, x, y, width, height, cornerRadius, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_image_on_image
@@ -866,11 +871,11 @@ func DrawImageOnImage(destination Image, src Image, posX int32, posY int32) {
 }
 
 //go:wasmimport null0 draw_image_tint_on_image
-func draw_image_tint_on_image(destination uint32, src uint32, posX int32, posY int32, tint uint32)
+func draw_image_tint_on_image(destination uint32, src uint32, posX int32, posY int32, tint unsafe.Pointer)
 
 // DrawImageTintOnImage: Draw a tinted image on an image.
 func DrawImageTintOnImage(destination Image, src Image, posX int32, posY int32, tint Color) {
-	draw_image_tint_on_image(destination, src, posX, posY, uint32(tint))
+	draw_image_tint_on_image(destination, src, posX, posY, unsafe.Pointer(&tint))
 }
 
 //go:wasmimport null0 draw_image_rotated_on_image
@@ -898,115 +903,115 @@ func DrawImageScaledOnImage(destination Image, src Image, posX int32, posY int32
 }
 
 //go:wasmimport null0 draw_text_on_image
-func draw_text_on_image(destination uint32, font uint32, text unsafe.Pointer, posX int32, posY int32, color uint32)
+func draw_text_on_image(destination uint32, font uint32, text unsafe.Pointer, posX int32, posY int32, color unsafe.Pointer)
 
 // DrawTextOnImage: Draw some text on an image.
 func DrawTextOnImage(destination Image, font Font, text string, posX int32, posY int32, color Color) {
-	draw_text_on_image(destination, font, cstr(text), posX, posY, uint32(color))
+	draw_text_on_image(destination, font, cstr(text), posX, posY, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_rectangle_outline
-func draw_rectangle_outline(posX int32, posY int32, width int32, height int32, thickness int32, color uint32)
+func draw_rectangle_outline(posX int32, posY int32, width int32, height int32, thickness int32, color unsafe.Pointer)
 
 // DrawRectangleOutline: Draw a outlined (with thickness) rectangle on the screen.
 func DrawRectangleOutline(posX int32, posY int32, width int32, height int32, thickness int32, color Color) {
-	draw_rectangle_outline(posX, posY, width, height, thickness, uint32(color))
+	draw_rectangle_outline(posX, posY, width, height, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_triangle_outline
-func draw_triangle_outline(x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, thickness int32, color uint32)
+func draw_triangle_outline(x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, thickness int32, color unsafe.Pointer)
 
 // DrawTriangleOutline: Draw a outlined (with thickness) triangle on the screen.
 func DrawTriangleOutline(x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, thickness int32, color Color) {
-	draw_triangle_outline(x1, y1, x2, y2, x3, y3, thickness, uint32(color))
+	draw_triangle_outline(x1, y1, x2, y2, x3, y3, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_ellipse_outline
-func draw_ellipse_outline(centerX int32, centerY int32, radiusX int32, radiusY int32, thickness int32, color uint32)
+func draw_ellipse_outline(centerX int32, centerY int32, radiusX int32, radiusY int32, thickness int32, color unsafe.Pointer)
 
 // DrawEllipseOutline: Draw a outlined (with thickness) ellipse on the screen.
 func DrawEllipseOutline(centerX int32, centerY int32, radiusX int32, radiusY int32, thickness int32, color Color) {
-	draw_ellipse_outline(centerX, centerY, radiusX, radiusY, thickness, uint32(color))
+	draw_ellipse_outline(centerX, centerY, radiusX, radiusY, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_circle_outline
-func draw_circle_outline(centerX int32, centerY int32, radius int32, thickness int32, color uint32)
+func draw_circle_outline(centerX int32, centerY int32, radius int32, thickness int32, color unsafe.Pointer)
 
 // DrawCircleOutline: Draw a outlined (with thickness) circle on the screen.
 func DrawCircleOutline(centerX int32, centerY int32, radius int32, thickness int32, color Color) {
-	draw_circle_outline(centerX, centerY, radius, thickness, uint32(color))
+	draw_circle_outline(centerX, centerY, radius, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_polygon_outline
-func draw_polygon_outline(points unsafe.Pointer, numPoints int32, thickness int32, color uint32)
+func draw_polygon_outline(points unsafe.Pointer, numPoints int32, thickness int32, color unsafe.Pointer)
 
 // DrawPolygonOutline: Draw a outlined (with thickness) polygon on the screen.
 func DrawPolygonOutline(points []Vector, numPoints int32, thickness int32, color Color) {
-	draw_polygon_outline(vectorSliceToPtr(points), numPoints, thickness, uint32(color))
+	draw_polygon_outline(vectorSliceToPtr(points), numPoints, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_arc_outline
-func draw_arc_outline(centerX int32, centerY int32, radius float32, startAngle float32, endAngle float32, segments int32, thickness int32, color uint32)
+func draw_arc_outline(centerX int32, centerY int32, radius float32, startAngle float32, endAngle float32, segments int32, thickness int32, color unsafe.Pointer)
 
 // DrawArcOutline: Draw a outlined (with thickness) arc on the screen.
 func DrawArcOutline(centerX int32, centerY int32, radius float32, startAngle float32, endAngle float32, segments int32, thickness int32, color Color) {
-	draw_arc_outline(centerX, centerY, radius, startAngle, endAngle, segments, thickness, uint32(color))
+	draw_arc_outline(centerX, centerY, radius, startAngle, endAngle, segments, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_rectangle_rounded_outline
-func draw_rectangle_rounded_outline(x int32, y int32, width int32, height int32, cornerRadius int32, thickness int32, color uint32)
+func draw_rectangle_rounded_outline(x int32, y int32, width int32, height int32, cornerRadius int32, thickness int32, color unsafe.Pointer)
 
 // DrawRectangleRoundedOutline: Draw a outlined (with thickness) round-rectangle on the screen.
 func DrawRectangleRoundedOutline(x int32, y int32, width int32, height int32, cornerRadius int32, thickness int32, color Color) {
-	draw_rectangle_rounded_outline(x, y, width, height, cornerRadius, thickness, uint32(color))
+	draw_rectangle_rounded_outline(x, y, width, height, cornerRadius, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_rectangle_outline_on_image
-func draw_rectangle_outline_on_image(destination uint32, posX int32, posY int32, width int32, height int32, thickness int32, color uint32)
+func draw_rectangle_outline_on_image(destination uint32, posX int32, posY int32, width int32, height int32, thickness int32, color unsafe.Pointer)
 
 // DrawRectangleOutlineOnImage: Draw a outlined (with thickness) rectangle on an image.
 func DrawRectangleOutlineOnImage(destination Image, posX int32, posY int32, width int32, height int32, thickness int32, color Color) {
-	draw_rectangle_outline_on_image(destination, posX, posY, width, height, thickness, uint32(color))
+	draw_rectangle_outline_on_image(destination, posX, posY, width, height, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_triangle_outline_on_image
-func draw_triangle_outline_on_image(destination uint32, x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, thickness int32, color uint32)
+func draw_triangle_outline_on_image(destination uint32, x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, thickness int32, color unsafe.Pointer)
 
 // DrawTriangleOutlineOnImage: Draw a outlined (with thickness) triangle on an image.
 func DrawTriangleOutlineOnImage(destination Image, x1 int32, y1 int32, x2 int32, y2 int32, x3 int32, y3 int32, thickness int32, color Color) {
-	draw_triangle_outline_on_image(destination, x1, y1, x2, y2, x3, y3, thickness, uint32(color))
+	draw_triangle_outline_on_image(destination, x1, y1, x2, y2, x3, y3, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_ellipse_outline_on_image
-func draw_ellipse_outline_on_image(destination uint32, centerX int32, centerY int32, radiusX int32, radiusY int32, thickness int32, color uint32)
+func draw_ellipse_outline_on_image(destination uint32, centerX int32, centerY int32, radiusX int32, radiusY int32, thickness int32, color unsafe.Pointer)
 
 // DrawEllipseOutlineOnImage: Draw a outlined (with thickness) ellipse on an image.
 func DrawEllipseOutlineOnImage(destination Image, centerX int32, centerY int32, radiusX int32, radiusY int32, thickness int32, color Color) {
-	draw_ellipse_outline_on_image(destination, centerX, centerY, radiusX, radiusY, thickness, uint32(color))
+	draw_ellipse_outline_on_image(destination, centerX, centerY, radiusX, radiusY, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_circle_outline_on_image
-func draw_circle_outline_on_image(destination uint32, centerX int32, centerY int32, radius int32, thickness int32, color uint32)
+func draw_circle_outline_on_image(destination uint32, centerX int32, centerY int32, radius int32, thickness int32, color unsafe.Pointer)
 
 // DrawCircleOutlineOnImage: Draw a outlined (with thickness) circle on an image.
 func DrawCircleOutlineOnImage(destination Image, centerX int32, centerY int32, radius int32, thickness int32, color Color) {
-	draw_circle_outline_on_image(destination, centerX, centerY, radius, thickness, uint32(color))
+	draw_circle_outline_on_image(destination, centerX, centerY, radius, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_polygon_outline_on_image
-func draw_polygon_outline_on_image(destination uint32, points unsafe.Pointer, numPoints int32, thickness int32, color uint32)
+func draw_polygon_outline_on_image(destination uint32, points unsafe.Pointer, numPoints int32, thickness int32, color unsafe.Pointer)
 
 // DrawPolygonOutlineOnImage: Draw a outlined (with thickness) polygon on an image.
 func DrawPolygonOutlineOnImage(destination Image, points []Vector, numPoints int32, thickness int32, color Color) {
-	draw_polygon_outline_on_image(destination, vectorSliceToPtr(points), numPoints, thickness, uint32(color))
+	draw_polygon_outline_on_image(destination, vectorSliceToPtr(points), numPoints, thickness, unsafe.Pointer(&color))
 }
 
 //go:wasmimport null0 draw_rectangle_rounded_outline_on_image
-func draw_rectangle_rounded_outline_on_image(destination uint32, x int32, y int32, width int32, height int32, cornerRadius int32, thickness int32, color uint32)
+func draw_rectangle_rounded_outline_on_image(destination uint32, x int32, y int32, width int32, height int32, cornerRadius int32, thickness int32, color unsafe.Pointer)
 
 // DrawRectangleRoundedOutlineOnImage: Draw a outlined (with thickness) round-rectangle on an image.
 func DrawRectangleRoundedOutlineOnImage(destination Image, x int32, y int32, width int32, height int32, cornerRadius int32, thickness int32, color Color) {
-	draw_rectangle_rounded_outline_on_image(destination, x, y, width, height, cornerRadius, thickness, uint32(color))
+	draw_rectangle_rounded_outline_on_image(destination, x, y, width, height, cornerRadius, thickness, unsafe.Pointer(&color))
 }
 
 // INPUT

@@ -18,21 +18,32 @@ const out = [
 //
 //   foreign wasm clear: (WasmI32) => Void from "null0"
 //
+//   // Color is a pointer to 4 bytes (r, g, b, a) in memory, not a packed
+//   // scalar - write the bytes once (e.g. first thing in load()) before
+//   // using a color constant:
 //   @unsafe
 //   provide let load = () => {
+//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(0), 0n)
+//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(121), 1n)
+//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(241), 2n)
+//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(255), 3n)
 //     clear(WasmI32.fromGrain(blue))
 //   }
 //
 //   provide let update = () => void
 //
 // ABI notes:
-// - all handles (Image/Font/Sound), enums, bools and pointers are WasmI32
+// - all handles (Image/Font/Sound), enums, bools are WasmI32
 // - string is a pointer to a null-terminated UTF8 string in memory (WasmI32)
-// - Color is 4 bytes packed into a single i32: r | g<<8 | b<<16 | a<<24
-//   (the color constants below are plain Numbers, wrap them with
-//   WasmI32.fromGrain() when calling)
-// - functions returning structs (Vector/Dimensions/Rectangle/Color/SfxParams)
-//   return a pointer (WasmI32) into your memory
+// - Color/Vector/Rectangle/Dimensions/SfxParams are ALWAYS passed and
+//   returned as a WasmI32 pointer into wasm memory, never packed into a
+//   scalar - Color is 4 bytes (r, g, b, a); the color constants below are
+//   addresses (plain Numbers, wrap with WasmI32.fromGrain() like any other
+//   arg) - write the bytes there yourself (see the inline WasmI32.store8
+//   calls below each constant) before first use
+// - functions returning structs return a pointer (WasmI32) into your
+//   memory, read the fields with WasmI32.load / WasmI32.load8U at the
+//   offsets noted below
 // - anything touching Wasm types needs an @unsafe attribute
 
 // constants
@@ -46,14 +57,19 @@ let FONT_DEFAULT = 0
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
-// color constants
-out.push('// colors (packed r | g<<8 | b<<16 | a<<24)')
-for (const [colorName, colorDef] of Object.entries(constants)) {
-  if (colorDef.type === 'Color') {
-    const [r, g, b, a] = colorDef.value
-    const packed = ((a << 24) | (b << 16) | (g << 8) | r) >>> 0
-    out.push(`let ${colorName.toLowerCase()} = 0x${packed.toString(16).padStart(8, '0')} // ${colorName} = rgba(${r}, ${g}, ${b}, ${a})`)
-  }
+// color constants: each is an address (pointer) at a fixed offset starting
+// at 65536 (1 page in) - copy the matching store8 calls into your own load()
+out.push('// colors (addresses; copy the matching stores into your own load())')
+const colorEntries = Object.entries(constants).filter(([, def]) => def.type === 'Color')
+let colorOffset = 65536
+for (const [colorName, colorDef] of colorEntries) {
+  const [r, g, b, a] = colorDef.value
+  const lname = colorName.toLowerCase()
+  out.push(`let ${lname} = ${colorOffset} // ${colorName} = rgba(${r}, ${g}, ${b}, ${a})`)
+  const bytes = [r, g, b, a]
+  const stores = bytes.map((v, i) => `WasmI32.store8(WasmI32.fromGrain(${lname}), WasmI32.fromGrain(${v}), ${i}n)`).join('; ')
+  out.push(`// ${stores}`)
+  colorOffset += 4
 }
 out.push('')
 

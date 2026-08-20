@@ -30,17 +30,6 @@ pub const Image = u32;
 pub const Font = u32;
 pub const Sound = u32;
 
-/// An RGBA color, packed into a single u32 (ABI-compatible with host)
-pub const Color = packed struct(u32) {
-    r: u8,
-    g: u8,
-    b: u8,
-    a: u8,
-
-    pub fn rgb(r: u8, g: u8, b: u8) Color {
-        return .{ .r = r, .g = g, .b = b, .a = 255 };
-    }
-};
 
 /// Sfx parameters.
 pub const SfxParams = extern struct {
@@ -89,6 +78,24 @@ pub const Rectangle = extern struct {
     width: i32 = 0,
     height: i32 = 0,
 };
+
+/// An RGBA color.
+pub const Color = extern struct {
+    r: u8 = 0,
+    g: u8 = 0,
+    b: u8 = 0,
+    a: u8 = 0,
+};
+
+/// Create a Color from r, g, b, a components
+pub fn rgba(r: u8, g: u8, b: u8, a: u8) Color {
+    return .{ .r = r, .g = g, .b = b, .a = a };
+}
+
+/// Create an opaque Color from r, g, b components
+pub fn rgb(r: u8, g: u8, b: u8) Color {
+    return rgba(r, g, b, 255);
+}
 
 /// Potential image-filtering techniques for scale/etc.
 pub const ImageFilter = enum(i32) {

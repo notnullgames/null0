@@ -56,7 +56,6 @@ int main(int argc, char* argv[]) {
   JSValue std_val = JS_Eval(ctx, str, strlen(str), "<CART>", JS_EVAL_TYPE_MODULE);
   
   if (!JS_IsException(std_val)) {
-    js_module_set_import_meta(ctx, std_val, true, true);
     std_val = JS_EvalFunction(ctx, std_val);
   } else {
     js_std_dump_error(ctx);
@@ -65,6 +64,8 @@ int main(int argc, char* argv[]) {
   std_val = js_std_await(ctx, std_val);
 
   JS_FreeValue(ctx, std_val);
+
+  return 0;
 }
 
 void update() {

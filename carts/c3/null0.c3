@@ -17,12 +17,9 @@ alias Image = uint;
 alias Font = uint;
 alias Sound = uint;
 
-// An RGBA color, packed into a single uint (ABI-compatible with host)
-alias Color = uint;
-
 // Create a Color from r, g, b, a components
 fn Color rgba(char r, char g, char b, char a) {
-    return (Color)r | ((Color)g << 8) | ((Color)b << 16) | ((Color)a << 24);
+    return { r, g, b, a };
 }
 
 // Create an opaque Color from r, g, b components
@@ -77,6 +74,14 @@ struct Rectangle {
     int y;
     int width;
     int height;
+}
+
+// An RGBA color.
+struct Color {
+    char r;
+    char g;
+    char b;
+    char a;
 }
 
 // Potential image-filtering techniques for scale/etc.
@@ -260,32 +265,32 @@ const int SCREEN_HEIGHT = 480;
 const Font FONT_DEFAULT = 0;
 
 // Colors
-const Color LIGHTGRAY = 0xffc8c8c8; // rgba(200, 200, 200, 255)
-const Color GRAY = 0xff828282; // rgba(130, 130, 130, 255)
-const Color DARKGRAY = 0xff505050; // rgba(80, 80, 80, 255)
-const Color YELLOW = 0xff00f9fd; // rgba(253, 249, 0, 255)
-const Color GOLD = 0xff00cbff; // rgba(255, 203, 0, 255)
-const Color ORANGE = 0xff00a1ff; // rgba(255, 161, 0, 255)
-const Color PINK = 0xffc26dff; // rgba(255, 109, 194, 255)
-const Color RED = 0xff3729e6; // rgba(230, 41, 55, 255)
-const Color MAROON = 0xff3721be; // rgba(190, 33, 55, 255)
-const Color GREEN = 0xff30e400; // rgba(0, 228, 48, 255)
-const Color LIME = 0xff2f9e00; // rgba(0, 158, 47, 255)
-const Color DARKGREEN = 0xff2c7500; // rgba(0, 117, 44, 255)
-const Color SKYBLUE = 0xffffbf66; // rgba(102, 191, 255, 255)
-const Color BLUE = 0xfff17900; // rgba(0, 121, 241, 255)
-const Color DARKBLUE = 0xffac5200; // rgba(0, 82, 172, 255)
-const Color PURPLE = 0xffff7ac8; // rgba(200, 122, 255, 255)
-const Color VIOLET = 0xffbe3c87; // rgba(135, 60, 190, 255)
-const Color DARKPURPLE = 0xff7e1f70; // rgba(112, 31, 126, 255)
-const Color BEIGE = 0xff83b0d3; // rgba(211, 176, 131, 255)
-const Color BROWN = 0xff4f6a7f; // rgba(127, 106, 79, 255)
-const Color DARKBROWN = 0xff2f3f4c; // rgba(76, 63, 47, 255)
-const Color WHITE = 0xffffffff; // rgba(255, 255, 255, 255)
-const Color BLACK = 0xff000000; // rgba(0, 0, 0, 255)
-const Color BLANK = 0x00000000; // rgba(0, 0, 0, 0)
-const Color MAGENTA = 0xffff00ff; // rgba(255, 0, 255, 255)
-const Color RAYWHITE = 0xfff5f5f5; // rgba(245, 245, 245, 255)
+const Color LIGHTGRAY = { 200, 200, 200, 255 };
+const Color GRAY = { 130, 130, 130, 255 };
+const Color DARKGRAY = { 80, 80, 80, 255 };
+const Color YELLOW = { 253, 249, 0, 255 };
+const Color GOLD = { 255, 203, 0, 255 };
+const Color ORANGE = { 255, 161, 0, 255 };
+const Color PINK = { 255, 109, 194, 255 };
+const Color RED = { 230, 41, 55, 255 };
+const Color MAROON = { 190, 33, 55, 255 };
+const Color GREEN = { 0, 228, 48, 255 };
+const Color LIME = { 0, 158, 47, 255 };
+const Color DARKGREEN = { 0, 117, 44, 255 };
+const Color SKYBLUE = { 102, 191, 255, 255 };
+const Color BLUE = { 0, 121, 241, 255 };
+const Color DARKBLUE = { 0, 82, 172, 255 };
+const Color PURPLE = { 200, 122, 255, 255 };
+const Color VIOLET = { 135, 60, 190, 255 };
+const Color DARKPURPLE = { 112, 31, 126, 255 };
+const Color BEIGE = { 211, 176, 131, 255 };
+const Color BROWN = { 127, 106, 79, 255 };
+const Color DARKBROWN = { 76, 63, 47, 255 };
+const Color WHITE = { 255, 255, 255, 255 };
+const Color BLACK = { 0, 0, 0, 255 };
+const Color BLANK = { 0, 0, 0, 0 };
+const Color MAGENTA = { 255, 0, 255, 255 };
+const Color RAYWHITE = { 245, 245, 245, 255 };
 
 // COLORS
 // Tint a color with another color.

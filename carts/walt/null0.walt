@@ -1,21 +1,34 @@
 // null0 - walt bindings for the null0 fantasy console
 //
-// walt imports are per-module, so copy the imports you need from this file
-// into your own cart, like:
+// walt imports are per-module, so copy the imports/constants/statements you
+// need from this file into your own cart. You'll also need a local memory
+// (walt requires this even for plain i32.store8, and importing memory from
+// 'env' doesn't work here since null0 doesn't provide it):
+//
+//   const memory: Memory = { initial: 1 };
 //
 //   type Clear = (i32) => void;
 //   import { clear: Clear } from 'null0';
 //
 //   export function load(): void {
+//     // populate the color constants below, once - inline these stores
+//     // directly in a function body; wrapping them in their own function
+//     // triggers a walt-compiler codegen bug (invalid bytecode)
+//     i32.store8(65536, 0); i32.store8(65537, 121);
+//     i32.store8(65538, 241); i32.store8(65539, 255);
 //     clear(BLUE);
 //   }
 //
 // ABI notes:
-// - all handles (Image/Font/Sound), enums, bools and pointers are i32
+// - all handles (Image/Font/Sound), enums, bools are i32
 // - string is a pointer to a null-terminated UTF8 string in memory (i32)
-// - Color is 4 bytes packed into a single i32: r | g<<8 | b<<16 | a<<24
-// - functions returning structs (Vector/Dimensions/Rectangle/Color/SfxParams)
-//   return a pointer (i32) into your memory
+// - Color/Vector/Rectangle/Dimensions/SfxParams are ALWAYS passed and
+//   returned as an i32 pointer into wasm memory, never packed into a
+//   scalar - Color is 4 bytes (r, g, b, a); the color constants below are
+//   pointers to fixed addresses - write the bytes there yourself (see the
+//   inline store statements below each constant) before first use
+// - functions returning structs return a pointer (i32) into your memory,
+//   read the fields with i32.load / i32.load8_u at the offsets noted below
 
 // constants
 
@@ -24,33 +37,59 @@ const SCREEN_WIDTH: i32 = 640;
 const SCREEN_HEIGHT: i32 = 480;
 const FONT_DEFAULT: i32 = 0;
 
-// colors
-const LIGHTGRAY: i32 = 0xffc8c8c8; // rgba(200, 200, 200, 255)
-const GRAY: i32 = 0xff828282; // rgba(130, 130, 130, 255)
-const DARKGRAY: i32 = 0xff505050; // rgba(80, 80, 80, 255)
-const YELLOW: i32 = 0xff00f9fd; // rgba(253, 249, 0, 255)
-const GOLD: i32 = 0xff00cbff; // rgba(255, 203, 0, 255)
-const ORANGE: i32 = 0xff00a1ff; // rgba(255, 161, 0, 255)
-const PINK: i32 = 0xffc26dff; // rgba(255, 109, 194, 255)
-const RED: i32 = 0xff3729e6; // rgba(230, 41, 55, 255)
-const MAROON: i32 = 0xff3721be; // rgba(190, 33, 55, 255)
-const GREEN: i32 = 0xff30e400; // rgba(0, 228, 48, 255)
-const LIME: i32 = 0xff2f9e00; // rgba(0, 158, 47, 255)
-const DARKGREEN: i32 = 0xff2c7500; // rgba(0, 117, 44, 255)
-const SKYBLUE: i32 = 0xffffbf66; // rgba(102, 191, 255, 255)
-const BLUE: i32 = 0xfff17900; // rgba(0, 121, 241, 255)
-const DARKBLUE: i32 = 0xffac5200; // rgba(0, 82, 172, 255)
-const PURPLE: i32 = 0xffff7ac8; // rgba(200, 122, 255, 255)
-const VIOLET: i32 = 0xffbe3c87; // rgba(135, 60, 190, 255)
-const DARKPURPLE: i32 = 0xff7e1f70; // rgba(112, 31, 126, 255)
-const BEIGE: i32 = 0xff83b0d3; // rgba(211, 176, 131, 255)
-const BROWN: i32 = 0xff4f6a7f; // rgba(127, 106, 79, 255)
-const DARKBROWN: i32 = 0xff2f3f4c; // rgba(76, 63, 47, 255)
-const WHITE: i32 = 0xffffffff; // rgba(255, 255, 255, 255)
-const BLACK: i32 = 0xff000000; // rgba(0, 0, 0, 255)
-const BLANK: i32 = 0x00000000; // rgba(0, 0, 0, 0)
-const MAGENTA: i32 = 0xffff00ff; // rgba(255, 0, 255, 255)
-const RAYWHITE: i32 = 0xfff5f5f5; // rgba(245, 245, 245, 255)
+// colors (pointers; copy the matching stores into your own load())
+const LIGHTGRAY: i32 = 65536; // rgba(200, 200, 200, 255)
+// i32.store8(65536, 200); i32.store8(65537, 200); i32.store8(65538, 200); i32.store8(65539, 255);
+const GRAY: i32 = 65540; // rgba(130, 130, 130, 255)
+// i32.store8(65540, 130); i32.store8(65541, 130); i32.store8(65542, 130); i32.store8(65543, 255);
+const DARKGRAY: i32 = 65544; // rgba(80, 80, 80, 255)
+// i32.store8(65544, 80); i32.store8(65545, 80); i32.store8(65546, 80); i32.store8(65547, 255);
+const YELLOW: i32 = 65548; // rgba(253, 249, 0, 255)
+// i32.store8(65548, 253); i32.store8(65549, 249); i32.store8(65550, 0); i32.store8(65551, 255);
+const GOLD: i32 = 65552; // rgba(255, 203, 0, 255)
+// i32.store8(65552, 255); i32.store8(65553, 203); i32.store8(65554, 0); i32.store8(65555, 255);
+const ORANGE: i32 = 65556; // rgba(255, 161, 0, 255)
+// i32.store8(65556, 255); i32.store8(65557, 161); i32.store8(65558, 0); i32.store8(65559, 255);
+const PINK: i32 = 65560; // rgba(255, 109, 194, 255)
+// i32.store8(65560, 255); i32.store8(65561, 109); i32.store8(65562, 194); i32.store8(65563, 255);
+const RED: i32 = 65564; // rgba(230, 41, 55, 255)
+// i32.store8(65564, 230); i32.store8(65565, 41); i32.store8(65566, 55); i32.store8(65567, 255);
+const MAROON: i32 = 65568; // rgba(190, 33, 55, 255)
+// i32.store8(65568, 190); i32.store8(65569, 33); i32.store8(65570, 55); i32.store8(65571, 255);
+const GREEN: i32 = 65572; // rgba(0, 228, 48, 255)
+// i32.store8(65572, 0); i32.store8(65573, 228); i32.store8(65574, 48); i32.store8(65575, 255);
+const LIME: i32 = 65576; // rgba(0, 158, 47, 255)
+// i32.store8(65576, 0); i32.store8(65577, 158); i32.store8(65578, 47); i32.store8(65579, 255);
+const DARKGREEN: i32 = 65580; // rgba(0, 117, 44, 255)
+// i32.store8(65580, 0); i32.store8(65581, 117); i32.store8(65582, 44); i32.store8(65583, 255);
+const SKYBLUE: i32 = 65584; // rgba(102, 191, 255, 255)
+// i32.store8(65584, 102); i32.store8(65585, 191); i32.store8(65586, 255); i32.store8(65587, 255);
+const BLUE: i32 = 65588; // rgba(0, 121, 241, 255)
+// i32.store8(65588, 0); i32.store8(65589, 121); i32.store8(65590, 241); i32.store8(65591, 255);
+const DARKBLUE: i32 = 65592; // rgba(0, 82, 172, 255)
+// i32.store8(65592, 0); i32.store8(65593, 82); i32.store8(65594, 172); i32.store8(65595, 255);
+const PURPLE: i32 = 65596; // rgba(200, 122, 255, 255)
+// i32.store8(65596, 200); i32.store8(65597, 122); i32.store8(65598, 255); i32.store8(65599, 255);
+const VIOLET: i32 = 65600; // rgba(135, 60, 190, 255)
+// i32.store8(65600, 135); i32.store8(65601, 60); i32.store8(65602, 190); i32.store8(65603, 255);
+const DARKPURPLE: i32 = 65604; // rgba(112, 31, 126, 255)
+// i32.store8(65604, 112); i32.store8(65605, 31); i32.store8(65606, 126); i32.store8(65607, 255);
+const BEIGE: i32 = 65608; // rgba(211, 176, 131, 255)
+// i32.store8(65608, 211); i32.store8(65609, 176); i32.store8(65610, 131); i32.store8(65611, 255);
+const BROWN: i32 = 65612; // rgba(127, 106, 79, 255)
+// i32.store8(65612, 127); i32.store8(65613, 106); i32.store8(65614, 79); i32.store8(65615, 255);
+const DARKBROWN: i32 = 65616; // rgba(76, 63, 47, 255)
+// i32.store8(65616, 76); i32.store8(65617, 63); i32.store8(65618, 47); i32.store8(65619, 255);
+const WHITE: i32 = 65620; // rgba(255, 255, 255, 255)
+// i32.store8(65620, 255); i32.store8(65621, 255); i32.store8(65622, 255); i32.store8(65623, 255);
+const BLACK: i32 = 65624; // rgba(0, 0, 0, 255)
+// i32.store8(65624, 0); i32.store8(65625, 0); i32.store8(65626, 0); i32.store8(65627, 255);
+const BLANK: i32 = 65628; // rgba(0, 0, 0, 0)
+// i32.store8(65628, 0); i32.store8(65629, 0); i32.store8(65630, 0); i32.store8(65631, 0);
+const MAGENTA: i32 = 65632; // rgba(255, 0, 255, 255)
+// i32.store8(65632, 255); i32.store8(65633, 0); i32.store8(65634, 255); i32.store8(65635, 255);
+const RAYWHITE: i32 = 65636; // rgba(245, 245, 245, 255)
+// i32.store8(65636, 245); i32.store8(65637, 245); i32.store8(65638, 245); i32.store8(65639, 255);
 
 
 // ImageFilter: Potential image-filtering techniques for scale/etc.

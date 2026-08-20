@@ -9,21 +9,32 @@
 //
 //   foreign wasm clear: (WasmI32) => Void from "null0"
 //
+//   // Color is a pointer to 4 bytes (r, g, b, a) in memory, not a packed
+//   // scalar - write the bytes once (e.g. first thing in load()) before
+//   // using a color constant:
 //   @unsafe
 //   provide let load = () => {
+//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(0), 0n)
+//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(121), 1n)
+//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(241), 2n)
+//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(255), 3n)
 //     clear(WasmI32.fromGrain(blue))
 //   }
 //
 //   provide let update = () => void
 //
 // ABI notes:
-// - all handles (Image/Font/Sound), enums, bools and pointers are WasmI32
+// - all handles (Image/Font/Sound), enums, bools are WasmI32
 // - string is a pointer to a null-terminated UTF8 string in memory (WasmI32)
-// - Color is 4 bytes packed into a single i32: r | g<<8 | b<<16 | a<<24
-//   (the color constants below are plain Numbers, wrap them with
-//   WasmI32.fromGrain() when calling)
-// - functions returning structs (Vector/Dimensions/Rectangle/Color/SfxParams)
-//   return a pointer (WasmI32) into your memory
+// - Color/Vector/Rectangle/Dimensions/SfxParams are ALWAYS passed and
+//   returned as a WasmI32 pointer into wasm memory, never packed into a
+//   scalar - Color is 4 bytes (r, g, b, a); the color constants below are
+//   addresses (plain Numbers, wrap with WasmI32.fromGrain() like any other
+//   arg) - write the bytes there yourself (see the inline WasmI32.store8
+//   calls below each constant) before first use
+// - functions returning structs return a pointer (WasmI32) into your
+//   memory, read the fields with WasmI32.load / WasmI32.load8U at the
+//   offsets noted below
 // - anything touching Wasm types needs an @unsafe attribute
 
 // constants
@@ -33,33 +44,59 @@ let SCREEN_WIDTH = 640
 let SCREEN_HEIGHT = 480
 let FONT_DEFAULT = 0
 
-// colors (packed r | g<<8 | b<<16 | a<<24)
-let lightgray = 0xffc8c8c8 // LIGHTGRAY = rgba(200, 200, 200, 255)
-let gray = 0xff828282 // GRAY = rgba(130, 130, 130, 255)
-let darkgray = 0xff505050 // DARKGRAY = rgba(80, 80, 80, 255)
-let yellow = 0xff00f9fd // YELLOW = rgba(253, 249, 0, 255)
-let gold = 0xff00cbff // GOLD = rgba(255, 203, 0, 255)
-let orange = 0xff00a1ff // ORANGE = rgba(255, 161, 0, 255)
-let pink = 0xffc26dff // PINK = rgba(255, 109, 194, 255)
-let red = 0xff3729e6 // RED = rgba(230, 41, 55, 255)
-let maroon = 0xff3721be // MAROON = rgba(190, 33, 55, 255)
-let green = 0xff30e400 // GREEN = rgba(0, 228, 48, 255)
-let lime = 0xff2f9e00 // LIME = rgba(0, 158, 47, 255)
-let darkgreen = 0xff2c7500 // DARKGREEN = rgba(0, 117, 44, 255)
-let skyblue = 0xffffbf66 // SKYBLUE = rgba(102, 191, 255, 255)
-let blue = 0xfff17900 // BLUE = rgba(0, 121, 241, 255)
-let darkblue = 0xffac5200 // DARKBLUE = rgba(0, 82, 172, 255)
-let purple = 0xffff7ac8 // PURPLE = rgba(200, 122, 255, 255)
-let violet = 0xffbe3c87 // VIOLET = rgba(135, 60, 190, 255)
-let darkpurple = 0xff7e1f70 // DARKPURPLE = rgba(112, 31, 126, 255)
-let beige = 0xff83b0d3 // BEIGE = rgba(211, 176, 131, 255)
-let brown = 0xff4f6a7f // BROWN = rgba(127, 106, 79, 255)
-let darkbrown = 0xff2f3f4c // DARKBROWN = rgba(76, 63, 47, 255)
-let white = 0xffffffff // WHITE = rgba(255, 255, 255, 255)
-let black = 0xff000000 // BLACK = rgba(0, 0, 0, 255)
-let blank = 0x00000000 // BLANK = rgba(0, 0, 0, 0)
-let magenta = 0xffff00ff // MAGENTA = rgba(255, 0, 255, 255)
-let raywhite = 0xfff5f5f5 // RAYWHITE = rgba(245, 245, 245, 255)
+// colors (addresses; copy the matching stores into your own load())
+let lightgray = 65536 // LIGHTGRAY = rgba(200, 200, 200, 255)
+// WasmI32.store8(WasmI32.fromGrain(lightgray), WasmI32.fromGrain(200), 0n); WasmI32.store8(WasmI32.fromGrain(lightgray), WasmI32.fromGrain(200), 1n); WasmI32.store8(WasmI32.fromGrain(lightgray), WasmI32.fromGrain(200), 2n); WasmI32.store8(WasmI32.fromGrain(lightgray), WasmI32.fromGrain(255), 3n)
+let gray = 65540 // GRAY = rgba(130, 130, 130, 255)
+// WasmI32.store8(WasmI32.fromGrain(gray), WasmI32.fromGrain(130), 0n); WasmI32.store8(WasmI32.fromGrain(gray), WasmI32.fromGrain(130), 1n); WasmI32.store8(WasmI32.fromGrain(gray), WasmI32.fromGrain(130), 2n); WasmI32.store8(WasmI32.fromGrain(gray), WasmI32.fromGrain(255), 3n)
+let darkgray = 65544 // DARKGRAY = rgba(80, 80, 80, 255)
+// WasmI32.store8(WasmI32.fromGrain(darkgray), WasmI32.fromGrain(80), 0n); WasmI32.store8(WasmI32.fromGrain(darkgray), WasmI32.fromGrain(80), 1n); WasmI32.store8(WasmI32.fromGrain(darkgray), WasmI32.fromGrain(80), 2n); WasmI32.store8(WasmI32.fromGrain(darkgray), WasmI32.fromGrain(255), 3n)
+let yellow = 65548 // YELLOW = rgba(253, 249, 0, 255)
+// WasmI32.store8(WasmI32.fromGrain(yellow), WasmI32.fromGrain(253), 0n); WasmI32.store8(WasmI32.fromGrain(yellow), WasmI32.fromGrain(249), 1n); WasmI32.store8(WasmI32.fromGrain(yellow), WasmI32.fromGrain(0), 2n); WasmI32.store8(WasmI32.fromGrain(yellow), WasmI32.fromGrain(255), 3n)
+let gold = 65552 // GOLD = rgba(255, 203, 0, 255)
+// WasmI32.store8(WasmI32.fromGrain(gold), WasmI32.fromGrain(255), 0n); WasmI32.store8(WasmI32.fromGrain(gold), WasmI32.fromGrain(203), 1n); WasmI32.store8(WasmI32.fromGrain(gold), WasmI32.fromGrain(0), 2n); WasmI32.store8(WasmI32.fromGrain(gold), WasmI32.fromGrain(255), 3n)
+let orange = 65556 // ORANGE = rgba(255, 161, 0, 255)
+// WasmI32.store8(WasmI32.fromGrain(orange), WasmI32.fromGrain(255), 0n); WasmI32.store8(WasmI32.fromGrain(orange), WasmI32.fromGrain(161), 1n); WasmI32.store8(WasmI32.fromGrain(orange), WasmI32.fromGrain(0), 2n); WasmI32.store8(WasmI32.fromGrain(orange), WasmI32.fromGrain(255), 3n)
+let pink = 65560 // PINK = rgba(255, 109, 194, 255)
+// WasmI32.store8(WasmI32.fromGrain(pink), WasmI32.fromGrain(255), 0n); WasmI32.store8(WasmI32.fromGrain(pink), WasmI32.fromGrain(109), 1n); WasmI32.store8(WasmI32.fromGrain(pink), WasmI32.fromGrain(194), 2n); WasmI32.store8(WasmI32.fromGrain(pink), WasmI32.fromGrain(255), 3n)
+let red = 65564 // RED = rgba(230, 41, 55, 255)
+// WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(230), 0n); WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(41), 1n); WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(55), 2n); WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(255), 3n)
+let maroon = 65568 // MAROON = rgba(190, 33, 55, 255)
+// WasmI32.store8(WasmI32.fromGrain(maroon), WasmI32.fromGrain(190), 0n); WasmI32.store8(WasmI32.fromGrain(maroon), WasmI32.fromGrain(33), 1n); WasmI32.store8(WasmI32.fromGrain(maroon), WasmI32.fromGrain(55), 2n); WasmI32.store8(WasmI32.fromGrain(maroon), WasmI32.fromGrain(255), 3n)
+let green = 65572 // GREEN = rgba(0, 228, 48, 255)
+// WasmI32.store8(WasmI32.fromGrain(green), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(green), WasmI32.fromGrain(228), 1n); WasmI32.store8(WasmI32.fromGrain(green), WasmI32.fromGrain(48), 2n); WasmI32.store8(WasmI32.fromGrain(green), WasmI32.fromGrain(255), 3n)
+let lime = 65576 // LIME = rgba(0, 158, 47, 255)
+// WasmI32.store8(WasmI32.fromGrain(lime), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(lime), WasmI32.fromGrain(158), 1n); WasmI32.store8(WasmI32.fromGrain(lime), WasmI32.fromGrain(47), 2n); WasmI32.store8(WasmI32.fromGrain(lime), WasmI32.fromGrain(255), 3n)
+let darkgreen = 65580 // DARKGREEN = rgba(0, 117, 44, 255)
+// WasmI32.store8(WasmI32.fromGrain(darkgreen), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(darkgreen), WasmI32.fromGrain(117), 1n); WasmI32.store8(WasmI32.fromGrain(darkgreen), WasmI32.fromGrain(44), 2n); WasmI32.store8(WasmI32.fromGrain(darkgreen), WasmI32.fromGrain(255), 3n)
+let skyblue = 65584 // SKYBLUE = rgba(102, 191, 255, 255)
+// WasmI32.store8(WasmI32.fromGrain(skyblue), WasmI32.fromGrain(102), 0n); WasmI32.store8(WasmI32.fromGrain(skyblue), WasmI32.fromGrain(191), 1n); WasmI32.store8(WasmI32.fromGrain(skyblue), WasmI32.fromGrain(255), 2n); WasmI32.store8(WasmI32.fromGrain(skyblue), WasmI32.fromGrain(255), 3n)
+let blue = 65588 // BLUE = rgba(0, 121, 241, 255)
+// WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(121), 1n); WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(241), 2n); WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(255), 3n)
+let darkblue = 65592 // DARKBLUE = rgba(0, 82, 172, 255)
+// WasmI32.store8(WasmI32.fromGrain(darkblue), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(darkblue), WasmI32.fromGrain(82), 1n); WasmI32.store8(WasmI32.fromGrain(darkblue), WasmI32.fromGrain(172), 2n); WasmI32.store8(WasmI32.fromGrain(darkblue), WasmI32.fromGrain(255), 3n)
+let purple = 65596 // PURPLE = rgba(200, 122, 255, 255)
+// WasmI32.store8(WasmI32.fromGrain(purple), WasmI32.fromGrain(200), 0n); WasmI32.store8(WasmI32.fromGrain(purple), WasmI32.fromGrain(122), 1n); WasmI32.store8(WasmI32.fromGrain(purple), WasmI32.fromGrain(255), 2n); WasmI32.store8(WasmI32.fromGrain(purple), WasmI32.fromGrain(255), 3n)
+let violet = 65600 // VIOLET = rgba(135, 60, 190, 255)
+// WasmI32.store8(WasmI32.fromGrain(violet), WasmI32.fromGrain(135), 0n); WasmI32.store8(WasmI32.fromGrain(violet), WasmI32.fromGrain(60), 1n); WasmI32.store8(WasmI32.fromGrain(violet), WasmI32.fromGrain(190), 2n); WasmI32.store8(WasmI32.fromGrain(violet), WasmI32.fromGrain(255), 3n)
+let darkpurple = 65604 // DARKPURPLE = rgba(112, 31, 126, 255)
+// WasmI32.store8(WasmI32.fromGrain(darkpurple), WasmI32.fromGrain(112), 0n); WasmI32.store8(WasmI32.fromGrain(darkpurple), WasmI32.fromGrain(31), 1n); WasmI32.store8(WasmI32.fromGrain(darkpurple), WasmI32.fromGrain(126), 2n); WasmI32.store8(WasmI32.fromGrain(darkpurple), WasmI32.fromGrain(255), 3n)
+let beige = 65608 // BEIGE = rgba(211, 176, 131, 255)
+// WasmI32.store8(WasmI32.fromGrain(beige), WasmI32.fromGrain(211), 0n); WasmI32.store8(WasmI32.fromGrain(beige), WasmI32.fromGrain(176), 1n); WasmI32.store8(WasmI32.fromGrain(beige), WasmI32.fromGrain(131), 2n); WasmI32.store8(WasmI32.fromGrain(beige), WasmI32.fromGrain(255), 3n)
+let brown = 65612 // BROWN = rgba(127, 106, 79, 255)
+// WasmI32.store8(WasmI32.fromGrain(brown), WasmI32.fromGrain(127), 0n); WasmI32.store8(WasmI32.fromGrain(brown), WasmI32.fromGrain(106), 1n); WasmI32.store8(WasmI32.fromGrain(brown), WasmI32.fromGrain(79), 2n); WasmI32.store8(WasmI32.fromGrain(brown), WasmI32.fromGrain(255), 3n)
+let darkbrown = 65616 // DARKBROWN = rgba(76, 63, 47, 255)
+// WasmI32.store8(WasmI32.fromGrain(darkbrown), WasmI32.fromGrain(76), 0n); WasmI32.store8(WasmI32.fromGrain(darkbrown), WasmI32.fromGrain(63), 1n); WasmI32.store8(WasmI32.fromGrain(darkbrown), WasmI32.fromGrain(47), 2n); WasmI32.store8(WasmI32.fromGrain(darkbrown), WasmI32.fromGrain(255), 3n)
+let white = 65620 // WHITE = rgba(255, 255, 255, 255)
+// WasmI32.store8(WasmI32.fromGrain(white), WasmI32.fromGrain(255), 0n); WasmI32.store8(WasmI32.fromGrain(white), WasmI32.fromGrain(255), 1n); WasmI32.store8(WasmI32.fromGrain(white), WasmI32.fromGrain(255), 2n); WasmI32.store8(WasmI32.fromGrain(white), WasmI32.fromGrain(255), 3n)
+let black = 65624 // BLACK = rgba(0, 0, 0, 255)
+// WasmI32.store8(WasmI32.fromGrain(black), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(black), WasmI32.fromGrain(0), 1n); WasmI32.store8(WasmI32.fromGrain(black), WasmI32.fromGrain(0), 2n); WasmI32.store8(WasmI32.fromGrain(black), WasmI32.fromGrain(255), 3n)
+let blank = 65628 // BLANK = rgba(0, 0, 0, 0)
+// WasmI32.store8(WasmI32.fromGrain(blank), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(blank), WasmI32.fromGrain(0), 1n); WasmI32.store8(WasmI32.fromGrain(blank), WasmI32.fromGrain(0), 2n); WasmI32.store8(WasmI32.fromGrain(blank), WasmI32.fromGrain(0), 3n)
+let magenta = 65632 // MAGENTA = rgba(255, 0, 255, 255)
+// WasmI32.store8(WasmI32.fromGrain(magenta), WasmI32.fromGrain(255), 0n); WasmI32.store8(WasmI32.fromGrain(magenta), WasmI32.fromGrain(0), 1n); WasmI32.store8(WasmI32.fromGrain(magenta), WasmI32.fromGrain(255), 2n); WasmI32.store8(WasmI32.fromGrain(magenta), WasmI32.fromGrain(255), 3n)
+let raywhite = 65636 // RAYWHITE = rgba(245, 245, 245, 255)
+// WasmI32.store8(WasmI32.fromGrain(raywhite), WasmI32.fromGrain(245), 0n); WasmI32.store8(WasmI32.fromGrain(raywhite), WasmI32.fromGrain(245), 1n); WasmI32.store8(WasmI32.fromGrain(raywhite), WasmI32.fromGrain(245), 2n); WasmI32.store8(WasmI32.fromGrain(raywhite), WasmI32.fromGrain(255), 3n)
 
 
 // ImageFilter: Potential image-filtering techniques for scale/etc.

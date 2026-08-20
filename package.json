@@ -7,7 +7,7 @@
     "clean": "rm -rf build wbuild",
     "host:native": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build",
     "host:web": "emcmake cmake -G Ninja -B wbuild -DCMAKE_BUILD_TYPE=Release && cmake --build wbuild --target host",
-    "host": "npm-run-all --parallel 'host:*'",
+    "host": "npx -y npm-run-all --parallel 'host:*'",
     "cart:colorbars_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-c colorbars_c",
     "cart:example_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/example:/src -v ./build/carts:/out konsumer/null0-cart-c example_c",
     "cart:gradient_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/c/gradient:/src -v ./build/carts:/out konsumer/null0-cart-c gradient_c",
@@ -32,10 +32,7 @@
     "cart:simple_onyx": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/onyx/simple:/src -v ./build/carts:/out konsumer/null0-cart-onyx simple_onyx",
     "cart:simple_grain": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/grain/simple:/src -v ./build/carts:/out konsumer/null0-cart-grain simple_grain",
     "cart:simple_python": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/python/simple:/src -v ./build/carts:/out konsumer/null0-cart-python simple_python",
-    "cart:simple_cobol": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/cobol/simple:/src -v ./build/carts:/out konsumer/null0-cart-cobol simple_cobol",
-    "cart:simple_never": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/never/simple:/src -v ./build/carts:/out konsumer/null0-cart-never simple_never",
-    "cart:simple_wisp": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -it -v ./carts/wisp/simple:/src -v ./build/carts:/out konsumer/null0-cart-wisp simple_wisp",
-    "carts": "npm-run-all --parallel 'cart:*' && cd build/carts && ls *.null0 > list.txt",
+    "carts": "npx -y npm-run-all --parallel 'cart:*' && cd build/carts && ls *.null0 > list.txt",
     "docker_setup": "docker buildx create --name multiarch --driver docker-container --bootstrap && docker buildx use multiarch && docker run --privileged --rm tonistiigi/binfmt --install all",
     "docker:cart_c": "docker build --no-cache -f tools/docker/null0-cart-c.Dockerfile -t konsumer/null0-cart-c .",
     "docker:cart_assemblyscript": "docker build --no-cache -f tools/docker/null0-cart-assemblyscript.Dockerfile -t konsumer/null0-cart-assemblyscript .",
@@ -53,10 +50,7 @@
     "docker:cart_onyx": "docker build --no-cache -f tools/docker/null0-cart-onyx.Dockerfile -t konsumer/null0-cart-onyx .",
     "docker:cart_grain": "docker build --no-cache -f tools/docker/null0-cart-grain.Dockerfile -t konsumer/null0-cart-grain .",
     "docker:cart_python": "docker build --no-cache -f tools/docker/null0-cart-python.Dockerfile -t konsumer/null0-cart-python .",
-    "docker:cart_cobol": "docker build --no-cache -f tools/docker/null0-cart-cobol.Dockerfile -t konsumer/null0-cart-cobol .",
-    "docker:cart_never": "docker build --no-cache -f tools/docker/null0-cart-never.Dockerfile -t konsumer/null0-cart-never .",
-    "docker:cart_wisp": "docker build --no-cache -f tools/docker/null0-cart-wisp.Dockerfile -t konsumer/null0-cart-wisp .",
-    "docker": "npm-run-all --serial 'docker:*'",
+    "docker": "npx -y npm-run-all --serial 'docker:*'",
     "docker_publish:cart_c": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-c . -f tools/docker/null0-cart-c.Dockerfile",
     "docker_publish:cart_assemblyscript": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-assemblyscript . -f tools/docker/null0-cart-assemblyscript.Dockerfile",
     "docker_publish:cart_nelua": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-nelua . -f tools/docker/null0-cart-nelua.Dockerfile",
@@ -73,12 +67,9 @@
     "docker_publish:cart_onyx": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-onyx . -f tools/docker/null0-cart-onyx.Dockerfile",
     "docker_publish:cart_grain": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-grain . -f tools/docker/null0-cart-grain.Dockerfile",
     "docker_publish:cart_python": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-python . -f tools/docker/null0-cart-python.Dockerfile",
-    "docker_publish:cart_cobol": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-cobol . -f tools/docker/null0-cart-cobol.Dockerfile",
-    "docker_publish:cart_never": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-never . -f tools/docker/null0-cart-never.Dockerfile",
-    "docker_publish:cart_wisp": "docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-wisp . -f tools/docker/null0-cart-wisp.Dockerfile",
-    "docker_publish": "npm-run-all --serial 'docker_publish:*'",
-    "start": "live-server --mount=/carts:./build/carts --mount=/null0.mjs:./wbuild/host/null0.mjs --mount=/carts:./build/carts webroot",
-    "prestart": "npm-run-all --parallel host:web carts",
+    "docker_publish": "npx -y npm-run-all --serial 'docker_publish:*'",
+    "start": "npx -y live-server --mount=/carts:./build/carts --mount=/null0.mjs:./wbuild/host/null0.mjs --mount=/carts:./build/carts webroot",
+    "prestart": "npx -y npm-run-all --parallel host:web carts",
     "gen:host": "node tools/gen_host.js",
     "gen:cart_c": "node tools/gen_cart_c.js",
     "gen:cart_js": "node tools/gen_cart_js.js",
@@ -96,15 +87,10 @@
     "gen:cart_onyx": "node tools/gen_cart_onyx.js",
     "gen:cart_grain": "node tools/gen_cart_grain.js",
     "gen:cart_python": "node tools/gen_cart_python.js",
-    "gen:cart_cobol": "node tools/gen_cart_cobol.js",
-    "gen:cart_never": "node tools/gen_cart_never.js",
-    "gen:cart_wisp": "node tools/gen_cart_wisp.js",
     "gen:api_docs": "node tools/gen_api_docs.js",
-    "gen": "npm-run-all --parallel 'gen:*'"
+    "gen": "npx -y npm-run-all --parallel 'gen:*'"
   },
-  "devDependencies": {
-    "yaml": "latest",
-    "npm-run-all": "latest",
-    "live-server": "latest"
+  "dependencies": {
+    "yaml": "latest"
   }
 }

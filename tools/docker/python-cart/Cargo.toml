@@ -1,0 +1,16 @@
+[package]
+name = "pycart"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+[dependencies]
+rustpython-vm = { git = "https://github.com/RustPython/RustPython.git", rev = "dd2cc4d77a625661e5ca189f1cf9be199ecaa434", default-features = false, features = ["compiler", "stdio"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+panic = "abort"

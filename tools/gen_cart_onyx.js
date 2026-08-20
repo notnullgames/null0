@@ -30,15 +30,13 @@ Image :: #distinct u32;
 Font :: #distinct u32;
 Sound :: #distinct u32;
 
-// An RGBA color, packed into a single u32 (ABI-compatible with host)
-Color :: #distinct u32;
-
 // Create a Color from r, g, b, a components
-rgba :: (r: u32, g: u32, b: u32, a: u32) =>
-    cast(Color, r | (g << 8) | (b << 16) | (a << 24));
+rgba :: (r: u8, g: u8, b: u8, a: u8) -> Color {
+    return Color.{ r, g, b, a };
+}
 
 // Create an opaque Color from r, g, b components
-rgb :: (r: u32, g: u32, b: u32) => rgba(r, g, b, 255);
+rgb :: (r: u8, g: u8, b: u8) -> Color { return rgba(r, g, b, 255); }
 `
 ]
 
@@ -94,9 +92,8 @@ const memberTypes = {
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
-// Generate structs (Color handled above)
+// Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {
-  if (structName === 'Color') continue
   out.push('', `// ${structDef.description}`)
   out.push(`${structName} :: struct {`)
   for (const [memberName, memberType] of Object.entries(structDef.members)) {
@@ -123,8 +120,7 @@ out.push('', '// Colors')
 for (const [colorName, colorDef] of Object.entries(constants)) {
   if (colorDef.type === 'Color') {
     const [r, g, b, a] = colorDef.value
-    const packed = ((a << 24) | (b << 16) | (g << 8) | r) >>> 0
-    out.push(`${colorName} :: cast(Color, 0x${packed.toString(16).padStart(8, '0')}); // rgba(${r}, ${g}, ${b}, ${a})`)
+    out.push(`${colorName} :: Color.{ ${r}, ${g}, ${b}, ${a} };`)
   }
 }
 

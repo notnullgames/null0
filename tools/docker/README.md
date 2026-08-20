@@ -20,10 +20,7 @@ This directory is docker-builders of different carts.
 
 experimental (bindings/examples exist, but the toolchain can't call null0 host-functions yet):
 
-- `konsumer/null0-cart-python` (py2wasm, via wasmer)
-- `konsumer/null0-cart-cobol` (cobweb)
-- `konsumer/null0-cart-never`
-- `konsumer/null0-cart-wisp`
+- `konsumer/null0-cart-python` (interpreted, via RustPython)
 
 ### example usage
 
@@ -135,4 +132,6 @@ docker run -it -v ./carts/onyx/simple:/src -v ./build/carts:/out konsumer/null0-
 docker run -it -v ./carts/grain/simple:/src -v ./build/carts:/out konsumer/null0-cart-grain simple_grain
 
 docker run -it -v ./carts/rust/examples/simple:/src -v ./build/carts:/out konsumer/null0-cart-rust simple_rust
+
+docker run -it -v ./carts/python/simple:/src -v ./build/carts:/out konsumer/null0-cart-python simple_python
 ```

@@ -163,7 +163,7 @@ HOST_FUNCTION(void, draw_image_flipped, (uint32_t src, int32_t posX, int32_t pos
 
 // Draw an image, scaled, on the screen.
 HOST_FUNCTION(void, draw_image_scaled, (uint32_t src, int32_t posX, int32_t posY, float scaleX, float scaleY, float offsetX, float offsetY, pntr_filter filter), {
- pntr_draw_image_scaled(images[0], images[src], posX, posY, scaleX, scaleY, offsetX, offsetY, filter);
+ pntr_draw_image_scaled(images[0], images[src], posX, posY, scaleX, scaleY, offsetX, offsetY, filter, PNTR_WHITE);
 })
 
 // Draw some text on the screen.
@@ -438,7 +438,7 @@ HOST_FUNCTION(void, draw_image_flipped_on_image, (uint32_t destination, uint32_t
 
 // Draw an image, scaled, on an image.
 HOST_FUNCTION(void, draw_image_scaled_on_image, (uint32_t destination, uint32_t src, int32_t posX, int32_t posY, float scaleX, float scaleY, float offsetX, float offsetY, pntr_filter filter), {
- pntr_draw_image_scaled(images[destination], images[src], posX, posY, scaleX, scaleY, offsetX, offsetY, filter);
+ pntr_draw_image_scaled(images[destination], images[src], posX, posY, scaleX, scaleY, offsetX, offsetY, filter, PNTR_WHITE);
 })
 
 // Draw some text on an image.

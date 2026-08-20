@@ -1,39 +1,35 @@
-# simple python cart for null0 (built with py2wasm)
+# simple python cart for null0 (interpreted, via RustPython)
 #
-# NOTE: py2wasm cannot yet declare custom host imports, so the null0
-# calls below raise NotImplementedError at runtime. This example shows
-# how a cart would look once a null0-aware Python runtime exists.
+# the null0 API is available as plain globals - no import needed, same as
+# the JS carts. structs (Color/Vector/Rectangle/Dimensions/SfxParams) are
+# plain dicts, e.g. {'r':.., 'g':.., 'b':.., 'a':..}
 
-import null0
+counter = 0
 
 
 def load():
-    null0.clear(null0.BLUE)
-    null0.draw_circle(100, 100, 50, null0.RED)
+    print('python cart says "hi"')
+    print('Press buttons to see reaction.')
+    print('Press SPACE to see text on screen.')
+
+
+def buttonDown(button, player):
+    print('buttonDown:', button, player)
 
 
 def update():
-    pass
-
+    global counter
+    counter += 1
+    clear(BLUE)
+    draw_rectangle(10, 10, 100, 50, RED)
+    if key_down(KEY_SPACE):
+        draw_text(FONT_DEFAULT, 'Space pressed!', 50, 50, WHITE)
 
 # other callbacks you can implement:
-# def unload():
-#     pass
-# def buttonUp(button: int, player: int):
-#     pass
-# def buttonDown(button: int, player: int):
-#     pass
-# def keyUp(key: int):
-#     pass
-# def keyDown(key: int):
-#     pass
-# def mouseDown(button: int):
-#     pass
-# def mouseUp(button: int):
-#     pass
-# def mouseMoved(x: float, y: float):
-#     pass
-
-
-if __name__ == "__main__":
-    load()
+# def unload(): pass
+# def buttonUp(button, player): pass
+# def keyUp(key): pass
+# def keyDown(key): pass
+# def mouseDown(button): pass
+# def mouseUp(button): pass
+# def mouseMoved(x, y): pass

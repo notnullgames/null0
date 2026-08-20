@@ -9,22 +9,35 @@ import { getApi } from './utils.js'
 const out = [
   `// null0 - walt bindings for the null0 fantasy console
 //
-// walt imports are per-module, so copy the imports you need from this file
-// into your own cart, like:
+// walt imports are per-module, so copy the imports/constants/statements you
+// need from this file into your own cart. You'll also need a local memory
+// (walt requires this even for plain i32.store8, and importing memory from
+// 'env' doesn't work here since null0 doesn't provide it):
+//
+//   const memory: Memory = { initial: 1 };
 //
 //   type Clear = (i32) => void;
 //   import { clear: Clear } from 'null0';
 //
 //   export function load(): void {
+//     // populate the color constants below, once - inline these stores
+//     // directly in a function body; wrapping them in their own function
+//     // triggers a walt-compiler codegen bug (invalid bytecode)
+//     i32.store8(65536, 0); i32.store8(65537, 121);
+//     i32.store8(65538, 241); i32.store8(65539, 255);
 //     clear(BLUE);
 //   }
 //
 // ABI notes:
-// - all handles (Image/Font/Sound), enums, bools and pointers are i32
+// - all handles (Image/Font/Sound), enums, bools are i32
 // - string is a pointer to a null-terminated UTF8 string in memory (i32)
-// - Color is 4 bytes packed into a single i32: r | g<<8 | b<<16 | a<<24
-// - functions returning structs (Vector/Dimensions/Rectangle/Color/SfxParams)
-//   return a pointer (i32) into your memory
+// - Color/Vector/Rectangle/Dimensions/SfxParams are ALWAYS passed and
+//   returned as an i32 pointer into wasm memory, never packed into a
+//   scalar - Color is 4 bytes (r, g, b, a); the color constants below are
+//   pointers to fixed addresses - write the bytes there yourself (see the
+//   inline store statements below each constant) before first use
+// - functions returning structs return a pointer (i32) into your memory,
+//   read the fields with i32.load / i32.load8_u at the offsets noted below
 
 // constants
 
@@ -37,14 +50,17 @@ const FONT_DEFAULT: i32 = 0;
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
-// color constants (packed hex)
-out.push('// colors')
-for (const [colorName, colorDef] of Object.entries(constants)) {
-  if (colorDef.type === 'Color') {
-    const [r, g, b, a] = colorDef.value
-    const packed = ((a << 24) | (b << 16) | (g << 8) | r) >>> 0
-    out.push(`const ${colorName}: i32 = 0x${packed.toString(16).padStart(8, '0')}; // rgba(${r}, ${g}, ${b}, ${a})`)
-  }
+// color constants: each is a pointer to 4 bytes (r,g,b,a) at a fixed address
+// starting at 65536 (1 page in) - copy the matching store8 statements into
+// your own load(), inline (not in a separate function - see note above)
+out.push('// colors (pointers; copy the matching stores into your own load())')
+const colorEntries = Object.entries(constants).filter(([, def]) => def.type === 'Color')
+let colorOffset = 65536
+for (const [colorName, colorDef] of colorEntries) {
+  const [r, g, b, a] = colorDef.value
+  out.push(`const ${colorName}: i32 = ${colorOffset}; // rgba(${r}, ${g}, ${b}, ${a})`)
+  out.push(`// i32.store8(${colorOffset}, ${r}); i32.store8(${colorOffset + 1}, ${g}); i32.store8(${colorOffset + 2}, ${b}); i32.store8(${colorOffset + 3}, ${a});`)
+  colorOffset += 4
 }
 out.push('')
 

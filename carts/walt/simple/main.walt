@@ -1,7 +1,13 @@
-// simple walt cart for null0 (see null0.wat-style bindings in null0.walt)
+// simple walt cart for null0 (see null0.walt for the full bindings)
+//
+// Color is a pointer to 4 bytes (r, g, b, a) in memory, not a packed
+// scalar - these constants are addresses that _null0_init_colors()
+// populates at startup.
 
-const BLUE: i32 = 0xfff17900;
-const RED: i32 = 0xff3729e6;
+const memory: Memory = { initial: 1 };
+
+const BLUE: i32 = 65536; // rgba(0, 121, 241, 255)
+const RED: i32 = 65540; // rgba(230, 41, 55, 255)
 
 type Clear = (i32) => void;
 type DrawCircle = (i32, i32, i32, i32) => void;
@@ -9,6 +15,14 @@ import { clear: Clear, draw_circle: DrawCircle } from 'null0';
 
 // called on load
 export function load(): void {
+  i32.store8(65536, 0);
+  i32.store8(65537, 121);
+  i32.store8(65538, 241);
+  i32.store8(65539, 255);
+  i32.store8(65540, 230);
+  i32.store8(65541, 41);
+  i32.store8(65542, 55);
+  i32.store8(65543, 255);
   clear(BLUE);
   draw_circle(100, 100, 50, RED);
 }

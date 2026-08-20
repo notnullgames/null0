@@ -261,6 +261,11 @@ typedef struct wasi_dirent_s {
 // Global variables to store argc/argv
 static int g_argc = 0;
 static char **g_argv = NULL;
+static bool g_cart_exited = false;
+
+bool wasi_cart_has_exited(void) {
+  return g_cart_exited;
+}
 
 // File descriptor table
 typedef struct {
@@ -339,9 +344,14 @@ static void free_fd(wasi_fd_t fd) {
 }
 
 // Function to initialize arguments (call this before running WASM)
+// copies the pointer array (not the strings) since callers often pass a
+// stack-local argv[] that doesn't outlive the calling function
 void wasi_set_args(int argc, char **argv) {
   g_argc = argc;
-  g_argv = argv;
+  g_argv = malloc(sizeof(char *) * argc);
+  for (int i = 0; i < argc; i++) {
+    g_argv[i] = argv[i];
+  }
 }
 
 // Helper functions
@@ -362,14 +372,13 @@ static wasi_errno_t errno_to_wasi(int err) {
 }
 
 static char *wasm_string_to_cstring(wasm_exec_env_t exec_env, const char *str, uint32_t len) {
-  wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
-  const char *native_str = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)str);
-  if (!native_str) return NULL;
-  
+  // str is already a native pointer here (WAMR translates '*'-typed
+  // native-symbol params before calling the caller)
+  (void)exec_env;
   char *result = malloc(len + 1);
   if (!result) return NULL;
-  
-  memcpy(result, native_str, len);
+
+  memcpy(result, str, len);
   result[len] = '\0';
   return result;
 }
@@ -386,19 +395,17 @@ static wasi_errno_t wasi_args_sizes_get(wasm_exec_env_t exec_env, uint32_t *argc
 }
 
 static wasi_errno_t wasi_args_get(wasm_exec_env_t exec_env, uint32_t *argv_offsets, char *argv_buf) {
+  // argv_offsets/argv_buf are already native pointers here (WAMR translates
+  // '*'-typed native-symbol params before calling us); we only need to
+  // translate the app-space *value* we compute for argv_offsets[i]
   wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
-  uint32_t *offsets = (uint32_t *)wasm_runtime_addr_app_to_native(module_inst, (uint32_t)argv_offsets);
-  char *buf = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)argv_buf);
+  uint32_t argv_buf_app = wasm_runtime_addr_native_to_app(module_inst, argv_buf);
   uint32_t buf_offset = 0;
-
-  if (!offsets || !buf) {
-    return WASI_EFAULT;
-  }
 
   for (int i = 0; i < g_argc; i++) {
     size_t len = strlen(g_argv[i]) + 1;
-    offsets[i] = (uint32_t)argv_buf + buf_offset;
-    memcpy(buf + buf_offset, g_argv[i], len);
+    argv_offsets[i] = argv_buf_app + buf_offset;
+    memcpy(argv_buf + buf_offset, g_argv[i], len);
     buf_offset += len;
   }
 
@@ -504,22 +511,20 @@ static wasi_errno_t wasi_environ_sizes_get(wasm_exec_env_t exec_env, uint32_t *e
 }
 
 static wasi_errno_t wasi_environ_get(wasm_exec_env_t exec_env, uint32_t *environ_offsets, char *environ_buf) {
+  // environ_offsets/environ_buf are already native pointers here (WAMR
+  // translates '*'-typed native-symbol params before calling us); we only
+  // need to translate the app-space *value* we compute for environ_offsets[i]
   wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
   extern char **environ;
   char **env_ptr = environ;
-  uint32_t *offsets = (uint32_t *)wasm_runtime_addr_app_to_native(module_inst, (uint32_t)environ_offsets);
-  char *buf = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)environ_buf);
+  uint32_t environ_buf_app = wasm_runtime_addr_native_to_app(module_inst, environ_buf);
   uint32_t buf_offset = 0;
   uint32_t i = 0;
 
-  if (!offsets || !buf) {
-    return WASI_EFAULT;
-  }
-
   while (*env_ptr) {
     size_t len = strlen(*env_ptr) + 1;
-    offsets[i] = (uint32_t)environ_buf + buf_offset;
-    memcpy(buf + buf_offset, *env_ptr, len);
+    environ_offsets[i] = environ_buf_app + buf_offset;
+    memcpy(environ_buf + buf_offset, *env_ptr, len);
     buf_offset += len;
     env_ptr++;
     i++;
@@ -539,31 +544,33 @@ static wasi_errno_t wasi_fd_prestat_get(wasm_exec_env_t exec_env, wasi_fd_t fd, 
 }
 
 static wasi_errno_t wasi_fd_prestat_dir_name(wasm_exec_env_t exec_env, wasi_fd_t fd, char *path, uint32_t path_len) {
-  wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
-  char *native_path = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)path);
-  
-  if (!native_path) {
-    return WASI_EFAULT;
-  }
-  
+  // path is already a native pointer here (WAMR translates '*'-typed
+  // native-symbol params before calling us)
+  (void)exec_env;
   if (fd == 3 && path_len >= 1) {
-    native_path[0] = '/';
+    path[0] = '/';
     return WASI_ESUCCESS;
   }
   return WASI_EBADF;
 }
 
 static void wasi_proc_exit(wasm_exec_env_t exec_env, wasi_exitcode_t rval) {
-  exit(rval);
+  // null0 is a console, not a one-shot CLI program: a cart calling
+  // proc_exit (e.g. a toolchain's startup boilerplate deciding "main is
+  // done") should stop that cart, not take down the whole host process.
+  // Unwind the current wasm call via an exception (same mechanism a real
+  // trap uses - callers already treat a failed wasm_runtime_call_wasm as
+  // non-fatal) and mark the cart as finished so future frames are skipped.
+  wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
+  g_cart_exited = true;
+  wasm_runtime_set_exception(module_inst, "cart called proc_exit");
 }
 
 static wasi_errno_t wasi_random_get(wasm_exec_env_t exec_env, void *buf, uint32_t buf_len) {
-  wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
-  unsigned char *native_buf = wasm_runtime_addr_app_to_native(module_inst, (uint32_t)buf);
-
-  if (!native_buf) {
-    return WASI_EFAULT;
-  }
+  // buf is already a native pointer here (WAMR translates '*'-typed
+  // native-symbol params before calling us)
+  (void)exec_env;
+  unsigned char *native_buf = (unsigned char *)buf;
 
 #if defined(_WIN32)
   // Prefer BCryptGenRandom via dynamic load to avoid Windows headers
@@ -1160,6 +1167,10 @@ static wasi_errno_t wasi_proc_raise(wasm_exec_env_t exec_env, wasi_signal_t sig)
   return WASI_ENOSYS;
 }
 
+static wasi_errno_t wasi_sched_yield(wasm_exec_env_t exec_env) {
+  return WASI_ESUCCESS;
+}
+
 // WASI native symbols array for WAMR
 static NativeSymbol wasi_native_symbols[] = {
   {"args_get", wasi_args_get, "(**)i"},
@@ -1203,6 +1214,7 @@ static NativeSymbol wasi_native_symbols[] = {
   {"proc_exit", wasi_proc_exit, "(i)"},
   {"proc_raise", wasi_proc_raise, "(i)i"},
   {"random_get", wasi_random_get, "(*~)i"},
+  {"sched_yield", wasi_sched_yield, "()i"},
 };
 
 // Function to get the number of WASI symbols

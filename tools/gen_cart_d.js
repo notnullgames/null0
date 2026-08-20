@@ -27,12 +27,9 @@ alias Image = uint;
 alias Font = uint;
 alias Sound = uint;
 
-/// An RGBA color, packed into a single uint (ABI-compatible with host)
-alias Color = uint;
-
 /// Create a Color from r, g, b, a components
 Color rgba(ubyte r, ubyte g, ubyte b, ubyte a) {
-    return cast(uint)r | (cast(uint)g << 8) | (cast(uint)b << 16) | (cast(uint)a << 24);
+    return Color(r, g, b, a);
 }
 
 /// Create an opaque Color from r, g, b components
@@ -115,9 +112,8 @@ const argsMap = (args) =>
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
-// Generate structs (Color handled above)
+// Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {
-  if (structName === 'Color') continue
   out.push('', `/// ${structDef.description}`)
   out.push(`struct ${structName} {`)
   for (const [memberName, memberType] of Object.entries(structDef.members)) {
@@ -146,8 +142,7 @@ out.push('', '// Colors')
 for (const [colorName, colorDef] of Object.entries(constants)) {
   if (colorDef.type === 'Color') {
     const [r, g, b, a] = colorDef.value
-    const packed = ((a << 24) | (b << 16) | (g << 8) | r) >>> 0
-    out.push(`enum Color ${colorName} = 0x${packed.toString(16).padStart(8, '0')}; // rgba(${r}, ${g}, ${b}, ${a})`)
+    out.push(`enum Color ${colorName} = Color(${r}, ${g}, ${b}, ${a});`)
   }
 }
 

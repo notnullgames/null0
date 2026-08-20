@@ -44,12 +44,9 @@ type Font = uint32
 // Sound is a handle to a sound.
 type Sound = uint32
 
-// Color is an RGBA color packed into a uint32.
-type Color uint32
-
 // NewColor creates a Color from r, g, b, a components.
 func NewColor(r, g, b, a uint8) Color {
-	return Color(uint32(r) | uint32(g)<<8 | uint32(b)<<16 | uint32(a)<<24)
+	return Color{R: r, G: g, B: b, A: a}
 }
 
 // RGB creates an opaque Color from r, g, b components.
@@ -95,7 +92,7 @@ const rawArgTypes = {
   Key: 'int32',
   GamepadButton: 'int32',
   MouseButton: 'int32',
-  Color: 'uint32',
+  Color: 'unsafe.Pointer',
   Vector: 'unsafe.Pointer',
   Rectangle: 'unsafe.Pointer',
   Dimensions: 'unsafe.Pointer',
@@ -181,7 +178,7 @@ const rawConvert = (name, type) => {
     case 'bool':
       return `boolToUint32(${name})`
     case 'Color':
-      return `uint32(${name})`
+      return `unsafe.Pointer(&${name})`
     case 'Vector[]':
       return `vectorSliceToPtr(${name})`
     case 'SfxParams':
@@ -228,9 +225,8 @@ const niceConvert = (type, expr) => {
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
-// Generate structs (Color handled above)
+// Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {
-  if (structName === 'Color') continue
   out.push('', `// ${structDef.description}`)
   out.push(`type ${structName} struct {`)
   for (const [memberName, memberType] of Object.entries(structDef.members)) {
@@ -256,12 +252,13 @@ out.push('\tSCREEN Image = 0')
 out.push('\tSCREEN_WIDTH int32 = 640')
 out.push('\tSCREEN_HEIGHT int32 = 480')
 out.push('\tFONT_DEFAULT Font = 0')
-out.push(')', '', '// Colors', 'const (')
+out.push(')')
+out.push('', '// Colors')
+out.push('var (')
 for (const [colorName, colorDef] of Object.entries(constants)) {
   if (colorDef.type === 'Color') {
     const [r, g, b, a] = colorDef.value
-    const packed = ((a << 24) | (b << 16) | (g << 8) | r) >>> 0
-    out.push(`\t${colorName} Color = 0x${packed.toString(16).padStart(8, '0')}`)
+    out.push(`\t${colorName} = Color{R: ${r}, G: ${g}, B: ${b}, A: ${a}}`)
   }
 }
 out.push(')')

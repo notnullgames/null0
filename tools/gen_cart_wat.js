@@ -9,20 +9,29 @@ import { getApi } from './utils.js'
 const out = [
   `;; null0 - WAT bindings for the null0 fantasy console
 ;;
-;; WAT has no include-system, so copy the imports you need from this file
-;; into your own (module ...) and call them like:
+;; WAT has no include-system, so copy the imports/data/globals you need from
+;; this file into your own (module ...). Every module needs its own copy of
+;; any (data ...) segments and (global ...) pointers you use, since data
+;; segments can't be shared across modules. Call it like:
 ;;
 ;;   (module
 ;;     (import "null0" "clear" (func $clear (param i32)))
+;;     (memory (export "memory") 1)
+;;     (data (i32.const 65536) "\\00\\79\\f1\\ff") ;; BLUE bytes (r g b a)
+;;     (global $blue i32 (i32.const 65536))
 ;;     (func (export "load")
-;;       (call $clear (i32.const 0xfff17900)))) ;; BLUE
+;;       (call $clear (global.get $blue))))
 ;;
 ;; ABI notes:
-;; - all handles (Image/Font/Sound), enums, bools and pointers are i32
+;; - all handles (Image/Font/Sound), enums, bools are i32
 ;; - string is a pointer to a null-terminated UTF8 string in memory (i32)
-;; - Color is 4 bytes packed into a single i32: r | g<<8 | b<<16 | a<<24
-;; - functions returning structs (Vector/Dimensions/Rectangle/Color/SfxParams)
-;;   return a pointer (i32) into your memory, read the fields with i32.load
+;; - Color/Vector/Rectangle/Dimensions/SfxParams are ALWAYS passed and
+;;   returned as an i32 pointer into wasm memory, never packed into a
+;;   scalar - Color is 4 bytes (r, g, b, a); write them into your own
+;;   memory (e.g. via a data segment, like the color constants below) and
+;;   pass the address
+;; - functions returning structs return a pointer (i32) into your memory,
+;;   read the fields with i32.load / i32.load8_u at the offsets noted below
 
 ;; -- constants --
 
@@ -35,14 +44,18 @@ const out = [
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
-// color constants (packed hex)
-out.push(';; colors (i32 constants)')
-for (const [colorName, colorDef] of Object.entries(constants)) {
-  if (colorDef.type === 'Color') {
-    const [r, g, b, a] = colorDef.value
-    const packed = ((a << 24) | (b << 16) | (g << 8) | r) >>> 0
-    out.push(`(global $${colorName.toLowerCase()} i32 (i32.const 0x${packed.toString(16).padStart(8, '0')})) ;; ${colorName} = rgba(${r}, ${g}, ${b}, ${a})`)
-  }
+// color constants: 4 bytes (r,g,b,a) each, placed in a data segment starting
+// at offset 65536 (1 page in, out of the way of typical stack/data use), with
+// a pointer global for each - a Color is ALWAYS a pointer, never packed
+out.push(';; colors (each is a data segment of 4 bytes + a pointer global)')
+const colorEntries = Object.entries(constants).filter(([, def]) => def.type === 'Color')
+let colorOffset = 65536
+for (const [colorName, colorDef] of colorEntries) {
+  const [r, g, b, a] = colorDef.value
+  const bytes = [r, g, b, a].map((n) => '\\' + n.toString(16).padStart(2, '0')).join('')
+  out.push(`(data (i32.const ${colorOffset}) "${bytes}") ;; ${colorName} = rgba(${r}, ${g}, ${b}, ${a})`)
+  out.push(`(global $${colorName.toLowerCase()} i32 (i32.const ${colorOffset}))`)
+  colorOffset += 4
 }
 out.push('')
 

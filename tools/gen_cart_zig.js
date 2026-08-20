@@ -38,7 +38,11 @@ export fn free(ptr: ?*anyopaque) void {
 ]
 
 // map of def-types into across-wasm types
-// NOTE: host passes string/struct types as u32 pointers, Color is a single u32 (4 x u8)
+// NOTE: host passes string/struct types as u32 pointers. Color/Vector/etc
+// are `extern struct`s so zig's own wasm32 ABI passes them by reference to
+// match - do NOT use `packed struct(u32)` for these, it makes zig pack the
+// struct into a register value instead of passing a pointer, which the host
+// doesn't expect
 const argTypes = {
   string: '[*:0]const u8',
   bool: 'bool',
@@ -100,21 +104,8 @@ out.push('pub const Image = u32;')
 out.push('pub const Font = u32;')
 out.push('pub const Sound = u32;')
 out.push('')
-out.push('/// An RGBA color, packed into a single u32 (ABI-compatible with host)')
-out.push('pub const Color = packed struct(u32) {')
-out.push('    r: u8,')
-out.push('    g: u8,')
-out.push('    b: u8,')
-out.push('    a: u8,')
-out.push('')
-out.push('    pub fn rgb(r: u8, g: u8, b: u8) Color {')
-out.push('        return .{ .r = r, .g = g, .b = b, .a = 255 };')
-out.push('    }')
-out.push('};')
-
-// Generate structs (Color handled above, since it is packed)
+// Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {
-  if (structName === 'Color') continue
   out.push('', `/// ${structDef.description}`)
   out.push(`pub const ${structName} = extern struct {`)
   for (const [memberName, memberType] of Object.entries(structDef.members)) {
@@ -122,6 +113,17 @@ for (const [structName, structDef] of Object.entries(structs)) {
   }
   out.push('};')
 }
+
+out.push('')
+out.push('/// Create a Color from r, g, b, a components')
+out.push('pub fn rgba(r: u8, g: u8, b: u8, a: u8) Color {')
+out.push('    return .{ .r = r, .g = g, .b = b, .a = a };')
+out.push('}')
+out.push('')
+out.push('/// Create an opaque Color from r, g, b components')
+out.push('pub fn rgb(r: u8, g: u8, b: u8) Color {')
+out.push('    return rgba(r, g, b, 255);')
+out.push('}')
 
 // Generate enums
 for (const [enumName, enumDef] of Object.entries(enums)) {

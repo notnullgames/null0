@@ -26,7 +26,7 @@ if [ ! -f null0.nim ]; then
     cp /usr/local/include/null0.nim .
 fi
 
-nim c --threads:off --noMain --cc:env -d:release -d:wasi -d:useMalloc -d:StandaloneHeapSize=16777216 --mm:arc --exceptions:goto --cpu:wasm32 --os:any --passC:"-D_WASI_EMULATED_SIGNAL" --passL:"-lwasi-emulated-signal" --passL:"-Wl,--allow-undefined" -o:main.wasm main.nim
+nim c --threads:off --noMain --cc:env -d:release -d:wasi -d:useMalloc -d:StandaloneHeapSize=16777216 --mm:arc --exceptions:goto --cpu:wasm32 --os:any --passC:"-D_WASI_EMULATED_SIGNAL" --passL:"-lwasi-emulated-signal" --passL:"-Wl,--allow-undefined" --nimcache:/tmp/nimcache -o:main.wasm main.nim
 
 # package only main.wasm + assets as the cart
 mkdir -p "/tmp/${CART_NAME}.pkg"

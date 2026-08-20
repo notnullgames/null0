@@ -18,12 +18,9 @@ alias Image = uint;
 alias Font = uint;
 alias Sound = uint;
 
-/// An RGBA color, packed into a single uint (ABI-compatible with host)
-alias Color = uint;
-
 /// Create a Color from r, g, b, a components
 Color rgba(ubyte r, ubyte g, ubyte b, ubyte a) {
-    return cast(uint)r | (cast(uint)g << 8) | (cast(uint)b << 16) | (cast(uint)a << 24);
+    return Color(r, g, b, a);
 }
 
 /// Create an opaque Color from r, g, b components
@@ -93,6 +90,14 @@ struct Rectangle {
     int y;
     int width;
     int height;
+}
+
+/// An RGBA color.
+struct Color {
+    ubyte r;
+    ubyte g;
+    ubyte b;
+    ubyte a;
 }
 
 /// Potential image-filtering techniques for scale/etc.
@@ -276,32 +281,32 @@ enum int SCREEN_HEIGHT = 480;
 enum Font FONT_DEFAULT = 0;
 
 // Colors
-enum Color LIGHTGRAY = 0xffc8c8c8; // rgba(200, 200, 200, 255)
-enum Color GRAY = 0xff828282; // rgba(130, 130, 130, 255)
-enum Color DARKGRAY = 0xff505050; // rgba(80, 80, 80, 255)
-enum Color YELLOW = 0xff00f9fd; // rgba(253, 249, 0, 255)
-enum Color GOLD = 0xff00cbff; // rgba(255, 203, 0, 255)
-enum Color ORANGE = 0xff00a1ff; // rgba(255, 161, 0, 255)
-enum Color PINK = 0xffc26dff; // rgba(255, 109, 194, 255)
-enum Color RED = 0xff3729e6; // rgba(230, 41, 55, 255)
-enum Color MAROON = 0xff3721be; // rgba(190, 33, 55, 255)
-enum Color GREEN = 0xff30e400; // rgba(0, 228, 48, 255)
-enum Color LIME = 0xff2f9e00; // rgba(0, 158, 47, 255)
-enum Color DARKGREEN = 0xff2c7500; // rgba(0, 117, 44, 255)
-enum Color SKYBLUE = 0xffffbf66; // rgba(102, 191, 255, 255)
-enum Color BLUE = 0xfff17900; // rgba(0, 121, 241, 255)
-enum Color DARKBLUE = 0xffac5200; // rgba(0, 82, 172, 255)
-enum Color PURPLE = 0xffff7ac8; // rgba(200, 122, 255, 255)
-enum Color VIOLET = 0xffbe3c87; // rgba(135, 60, 190, 255)
-enum Color DARKPURPLE = 0xff7e1f70; // rgba(112, 31, 126, 255)
-enum Color BEIGE = 0xff83b0d3; // rgba(211, 176, 131, 255)
-enum Color BROWN = 0xff4f6a7f; // rgba(127, 106, 79, 255)
-enum Color DARKBROWN = 0xff2f3f4c; // rgba(76, 63, 47, 255)
-enum Color WHITE = 0xffffffff; // rgba(255, 255, 255, 255)
-enum Color BLACK = 0xff000000; // rgba(0, 0, 0, 255)
-enum Color BLANK = 0x00000000; // rgba(0, 0, 0, 0)
-enum Color MAGENTA = 0xffff00ff; // rgba(255, 0, 255, 255)
-enum Color RAYWHITE = 0xfff5f5f5; // rgba(245, 245, 245, 255)
+enum Color LIGHTGRAY = Color(200, 200, 200, 255);
+enum Color GRAY = Color(130, 130, 130, 255);
+enum Color DARKGRAY = Color(80, 80, 80, 255);
+enum Color YELLOW = Color(253, 249, 0, 255);
+enum Color GOLD = Color(255, 203, 0, 255);
+enum Color ORANGE = Color(255, 161, 0, 255);
+enum Color PINK = Color(255, 109, 194, 255);
+enum Color RED = Color(230, 41, 55, 255);
+enum Color MAROON = Color(190, 33, 55, 255);
+enum Color GREEN = Color(0, 228, 48, 255);
+enum Color LIME = Color(0, 158, 47, 255);
+enum Color DARKGREEN = Color(0, 117, 44, 255);
+enum Color SKYBLUE = Color(102, 191, 255, 255);
+enum Color BLUE = Color(0, 121, 241, 255);
+enum Color DARKBLUE = Color(0, 82, 172, 255);
+enum Color PURPLE = Color(200, 122, 255, 255);
+enum Color VIOLET = Color(135, 60, 190, 255);
+enum Color DARKPURPLE = Color(112, 31, 126, 255);
+enum Color BEIGE = Color(211, 176, 131, 255);
+enum Color BROWN = Color(127, 106, 79, 255);
+enum Color DARKBROWN = Color(76, 63, 47, 255);
+enum Color WHITE = Color(255, 255, 255, 255);
+enum Color BLACK = Color(0, 0, 0, 255);
+enum Color BLANK = Color(0, 0, 0, 0);
+enum Color MAGENTA = Color(255, 0, 255, 255);
+enum Color RAYWHITE = Color(245, 245, 245, 255);
 
 // COLORS
 /// Tint a color with another color.

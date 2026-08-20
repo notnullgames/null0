@@ -1,19 +1,28 @@
 ;; null0 - WAT bindings for the null0 fantasy console
 ;;
-;; WAT has no include-system, so copy the imports you need from this file
-;; into your own (module ...) and call them like:
+;; WAT has no include-system, so copy the imports/data/globals you need from
+;; this file into your own (module ...). Every module needs its own copy of
+;; any (data ...) segments and (global ...) pointers you use, since data
+;; segments can't be shared across modules. Call it like:
 ;;
 ;;   (module
 ;;     (import "null0" "clear" (func $clear (param i32)))
+;;     (memory (export "memory") 1)
+;;     (data (i32.const 65536) "\00\79\f1\ff") ;; BLUE bytes (r g b a)
+;;     (global $blue i32 (i32.const 65536))
 ;;     (func (export "load")
-;;       (call $clear (i32.const 0xfff17900)))) ;; BLUE
+;;       (call $clear (global.get $blue))))
 ;;
 ;; ABI notes:
-;; - all handles (Image/Font/Sound), enums, bools and pointers are i32
+;; - all handles (Image/Font/Sound), enums, bools are i32
 ;; - string is a pointer to a null-terminated UTF8 string in memory (i32)
-;; - Color is 4 bytes packed into a single i32: r | g<<8 | b<<16 | a<<24
-;; - functions returning structs (Vector/Dimensions/Rectangle/Color/SfxParams)
-;;   return a pointer (i32) into your memory, read the fields with i32.load
+;; - Color/Vector/Rectangle/Dimensions/SfxParams are ALWAYS passed and
+;;   returned as an i32 pointer into wasm memory, never packed into a
+;;   scalar - Color is 4 bytes (r, g, b, a); write them into your own
+;;   memory (e.g. via a data segment, like the color constants below) and
+;;   pass the address
+;; - functions returning structs return a pointer (i32) into your memory,
+;;   read the fields with i32.load / i32.load8_u at the offsets noted below
 
 ;; -- constants --
 
@@ -22,33 +31,59 @@
 (global $SCREEN_HEIGHT i32 (i32.const 480))
 (global $FONT_DEFAULT i32 (i32.const 0))
 
-;; colors (i32 constants)
-(global $lightgray i32 (i32.const 0xffc8c8c8)) ;; LIGHTGRAY = rgba(200, 200, 200, 255)
-(global $gray i32 (i32.const 0xff828282)) ;; GRAY = rgba(130, 130, 130, 255)
-(global $darkgray i32 (i32.const 0xff505050)) ;; DARKGRAY = rgba(80, 80, 80, 255)
-(global $yellow i32 (i32.const 0xff00f9fd)) ;; YELLOW = rgba(253, 249, 0, 255)
-(global $gold i32 (i32.const 0xff00cbff)) ;; GOLD = rgba(255, 203, 0, 255)
-(global $orange i32 (i32.const 0xff00a1ff)) ;; ORANGE = rgba(255, 161, 0, 255)
-(global $pink i32 (i32.const 0xffc26dff)) ;; PINK = rgba(255, 109, 194, 255)
-(global $red i32 (i32.const 0xff3729e6)) ;; RED = rgba(230, 41, 55, 255)
-(global $maroon i32 (i32.const 0xff3721be)) ;; MAROON = rgba(190, 33, 55, 255)
-(global $green i32 (i32.const 0xff30e400)) ;; GREEN = rgba(0, 228, 48, 255)
-(global $lime i32 (i32.const 0xff2f9e00)) ;; LIME = rgba(0, 158, 47, 255)
-(global $darkgreen i32 (i32.const 0xff2c7500)) ;; DARKGREEN = rgba(0, 117, 44, 255)
-(global $skyblue i32 (i32.const 0xffffbf66)) ;; SKYBLUE = rgba(102, 191, 255, 255)
-(global $blue i32 (i32.const 0xfff17900)) ;; BLUE = rgba(0, 121, 241, 255)
-(global $darkblue i32 (i32.const 0xffac5200)) ;; DARKBLUE = rgba(0, 82, 172, 255)
-(global $purple i32 (i32.const 0xffff7ac8)) ;; PURPLE = rgba(200, 122, 255, 255)
-(global $violet i32 (i32.const 0xffbe3c87)) ;; VIOLET = rgba(135, 60, 190, 255)
-(global $darkpurple i32 (i32.const 0xff7e1f70)) ;; DARKPURPLE = rgba(112, 31, 126, 255)
-(global $beige i32 (i32.const 0xff83b0d3)) ;; BEIGE = rgba(211, 176, 131, 255)
-(global $brown i32 (i32.const 0xff4f6a7f)) ;; BROWN = rgba(127, 106, 79, 255)
-(global $darkbrown i32 (i32.const 0xff2f3f4c)) ;; DARKBROWN = rgba(76, 63, 47, 255)
-(global $white i32 (i32.const 0xffffffff)) ;; WHITE = rgba(255, 255, 255, 255)
-(global $black i32 (i32.const 0xff000000)) ;; BLACK = rgba(0, 0, 0, 255)
-(global $blank i32 (i32.const 0x00000000)) ;; BLANK = rgba(0, 0, 0, 0)
-(global $magenta i32 (i32.const 0xffff00ff)) ;; MAGENTA = rgba(255, 0, 255, 255)
-(global $raywhite i32 (i32.const 0xfff5f5f5)) ;; RAYWHITE = rgba(245, 245, 245, 255)
+;; colors (each is a data segment of 4 bytes + a pointer global)
+(data (i32.const 65536) "\c8\c8\c8\ff") ;; LIGHTGRAY = rgba(200, 200, 200, 255)
+(global $lightgray i32 (i32.const 65536))
+(data (i32.const 65540) "\82\82\82\ff") ;; GRAY = rgba(130, 130, 130, 255)
+(global $gray i32 (i32.const 65540))
+(data (i32.const 65544) "\50\50\50\ff") ;; DARKGRAY = rgba(80, 80, 80, 255)
+(global $darkgray i32 (i32.const 65544))
+(data (i32.const 65548) "\fd\f9\00\ff") ;; YELLOW = rgba(253, 249, 0, 255)
+(global $yellow i32 (i32.const 65548))
+(data (i32.const 65552) "\ff\cb\00\ff") ;; GOLD = rgba(255, 203, 0, 255)
+(global $gold i32 (i32.const 65552))
+(data (i32.const 65556) "\ff\a1\00\ff") ;; ORANGE = rgba(255, 161, 0, 255)
+(global $orange i32 (i32.const 65556))
+(data (i32.const 65560) "\ff\6d\c2\ff") ;; PINK = rgba(255, 109, 194, 255)
+(global $pink i32 (i32.const 65560))
+(data (i32.const 65564) "\e6\29\37\ff") ;; RED = rgba(230, 41, 55, 255)
+(global $red i32 (i32.const 65564))
+(data (i32.const 65568) "\be\21\37\ff") ;; MAROON = rgba(190, 33, 55, 255)
+(global $maroon i32 (i32.const 65568))
+(data (i32.const 65572) "\00\e4\30\ff") ;; GREEN = rgba(0, 228, 48, 255)
+(global $green i32 (i32.const 65572))
+(data (i32.const 65576) "\00\9e\2f\ff") ;; LIME = rgba(0, 158, 47, 255)
+(global $lime i32 (i32.const 65576))
+(data (i32.const 65580) "\00\75\2c\ff") ;; DARKGREEN = rgba(0, 117, 44, 255)
+(global $darkgreen i32 (i32.const 65580))
+(data (i32.const 65584) "\66\bf\ff\ff") ;; SKYBLUE = rgba(102, 191, 255, 255)
+(global $skyblue i32 (i32.const 65584))
+(data (i32.const 65588) "\00\79\f1\ff") ;; BLUE = rgba(0, 121, 241, 255)
+(global $blue i32 (i32.const 65588))
+(data (i32.const 65592) "\00\52\ac\ff") ;; DARKBLUE = rgba(0, 82, 172, 255)
+(global $darkblue i32 (i32.const 65592))
+(data (i32.const 65596) "\c8\7a\ff\ff") ;; PURPLE = rgba(200, 122, 255, 255)
+(global $purple i32 (i32.const 65596))
+(data (i32.const 65600) "\87\3c\be\ff") ;; VIOLET = rgba(135, 60, 190, 255)
+(global $violet i32 (i32.const 65600))
+(data (i32.const 65604) "\70\1f\7e\ff") ;; DARKPURPLE = rgba(112, 31, 126, 255)
+(global $darkpurple i32 (i32.const 65604))
+(data (i32.const 65608) "\d3\b0\83\ff") ;; BEIGE = rgba(211, 176, 131, 255)
+(global $beige i32 (i32.const 65608))
+(data (i32.const 65612) "\7f\6a\4f\ff") ;; BROWN = rgba(127, 106, 79, 255)
+(global $brown i32 (i32.const 65612))
+(data (i32.const 65616) "\4c\3f\2f\ff") ;; DARKBROWN = rgba(76, 63, 47, 255)
+(global $darkbrown i32 (i32.const 65616))
+(data (i32.const 65620) "\ff\ff\ff\ff") ;; WHITE = rgba(255, 255, 255, 255)
+(global $white i32 (i32.const 65620))
+(data (i32.const 65624) "\00\00\00\ff") ;; BLACK = rgba(0, 0, 0, 255)
+(global $black i32 (i32.const 65624))
+(data (i32.const 65628) "\00\00\00\00") ;; BLANK = rgba(0, 0, 0, 0)
+(global $blank i32 (i32.const 65628))
+(data (i32.const 65632) "\ff\00\ff\ff") ;; MAGENTA = rgba(255, 0, 255, 255)
+(global $magenta i32 (i32.const 65632))
+(data (i32.const 65636) "\f5\f5\f5\ff") ;; RAYWHITE = rgba(245, 245, 245, 255)
+(global $raywhite i32 (i32.const 65636))
 
 
 ;; ImageFilter: Potential image-filtering techniques for scale/etc.

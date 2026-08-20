@@ -27,6 +27,9 @@ if [ ! -f null0.zig ]; then
     cp /usr/local/include/null0.zig .
 fi
 
+# arbitrary --user UIDs have no writable $HOME, so point zig's cache at /tmp
+export ZIG_GLOBAL_CACHE_DIR="/tmp/zig-cache"
+
 zig build-exe main.zig -O ReleaseSmall -target wasm32-wasi -rdynamic -femit-bin=main.wasm
 rm -f main.wasm.o
 

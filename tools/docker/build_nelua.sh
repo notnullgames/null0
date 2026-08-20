@@ -15,6 +15,9 @@ CART_NAME="${1}"
 
 echo "Compiling nelua cart from /src/ to /out/"
 
+# arbitrary --user UIDs have no writable $HOME, so point nelua's cache at /tmp
+export HOME="/tmp"
+
 mkdir -p "/tmp/${CART_NAME}"
 
 # Copy all files including hidden files (like .cartignore)

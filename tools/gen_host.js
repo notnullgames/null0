@@ -147,6 +147,12 @@ const argsMap = (args) =>
     .map(([name, type]) => `${types[type] || type} ${name}`)
     .join(', ')
 
+// fixed trailing args pntr needs that the null0 API doesn't expose (e.g. tint)
+const extraCallArgs = {
+  draw_image_scaled: ', PNTR_WHITE',
+  draw_image_scaled_on_image: ', PNTR_WHITE'
+}
+
 // generate input/output mappers for args/return
 function buildBody(name, args, returns) {
   const body = []
@@ -214,7 +220,7 @@ function buildBody(name, args, returns) {
       }
     }
   } else {
-    body.push(`${functions[name]}${callArgs.join(', ')});`)
+    body.push(`${functions[name]}${callArgs.join(', ')}${extraCallArgs[name] || ''});`)
   }
   body.push(...cleanup)
   if (returns && returns !== 'void') {

@@ -16,6 +16,13 @@ CART_NAME="${1}"
 
 echo "Compiling go cart from /src/ to /out/"
 
+# arbitrary --user UIDs have no writable $HOME, so point go/tinygo's caches at /tmp
+# (tinygo's own build cache uses os.UserCacheDir(), which checks XDG_CACHE_HOME
+# before falling back to $HOME/.cache)
+export GOCACHE="/tmp/go-cache"
+export GOPATH="/tmp/go-path"
+export XDG_CACHE_HOME="/tmp/xdg-cache"
+
 mkdir -p "/tmp/${CART_NAME}"
 
 # Copy all files including hidden files (like .cartignore)

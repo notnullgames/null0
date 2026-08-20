@@ -9,6 +9,9 @@ if(NOT DEFINED WAMR_BUILD_SIMD)
   set (WAMR_BUILD_SIMD 1)
 endif()
 set (WAMR_BUILD_REF_TYPES 1)
+set (WAMR_BUILD_TAIL_CALL 1)
+set (WAMR_BUILD_DUMP_CALL_STACK 1)
+set (WAMR_BUILD_CUSTOM_NAME_SECTION 1)
 
 FetchContent_Declare(wamr
   URL https://github.com/bytecodealliance/wasm-micro-runtime/archive/refs/heads/master.zip

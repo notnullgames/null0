@@ -20,12 +20,9 @@ Image :: distinct u32
 Font :: distinct u32
 Sound :: distinct u32
 
-// An RGBA color, packed into a single u32 (ABI-compatible with host)
-Color :: distinct u32
-
 // Create a Color from r, g, b, a components
 rgba :: proc(r, g, b, a: u8) -> Color {
-    return Color(u32(r) | (u32(g) << 8) | (u32(b) << 16) | (u32(a) << 24))
+    return Color{r, g, b, a}
 }
 
 // Create an opaque Color from r, g, b components
@@ -80,6 +77,14 @@ Rectangle :: struct {
     y: i32,
     width: i32,
     height: i32,
+}
+
+// An RGBA color.
+Color :: struct {
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8,
 }
 
 // Potential image-filtering techniques for scale/etc.
@@ -263,32 +268,32 @@ SCREEN_HEIGHT :: 480
 FONT_DEFAULT :: Font(0)
 
 // Colors
-LIGHTGRAY :: Color(0xffc8c8c8) // rgba(200, 200, 200, 255)
-GRAY :: Color(0xff828282) // rgba(130, 130, 130, 255)
-DARKGRAY :: Color(0xff505050) // rgba(80, 80, 80, 255)
-YELLOW :: Color(0xff00f9fd) // rgba(253, 249, 0, 255)
-GOLD :: Color(0xff00cbff) // rgba(255, 203, 0, 255)
-ORANGE :: Color(0xff00a1ff) // rgba(255, 161, 0, 255)
-PINK :: Color(0xffc26dff) // rgba(255, 109, 194, 255)
-RED :: Color(0xff3729e6) // rgba(230, 41, 55, 255)
-MAROON :: Color(0xff3721be) // rgba(190, 33, 55, 255)
-GREEN :: Color(0xff30e400) // rgba(0, 228, 48, 255)
-LIME :: Color(0xff2f9e00) // rgba(0, 158, 47, 255)
-DARKGREEN :: Color(0xff2c7500) // rgba(0, 117, 44, 255)
-SKYBLUE :: Color(0xffffbf66) // rgba(102, 191, 255, 255)
-BLUE :: Color(0xfff17900) // rgba(0, 121, 241, 255)
-DARKBLUE :: Color(0xffac5200) // rgba(0, 82, 172, 255)
-PURPLE :: Color(0xffff7ac8) // rgba(200, 122, 255, 255)
-VIOLET :: Color(0xffbe3c87) // rgba(135, 60, 190, 255)
-DARKPURPLE :: Color(0xff7e1f70) // rgba(112, 31, 126, 255)
-BEIGE :: Color(0xff83b0d3) // rgba(211, 176, 131, 255)
-BROWN :: Color(0xff4f6a7f) // rgba(127, 106, 79, 255)
-DARKBROWN :: Color(0xff2f3f4c) // rgba(76, 63, 47, 255)
-WHITE :: Color(0xffffffff) // rgba(255, 255, 255, 255)
-BLACK :: Color(0xff000000) // rgba(0, 0, 0, 255)
-BLANK :: Color(0x00000000) // rgba(0, 0, 0, 0)
-MAGENTA :: Color(0xffff00ff) // rgba(255, 0, 255, 255)
-RAYWHITE :: Color(0xfff5f5f5) // rgba(245, 245, 245, 255)
+LIGHTGRAY :: Color{200, 200, 200, 255}
+GRAY :: Color{130, 130, 130, 255}
+DARKGRAY :: Color{80, 80, 80, 255}
+YELLOW :: Color{253, 249, 0, 255}
+GOLD :: Color{255, 203, 0, 255}
+ORANGE :: Color{255, 161, 0, 255}
+PINK :: Color{255, 109, 194, 255}
+RED :: Color{230, 41, 55, 255}
+MAROON :: Color{190, 33, 55, 255}
+GREEN :: Color{0, 228, 48, 255}
+LIME :: Color{0, 158, 47, 255}
+DARKGREEN :: Color{0, 117, 44, 255}
+SKYBLUE :: Color{102, 191, 255, 255}
+BLUE :: Color{0, 121, 241, 255}
+DARKBLUE :: Color{0, 82, 172, 255}
+PURPLE :: Color{200, 122, 255, 255}
+VIOLET :: Color{135, 60, 190, 255}
+DARKPURPLE :: Color{112, 31, 126, 255}
+BEIGE :: Color{211, 176, 131, 255}
+BROWN :: Color{127, 106, 79, 255}
+DARKBROWN :: Color{76, 63, 47, 255}
+WHITE :: Color{255, 255, 255, 255}
+BLACK :: Color{0, 0, 0, 255}
+BLANK :: Color{0, 0, 0, 0}
+MAGENTA :: Color{255, 0, 255, 255}
+RAYWHITE :: Color{245, 245, 245, 255}
 
 foreign import null0_api "null0"
 

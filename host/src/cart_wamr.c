@@ -31,7 +31,7 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
   char *argv[] = {"null0", app->argFile ? app->argFile : "cart.null0"};
   wasi_set_args(2, argv);
 
-  void *heap_buf = malloc(16 * 1024 * 1024);
+  void *heap_buf = malloc(100 * 1024 * 1024);
   if (!heap_buf) {
     pntr_app_log(PNTR_APP_LOG_ERROR, "Failed to allocate heap buffer");
     return false;
@@ -39,7 +39,7 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
 
   init_args.mem_alloc_type = Alloc_With_Pool;
   init_args.mem_alloc_option.pool.heap_buf = heap_buf;
-  init_args.mem_alloc_option.pool.heap_size = 16 * 1024 * 1024;
+  init_args.mem_alloc_option.pool.heap_size = 100 * 1024 * 1024;
   init_args.max_thread_num = 1;
 
   if (!wasm_runtime_full_init(&init_args)) {
@@ -112,14 +112,22 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
     if (!wasm_runtime_call_wasm(exec_env, start_func, 0, NULL)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_dump_call_stack(exec_env);
+      wasm_runtime_clear_exception(module_inst);
     }
-  }
-
-  wasm_function_inst_t main_func = wasm_runtime_lookup_function(module_inst, "main");
-  if (main_func) {
-    if (!wasm_runtime_call_wasm(exec_env, main_func, 0, NULL)) {
-      // not fatal, but warn about it
-      pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+  } else {
+    // only fall back to "main" if there's no proper WASI entry point;
+    // when _start exists it already calls main internally (with the
+    // correct argc/argv), and some toolchains (e.g. nim) also export
+    // "main" separately with a (i32, i32) -> i32 signature - calling
+    // that directly with 0 args crashes the interpreter
+    wasm_function_inst_t main_func = wasm_runtime_lookup_function(module_inst, "main");
+    if (main_func) {
+      if (!wasm_runtime_call_wasm(exec_env, main_func, 0, NULL)) {
+        // not fatal, but warn about it
+        pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+        wasm_runtime_clear_exception(module_inst);
+      }
     }
   }
 
@@ -128,6 +136,7 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_load, 0, NULL)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_clear_exception(module_inst);
     }
   }
 
@@ -139,78 +148,86 @@ void host_close() {
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_unload, 0, NULL)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_clear_exception(module_inst);
     }
   }
   // TODO: do I need to cleanup any WAMR stuff?
 }
 
 void cart_update() {
-  if (cart_callback_update != NULL) {
+  if (cart_callback_update != NULL && !wasi_cart_has_exited()) {
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_update, 0, NULL)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_clear_exception(module_inst);
     }
   }
 }
 
 void cart_buttonDown(pntr_app_gamepad_button button, unsigned int player) {
-  if (cart_callback_buttonDown != NULL) {
+  if (cart_callback_buttonDown != NULL && !wasi_cart_has_exited()) {
     callback_args[0] = button;
     callback_args[1] = player;
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_buttonDown, 2, callback_args)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_clear_exception(module_inst);
     }
   }
 }
 
 void cart_buttonUp(pntr_app_gamepad_button button, unsigned int player) {
-  if (cart_callback_buttonUp != NULL) {
+  if (cart_callback_buttonUp != NULL && !wasi_cart_has_exited()) {
     callback_args[0] = button;
     callback_args[1] = player;
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_buttonUp, 2, callback_args)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_clear_exception(module_inst);
     }
   }
 }
 
 void cart_keyDown(pntr_app_key key) {
   callback_args[0] = key;
-  if (cart_callback_keyDown != NULL) {
+  if (cart_callback_keyDown != NULL && !wasi_cart_has_exited()) {
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_keyDown, 1, callback_args)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_clear_exception(module_inst);
     }
   }
 }
 
 void cart_keyUp(pntr_app_key key) {
   callback_args[0] = key;
-  if (cart_callback_keyUp != NULL) {
+  if (cart_callback_keyUp != NULL && !wasi_cart_has_exited()) {
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_keyUp, 1, callback_args)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_clear_exception(module_inst);
     }
   }
 }
 
 void cart_mouseDown(pntr_app_mouse_button button) {
   callback_args[0] = button;
-  if (cart_callback_mouseDown != NULL) {
+  if (cart_callback_mouseDown != NULL && !wasi_cart_has_exited()) {
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_mouseDown, 1, callback_args)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_clear_exception(module_inst);
     }
   }
 }
 
 void cart_mouseUp(pntr_app_mouse_button button) {
   callback_args[0] = button;
-  if (cart_callback_mouseUp != NULL) {
+  if (cart_callback_mouseUp != NULL && !wasi_cart_has_exited()) {
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_mouseUp, 1, callback_args)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_clear_exception(module_inst);
     }
   }
 }
@@ -218,10 +235,11 @@ void cart_mouseUp(pntr_app_mouse_button button) {
 void cart_mouseMoved(float x, float y) {
   callback_float_args[0] = x;
   callback_float_args[1] = y;
-  if (cart_callback_mouseMoved != NULL) {
+  if (cart_callback_mouseMoved != NULL && !wasi_cart_has_exited()) {
     if (!wasm_runtime_call_wasm(exec_env, cart_callback_mouseMoved, 2, callback_float_args)) {
       // not fatal, but warn about it
       pntr_app_log(PNTR_APP_LOG_WARNING, wasm_runtime_get_exception(module_inst));
+      wasm_runtime_clear_exception(module_inst);
     }
   }
 }

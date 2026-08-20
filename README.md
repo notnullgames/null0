@@ -22,10 +22,6 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [X] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
 - [X] [odin](https://odin-lang.org/)
 - [X] [c3](https://c3-lang.org/)
-- [ ] [python](https://wasmer.io/posts/py2wasm-a-python-to-wasm-compiler) (header/example/docker exist, but py2wasm was removed from the wasmer registry, and can't declare host-imports)
-- [ ] [COBOL](https://github.com/cloudflare/cobweb) (experimental)
-- [ ] [never](https://github.com/never-lang/never) (experimental - VM-based)
-- [ ] [lisp](https://github.com/mbrock/wisp) (experimental - very early-stage)
 - [ ] Kotlin
 - [ ] dart
 - [ ] R
@@ -41,7 +37,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 **interpreted**
 
 - [X] javascript
-- [ ] python
+- [X] python (interpreted, via RustPython)
 - [ ] lua
 - [ ] [wren](https://wren.io)
 - [ ] [lisp](https://github.com/janet-lang/janet)
