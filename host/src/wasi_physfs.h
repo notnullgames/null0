@@ -562,7 +562,11 @@ static void wasi_proc_exit(wasm_exec_env_t exec_env, wasi_exitcode_t rval) {
   // trap uses - callers already treat a failed wasm_runtime_call_wasm as
   // non-fatal) and mark the cart as finished so future frames are skipped.
   wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
-  g_cart_exited = true;
+  // exit(0) is usually just a toolchain saying "main returned" (zig and tinygo
+  // both do this), so only a failing exit-code actually ends the cart
+  if (rval != 0) {
+    g_cart_exited = true;
+  }
   wasm_runtime_set_exception(module_inst, "cart called proc_exit");
 }
 
