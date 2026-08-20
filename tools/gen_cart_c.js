@@ -366,6 +366,7 @@ const retTypes = {
   Vector: 'Vector*',
   Dimensions: 'Dimensions*',
   Color: 'Color*',
+  Rectangle: 'Rectangle*',
   SfxParams: 'SfxParams*'
 }
 

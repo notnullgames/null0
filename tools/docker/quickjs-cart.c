@@ -648,7 +648,8 @@ static JSValue js_image_color_invert(JSContext *ctx, JSValueConst this_val, int 
 }
 // Calculate a rectangle representing the available alpha border in an image.
 static JSValue js_image_alpha_border(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return rectangle_to_js(image_alpha_border(u32_from_js(argv[0]), f32_from_js(argv[1])));
+ Rectangle* ret = image_alpha_border(u32_from_js(argv[0]), f32_from_js(argv[1]));
+ return rectangle_to_js(*ret);
 }
 // Crop an image, in-place.
 static JSValue js_image_crop(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {

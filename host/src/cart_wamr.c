@@ -108,6 +108,11 @@ bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize) {
 
   // Look for main function
   wasm_function_inst_t start_func = wasm_runtime_lookup_function(module_inst, "_start");
+  if (start_func == NULL) {
+    // a WASI "reactor" (a module meant to be called into, instead of run once -
+    // go's -buildmode=c-shared makes these) sets itself up in _initialize
+    start_func = wasm_runtime_lookup_function(module_inst, "_initialize");
+  }
   if (start_func) {
     if (!wasm_runtime_call_wasm(exec_env, start_func, 0, NULL)) {
       // not fatal, but warn about it

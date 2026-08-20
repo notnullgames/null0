@@ -38,6 +38,16 @@ const externTypes = {
   SfxParams: 'SfxParams'
 }
 
+// the host returns structs by writing them into cart-memory and handing back
+// the address, so those come back as a u32 to be read from
+const externRetTypes = {
+  Color: 'u32',
+  Vector: 'u32',
+  Rectangle: 'u32',
+  Dimensions: 'u32',
+  SfxParams: 'u32'
+}
+
 const memberTypes = { i32: 'i32', f32: 'f32', u32: 'u32', u8: 'u8' }
 
 // Reserved keywords in Rust that need to be escaped
@@ -79,7 +89,7 @@ out.push('extern "C" {')
 for (const [apiName, funcDef] of Object.entries(api)) {
   for (const [funcName, { args, returns }] of Object.entries(funcDef)) {
     const params = Object.entries(args).map(([name, type]) => `${rustName(name)}: ${externTypes[type] || type}`).join(', ')
-    const ret = returns === 'void' ? '' : ` -> ${externTypes[returns] || returns}`
+    const ret = returns === 'void' ? '' : ` -> ${externRetTypes[returns] || externTypes[returns] || returns}`
     out.push(`    pub fn ${funcName}(${params})${ret};`)
   }
 }
@@ -168,8 +178,11 @@ for (const [apiName, apiObj] of Object.entries(api)) {
       out.push(`    ${call};`)
       out.push('    Ok(vm.ctx.none())')
     } else if (structArgTypes.has(returns)) {
-      out.push(`    let ret = ${call};`)
-      out.push(`    Ok(${returns.toLowerCase()}_to_py(ret, vm))`)
+      out.push(`    let ret = ${call} as *const ${returns};`)
+      out.push('    if ret.is_null() {')
+      out.push('        return Ok(vm.ctx.none());')
+      out.push('    }')
+      out.push(`    Ok(${returns.toLowerCase()}_to_py(unsafe { *ret }, vm))`)
     } else if (returns === 'string') {
       out.push(`    let ret = ${call};`)
       out.push('    Ok(vm.ctx.none()) // null0 API defines no string-returning functions today')

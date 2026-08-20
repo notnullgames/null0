@@ -481,7 +481,7 @@ const returnMap = {
 }
 
 // these types are pointers when returned from C
-const returnRef = ['Vector', 'Dimensions', 'Color', 'SfxParams']
+const returnRef = ['Vector', 'Dimensions', 'Rectangle', 'Color', 'SfxParams']
 
 // functions to map args from js into something C can handle
 const argTypes = {

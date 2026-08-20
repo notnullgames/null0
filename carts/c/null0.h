@@ -522,7 +522,7 @@ extern void image_color_invert(u32 image);
 
 // Calculate a rectangle representing the available alpha border in an image.
 NULL0_IMPORT("image_alpha_border")
-extern Rectangle image_alpha_border(u32 image, f32 threshold);
+extern Rectangle* image_alpha_border(u32 image, f32 threshold);
 
 // Crop an image, in-place.
 NULL0_IMPORT("image_crop")

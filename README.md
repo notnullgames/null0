@@ -4,24 +4,24 @@ The basic idea here is a small game-engine where you make "carts", in whatever l
 
 ### languages
 
-I'd like to support a lot of cart-languages. For these to be considered "complete", they should have a header that exposes all the functions/types in an ergonomic format, at least 1 example, and maybe a template-project & docker for building carts.
+I'd like to support a lot of cart-languages. For these to be considered "complete", they should have a header that exposes all the functions/types in an ergonomic format, at least 1 example, a docker for building carts, and maybe a template-project.
 
 **compiled**
 
-- [X] C
-- [X] assemblyscript
-- [X] nelua
-- [X] rust
-- [X] nim
-- [X] [go](https://tinygo.org/)
-- [X] zig
-- [X] [walt](https://github.com/ballercat/walt)
-- [X] [onyx](https://onyxlang.io)
-- [X] [grain](https://grain-lang.org/)
-- [X] [D](https://github.com/ldc-developers/ldc)
-- [X] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
-- [X] [odin](https://odin-lang.org/)
-- [X] [c3](https://c3-lang.org/)
+- [x] C (wasi-sdk)
+- [x] assemblyscript
+- [x] nelua
+- [x] rust
+- [x] nim
+- [x] [go](https://tinygo.org/)
+- [x] zig
+- [x] [walt](https://github.com/ballercat/walt)
+- [x] [onyx](https://onyxlang.io)
+- [x] [grain](https://grain-lang.org/)
+- [x] [D](https://github.com/ldc-developers/ldc)
+- [x] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
+- [x] [odin](https://odin-lang.org/)
+- [x] [c3](https://c3-lang.org/)
 - [ ] Kotlin
 - [ ] dart
 - [ ] R
@@ -36,21 +36,22 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 
 **interpreted**
 
-- [X] javascript
-- [X] python (interpreted, via RustPython)
-- [ ] lua
-- [ ] [wren](https://wren.io)
+- [x] javascript (ESM, via QuickJS)
+- [x] python (interpreted, via RustPython)
+- [x] lua (interpreted, via GopherLua)
+- [x] [wren](https://wren.io)
 - [ ] [lisp](https://github.com/janet-lang/janet)
 - [ ] [cyber](https://github.com/fubark/cyber)
-
 
 ## todo/ideas
 
 You can currently do all of these things yourself, or use a library for your language, but I think it would be cool to abstract them into the engine:
 
-- [ ] [ui](https://github.com/rxi/microui)
+- [ ] UI : [microui](https://github.com/notnullgames/pntr_microui) or [nuklear_console](https://github.com/RobLoach/nuklear_console)
 - [ ] tiled map/sprite
 - [ ] physics
+- [ ] FFT for audio/radio
+- [ ] behind CLI flag: call native program, native files
 
 ## thanks
 

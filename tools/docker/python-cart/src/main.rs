@@ -76,13 +76,13 @@ pub struct Color {
 
 #[link(wasm_import_module = "null0")]
 extern "C" {
-    pub fn color_tint(color: Color, tint: Color) -> Color;
-    pub fn color_fade(color: Color, alpha: f32) -> Color;
-    pub fn color_brightness(color: Color, factor: f32) -> Color;
-    pub fn color_invert(color: Color) -> Color;
-    pub fn color_alpha_blend(dst: Color, src: Color) -> Color;
-    pub fn color_contrast(color: Color, contrast: f32) -> Color;
-    pub fn color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32) -> Color;
+    pub fn color_tint(color: Color, tint: Color) -> u32;
+    pub fn color_fade(color: Color, alpha: f32) -> u32;
+    pub fn color_brightness(color: Color, factor: f32) -> u32;
+    pub fn color_invert(color: Color) -> u32;
+    pub fn color_alpha_blend(dst: Color, src: Color) -> u32;
+    pub fn color_contrast(color: Color, contrast: f32) -> u32;
+    pub fn color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32) -> u32;
     pub fn new_image(width: i32, height: i32, color: Color) -> u32;
     pub fn image_copy(image: u32) -> u32;
     pub fn image_subimage(image: u32, x: i32, y: i32, width: i32, height: i32) -> u32;
@@ -113,13 +113,13 @@ extern "C" {
     pub fn font_scale(font: u32, scaleX: f32, scaleY: f32, filter: i32) -> u32;
     pub fn load_font_bmf(filename: *const u8, characters: *const u8) -> u32;
     pub fn load_font_bmf_from_image(image: u32, characters: *const u8) -> u32;
-    pub fn measure_text(font: u32, text: *const u8, textLength: i32) -> Dimensions;
-    pub fn measure_image(image: u32) -> Dimensions;
+    pub fn measure_text(font: u32, text: *const u8, textLength: i32) -> u32;
+    pub fn measure_image(image: u32) -> u32;
     pub fn load_font_tty(filename: *const u8, glyphWidth: i32, glyphHeight: i32, characters: *const u8) -> u32;
     pub fn load_font_tty_from_image(image: u32, glyphWidth: i32, glyphHeight: i32, characters: *const u8) -> u32;
     pub fn load_font_ttf(filename: *const u8, fontSize: i32) -> u32;
     pub fn image_color_invert(image: u32);
-    pub fn image_alpha_border(image: u32, threshold: f32) -> Rectangle;
+    pub fn image_alpha_border(image: u32, threshold: f32) -> u32;
     pub fn image_crop(image: u32, x: i32, y: i32, width: i32, height: i32);
     pub fn image_alpha_crop(image: u32, threshold: f32);
     pub fn image_color_brightness(image: u32, factor: f32);
@@ -165,7 +165,7 @@ extern "C" {
     pub fn gamepad_button_pressed(gamepad: i32, button: i32) -> bool;
     pub fn gamepad_button_down(gamepad: i32, button: i32) -> bool;
     pub fn gamepad_button_released(gamepad: i32, button: i32) -> bool;
-    pub fn mouse_position() -> Vector;
+    pub fn mouse_position() -> u32;
     pub fn mouse_button_pressed(button: i32) -> bool;
     pub fn mouse_button_down(button: i32) -> bool;
     pub fn mouse_button_released(button: i32) -> bool;
@@ -176,7 +176,7 @@ extern "C" {
     pub fn unload_sound(sound: u32);
     pub fn tts_sound(text: *const u8, phonetic: bool, pitch: i32, speed: i32, throat: i32, mouth: i32, sing: bool) -> u32;
     pub fn sfx_sound(params: SfxParams) -> u32;
-    pub fn sfx_generate(r#type: i32) -> SfxParams;
+    pub fn sfx_generate(r#type: i32) -> u32;
     pub fn current_time() -> u64;
     pub fn delta_time() -> f32;
     pub fn random_int(min: i32, max: i32) -> i32;
@@ -312,47 +312,65 @@ fn color_to_py(v: Color, vm: &VirtualMachine) -> PyObjectRef {
 fn nf_color_tint(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let color = color_from_py(&args.args[0], vm)?;
     let tint = color_from_py(&args.args[1], vm)?;
-    let ret = unsafe { color_tint(color, tint) };
-    Ok(color_to_py(ret, vm))
+    let ret = unsafe { color_tint(color, tint) } as *const Color;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(color_to_py(unsafe { *ret }, vm))
 }
 
 /// Fade a color.
 fn nf_color_fade(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let color = color_from_py(&args.args[0], vm)?;
     let alpha = args.args[1].clone().try_into_value::<f32>(vm)?;
-    let ret = unsafe { color_fade(color, alpha) };
-    Ok(color_to_py(ret, vm))
+    let ret = unsafe { color_fade(color, alpha) } as *const Color;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(color_to_py(unsafe { *ret }, vm))
 }
 
 /// Change the brightness of a color.
 fn nf_color_brightness(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let color = color_from_py(&args.args[0], vm)?;
     let factor = args.args[1].clone().try_into_value::<f32>(vm)?;
-    let ret = unsafe { color_brightness(color, factor) };
-    Ok(color_to_py(ret, vm))
+    let ret = unsafe { color_brightness(color, factor) } as *const Color;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(color_to_py(unsafe { *ret }, vm))
 }
 
 /// Invert a color.
 fn nf_color_invert(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let color = color_from_py(&args.args[0], vm)?;
-    let ret = unsafe { color_invert(color) };
-    Ok(color_to_py(ret, vm))
+    let ret = unsafe { color_invert(color) } as *const Color;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(color_to_py(unsafe { *ret }, vm))
 }
 
 /// Blend 2 colors together.
 fn nf_color_alpha_blend(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let dst = color_from_py(&args.args[0], vm)?;
     let src = color_from_py(&args.args[1], vm)?;
-    let ret = unsafe { color_alpha_blend(dst, src) };
-    Ok(color_to_py(ret, vm))
+    let ret = unsafe { color_alpha_blend(dst, src) } as *const Color;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(color_to_py(unsafe { *ret }, vm))
 }
 
 /// Change contrast of a color.
 fn nf_color_contrast(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let color = color_from_py(&args.args[0], vm)?;
     let contrast = args.args[1].clone().try_into_value::<f32>(vm)?;
-    let ret = unsafe { color_contrast(color, contrast) };
-    Ok(color_to_py(ret, vm))
+    let ret = unsafe { color_contrast(color, contrast) } as *const Color;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(color_to_py(unsafe { *ret }, vm))
 }
 
 /// Interpolate colors.
@@ -363,8 +381,11 @@ fn nf_color_bilinear_interpolate(args: FuncArgs, vm: &VirtualMachine) -> PyResul
     let color11 = color_from_py(&args.args[3], vm)?;
     let coordinateX = args.args[4].clone().try_into_value::<f32>(vm)?;
     let coordinateY = args.args[5].clone().try_into_value::<f32>(vm)?;
-    let ret = unsafe { color_bilinear_interpolate(color00, color01, color10, color11, coordinateX, coordinateY) };
-    Ok(color_to_py(ret, vm))
+    let ret = unsafe { color_bilinear_interpolate(color00, color01, color10, color11, coordinateX, coordinateY) } as *const Color;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(color_to_py(unsafe { *ret }, vm))
 }
 
 // GRAPHICS
@@ -677,15 +698,21 @@ fn nf_measure_text(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef>
     let text_cs = CString::new(args.args[1].clone().try_into_value::<String>(vm)?).unwrap();
     let text = text_cs.as_ptr() as *const u8;
     let textLength = args.args[2].clone().try_into_value::<i32>(vm)?;
-    let ret = unsafe { measure_text(font, text, textLength) };
-    Ok(dimensions_to_py(ret, vm))
+    let ret = unsafe { measure_text(font, text, textLength) } as *const Dimensions;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(dimensions_to_py(unsafe { *ret }, vm))
 }
 
 /// Meaure an image (use 0 for screen).
 fn nf_measure_image(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let image = args.args[0].clone().try_into_value::<u32>(vm)?;
-    let ret = unsafe { measure_image(image) };
-    Ok(dimensions_to_py(ret, vm))
+    let ret = unsafe { measure_image(image) } as *const Dimensions;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(dimensions_to_py(unsafe { *ret }, vm))
 }
 
 /// Load a TTY font from a file in cart.
@@ -731,8 +758,11 @@ fn nf_image_color_invert(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObje
 fn nf_image_alpha_border(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let image = args.args[0].clone().try_into_value::<u32>(vm)?;
     let threshold = args.args[1].clone().try_into_value::<f32>(vm)?;
-    let ret = unsafe { image_alpha_border(image, threshold) };
-    Ok(rectangle_to_py(ret, vm))
+    let ret = unsafe { image_alpha_border(image, threshold) } as *const Rectangle;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(rectangle_to_py(unsafe { *ret }, vm))
 }
 
 /// Crop an image, in-place.
@@ -1225,8 +1255,11 @@ fn nf_gamepad_button_released(args: FuncArgs, vm: &VirtualMachine) -> PyResult<P
 
 /// Get current position of mouse.
 fn nf_mouse_position(_args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
-    let ret = unsafe { mouse_position() };
-    Ok(vector_to_py(ret, vm))
+    let ret = unsafe { mouse_position() } as *const Vector;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(vector_to_py(unsafe { *ret }, vm))
 }
 
 /// Has the button been pressed? (tracks unpress/read correctly.)
@@ -1313,8 +1346,11 @@ fn nf_sfx_sound(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
 /// Create Sfx parameters.
 fn nf_sfx_generate(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let r#type = args.args[0].clone().try_into_value::<i32>(vm)?;
-    let ret = unsafe { sfx_generate(r#type) };
-    Ok(sfxparams_to_py(ret, vm))
+    let ret = unsafe { sfx_generate(r#type) } as *const SfxParams;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(sfxparams_to_py(unsafe { *ret }, vm))
 }
 
 // TYPES
