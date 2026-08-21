@@ -110,11 +110,23 @@ garbage or a SIGSEGV in the host:
 
 The native host runs WAMR's **fast interpreter**, with these consequences:
 
-- **No exception-handling proposal** -> no `setjmp`/`longjmp`. Any C VM that
-  needs it (Lua 5.4, Janet, s7...) _cannot_ be a cart runtime: the module fails
-  to load with `WASM module load failed: invalid section id`. This is why lua is
+- **No exception-handling proposal, and it can't be added.** `WAMR_BUILD_GC`
+  and fast-interp fine, but `WAMR_BUILD_EXCE_HANDLING` + fast-interp is a
+  build-level error in WAMR itself (`unsupported_combination.cmake`) - not
+  just "not turned on". No `setjmp`/`longjmp`, and any C VM that needs it
+  (Lua 5.4, Janet, s7...) _cannot_ be a cart runtime: the module fails to load
+  with `WASM module load failed: invalid section id`. This is why lua is
   GopherLua (go) and not C lua.
-- **No wasm GC proposal** -> Kotlin/Wasm and dart2wasm are out.
+- **wasm GC proposal is supported** (`WAMR_BUILD_GC 1` in
+  `host/cmake/Findwamr.cmake`, native only - the web host runs carts through
+  the browser's own engine, which already has GC). Verified with a
+  hand-written `.wat` using `struct.new`/`struct.get`. Kotlin/Wasm's
+  `wasm-wasi` target is standalone and GC-based but still blocked: its stdlib
+  hits a real WAMR loader gap (rejects any GC array with `anyref` elements),
+  and it needs `-Xwasm-use-traps-instead-of-exceptions` to dodge the EH point
+  above. dart2wasm is blocked separately - its default output isn't
+  standalone wasm (see below). Both listed in README's "probably will not
+  support".
 - **`proc_exit` ends the cart.** After it, the host skips all callbacks
   (`wasi_cart_has_exited`). A go command-module calls `proc_exit` when `main`
   returns, which is why the lua runtime is built as a wasi _reactor_

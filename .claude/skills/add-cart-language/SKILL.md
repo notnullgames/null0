@@ -14,10 +14,27 @@ Only tick the README box after you have **run** a cart in that language.
 The native host runs WAMR's fast interpreter. A toolchain is unusable if it
 needs:
 
-- **setjmp/longjmp** (needs the wasm exception-handling proposal) - rules out C
-  implementations of lua, janet, and most C lisps. Symptom:
-  `WASM module load failed: invalid section id`.
-- **wasm GC** - rules out Kotlin/Wasm and dart2wasm.
+- **setjmp/longjmp / wasm exception-handling proposal** - rules out C
+  implementations of lua, janet, and most C lisps, and any toolchain that
+  emits a `Tag` section (Kotlin/Wasm does by default). WAMR's fast interpreter
+  and exception-handling are a hard-incompatible combination at the WAMR
+  build-config level (not just untested) - there's no flag to get both.
+  Symptom: `WASM module load failed: invalid section id`.
+- **wasm GC** - basic struct types work: `WAMR_BUILD_GC 1` in
+  `host/cmake/Findwamr.cmake` (native only - the web host just uses the
+  browser's own engine, no flag needed there). Verified with a hand-written
+  `.wat` using `struct.new`/`struct.get`, and confirmed zero regressions
+  across all existing cart languages. But WAMR's GC loader has real gaps:
+  it unconditionally rejects any array type with `anyref` elements
+  (`wasm_loader.c` in wamr-src, "Not support using anyref in array element
+  type") - this sits deep in Kotlin/Wasm's stdlib (even a 2-line `wasm-wasi`
+  program hits it) and isn't something cart code can route around. Combined
+  with the EH point above (Kotlin needs `-Xwasm-use-traps-instead-of-exceptions`
+  just to drop the Tag section), Kotlin/Wasm is still blocked, but by a
+  specific WAMR limitation, not "GC" as a category - re-test if WAMR fixes
+  that loader gap. dart2wasm is separately ruled out by the JS-glue point
+  below: its default output imports a `dart2wasm` namespace and the
+  JS-string-builtins proposal, neither servable by a non-JS host.
 - **JS glue** to run at all (emscripten-style) - carts must be standalone wasm.
 
 Also check: can it declare an import from a **custom module name** (`null0`),

@@ -333,7 +333,7 @@ Other defined constants:
 - `SCREEN` = `0` - The screen's image number is 0
 - `SCREEN_WIDTH` = `640` - the width of the screen (in pixels)
 - `SCREEN_HEIGHT` = `480` - the height of the screen (in pixels)
-- `NULL0_VERSION` = `0.0.8` - The current tagged version of null0 engine
+- `NULL0_VERSION` = `0.0.10` - The current tagged version of null0 engine
 
 
 ## callbacks

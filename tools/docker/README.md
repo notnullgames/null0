@@ -19,9 +19,6 @@ This directory is docker-builders of different carts.
 - `konsumer/null0-cart-rust`
 - `konsumer/null0-cart-wren` (interpreted)
 - `konsumer/null0-cart-lua` (interpreted, via GopherLua)
-
-experimental (bindings/examples exist, but the toolchain can't call null0 host-functions yet):
-
 - `konsumer/null0-cart-python` (interpreted, via RustPython)
 
 ### how carts get their bindings
@@ -98,6 +95,7 @@ docker build -t konsumer/null0-cart-grain . -f tools/docker/null0-cart-grain.Doc
 docker build -t konsumer/null0-cart-rust . -f tools/docker/null0-cart-rust.Dockerfile
 docker build -t konsumer/null0-cart-wren . -f tools/docker/null0-cart-wren.Dockerfile
 docker build -t konsumer/null0-cart-lua . -f tools/docker/null0-cart-lua.Dockerfile
+docker build -t konsumer/null0-cart-python . -f tools/docker/null0-cart-python.Dockerfile
 
 # build & publish (needed on API change)
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-c . -f tools/docker/null0-cart-c.Dockerfile
@@ -117,6 +115,7 @@ docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-rust . -f tools/docker/null0-cart-rust.Dockerfile
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-wren . -f tools/docker/null0-cart-wren.Dockerfile
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-lua . -f tools/docker/null0-cart-lua.Dockerfile
+docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-python . -f tools/docker/null0-cart-python.Dockerfile
 
 # test
 docker run -it -v ./carts/c/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-c colorbars_c
