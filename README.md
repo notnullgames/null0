@@ -23,7 +23,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [x] [odin](https://odin-lang.org/)
 - [x] [c3](https://c3-lang.org/)
 - [x] [Haxe](https://haxe.org/) (via HL/C - no try/catch, wasm has no exception-handling)
-- [ ] Haskell (wasm32-wasi backend, tech preview - worth a prototype)
+- [x] Haskell (via [wasm32-wasi-ghc](https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta), reactor mode)
 - [x] [Zen-C](https://github.com/zenc-lang/zenc) (transpiles to C + wasi-sdk)
 - [x] [Jik](https://jik-lang.org/) (also compiles to C + wasi-sdk)
 

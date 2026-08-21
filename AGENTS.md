@@ -153,7 +153,13 @@ The generator writes a header of `import`-declarations; the cart exports
 `load`/`update`/... directly. (haxe is a hybrid: the cart compiles to wasm,
 but via the HL/C target, so it also links a trimmed libhl runtime and a
 generated C shim from `tools/docker/haxe-cart/`; callbacks are closures
-registered through `Null0.onUpdate = ...` rather than exports.)
+registered through `Null0.onUpdate = ...` rather than exports.) (haskell is
+also a hybrid: `wasm32-wasi-ghc` builds a WASI _reactor_ module - a wasm
+import's host module name can only be set from C, so every null0 function is
+imported through a generated C trampoline, `tools/docker/haskell-cart/imports.c`,
+which also runs `hs_init` from a `__attribute__((constructor))` since GHC's
+FFI has no `foreign export "name" name` main-wrapping story that fits null0's
+repeated-callback model.)
 
 **Interpreted** (js, python, wren, lua): `main.wasm` is an _interpreter_ baked
 into the docker image at image-build time; the cart ships its script next to it.

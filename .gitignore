@@ -4,3 +4,6 @@ package-lock.json
 build
 wbuild
 target
+*.hi
+*.o
+*_stub.h
