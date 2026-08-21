@@ -164,7 +164,22 @@ repeated-callback model.)
 **Interpreted** (js, python, wren, lua): `main.wasm` is an _interpreter_ baked
 into the docker image at image-build time; the cart ships its script next to it.
 The generator writes the interpreter's glue (bindings + a harness that loads the
-script and forwards callbacks).
+script and forwards callbacks). (cyber is a harder case than the others: its
+public C API (`libcyber`) has no way to re-invoke a script-defined function
+after the initial `cl_vm_eval` - no `cl_call_value`, and the fiber/task-resume
+path is commented out in its own source. The fix is `persist_main` (a
+`CLEvalConfig` flag documented "for REPL-like behavior"): eval main.cy once
+with it, then re-eval a *tiny* snippet like `"update()"` per callback, same
+flag - the VM's state, including `load`/`update`/... themselves, persists
+across those separate eval calls. Two upstream bugs to know about if you
+touch this: `persist_main`'s symbol-copy loop panics unless it skips
+`@program_init`/`@program_deinit`, patched at image-build time in
+`null0-cart-cyber.Dockerfile` (not filed upstream, per project owner - see
+git blame); and `#[bind] global` panics past roughly a few dozen declared at
+once (fine as a fn param/return/struct member, fine as one global, not as
+~150 of them) - worked around by making null0's constants/enums *plain*
+`global NAME TYPE = value` declarations in `carts/cyber/null0.cy` instead of
+host-bound ones, since they're fixed at generate time anyway.)
 
 Checklist:
 

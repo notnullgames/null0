@@ -24,6 +24,7 @@ This directory is docker-builders of different carts.
 - `konsumer/null0-cart-zenc` (Zen-C transpiles to C + wasi-sdk, linux/amd64 only)
 - `konsumer/null0-cart-jik` (Jik transpiles to C + wasi-sdk, linux/amd64 only)
 - `konsumer/null0-cart-haskell` (wasm32-wasi-ghc, reactor mode)
+- `konsumer/null0-cart-cyber` (interpreted, via `persist_main`)
 
 ### how carts get their bindings
 

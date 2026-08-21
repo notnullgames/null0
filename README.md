@@ -4,7 +4,7 @@ The basic idea here is a small game-engine where you make "carts", in whatever l
 
 ### languages
 
-I'd like to support a lot of cart-languages. For these to be considered "complete", they should have a header that exposes all the functions/types in an ergonomic format, at least 1 example, a docker for building carts, and maybe a template-project.
+I'd like to support a lot of cart-languages. For these to be considered "complete", they should have a header that exposes all the functions/types in an ergonomic format, at least 1 example, a docker for building carts, and maybe a template-project. If there are any other languages you would like to see, [make an issue](https://github.com/notnullgames/null0/issues/new?labels=language&title=Add%20New%20Language%3A%20), and I will see if I can add it.
 
 **compiled**
 
@@ -35,7 +35,7 @@ These include the interpretor in `main.wasm`. This is repetitive (like every js 
 - [x] python (via RustPython)
 - [x] lua (via GopherLua)
 - [x] [wren](https://wren.io)
-- [ ] [cyber](https://github.com/fubark/cyber) (has an official `WASM WASI` build target - worth a prototype)
+- [x] [cyber](https://github.com/fubark/cyber) (via `persist_main` - see AGENTS.md)
 
 **probably will not support**
 
