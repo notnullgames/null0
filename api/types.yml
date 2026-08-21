@@ -113,6 +113,13 @@ Vector[]:
   c_ret: Vector*
   host: pntr_vector*
 
+i32[]:
+  description: An array of i32.
+  requiresLength: true
+  c_arg: i32*
+  c_ret: i32*
+  host: int32_t*
+
 SfxParams:
   description: Sfx parameters.
   c_arg: SfxParams*

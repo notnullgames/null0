@@ -158,6 +158,16 @@ extern "C" {
     pub fn draw_circle_outline_on_image(destination: u32, centerX: i32, centerY: i32, radius: i32, thickness: i32, color: Color);
     pub fn draw_polygon_outline_on_image(destination: u32, points: *const Vector, numPoints: i32, thickness: i32, color: Color);
     pub fn draw_rectangle_rounded_outline_on_image(destination: u32, x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, thickness: i32, color: Color);
+    pub fn gui_begin_window(title: *const u8, rect: Rectangle) -> bool;
+    pub fn gui_end_window();
+    pub fn gui_button(label: *const u8) -> bool;
+    pub fn gui_label(text: *const u8);
+    pub fn gui_text(text: *const u8);
+    pub fn gui_checkbox(label: *const u8, state: bool) -> bool;
+    pub fn gui_slider(value: f32, low: f32, high: f32) -> f32;
+    pub fn gui_layout_row(widths: *const i32, numWidths: i32, height: i32);
+    pub fn gui_end();
+    pub fn gui_draw(dst: u32);
     pub fn key_pressed(key: i32) -> bool;
     pub fn key_down(key: i32) -> bool;
     pub fn key_released(key: i32) -> bool;
@@ -1211,6 +1221,88 @@ fn nf_draw_rectangle_rounded_outline_on_image(args: FuncArgs, vm: &VirtualMachin
     Ok(vm.ctx.none())
 }
 
+// GUI
+
+/// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+fn nf_gui_begin_window(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let title_cs = CString::new(args.args[0].clone().try_into_value::<String>(vm)?).unwrap();
+    let title = title_cs.as_ptr() as *const u8;
+    let rect = rectangle_from_py(&args.args[1], vm)?;
+    let ret = unsafe { gui_begin_window(title, rect) };
+    Ok(vm.ctx.new_bool(ret).into())
+}
+
+/// End the current GUI window.
+fn nf_gui_end_window(_args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    unsafe { gui_end_window() };
+    Ok(vm.ctx.none())
+}
+
+/// A button. Returns true when it is clicked.
+fn nf_gui_button(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let label_cs = CString::new(args.args[0].clone().try_into_value::<String>(vm)?).unwrap();
+    let label = label_cs.as_ptr() as *const u8;
+    let ret = unsafe { gui_button(label) };
+    Ok(vm.ctx.new_bool(ret).into())
+}
+
+/// A static text label.
+fn nf_gui_label(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let text_cs = CString::new(args.args[0].clone().try_into_value::<String>(vm)?).unwrap();
+    let text = text_cs.as_ptr() as *const u8;
+    unsafe { gui_label(text) };
+    Ok(vm.ctx.none())
+}
+
+/// A block of wrapping text.
+fn nf_gui_text(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let text_cs = CString::new(args.args[0].clone().try_into_value::<String>(vm)?).unwrap();
+    let text = text_cs.as_ptr() as *const u8;
+    unsafe { gui_text(text) };
+    Ok(vm.ctx.none())
+}
+
+/// A checkbox. Returns the (possibly changed) state.
+fn nf_gui_checkbox(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let label_cs = CString::new(args.args[0].clone().try_into_value::<String>(vm)?).unwrap();
+    let label = label_cs.as_ptr() as *const u8;
+    let state = args.args[1].clone().try_into_value::<bool>(vm)?;
+    let ret = unsafe { gui_checkbox(label, state) };
+    Ok(vm.ctx.new_bool(ret).into())
+}
+
+/// A slider. Returns the (possibly changed) value.
+fn nf_gui_slider(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let value = args.args[0].clone().try_into_value::<f32>(vm)?;
+    let low = args.args[1].clone().try_into_value::<f32>(vm)?;
+    let high = args.args[2].clone().try_into_value::<f32>(vm)?;
+    let ret = unsafe { gui_slider(value, low, high) };
+    Ok(vm.ctx.new_float(ret as f64).into())
+}
+
+/// Set the current layout row - the column widths (negative for flexible), and the row height.
+fn nf_gui_layout_row(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let widths_vec: Vec<i32> = args.args[0].clone().try_into_value::<Vec<i32>>(vm)?;
+    let widths = widths_vec.as_ptr();
+    let widths_len = widths_vec.len() as i32;
+    let height = args.args[1].clone().try_into_value::<i32>(vm)?;
+    unsafe { gui_layout_row(widths, widths_len, height) };
+    Ok(vm.ctx.none())
+}
+
+/// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+fn nf_gui_end(_args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    unsafe { gui_end() };
+    Ok(vm.ctx.none())
+}
+
+/// Draw the GUI to an image (0 is the screen).
+fn nf_gui_draw(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let dst = args.args[0].clone().try_into_value::<u32>(vm)?;
+    unsafe { gui_draw(dst) };
+    Ok(vm.ctx.none())
+}
+
 // INPUT
 
 /// Has the key been pressed? (tracks unpress/read correctly.)
@@ -1782,6 +1874,16 @@ fn register_all(scope: &Scope, vm: &VirtualMachine) {
     scope.globals.set_item("draw_circle_outline_on_image", vm.new_function("draw_circle_outline_on_image", nf_draw_circle_outline_on_image).into(), vm).unwrap();
     scope.globals.set_item("draw_polygon_outline_on_image", vm.new_function("draw_polygon_outline_on_image", nf_draw_polygon_outline_on_image).into(), vm).unwrap();
     scope.globals.set_item("draw_rectangle_rounded_outline_on_image", vm.new_function("draw_rectangle_rounded_outline_on_image", nf_draw_rectangle_rounded_outline_on_image).into(), vm).unwrap();
+    scope.globals.set_item("gui_begin_window", vm.new_function("gui_begin_window", nf_gui_begin_window).into(), vm).unwrap();
+    scope.globals.set_item("gui_end_window", vm.new_function("gui_end_window", nf_gui_end_window).into(), vm).unwrap();
+    scope.globals.set_item("gui_button", vm.new_function("gui_button", nf_gui_button).into(), vm).unwrap();
+    scope.globals.set_item("gui_label", vm.new_function("gui_label", nf_gui_label).into(), vm).unwrap();
+    scope.globals.set_item("gui_text", vm.new_function("gui_text", nf_gui_text).into(), vm).unwrap();
+    scope.globals.set_item("gui_checkbox", vm.new_function("gui_checkbox", nf_gui_checkbox).into(), vm).unwrap();
+    scope.globals.set_item("gui_slider", vm.new_function("gui_slider", nf_gui_slider).into(), vm).unwrap();
+    scope.globals.set_item("gui_layout_row", vm.new_function("gui_layout_row", nf_gui_layout_row).into(), vm).unwrap();
+    scope.globals.set_item("gui_end", vm.new_function("gui_end", nf_gui_end).into(), vm).unwrap();
+    scope.globals.set_item("gui_draw", vm.new_function("gui_draw", nf_gui_draw).into(), vm).unwrap();
     scope.globals.set_item("key_pressed", vm.new_function("key_pressed", nf_key_pressed).into(), vm).unwrap();
     scope.globals.set_item("key_down", vm.new_function("key_down", nf_key_down).into(), vm).unwrap();
     scope.globals.set_item("key_released", vm.new_function("key_released", nf_key_released).into(), vm).unwrap();

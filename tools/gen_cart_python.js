@@ -36,6 +36,7 @@ const externTypes = {
   Rectangle: 'Rectangle',
   Dimensions: 'Dimensions',
   'Vector[]': '*const Vector',
+  'i32[]': '*const i32',
   SfxParams: 'SfxParams'
 }
 
@@ -138,6 +139,9 @@ const argFromPy = (idx, type, rawName) => {
   }
   if (type === 'Vector[]') {
     return `let ${varName}_vec: Vec<Vector> = { let list = args.args[${idx}].clone().try_into_value::<vm::builtins::PyListRef>(vm)?; let mut v = Vec::with_capacity(list.borrow_vec().len()); for item in list.borrow_vec().iter() { v.push(vector_from_py(item, vm)?); } v };\n    let ${varName} = ${varName}_vec.as_ptr();\n    let ${varName}_len = ${varName}_vec.len() as i32;`
+  }
+  if (type === 'i32[]') {
+    return `let ${varName}_vec: Vec<i32> = args.args[${idx}].clone().try_into_value::<Vec<i32>>(vm)?;\n    let ${varName} = ${varName}_vec.as_ptr();\n    let ${varName}_len = ${varName}_vec.len() as i32;`
   }
   const rustType = externTypes[type] || type
   return `let ${varName} = args.args[${idx}].clone().try_into_value::<${rustType}>(vm)?;`

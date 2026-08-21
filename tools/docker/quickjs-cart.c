@@ -269,6 +269,36 @@ static Vector* vector_array_from_js(JSValue vecArray, size_t* lenPointer) {
   return vecs;
 }
 
+static int32_t* i32_array_from_js(JSValue intArray, size_t* lenPointer) {
+  // Check if the input is actually an array
+  if (!JS_IsArray(intArray)) {
+    return NULL;
+  }
+
+  // Get the array length
+  JSValue len_val = JS_GetPropertyStr(ctx, intArray, "length");
+  uint32_t len = 0;
+  JS_ToUint32(ctx, &len, len_val);
+  JS_FreeValue(ctx, len_val);
+
+  if (len == 0) return NULL;
+
+  *lenPointer = (size_t)len;
+
+  // Allocate memory for the int array (caller must free)
+  int32_t *ints = malloc(len * sizeof(int32_t));
+  if (!ints) return NULL;
+
+  // Convert each element
+  for (uint32_t i = 0; i < len; i++) {
+    JSValue val = JS_GetPropertyUint32(ctx, intArray, i);
+    JS_ToInt32(ctx, &ints[i], val);
+    JS_FreeValue(ctx, val);
+  }
+
+  return ints;
+}
+
 
 __attribute__((unused)) static Dimensions dimensions_from_js(JSValue obj) {
   Dimensions dims = {0, 0}; // Default values
@@ -843,6 +873,56 @@ static JSValue js_draw_rectangle_rounded_outline_on_image(JSContext *ctx, JSValu
  return JS_UNDEFINED;
 }
 
+// GUI
+
+// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+static JSValue js_gui_begin_window(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(gui_begin_window(string_from_js(argv[0]), rectangle_from_js(argv[1])));
+}
+// End the current GUI window.
+static JSValue js_gui_end_window(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ gui_end_window();
+ return JS_UNDEFINED;
+}
+// A button. Returns true when it is clicked.
+static JSValue js_gui_button(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(gui_button(string_from_js(argv[0])));
+}
+// A static text label.
+static JSValue js_gui_label(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ gui_label(string_from_js(argv[0]));
+ return JS_UNDEFINED;
+}
+// A block of wrapping text.
+static JSValue js_gui_text(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ gui_text(string_from_js(argv[0]));
+ return JS_UNDEFINED;
+}
+// A checkbox. Returns the (possibly changed) state.
+static JSValue js_gui_checkbox(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(gui_checkbox(string_from_js(argv[0]), bool_from_js(argv[1])));
+}
+// A slider. Returns the (possibly changed) value.
+static JSValue js_gui_slider(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return f32_to_js(gui_slider(f32_from_js(argv[0]), f32_from_js(argv[1]), f32_from_js(argv[2])));
+}
+// Set the current layout row - the column widths (negative for flexible), and the row height.
+static JSValue js_gui_layout_row(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ size_t outlen = 0;
+ gui_layout_row(i32_array_from_js(argv[0], &outlen), outlen, i32_from_js(argv[1]));
+ return JS_UNDEFINED;
+}
+// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+static JSValue js_gui_end(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ gui_end();
+ return JS_UNDEFINED;
+}
+// Draw the GUI to an image (0 is the screen).
+static JSValue js_gui_draw(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ gui_draw(u32_from_js(argv[0]));
+ return JS_UNDEFINED;
+}
+
 // INPUT
 
 // Has the key been pressed? (tracks unpress/read correctly.)
@@ -1283,6 +1363,16 @@ void expose_things_to_js() {
   JS_SetPropertyStr(ctx, global, "draw_circle_outline_on_image", JS_NewCFunction(ctx, js_draw_circle_outline_on_image, "draw_circle_outline_on_image", 6));
   JS_SetPropertyStr(ctx, global, "draw_polygon_outline_on_image", JS_NewCFunction(ctx, js_draw_polygon_outline_on_image, "draw_polygon_outline_on_image", 5));
   JS_SetPropertyStr(ctx, global, "draw_rectangle_rounded_outline_on_image", JS_NewCFunction(ctx, js_draw_rectangle_rounded_outline_on_image, "draw_rectangle_rounded_outline_on_image", 8));
+  JS_SetPropertyStr(ctx, global, "gui_begin_window", JS_NewCFunction(ctx, js_gui_begin_window, "gui_begin_window", 2));
+  JS_SetPropertyStr(ctx, global, "gui_end_window", JS_NewCFunction(ctx, js_gui_end_window, "gui_end_window", 0));
+  JS_SetPropertyStr(ctx, global, "gui_button", JS_NewCFunction(ctx, js_gui_button, "gui_button", 1));
+  JS_SetPropertyStr(ctx, global, "gui_label", JS_NewCFunction(ctx, js_gui_label, "gui_label", 1));
+  JS_SetPropertyStr(ctx, global, "gui_text", JS_NewCFunction(ctx, js_gui_text, "gui_text", 1));
+  JS_SetPropertyStr(ctx, global, "gui_checkbox", JS_NewCFunction(ctx, js_gui_checkbox, "gui_checkbox", 2));
+  JS_SetPropertyStr(ctx, global, "gui_slider", JS_NewCFunction(ctx, js_gui_slider, "gui_slider", 3));
+  JS_SetPropertyStr(ctx, global, "gui_layout_row", JS_NewCFunction(ctx, js_gui_layout_row, "gui_layout_row", 3));
+  JS_SetPropertyStr(ctx, global, "gui_end", JS_NewCFunction(ctx, js_gui_end, "gui_end", 0));
+  JS_SetPropertyStr(ctx, global, "gui_draw", JS_NewCFunction(ctx, js_gui_draw, "gui_draw", 1));
   JS_SetPropertyStr(ctx, global, "key_pressed", JS_NewCFunction(ctx, js_key_pressed, "key_pressed", 1));
   JS_SetPropertyStr(ctx, global, "key_down", JS_NewCFunction(ctx, js_key_down, "key_down", 1));
   JS_SetPropertyStr(ctx, global, "key_released", JS_NewCFunction(ctx, js_key_released, "key_released", 1));

@@ -594,6 +594,38 @@ export declare function draw_polygon_outline_on_image(destination: u32, points: 
 @external("null0", "draw_rectangle_rounded_outline_on_image")
 export declare function draw_rectangle_rounded_outline_on_image(destination: u32, x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, thickness: i32, color: Color): void;
 
+// Gui functions
+/** Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window. */
+@external("null0", "gui_begin_window")
+export declare function gui_begin_window(title: usize, rect: Rectangle): bool;
+/** End the current GUI window. */
+@external("null0", "gui_end_window")
+export declare function gui_end_window(): void;
+/** A button. Returns true when it is clicked. */
+@external("null0", "gui_button")
+export declare function gui_button(label: usize): bool;
+/** A static text label. */
+@external("null0", "gui_label")
+export declare function gui_label(text: usize): void;
+/** A block of wrapping text. */
+@external("null0", "gui_text")
+export declare function gui_text(text: usize): void;
+/** A checkbox. Returns the (possibly changed) state. */
+@external("null0", "gui_checkbox")
+export declare function gui_checkbox(label: usize, state: bool): bool;
+/** A slider. Returns the (possibly changed) value. */
+@external("null0", "gui_slider")
+export declare function gui_slider(value: f32, low: f32, high: f32): f32;
+/** Set the current layout row - the column widths (negative for flexible), and the row height. */
+@external("null0", "gui_layout_row")
+export declare function gui_layout_row(widths: usize, numWidths: i32, height: i32): void;
+/** Finish building the GUI for this frame. Called automatically at the end of update if you do not call it. */
+@external("null0", "gui_end")
+export declare function gui_end(): void;
+/** Draw the GUI to an image (0 is the screen). */
+@external("null0", "gui_draw")
+export declare function gui_draw(dst: u32): void;
+
 // Input functions
 /** Has the key been pressed? (tracks unpress/read correctly.) */
 @external("null0", "key_pressed")

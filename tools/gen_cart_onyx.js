@@ -62,6 +62,7 @@ const argTypes = {
   Rectangle: 'u32',
   Dimensions: 'u32',
   'Vector[]': 'u32', // pointer to first Vector
+  'i32[]': 'u32', // pointer to first i32
   SfxParams: 'u32', // pointer to SfxParams
   SfxPresetType: 'i32'
 }

@@ -612,6 +612,48 @@ static const char* NULL0_WREN =
   "  foreign static draw_rectangle_rounded_outline_on_image_(a0, a1, a2, a3, a4, a5, a6, a7)\n"
   "  static draw_rectangle_rounded_outline_on_image(destination, x, y, width, height, cornerRadius, thickness, color) { draw_rectangle_rounded_outline_on_image_(destination, x, y, width, height, cornerRadius, thickness, color.value) }\n"
   "\n"
+  "  // GUI\n"
+  "\n"
+  "  // Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.\n"
+  "  foreign static gui_begin_window_(a0, a1)\n"
+  "  static gui_begin_window(title, rect) { gui_begin_window_(title, rect.toList) }\n"
+  "\n"
+  "  // End the current GUI window.\n"
+  "  foreign static gui_end_window_\n"
+  "  static gui_end_window { gui_end_window_ }\n"
+  "\n"
+  "  // A button. Returns true when it is clicked.\n"
+  "  foreign static gui_button_(a0)\n"
+  "  static gui_button(label) { gui_button_(label) }\n"
+  "\n"
+  "  // A static text label.\n"
+  "  foreign static gui_label_(a0)\n"
+  "  static gui_label(text) { gui_label_(text) }\n"
+  "\n"
+  "  // A block of wrapping text.\n"
+  "  foreign static gui_text_(a0)\n"
+  "  static gui_text(text) { gui_text_(text) }\n"
+  "\n"
+  "  // A checkbox. Returns the (possibly changed) state.\n"
+  "  foreign static gui_checkbox_(a0, a1)\n"
+  "  static gui_checkbox(label, state) { gui_checkbox_(label, state) }\n"
+  "\n"
+  "  // A slider. Returns the (possibly changed) value.\n"
+  "  foreign static gui_slider_(a0, a1, a2)\n"
+  "  static gui_slider(value, low, high) { gui_slider_(value, low, high) }\n"
+  "\n"
+  "  // Set the current layout row - the column widths (negative for flexible), and the row height.\n"
+  "  foreign static gui_layout_row_(a0, a1)\n"
+  "  static gui_layout_row(widths, height) { gui_layout_row_(widths, height) }\n"
+  "\n"
+  "  // Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.\n"
+  "  foreign static gui_end_\n"
+  "  static gui_end { gui_end_ }\n"
+  "\n"
+  "  // Draw the GUI to an image (0 is the screen).\n"
+  "  foreign static gui_draw_(a0)\n"
+  "  static gui_draw(dst) { gui_draw_(dst) }\n"
+  "\n"
   "  // INPUT\n"
   "\n"
   "  // Has the key been pressed? (tracks unpress/read correctly.)\n"
@@ -1031,6 +1073,42 @@ static Vector* vectors_arg(WrenVM* vm, int slot, int* count) {
   }
   *count = len;
   return points;
+}
+
+// a Rectangle arrives as a list of 4 numbers (x, y, width, height)
+static Rectangle rectangle_arg(WrenVM* vm, int slot) {
+  Rectangle rect = {0, 0, 0, 0};
+  if (wrenGetSlotType(vm, slot) != WREN_TYPE_LIST) {
+    return rect;
+  }
+  int scratch = scratch_slot(vm);
+  rect.x = (i32)list_number(vm, slot, 0, scratch);
+  rect.y = (i32)list_number(vm, slot, 1, scratch);
+  rect.width = (i32)list_number(vm, slot, 2, scratch);
+  rect.height = (i32)list_number(vm, slot, 3, scratch);
+  return rect;
+}
+
+// a list of integers arrives as a wren list of numbers
+static i32* ints_arg(WrenVM* vm, int slot, int* count) {
+  *count = 0;
+  if (wrenGetSlotType(vm, slot) != WREN_TYPE_LIST) {
+    return NULL;
+  }
+  int len = wrenGetListCount(vm, slot);
+  if (len < 1) {
+    return NULL;
+  }
+  i32* ints = malloc(sizeof(i32) * len);
+  if (ints == NULL) {
+    return NULL;
+  }
+  int scratch = scratch_slot(vm);
+  for (int i = 0; i < len; i++) {
+    ints[i] = (i32)list_number(vm, slot, i, scratch);
+  }
+  *count = len;
+  return ints;
 }
 
 // a SfxParams arrives as a list of its members
@@ -1978,6 +2056,84 @@ static void wren_draw_rectangle_rounded_outline_on_image(WrenVM* vm) {
 }
 
 
+// GUI
+
+// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+static void wren_gui_begin_window(WrenVM* vm) {
+  char* title = (char*)string_arg(vm, 1);
+  Rectangle rect = rectangle_arg(vm, 2);
+  bool ret = gui_begin_window(title, rect);
+  wrenSetSlotBool(vm, 0, ret);
+}
+
+// End the current GUI window.
+static void wren_gui_end_window(WrenVM* vm) {
+  gui_end_window();
+  wrenSetSlotNull(vm, 0);
+}
+
+// A button. Returns true when it is clicked.
+static void wren_gui_button(WrenVM* vm) {
+  char* label = (char*)string_arg(vm, 1);
+  bool ret = gui_button(label);
+  wrenSetSlotBool(vm, 0, ret);
+}
+
+// A static text label.
+static void wren_gui_label(WrenVM* vm) {
+  char* text = (char*)string_arg(vm, 1);
+  gui_label(text);
+  wrenSetSlotNull(vm, 0);
+}
+
+// A block of wrapping text.
+static void wren_gui_text(WrenVM* vm) {
+  char* text = (char*)string_arg(vm, 1);
+  gui_text(text);
+  wrenSetSlotNull(vm, 0);
+}
+
+// A checkbox. Returns the (possibly changed) state.
+static void wren_gui_checkbox(WrenVM* vm) {
+  char* label = (char*)string_arg(vm, 1);
+  bool state = bool_arg(vm, 2);
+  bool ret = gui_checkbox(label, state);
+  wrenSetSlotBool(vm, 0, ret);
+}
+
+// A slider. Returns the (possibly changed) value.
+static void wren_gui_slider(WrenVM* vm) {
+  f32 value = (f32)number_arg(vm, 1);
+  f32 low = (f32)number_arg(vm, 2);
+  f32 high = (f32)number_arg(vm, 3);
+  f32 ret = gui_slider(value, low, high);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Set the current layout row - the column widths (negative for flexible), and the row height.
+static void wren_gui_layout_row(WrenVM* vm) {
+  int widths_count = 0;
+  i32* widths = ints_arg(vm, 1, &widths_count);
+  i32 height = (i32)number_arg(vm, 2);
+  gui_layout_row(widths, widths_count, height);
+  free(widths);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+static void wren_gui_end(WrenVM* vm) {
+  gui_end();
+  wrenSetSlotNull(vm, 0);
+}
+
+// Draw the GUI to an image (0 is the screen).
+static void wren_gui_draw(WrenVM* vm) {
+  u32 dst = (u32)number_arg(vm, 1);
+  gui_draw(dst);
+  wrenSetSlotNull(vm, 0);
+}
+
+
 // INPUT
 
 // Has the key been pressed? (tracks unpress/read correctly.)
@@ -2357,6 +2513,16 @@ static WrenForeignMethodFn bind_foreign_method(WrenVM* vm, const char* module, c
   if (strcmp(signature, "draw_circle_outline_on_image_(_,_,_,_,_,_)") == 0) return wren_draw_circle_outline_on_image;
   if (strcmp(signature, "draw_polygon_outline_on_image_(_,_,_,_)") == 0) return wren_draw_polygon_outline_on_image;
   if (strcmp(signature, "draw_rectangle_rounded_outline_on_image_(_,_,_,_,_,_,_,_)") == 0) return wren_draw_rectangle_rounded_outline_on_image;
+  if (strcmp(signature, "gui_begin_window_(_,_)") == 0) return wren_gui_begin_window;
+  if (strcmp(signature, "gui_end_window_") == 0) return wren_gui_end_window;
+  if (strcmp(signature, "gui_button_(_)") == 0) return wren_gui_button;
+  if (strcmp(signature, "gui_label_(_)") == 0) return wren_gui_label;
+  if (strcmp(signature, "gui_text_(_)") == 0) return wren_gui_text;
+  if (strcmp(signature, "gui_checkbox_(_,_)") == 0) return wren_gui_checkbox;
+  if (strcmp(signature, "gui_slider_(_,_,_)") == 0) return wren_gui_slider;
+  if (strcmp(signature, "gui_layout_row_(_,_)") == 0) return wren_gui_layout_row;
+  if (strcmp(signature, "gui_end_") == 0) return wren_gui_end;
+  if (strcmp(signature, "gui_draw_(_)") == 0) return wren_gui_draw;
   if (strcmp(signature, "key_pressed_(_)") == 0) return wren_key_pressed;
   if (strcmp(signature, "key_down_(_)") == 0) return wren_key_down;
   if (strcmp(signature, "key_released_(_)") == 0) return wren_key_released;

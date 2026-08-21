@@ -509,6 +509,39 @@ global function draw_polygon_outline_on_image(destination: uint32, points: *Vect
 global function draw_rectangle_rounded_outline_on_image(destination: uint32, x: int32, y: int32, width: int32, height: int32, cornerRadius: int32, thickness: int32, color: Color): void <cimport,nodecl> end
 
 
+-- GUI
+
+-- Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+global function gui_begin_window(title: cstring, rect: Rectangle): boolean <cimport,nodecl> end
+
+-- End the current GUI window.
+global function gui_end_window(): void <cimport,nodecl> end
+
+-- A button. Returns true when it is clicked.
+global function gui_button(label: cstring): boolean <cimport,nodecl> end
+
+-- A static text label.
+global function gui_label(text: cstring): void <cimport,nodecl> end
+
+-- A block of wrapping text.
+global function gui_text(text: cstring): void <cimport,nodecl> end
+
+-- A checkbox. Returns the (possibly changed) state.
+global function gui_checkbox(label: cstring, state: boolean): boolean <cimport,nodecl> end
+
+-- A slider. Returns the (possibly changed) value.
+global function gui_slider(value: float32, low: float32, high: float32): float32 <cimport,nodecl> end
+
+-- Set the current layout row - the column widths (negative for flexible), and the row height.
+global function gui_layout_row(widths: *int32, numWidths: int32, height: int32): void <cimport,nodecl> end
+
+-- Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+global function gui_end(): void <cimport,nodecl> end
+
+-- Draw the GUI to an image (0 is the screen).
+global function gui_draw(dst: uint32): void <cimport,nodecl> end
+
+
 -- INPUT
 
 -- Has the key been pressed? (tracks unpress/read correctly.)

@@ -101,6 +101,7 @@ const rawArgTypes = {
   Rectangle: 'unsafe.Pointer',
   Dimensions: 'unsafe.Pointer',
   'Vector[]': 'unsafe.Pointer',
+  'i32[]': 'unsafe.Pointer',
   SfxParams: 'unsafe.Pointer',
   SfxPresetType: 'int32'
 }
@@ -126,6 +127,7 @@ const niceArgTypes = {
   Rectangle: 'Rectangle',
   Dimensions: 'Dimensions',
   'Vector[]': '[]Vector',
+  'i32[]': '[]int32',
   SfxParams: 'SfxParams',
   SfxPresetType: 'SfxPresetType'
 }
@@ -185,9 +187,14 @@ const rawConvert = (name, type) => {
     case 'bool':
       return `boolToUint32(${name})`
     case 'Color':
+    case 'Vector':
+    case 'Dimensions':
+    case 'Rectangle':
       return `unsafe.Pointer(&${name})`
     case 'Vector[]':
       return `vectorSliceToPtr(${name})`
+    case 'i32[]':
+      return `int32SliceToPtr(${name})`
     case 'SfxParams':
       return `unsafe.Pointer(&${name})`
     case 'Image':
@@ -272,7 +279,7 @@ for (const [colorName, colorDef] of Object.entries(constants)) {
 }
 out.push(')')
 
-out.push('', '// helpers used by wrappers', '', 'func boolToUint32(b bool) uint32 {', '\tif b {', '\t\treturn 1', '\t}', '\treturn 0', '}', '', 'func vectorSliceToPtr(vectors []Vector) unsafe.Pointer {', '\tif len(vectors) == 0 {', '\t\treturn nil', '\t}', '\treturn unsafe.Pointer(&vectors[0])', '}')
+out.push('', '// helpers used by wrappers', '', 'func boolToUint32(b bool) uint32 {', '\tif b {', '\t\treturn 1', '\t}', '\treturn 0', '}', '', 'func vectorSliceToPtr(vectors []Vector) unsafe.Pointer {', '\tif len(vectors) == 0 {', '\t\treturn nil', '\t}', '\treturn unsafe.Pointer(&vectors[0])', '}', '', 'func int32SliceToPtr(ints []int32) unsafe.Pointer {', '\tif len(ints) == 0 {', '\t\treturn nil', '\t}', '\treturn unsafe.Pointer(&ints[0])', '}')
 
 // Generate raw wasmimport declarations + nice wrappers
 for (const [apiName, funcDef] of Object.entries(api)) {

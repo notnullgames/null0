@@ -559,6 +559,38 @@ extern(C) void draw_polygon_outline_on_image(Image destination, const(Vector)* p
 @(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "draw_rectangle_rounded_outline_on_image"))
 extern(C) void draw_rectangle_rounded_outline_on_image(Image destination, int x, int y, int width, int height, int cornerRadius, int thickness, Color color);
 
+// GUI
+/// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "gui_begin_window"))
+extern(C) bool gui_begin_window(const(char)* title, Rectangle rect);
+/// End the current GUI window.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "gui_end_window"))
+extern(C) void gui_end_window();
+/// A button. Returns true when it is clicked.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "gui_button"))
+extern(C) bool gui_button(const(char)* label);
+/// A static text label.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "gui_label"))
+extern(C) void gui_label(const(char)* text);
+/// A block of wrapping text.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "gui_text"))
+extern(C) void gui_text(const(char)* text);
+/// A checkbox. Returns the (possibly changed) state.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "gui_checkbox"))
+extern(C) bool gui_checkbox(const(char)* label, bool state);
+/// A slider. Returns the (possibly changed) value.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "gui_slider"))
+extern(C) float gui_slider(float value, float low, float high);
+/// Set the current layout row - the column widths (negative for flexible), and the row height.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "gui_layout_row"))
+extern(C) void gui_layout_row(const(int)* widths, int numWidths, int height);
+/// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "gui_end"))
+extern(C) void gui_end();
+/// Draw the GUI to an image (0 is the screen).
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "gui_draw"))
+extern(C) void gui_draw(Image dst);
+
 // INPUT
 /// Has the key been pressed? (tracks unpress/read correctly.)
 @(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "key_pressed"))

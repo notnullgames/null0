@@ -688,6 +688,55 @@ function draw_polygon_outline_on_image(destination, points, thickness, color) en
 ---@param color Color
 function draw_rectangle_rounded_outline_on_image(destination, x, y, width, height, cornerRadius, thickness, color) end
 
+-- GUI
+
+---Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+---@param title string
+---@param rect Rectangle
+---@return boolean
+function gui_begin_window(title, rect) end
+
+---End the current GUI window.
+function gui_end_window() end
+
+---A button. Returns true when it is clicked.
+---@param label string
+---@return boolean
+function gui_button(label) end
+
+---A static text label.
+---@param text string
+function gui_label(text) end
+
+---A block of wrapping text.
+---@param text string
+function gui_text(text) end
+
+---A checkbox. Returns the (possibly changed) state.
+---@param label string
+---@param state boolean
+---@return boolean
+function gui_checkbox(label, state) end
+
+---A slider. Returns the (possibly changed) value.
+---@param value number
+---@param low number
+---@param high number
+---@return number
+function gui_slider(value, low, high) end
+
+---Set the current layout row - the column widths (negative for flexible), and the row height.
+---@param widths integer[]
+---@param height integer
+function gui_layout_row(widths, height) end
+
+---Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+function gui_end() end
+
+---Draw the GUI to an image (0 is the screen).
+---@param dst integer
+function gui_draw(dst) end
+
 -- INPUT
 
 ---Has the key been pressed? (tracks unpress/read correctly.)

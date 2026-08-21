@@ -290,6 +290,36 @@ static Vector* vector_array_from_js(JSValue vecArray, size_t* lenPointer) {
   return vecs;
 }
 
+static int32_t* i32_array_from_js(JSValue intArray, size_t* lenPointer) {
+  // Check if the input is actually an array
+  if (!JS_IsArray(intArray)) {
+    return NULL;
+  }
+
+  // Get the array length
+  JSValue len_val = JS_GetPropertyStr(ctx, intArray, "length");
+  uint32_t len = 0;
+  JS_ToUint32(ctx, &len, len_val);
+  JS_FreeValue(ctx, len_val);
+
+  if (len == 0) return NULL;
+
+  *lenPointer = (size_t)len;
+
+  // Allocate memory for the int array (caller must free)
+  int32_t *ints = malloc(len * sizeof(int32_t));
+  if (!ints) return NULL;
+
+  // Convert each element
+  for (uint32_t i = 0; i < len; i++) {
+    JSValue val = JS_GetPropertyUint32(ctx, intArray, i);
+    JS_ToInt32(ctx, &ints[i], val);
+    JS_FreeValue(ctx, val);
+  }
+
+  return ints;
+}
+
 
 __attribute__((unused)) static Dimensions dimensions_from_js(JSValue obj) {
   Dimensions dims = {0, 0}; // Default values
@@ -506,7 +536,9 @@ const argTypes = {
 
   // Custom struct converters
   Color: 'color_from_js',
+  Rectangle: 'rectangle_from_js',
   'Vector[]': 'vector_array_from_js',
+  'i32[]': 'i32_array_from_js',
   SfxParams: 'sfx_params_from_js'
 }
 

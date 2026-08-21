@@ -677,6 +677,49 @@ NULL0_IMPORT("draw_rectangle_rounded_outline_on_image")
 extern void draw_rectangle_rounded_outline_on_image(u32 destination, i32 x, i32 y, i32 width, i32 height, i32 cornerRadius, i32 thickness, Color color);
 
 
+// GUI
+
+// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+NULL0_IMPORT("gui_begin_window")
+extern bool gui_begin_window(char* title, Rectangle rect);
+
+// End the current GUI window.
+NULL0_IMPORT("gui_end_window")
+extern void gui_end_window();
+
+// A button. Returns true when it is clicked.
+NULL0_IMPORT("gui_button")
+extern bool gui_button(char* label);
+
+// A static text label.
+NULL0_IMPORT("gui_label")
+extern void gui_label(char* text);
+
+// A block of wrapping text.
+NULL0_IMPORT("gui_text")
+extern void gui_text(char* text);
+
+// A checkbox. Returns the (possibly changed) state.
+NULL0_IMPORT("gui_checkbox")
+extern bool gui_checkbox(char* label, bool state);
+
+// A slider. Returns the (possibly changed) value.
+NULL0_IMPORT("gui_slider")
+extern f32 gui_slider(f32 value, f32 low, f32 high);
+
+// Set the current layout row - the column widths (negative for flexible), and the row height.
+NULL0_IMPORT("gui_layout_row")
+extern void gui_layout_row(i32* widths, i32 numWidths, i32 height);
+
+// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+NULL0_IMPORT("gui_end")
+extern void gui_end();
+
+// Draw the GUI to an image (0 is the screen).
+NULL0_IMPORT("gui_draw")
+extern void gui_draw(u32 dst);
+
+
 // INPUT
 
 // Has the key been pressed? (tracks unpress/read correctly.)

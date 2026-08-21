@@ -600,6 +600,48 @@ class Null0 {
   foreign static draw_rectangle_rounded_outline_on_image_(a0, a1, a2, a3, a4, a5, a6, a7)
   static draw_rectangle_rounded_outline_on_image(destination, x, y, width, height, cornerRadius, thickness, color) { draw_rectangle_rounded_outline_on_image_(destination, x, y, width, height, cornerRadius, thickness, color.value) }
 
+  // GUI
+
+  // Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+  foreign static gui_begin_window_(a0, a1)
+  static gui_begin_window(title, rect) { gui_begin_window_(title, rect.toList) }
+
+  // End the current GUI window.
+  foreign static gui_end_window_
+  static gui_end_window { gui_end_window_ }
+
+  // A button. Returns true when it is clicked.
+  foreign static gui_button_(a0)
+  static gui_button(label) { gui_button_(label) }
+
+  // A static text label.
+  foreign static gui_label_(a0)
+  static gui_label(text) { gui_label_(text) }
+
+  // A block of wrapping text.
+  foreign static gui_text_(a0)
+  static gui_text(text) { gui_text_(text) }
+
+  // A checkbox. Returns the (possibly changed) state.
+  foreign static gui_checkbox_(a0, a1)
+  static gui_checkbox(label, state) { gui_checkbox_(label, state) }
+
+  // A slider. Returns the (possibly changed) value.
+  foreign static gui_slider_(a0, a1, a2)
+  static gui_slider(value, low, high) { gui_slider_(value, low, high) }
+
+  // Set the current layout row - the column widths (negative for flexible), and the row height.
+  foreign static gui_layout_row_(a0, a1)
+  static gui_layout_row(widths, height) { gui_layout_row_(widths, height) }
+
+  // Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+  foreign static gui_end_
+  static gui_end { gui_end_ }
+
+  // Draw the GUI to an image (0 is the screen).
+  foreign static gui_draw_(a0)
+  static gui_draw(dst) { gui_draw_(dst) }
+
   // INPUT
 
   // Has the key been pressed? (tracks unpress/read correctly.)

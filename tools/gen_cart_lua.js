@@ -44,8 +44,12 @@ const goArgTypes = {
   MouseButton: 'int32',
   SfxPresetType: 'int32',
   Color: 'unsafe.Pointer',
+  Vector: 'unsafe.Pointer',
+  Dimensions: 'unsafe.Pointer',
+  Rectangle: 'unsafe.Pointer',
   SfxParams: 'unsafe.Pointer',
-  'Vector[]': 'unsafe.Pointer'
+  'Vector[]': 'unsafe.Pointer',
+  'i32[]': 'unsafe.Pointer'
 }
 
 // go type of what the host hands back (structs come back as pointers into cart-memory)
@@ -95,7 +99,8 @@ const luaTypes = {
   Rectangle: 'Rectangle',
   Dimensions: 'Dimensions',
   SfxParams: 'SfxParams',
-  'Vector[]': 'Vector[]'
+  'Vector[]': 'Vector[]',
+  'i32[]': 'integer[]'
 }
 
 const luaMemberTypes = { i32: 'integer', f32: 'number', u32: 'integer', u8: 'integer' }
@@ -121,11 +126,12 @@ const luaReaders = {
   MouseButton: (name, i) => `${name} := int32(L.CheckInt(${i}))`,
   SfxPresetType: (name, i) => `${name} := int32(L.CheckInt(${i}))`,
   Color: (name, i) => `${name} := colorArg(L, ${i})`,
+  Rectangle: (name, i) => `${name} := rectangleArg(L, ${i})`,
   SfxParams: (name, i) => `${name} := sfxParamsArg(L, ${i})`
 }
 
 // structs are passed by pointer, everything else by value
-const structArgs = new Set(['Color', 'SfxParams'])
+const structArgs = new Set(['Color', 'Rectangle', 'SfxParams'])
 
 // ---- go: the interpreter ----
 
@@ -271,6 +277,27 @@ func pointsPtr(points []Vector) unsafe.Pointer {
 \t}
 \treturn unsafe.Pointer(&points[0])
 }
+
+// ints arrive as an array-table of numbers, e.g. {-1, 100, -1}
+func intsArg(L *lua.LState, n int) []int32 {
+\tt := L.CheckTable(n)
+\tcount := t.Len()
+\tints := make([]int32, 0, count)
+\tfor i := 1; i <= count; i++ {
+\t\tif num, ok := t.RawGetInt(i).(lua.LNumber); ok {
+\t\t\tints = append(ints, int32(num))
+\t\t}
+\t}
+\treturn ints
+}
+
+// the address of the first int, or nil for an empty list
+func intsPtr(ints []int32) unsafe.Pointer {
+\tif len(ints) == 0 {
+\t\treturn nil
+\t}
+\treturn unsafe.Pointer(&ints[0])
+}
 `)
 
 // ---- bindings ----
@@ -298,6 +325,14 @@ for (const [apiName, apiObj] of Object.entries(api)) {
       if (type === 'Vector[]') {
         lines.push(`\t${goArg} := vectorsArg(L, ${luaIndex})`)
         callArgs.push(`pointsPtr(${goArg})`, `int32(len(${goArg}))`)
+        luaIndex++
+        i++
+        continue
+      }
+
+      if (type === 'i32[]') {
+        lines.push(`\t${goArg} := intsArg(L, ${luaIndex})`)
+        callArgs.push(`intsPtr(${goArg})`, `int32(len(${goArg}))`)
         luaIndex++
         i++
         continue
@@ -502,7 +537,7 @@ for (const [apiName, apiObj] of Object.entries(api)) {
       luaDef.push(`---@param ${name} ${luaTypes[type] || type}`)
       params.push(name)
       // the count that follows a `T[]` is implied by the table
-      if (type === 'Vector[]') {
+      if (type === 'Vector[]' || type === 'i32[]') {
         i++
       }
     }

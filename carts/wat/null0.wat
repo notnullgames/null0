@@ -468,6 +468,29 @@
 ;; Draw a outlined (with thickness) round-rectangle on an image.
 (import "null0" "draw_rectangle_rounded_outline_on_image" (func $draw_rectangle_rounded_outline_on_image (param i32 i32 i32 i32 i32 i32 i32 i32)))
 
+;; -- GUI --
+
+;; Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+(import "null0" "gui_begin_window" (func $gui_begin_window (param i32 i32) (result i32)))
+;; End the current GUI window.
+(import "null0" "gui_end_window" (func $gui_end_window))
+;; A button. Returns true when it is clicked.
+(import "null0" "gui_button" (func $gui_button (param i32) (result i32)))
+;; A static text label.
+(import "null0" "gui_label" (func $gui_label (param i32)))
+;; A block of wrapping text.
+(import "null0" "gui_text" (func $gui_text (param i32)))
+;; A checkbox. Returns the (possibly changed) state.
+(import "null0" "gui_checkbox" (func $gui_checkbox (param i32 i32) (result i32)))
+;; A slider. Returns the (possibly changed) value.
+(import "null0" "gui_slider" (func $gui_slider (param f32 f32 f32) (result f32)))
+;; Set the current layout row - the column widths (negative for flexible), and the row height.
+(import "null0" "gui_layout_row" (func $gui_layout_row (param i32 i32 i32)))
+;; Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+(import "null0" "gui_end" (func $gui_end))
+;; Draw the GUI to an image (0 is the screen).
+(import "null0" "gui_draw" (func $gui_draw (param i32)))
+
 ;; -- INPUT --
 
 ;; Has the key been pressed? (tracks unpress/read correctly.)

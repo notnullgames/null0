@@ -1,4 +1,6 @@
-FROM debian:bookworm-slim
+# grain only publishes linux-x64 binaries, so this image is amd64-only
+# (runs via rosetta on arm macs)
+FROM --platform=linux/amd64 debian:bookworm-slim
 
 ARG GRAIN_VERSION=0.7.2
 

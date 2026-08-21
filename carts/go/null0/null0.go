@@ -357,6 +357,13 @@ func vectorSliceToPtr(vectors []Vector) unsafe.Pointer {
 	return unsafe.Pointer(&vectors[0])
 }
 
+func int32SliceToPtr(ints []int32) unsafe.Pointer {
+	if len(ints) == 0 {
+		return nil
+	}
+	return unsafe.Pointer(&ints[0])
+}
+
 // COLORS
 
 //go:wasmimport null0 color_tint
@@ -1015,6 +1022,88 @@ func draw_rectangle_rounded_outline_on_image(destination uint32, x int32, y int3
 // DrawRectangleRoundedOutlineOnImage: Draw a outlined (with thickness) round-rectangle on an image.
 func DrawRectangleRoundedOutlineOnImage(destination Image, x int32, y int32, width int32, height int32, cornerRadius int32, thickness int32, color Color) {
 	draw_rectangle_rounded_outline_on_image(destination, x, y, width, height, cornerRadius, thickness, unsafe.Pointer(&color))
+}
+
+// GUI
+
+//go:wasmimport null0 gui_begin_window
+func gui_begin_window(title unsafe.Pointer, rect unsafe.Pointer) uint32
+
+// GuiBeginWindow: Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+func GuiBeginWindow(title string, rect Rectangle) bool {
+	return gui_begin_window(cstr(title), unsafe.Pointer(&rect)) != 0
+}
+
+//go:wasmimport null0 gui_end_window
+func gui_end_window()
+
+// GuiEndWindow: End the current GUI window.
+func GuiEndWindow() {
+	gui_end_window()
+}
+
+//go:wasmimport null0 gui_button
+func gui_button(label unsafe.Pointer) uint32
+
+// GuiButton: A button. Returns true when it is clicked.
+func GuiButton(label string) bool {
+	return gui_button(cstr(label)) != 0
+}
+
+//go:wasmimport null0 gui_label
+func gui_label(text unsafe.Pointer)
+
+// GuiLabel: A static text label.
+func GuiLabel(text string) {
+	gui_label(cstr(text))
+}
+
+//go:wasmimport null0 gui_text
+func gui_text(text unsafe.Pointer)
+
+// GuiText: A block of wrapping text.
+func GuiText(text string) {
+	gui_text(cstr(text))
+}
+
+//go:wasmimport null0 gui_checkbox
+func gui_checkbox(label unsafe.Pointer, state uint32) uint32
+
+// GuiCheckbox: A checkbox. Returns the (possibly changed) state.
+func GuiCheckbox(label string, state bool) bool {
+	return gui_checkbox(cstr(label), boolToUint32(state)) != 0
+}
+
+//go:wasmimport null0 gui_slider
+func gui_slider(value float32, low float32, high float32) float32
+
+// GuiSlider: A slider. Returns the (possibly changed) value.
+func GuiSlider(value float32, low float32, high float32) float32 {
+	return gui_slider(value, low, high)
+}
+
+//go:wasmimport null0 gui_layout_row
+func gui_layout_row(widths unsafe.Pointer, numWidths int32, height int32)
+
+// GuiLayoutRow: Set the current layout row - the column widths (negative for flexible), and the row height.
+func GuiLayoutRow(widths []int32, numWidths int32, height int32) {
+	gui_layout_row(int32SliceToPtr(widths), numWidths, height)
+}
+
+//go:wasmimport null0 gui_end
+func gui_end()
+
+// GuiEnd: Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+func GuiEnd() {
+	gui_end()
+}
+
+//go:wasmimport null0 gui_draw
+func gui_draw(dst uint32)
+
+// GuiDraw: Draw the GUI to an image (0 is the screen).
+func GuiDraw(dst Image) {
+	gui_draw(dst)
 }
 
 // INPUT

@@ -833,6 +833,39 @@ provide foreign wasm draw_polygon_outline_on_image: (WasmI32, WasmI32, WasmI32, 
 @unsafe
 provide foreign wasm draw_rectangle_rounded_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 
+// -- GUI --
+
+// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+@unsafe
+provide foreign wasm gui_begin_window: (WasmI32, WasmI32) => WasmI32 from "null0"
+// End the current GUI window.
+@unsafe
+provide foreign wasm gui_end_window: () => Void from "null0"
+// A button. Returns true when it is clicked.
+@unsafe
+provide foreign wasm gui_button: (WasmI32) => WasmI32 from "null0"
+// A static text label.
+@unsafe
+provide foreign wasm gui_label: (WasmI32) => Void from "null0"
+// A block of wrapping text.
+@unsafe
+provide foreign wasm gui_text: (WasmI32) => Void from "null0"
+// A checkbox. Returns the (possibly changed) state.
+@unsafe
+provide foreign wasm gui_checkbox: (WasmI32, WasmI32) => WasmI32 from "null0"
+// A slider. Returns the (possibly changed) value.
+@unsafe
+provide foreign wasm gui_slider: (WasmF32, WasmF32, WasmF32) => WasmF32 from "null0"
+// Set the current layout row - the column widths (negative for flexible), and the row height.
+@unsafe
+provide foreign wasm gui_layout_row: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+@unsafe
+provide foreign wasm gui_end: () => Void from "null0"
+// Draw the GUI to an image (0 is the screen).
+@unsafe
+provide foreign wasm gui_draw: (WasmI32) => Void from "null0"
+
 // -- INPUT --
 
 // Has the key been pressed? (tracks unpress/read correctly.)

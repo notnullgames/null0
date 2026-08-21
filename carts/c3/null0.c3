@@ -461,6 +461,28 @@ extern fn void draw_polygon_outline_on_image(Image destination, Vector* points, 
 // Draw a outlined (with thickness) round-rectangle on an image.
 extern fn void draw_rectangle_rounded_outline_on_image(Image destination, int x, int y, int width, int height, int cornerRadius, int thickness, Color color) @wasm("null0", "draw_rectangle_rounded_outline_on_image");
 
+// GUI
+// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+extern fn bool gui_begin_window(char* title, Rectangle rect) @wasm("null0", "gui_begin_window");
+// End the current GUI window.
+extern fn void gui_end_window() @wasm("null0", "gui_end_window");
+// A button. Returns true when it is clicked.
+extern fn bool gui_button(char* label) @wasm("null0", "gui_button");
+// A static text label.
+extern fn void gui_label(char* text) @wasm("null0", "gui_label");
+// A block of wrapping text.
+extern fn void gui_text(char* text) @wasm("null0", "gui_text");
+// A checkbox. Returns the (possibly changed) state.
+extern fn bool gui_checkbox(char* label, bool state) @wasm("null0", "gui_checkbox");
+// A slider. Returns the (possibly changed) value.
+extern fn float gui_slider(float value, float low, float high) @wasm("null0", "gui_slider");
+// Set the current layout row - the column widths (negative for flexible), and the row height.
+extern fn void gui_layout_row(int* widths, int numWidths, int height) @wasm("null0", "gui_layout_row");
+// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+extern fn void gui_end() @wasm("null0", "gui_end");
+// Draw the GUI to an image (0 is the screen).
+extern fn void gui_draw(Image dst) @wasm("null0", "gui_draw");
+
 // INPUT
 // Has the key been pressed? (tracks unpress/read correctly.)
 extern fn bool key_pressed(int key) @wasm("null0", "key_pressed");

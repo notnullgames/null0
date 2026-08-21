@@ -24,6 +24,7 @@ const types = {
   MouseButton: 'pntr_app_mouse_button',
   SfxParams: 'uint32_t',
   'Vector[]': 'uint32_t',
+  'i32[]': 'uint32_t',
   SfxPresetType: 'SfxPresetType'
 }
 
@@ -151,7 +152,17 @@ const functions = {
   tile_get_tile: 'null0_tile_get_tile(',
   tile_set_tile: 'null0_tile_set_tile(',
   tile_image: 'null0_tile_image(',
-  tilemap_image: 'null0_gen_image_tiled('
+  tilemap_image: 'null0_gen_image_tiled(',
+  gui_begin_window: 'null0_gui_begin_window(',
+  gui_end_window: 'mu_end_window(gui_ctx',
+  gui_button: 'mu_button(gui_ctx, ',
+  gui_label: 'mu_label(gui_ctx, ',
+  gui_text: 'mu_text(gui_ctx, ',
+  gui_checkbox: 'null0_gui_checkbox(',
+  gui_slider: 'null0_gui_slider(',
+  gui_layout_row: 'null0_gui_layout_row(',
+  gui_end: 'null0_gui_end(',
+  gui_draw: 'null0_gui_draw('
 }
 
 // map args to host-types
@@ -181,6 +192,9 @@ function buildBody(name, args, returns) {
     if (type === 'Color') {
       body.push(`pntr_color ${name}Host = copy_color_from_cart(${name});`)
       callArgs.push(`${name}Host`)
+    } else if (type === 'Rectangle') {
+      body.push(`pntr_rectangle ${name}Host = copy_rectangle_from_cart(${name});`)
+      callArgs.push(`${name}Host`)
     } else if (type === 'Image') {
       body.push(`pntr_image* ${name}Host = get_image(${name});`)
       guards.push(`${name}Host`)
@@ -207,6 +221,10 @@ function buildBody(name, args, returns) {
       callArgs.push(`${name}Host`)
     } else if (type === 'Vector[]') {
       body.push(`pntr_vector* ${name}Host = copy_memory_from_cart(${name}, ${allArgs[i + 1][0]} * sizeof(pntr_vector));`)
+      cleanup.push(`free(${name}Host);`)
+      callArgs.push(`${name}Host`)
+    } else if (type === 'i32[]') {
+      body.push(`int32_t* ${name}Host = copy_memory_from_cart(${name}, ${allArgs[i + 1][0]} * sizeof(int32_t));`)
       cleanup.push(`free(${name}Host);`)
       callArgs.push(`${name}Host`)
     } else if (type === 'SfxParams') {

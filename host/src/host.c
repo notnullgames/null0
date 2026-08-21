@@ -755,6 +755,80 @@ HOST_FUNCTION(void, draw_rectangle_rounded_outline_on_image, (uint32_t destinati
 })
 
 
+// GUI
+
+// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+HOST_FUNCTION(bool, gui_begin_window, (uint32_t title, uint32_t rect), {
+ char* titleHost = copy_string_from_cart(title);
+ pntr_rectangle rectHost = copy_rectangle_from_cart(rect);
+ bool retHost = null0_gui_begin_window(titleHost, rectHost);
+ free(titleHost);
+ return retHost;
+})
+
+// End the current GUI window.
+HOST_FUNCTION(void, gui_end_window, (), {
+ mu_end_window(gui_ctx);
+})
+
+// A button. Returns true when it is clicked.
+HOST_FUNCTION(bool, gui_button, (uint32_t label), {
+ char* labelHost = copy_string_from_cart(label);
+ bool retHost = mu_button(gui_ctx, labelHost);
+ free(labelHost);
+ return retHost;
+})
+
+// A static text label.
+HOST_FUNCTION(void, gui_label, (uint32_t text), {
+ char* textHost = copy_string_from_cart(text);
+ mu_label(gui_ctx, textHost);
+ free(textHost);
+})
+
+// A block of wrapping text.
+HOST_FUNCTION(void, gui_text, (uint32_t text), {
+ char* textHost = copy_string_from_cart(text);
+ mu_text(gui_ctx, textHost);
+ free(textHost);
+})
+
+// A checkbox. Returns the (possibly changed) state.
+HOST_FUNCTION(bool, gui_checkbox, (uint32_t label, bool state), {
+ char* labelHost = copy_string_from_cart(label);
+ bool retHost = null0_gui_checkbox(labelHost, state);
+ free(labelHost);
+ return retHost;
+})
+
+// A slider. Returns the (possibly changed) value.
+HOST_FUNCTION(float, gui_slider, (float value, float low, float high), {
+ float retHost = null0_gui_slider(value, low, high);
+ return retHost;
+})
+
+// Set the current layout row - the column widths (negative for flexible), and the row height.
+HOST_FUNCTION(void, gui_layout_row, (uint32_t widths, int32_t numWidths, int32_t height), {
+ int32_t* widthsHost = copy_memory_from_cart(widths, numWidths * sizeof(int32_t));
+ null0_gui_layout_row(widthsHost, numWidths, height);
+ free(widthsHost);
+})
+
+// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+HOST_FUNCTION(void, gui_end, (), {
+ null0_gui_end();
+})
+
+// Draw the GUI to an image (0 is the screen).
+HOST_FUNCTION(void, gui_draw, (uint32_t dst), {
+ pntr_image* dstHost = get_image(dst);
+ if (dstHost == NULL) {
+  return;
+ }
+ null0_gui_draw(dstHost);
+})
+
+
 // INPUT
 
 // Has the key been pressed? (tracks unpress/read correctly.)

@@ -556,6 +556,39 @@ type DrawPolygonOutlineOnImage = (i32, i32, i32, i32, i32) => void;
 type DrawRectangleRoundedOutlineOnImage = (i32, i32, i32, i32, i32, i32, i32, i32) => void;
 // import { draw_rectangle_rounded_outline_on_image: DrawRectangleRoundedOutlineOnImage } from 'null0';
 
+// -- GUI --
+
+// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+type GuiBeginWindow = (i32, i32) => i32;
+// import { gui_begin_window: GuiBeginWindow } from 'null0';
+// End the current GUI window.
+type GuiEndWindow = () => void;
+// import { gui_end_window: GuiEndWindow } from 'null0';
+// A button. Returns true when it is clicked.
+type GuiButton = (i32) => i32;
+// import { gui_button: GuiButton } from 'null0';
+// A static text label.
+type GuiLabel = (i32) => void;
+// import { gui_label: GuiLabel } from 'null0';
+// A block of wrapping text.
+type GuiText = (i32) => void;
+// import { gui_text: GuiText } from 'null0';
+// A checkbox. Returns the (possibly changed) state.
+type GuiCheckbox = (i32, i32) => i32;
+// import { gui_checkbox: GuiCheckbox } from 'null0';
+// A slider. Returns the (possibly changed) value.
+type GuiSlider = (f32, f32, f32) => f32;
+// import { gui_slider: GuiSlider } from 'null0';
+// Set the current layout row - the column widths (negative for flexible), and the row height.
+type GuiLayoutRow = (i32, i32, i32) => void;
+// import { gui_layout_row: GuiLayoutRow } from 'null0';
+// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+type GuiEnd = () => void;
+// import { gui_end: GuiEnd } from 'null0';
+// Draw the GUI to an image (0 is the screen).
+type GuiDraw = (i32) => void;
+// import { gui_draw: GuiDraw } from 'null0';
+
 // -- INPUT --
 
 // Has the key been pressed? (tracks unpress/read correctly.)

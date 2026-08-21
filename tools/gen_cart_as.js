@@ -54,6 +54,7 @@ const argTypes = {
   Rectangle: 'Rectangle',
   Dimensions: 'Dimensions',
   'Vector[]': 'usize', // Vector arrays are passed as pointers
+  'i32[]': 'usize', // i32 arrays are passed as pointers
   SfxParams: 'SfxParams',
   SfxPresetType: 'SfxPresetType'
 }

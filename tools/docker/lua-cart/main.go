@@ -318,6 +318,36 @@ func draw_polygon_outline_on_image(destination uint32, points unsafe.Pointer, nu
 //go:wasmimport null0 draw_rectangle_rounded_outline_on_image
 func draw_rectangle_rounded_outline_on_image(destination uint32, x int32, y int32, width int32, height int32, cornerRadius int32, thickness int32, color unsafe.Pointer)
 
+//go:wasmimport null0 gui_begin_window
+func gui_begin_window(title unsafe.Pointer, rect unsafe.Pointer) int32
+
+//go:wasmimport null0 gui_end_window
+func gui_end_window()
+
+//go:wasmimport null0 gui_button
+func gui_button(label unsafe.Pointer) int32
+
+//go:wasmimport null0 gui_label
+func gui_label(text unsafe.Pointer)
+
+//go:wasmimport null0 gui_text
+func gui_text(text unsafe.Pointer)
+
+//go:wasmimport null0 gui_checkbox
+func gui_checkbox(label unsafe.Pointer, state int32) int32
+
+//go:wasmimport null0 gui_slider
+func gui_slider(value float32, low float32, high float32) float32
+
+//go:wasmimport null0 gui_layout_row
+func gui_layout_row(widths unsafe.Pointer, numWidths int32, height int32)
+
+//go:wasmimport null0 gui_end
+func gui_end()
+
+//go:wasmimport null0 gui_draw
+func gui_draw(dst uint32)
+
 //go:wasmimport null0 key_pressed
 func key_pressed(key int32) int32
 
@@ -652,6 +682,27 @@ func pointsPtr(points []Vector) unsafe.Pointer {
 		return nil
 	}
 	return unsafe.Pointer(&points[0])
+}
+
+// ints arrive as an array-table of numbers, e.g. {-1, 100, -1}
+func intsArg(L *lua.LState, n int) []int32 {
+	t := L.CheckTable(n)
+	count := t.Len()
+	ints := make([]int32, 0, count)
+	for i := 1; i <= count; i++ {
+		if num, ok := t.RawGetInt(i).(lua.LNumber); ok {
+			ints = append(ints, int32(num))
+		}
+	}
+	return ints
+}
+
+// the address of the first int, or nil for an empty list
+func intsPtr(ints []int32) unsafe.Pointer {
+	if len(ints) == 0 {
+		return nil
+	}
+	return unsafe.Pointer(&ints[0])
 }
 
 // BINDINGS
@@ -1536,6 +1587,90 @@ func lua_draw_rectangle_rounded_outline_on_image(L *lua.LState) int {
 	return 0
 }
 
+// GUI
+
+// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+func lua_gui_begin_window(L *lua.LState) int {
+	titleBytes, title := cstr(L.CheckString(1))
+	rect := rectangleArg(L, 2)
+	ret := gui_begin_window(title, unsafe.Pointer(&rect))
+	runtime.KeepAlive(titleBytes)
+	L.Push(luaBool(ret))
+	return 1
+}
+
+// End the current GUI window.
+func lua_gui_end_window(L *lua.LState) int {
+	gui_end_window()
+	return 0
+}
+
+// A button. Returns true when it is clicked.
+func lua_gui_button(L *lua.LState) int {
+	labelBytes, label := cstr(L.CheckString(1))
+	ret := gui_button(label)
+	runtime.KeepAlive(labelBytes)
+	L.Push(luaBool(ret))
+	return 1
+}
+
+// A static text label.
+func lua_gui_label(L *lua.LState) int {
+	textBytes, text := cstr(L.CheckString(1))
+	gui_label(text)
+	runtime.KeepAlive(textBytes)
+	return 0
+}
+
+// A block of wrapping text.
+func lua_gui_text(L *lua.LState) int {
+	textBytes, text := cstr(L.CheckString(1))
+	gui_text(text)
+	runtime.KeepAlive(textBytes)
+	return 0
+}
+
+// A checkbox. Returns the (possibly changed) state.
+func lua_gui_checkbox(L *lua.LState) int {
+	labelBytes, label := cstr(L.CheckString(1))
+	state := boolArg(L, 2)
+	ret := gui_checkbox(label, state)
+	runtime.KeepAlive(labelBytes)
+	L.Push(luaBool(ret))
+	return 1
+}
+
+// A slider. Returns the (possibly changed) value.
+func lua_gui_slider(L *lua.LState) int {
+	value := float32(L.CheckNumber(1))
+	low := float32(L.CheckNumber(2))
+	high := float32(L.CheckNumber(3))
+	ret := gui_slider(value, low, high)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Set the current layout row - the column widths (negative for flexible), and the row height.
+func lua_gui_layout_row(L *lua.LState) int {
+	widths := intsArg(L, 1)
+	height := int32(L.CheckInt(2))
+	gui_layout_row(intsPtr(widths), int32(len(widths)), height)
+	return 0
+}
+
+// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+func lua_gui_end(L *lua.LState) int {
+	gui_end()
+	return 0
+}
+
+// Draw the GUI to an image (0 is the screen).
+func lua_gui_draw(L *lua.LState) int {
+	dst := uint32(L.CheckInt(1))
+	gui_draw(dst)
+	return 0
+}
+
 // INPUT
 
 // Has the key been pressed? (tracks unpress/read correctly.)
@@ -2126,6 +2261,16 @@ func registerAPI(L *lua.LState) {
 	L.SetGlobal("draw_circle_outline_on_image", L.NewFunction(lua_draw_circle_outline_on_image))
 	L.SetGlobal("draw_polygon_outline_on_image", L.NewFunction(lua_draw_polygon_outline_on_image))
 	L.SetGlobal("draw_rectangle_rounded_outline_on_image", L.NewFunction(lua_draw_rectangle_rounded_outline_on_image))
+	L.SetGlobal("gui_begin_window", L.NewFunction(lua_gui_begin_window))
+	L.SetGlobal("gui_end_window", L.NewFunction(lua_gui_end_window))
+	L.SetGlobal("gui_button", L.NewFunction(lua_gui_button))
+	L.SetGlobal("gui_label", L.NewFunction(lua_gui_label))
+	L.SetGlobal("gui_text", L.NewFunction(lua_gui_text))
+	L.SetGlobal("gui_checkbox", L.NewFunction(lua_gui_checkbox))
+	L.SetGlobal("gui_slider", L.NewFunction(lua_gui_slider))
+	L.SetGlobal("gui_layout_row", L.NewFunction(lua_gui_layout_row))
+	L.SetGlobal("gui_end", L.NewFunction(lua_gui_end))
+	L.SetGlobal("gui_draw", L.NewFunction(lua_gui_draw))
 	L.SetGlobal("key_pressed", L.NewFunction(lua_key_pressed))
 	L.SetGlobal("key_down", L.NewFunction(lua_key_down))
 	L.SetGlobal("key_released", L.NewFunction(lua_key_released))

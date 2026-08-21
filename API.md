@@ -41,6 +41,9 @@ string
 // An array of Vectors.
 Vector[]
 
+// An array of i32.
+i32[]
+
 ```
 
 
@@ -1146,6 +1149,99 @@ Draw a outlined (with thickness) round-rectangle on an image.
 
 ```c
 void draw_rectangle_rounded_outline_on_image(Image destination, i32 x, i32 y, i32 width, i32 height, i32 cornerRadius, i32 thickness, Color color)
+```
+
+---
+
+### gui
+
+#### gui_begin_window
+
+Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+
+```c
+bool gui_begin_window(string title, Rectangle rect)
+```
+
+
+#### gui_end_window
+
+End the current GUI window.
+
+```c
+void gui_end_window()
+```
+
+
+#### gui_button
+
+A button. Returns true when it is clicked.
+
+```c
+bool gui_button(string label)
+```
+
+
+#### gui_label
+
+A static text label.
+
+```c
+void gui_label(string text)
+```
+
+
+#### gui_text
+
+A block of wrapping text.
+
+```c
+void gui_text(string text)
+```
+
+
+#### gui_checkbox
+
+A checkbox. Returns the (possibly changed) state.
+
+```c
+bool gui_checkbox(string label, bool state)
+```
+
+
+#### gui_slider
+
+A slider. Returns the (possibly changed) value.
+
+```c
+f32 gui_slider(f32 value, f32 low, f32 high)
+```
+
+
+#### gui_layout_row
+
+Set the current layout row - the column widths (negative for flexible), and the row height.
+
+```c
+void gui_layout_row(i32[] widths, i32 numWidths, i32 height)
+```
+
+
+#### gui_end
+
+Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+
+```c
+void gui_end()
+```
+
+
+#### gui_draw
+
+Draw the GUI to an image (0 is the screen).
+
+```c
+void gui_draw(Image dst)
 ```
 
 ---

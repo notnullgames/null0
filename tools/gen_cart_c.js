@@ -356,6 +356,7 @@ const argTypes = {
   Sound: 'u32',
   Tilemap: 'u32',
   'Vector[]': 'Vector*',
+  'i32[]': 'i32*',
   SfxParams: 'SfxParams'
 }
 const retTypes = {
@@ -365,6 +366,7 @@ const retTypes = {
   Sound: 'u32',
   Tilemap: 'u32',
   'Vector[]': 'Vector*',
+  'i32[]': 'i32*',
   Vector: 'Vector*',
   Dimensions: 'Dimensions*',
   Color: 'Color*',

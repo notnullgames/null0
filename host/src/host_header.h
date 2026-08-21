@@ -18,6 +18,12 @@ static cvector_vector_type(pntr_font *) fonts;
 static cvector_vector_type(pntr_sound *) sounds;
 static cvector_vector_type(cute_tiled_map_t *) tilemaps;
 
+// the shared gui context - carts build UI with the gui_* functions and never
+// see this. host_update feeds input + begins the frame, gui_end (or the end
+// of update) ends it, gui_draw renders it
+static mu_Context *gui_ctx = NULL;
+static bool gui_frame_ended = true;
+
 // host-side allocations in cart memory, freed by cart_gc() after the current
 // cart callback (load/update/event) returns
 static cvector_vector_type(uint32_t) cart_allocations;
@@ -167,6 +173,45 @@ pntr_image *null0_tile_image(cute_tiled_map_t *map, int gid) {
 // render a whole tilemap to a new image
 pntr_image *null0_gen_image_tiled(cute_tiled_map_t *map) {
   return pntr_gen_image_tiled(map, PNTR_WHITE);
+}
+
+// begin a microui window (rect comes from the cart as a Rectangle)
+bool null0_gui_begin_window(char *title, pntr_rectangle rect) {
+  return mu_begin_window(gui_ctx, title, pntr_rectangle_to_mu_rect(rect));
+}
+
+// a checkbox that takes and returns its state by value
+bool null0_gui_checkbox(char *label, bool state) {
+  int s = state ? 1 : 0;
+  mu_checkbox(gui_ctx, label, &s);
+  return s != 0;
+}
+
+// a slider that takes and returns its value by value
+float null0_gui_slider(float value, float low, float high) {
+  mu_Real v = value;
+  mu_slider(gui_ctx, &v, low, high);
+  return (float)v;
+}
+
+// set the current layout row (microui takes the count first, our ABI puts it after the array)
+void null0_gui_layout_row(int32_t *widths, int32_t numWidths, int32_t height) {
+  mu_layout_row(gui_ctx, numWidths, widths, height);
+}
+
+// end the gui frame (also called automatically after update if the cart didn't)
+void null0_gui_end() {
+  if (gui_ctx != NULL && !gui_frame_ended) {
+    mu_end(gui_ctx);
+    gui_frame_ended = true;
+  }
+}
+
+// draw the gui to an image
+void null0_gui_draw(pntr_image *dst) {
+  if (gui_ctx != NULL) {
+    pntr_draw_microui(dst, gui_ctx);
+  }
 }
 
 // SAM TTS function - generates WAV data from text
@@ -349,6 +394,13 @@ uint32_t copy_string_to_cart(char *host_pointer) {
   return ret;
 }
 
+// copy a rectangle from cart to host
+pntr_rectangle copy_rectangle_from_cart(uint32_t rectPtr) {
+  pntr_rectangle ret = {};
+  mem_from_cart(&ret, rectPtr, sizeof(pntr_rectangle));
+  return ret;
+}
+
 // copy a color from cart to host
 pntr_color copy_color_from_cart(uint32_t colorPtr) {
   CartColor c = {};
@@ -481,6 +533,9 @@ bool host_init(pntr_app *app) {
   // there is no "default tilemap", so reserve handle 0 as invalid
   cvector_push_back(tilemaps, (cute_tiled_map_t *)NULL);
 
+  // the shared gui context, rendered with the default font
+  gui_ctx = pntr_load_microui(fonts[0]);
+
   bool ret = cart_init(app, wasmBytes, wasmSize);
   // NOTE: Do NOT free cartBytes here! PHYSFS_mountMemory keeps a pointer to it.
   // It will be freed when PHYSFS_deinit() is called at shutdown.
@@ -491,8 +546,17 @@ bool host_init(pntr_app *app) {
 }
 
 bool host_update(pntr_app *app) {
+  if (gui_ctx != NULL) {
+    // feed input into the gui and begin the frame - carts build UI in update
+    pntr_microui_update(gui_ctx, app);
+    gui_frame_ended = false;
+  }
   cart_update();
   cart_gc();
+  if (gui_ctx != NULL && !gui_frame_ended) {
+    mu_end(gui_ctx);
+    gui_frame_ended = true;
+  }
   return true;
 }
 

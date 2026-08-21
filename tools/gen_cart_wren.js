@@ -52,6 +52,7 @@ const cTypes = {
   MouseButton: 'MouseButton',
   SfxPresetType: 'SfxPresetType',
   Color: 'Color',
+  Rectangle: 'Rectangle',
   SfxParams: 'SfxParams'
 }
 
@@ -91,6 +92,7 @@ const cReaders = {
   MouseButton: (slot) => `(MouseButton)(i32)number_arg(vm, ${slot})`,
   SfxPresetType: (slot) => `(SfxPresetType)(i32)number_arg(vm, ${slot})`,
   Color: (slot) => `color_arg(vm, ${slot})`,
+  Rectangle: (slot) => `rectangle_arg(vm, ${slot})`,
   SfxParams: (slot) => `sfxparams_arg(vm, ${slot})`
 }
 
@@ -115,6 +117,7 @@ const cWriters = {
 // how a wren value is flattened for the foreign call
 const wrenFlatten = {
   Color: (name) => `${name}.value`,
+  Rectangle: (name) => `${name}.toList`,
   SfxParams: (name) => `${name}.toList`
 }
 
@@ -151,6 +154,18 @@ function plan(funcName, args) {
       rawArgs.push(`flat_${name}`)
       flatten.push(`    var flat_${name} = []`, `    for (v in ${name}) {`, `      flat_${name}.add(v.x)`, `      flat_${name}.add(v.y)`, '    }')
       reads.push(`  int ${name}_count = 0;`, `  Vector* ${name} = vectors_arg(vm, ${slot}, &${name}_count);`)
+      callArgs.push(name, `${name}_count`)
+      frees.push(`  free(${name});`)
+      slot++
+      i++
+      continue
+    }
+
+    // a list of integers needs no flattening - it is read directly
+    if (type === 'i32[]') {
+      wrenArgs.push(name)
+      rawArgs.push(name)
+      reads.push(`  int ${name}_count = 0;`, `  i32* ${name} = ints_arg(vm, ${slot}, &${name}_count);`)
       callArgs.push(name, `${name}_count`)
       frees.push(`  free(${name});`)
       slot++
@@ -441,6 +456,42 @@ const c = [
   '  }',
   '  *count = len;',
   '  return points;',
+  '}',
+  '',
+  '// a Rectangle arrives as a list of 4 numbers (x, y, width, height)',
+  'static Rectangle rectangle_arg(WrenVM* vm, int slot) {',
+  '  Rectangle rect = {0, 0, 0, 0};',
+  '  if (wrenGetSlotType(vm, slot) != WREN_TYPE_LIST) {',
+  '    return rect;',
+  '  }',
+  '  int scratch = scratch_slot(vm);',
+  '  rect.x = (i32)list_number(vm, slot, 0, scratch);',
+  '  rect.y = (i32)list_number(vm, slot, 1, scratch);',
+  '  rect.width = (i32)list_number(vm, slot, 2, scratch);',
+  '  rect.height = (i32)list_number(vm, slot, 3, scratch);',
+  '  return rect;',
+  '}',
+  '',
+  '// a list of integers arrives as a wren list of numbers',
+  'static i32* ints_arg(WrenVM* vm, int slot, int* count) {',
+  '  *count = 0;',
+  '  if (wrenGetSlotType(vm, slot) != WREN_TYPE_LIST) {',
+  '    return NULL;',
+  '  }',
+  '  int len = wrenGetListCount(vm, slot);',
+  '  if (len < 1) {',
+  '    return NULL;',
+  '  }',
+  '  i32* ints = malloc(sizeof(i32) * len);',
+  '  if (ints == NULL) {',
+  '    return NULL;',
+  '  }',
+  '  int scratch = scratch_slot(vm);',
+  '  for (int i = 0; i < len; i++) {',
+  '    ints[i] = (i32)list_number(vm, slot, i, scratch);',
+  '  }',
+  '  *count = len;',
+  '  return ints;',
   '}',
   '',
   '// a SfxParams arrives as a list of its members',

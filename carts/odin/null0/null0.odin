@@ -469,6 +469,28 @@ foreign null0_api {
     // Draw a outlined (with thickness) round-rectangle on an image.
     draw_rectangle_rounded_outline_on_image :: proc(destination: Image, x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, thickness: i32, color: Color) ---
 
+    // GUI
+    // Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+    gui_begin_window :: proc(title: cstring, rect: Rectangle) -> bool ---
+    // End the current GUI window.
+    gui_end_window :: proc() ---
+    // A button. Returns true when it is clicked.
+    gui_button :: proc(label: cstring) -> bool ---
+    // A static text label.
+    gui_label :: proc(text: cstring) ---
+    // A block of wrapping text.
+    gui_text :: proc(text: cstring) ---
+    // A checkbox. Returns the (possibly changed) state.
+    gui_checkbox :: proc(label: cstring, state: bool) -> bool ---
+    // A slider. Returns the (possibly changed) value.
+    gui_slider :: proc(value: f32, low: f32, high: f32) -> f32 ---
+    // Set the current layout row - the column widths (negative for flexible), and the row height.
+    gui_layout_row :: proc(widths: [^]i32, numWidths: i32, height: i32) ---
+    // Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+    gui_end :: proc() ---
+    // Draw the GUI to an image (0 is the screen).
+    gui_draw :: proc(dst: Image) ---
+
     // INPUT
     // Has the key been pressed? (tracks unpress/read correctly.)
     key_pressed :: proc(key: Key) -> bool ---

@@ -63,6 +63,7 @@ const argTypes = {
   Rectangle: 'Rectangle',
   Dimensions: 'Dimensions',
   'Vector[]': '[*]const Vector',
+  'i32[]': '[*]const i32',
   SfxParams: '*const SfxParams',
   SfxPresetType: 'SfxPresetType'
 }

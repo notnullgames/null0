@@ -496,6 +496,28 @@ extern "C" {
     /// Draw a outlined (with thickness) round-rectangle on an image.
     pub fn draw_rectangle_rounded_outline_on_image(destination: u32, x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, thickness: i32, color: Color);
 
+    // Gui functions
+    /// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+    pub fn gui_begin_window(title: *const u8, rect: Rectangle) -> bool;
+    /// End the current GUI window.
+    pub fn gui_end_window();
+    /// A button. Returns true when it is clicked.
+    pub fn gui_button(label: *const u8) -> bool;
+    /// A static text label.
+    pub fn gui_label(text: *const u8);
+    /// A block of wrapping text.
+    pub fn gui_text(text: *const u8);
+    /// A checkbox. Returns the (possibly changed) state.
+    pub fn gui_checkbox(label: *const u8, state: bool) -> bool;
+    /// A slider. Returns the (possibly changed) value.
+    pub fn gui_slider(value: f32, low: f32, high: f32) -> f32;
+    /// Set the current layout row - the column widths (negative for flexible), and the row height.
+    pub fn gui_layout_row(widths: *const i32, numWidths: i32, height: i32);
+    /// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+    pub fn gui_end();
+    /// Draw the GUI to an image (0 is the screen).
+    pub fn gui_draw(dst: u32);
+
     // Input functions
     /// Has the key been pressed? (tracks unpress/read correctly.)
     pub fn key_pressed(key: Key) -> bool;

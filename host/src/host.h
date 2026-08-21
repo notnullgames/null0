@@ -19,6 +19,7 @@
 #include "pntr_app.h"
 #include "pntr_app_sfx.h"
 #include "pntr_tiled.h"
+#include "pntr_microui.h"
 #include "sam.h"
 #include "reciter.h"
 #include <stdbool.h>

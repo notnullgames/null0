@@ -352,6 +352,18 @@ proc draw_circle_outline_on_image*(destination: uint32, centerX: cint, centerY: 
 proc draw_polygon_outline_on_image*(destination: uint32, points: ptr Vector, numPoints: cint, thickness: cint, color: Color) {.null0_import.}
 proc draw_rectangle_rounded_outline_on_image*(destination: uint32, x: cint, y: cint, width: cint, height: cint, cornerRadius: cint, thickness: cint, color: Color) {.null0_import.}
 
+# Gui functions
+proc gui_begin_window*(title: cstring, rect: Rectangle): bool {.null0_import.}
+proc gui_end_window*() {.null0_import.}
+proc gui_button*(label: cstring): bool {.null0_import.}
+proc gui_label*(text: cstring) {.null0_import.}
+proc gui_text*(text: cstring) {.null0_import.}
+proc gui_checkbox*(label: cstring, state: bool): bool {.null0_import.}
+proc gui_slider*(value: cfloat, low: cfloat, high: cfloat): cfloat {.null0_import.}
+proc gui_layout_row*(widths: ptr int32, numWidths: cint, height: cint) {.null0_import.}
+proc gui_end*() {.null0_import.}
+proc gui_draw*(dst: uint32) {.null0_import.}
+
 # Input functions
 proc key_pressed*(key: Key): bool {.null0_import.}
 proc key_down*(key: Key): bool {.null0_import.}

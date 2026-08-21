@@ -473,6 +473,28 @@ pub extern "null0" fn draw_polygon_outline_on_image(destination: Image, points: 
 /// Draw a outlined (with thickness) round-rectangle on an image.
 pub extern "null0" fn draw_rectangle_rounded_outline_on_image(destination: Image, x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, thickness: i32, color: Color) void;
 
+// GUI
+/// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+pub extern "null0" fn gui_begin_window(title: [*:0]const u8, rect: Rectangle) bool;
+/// End the current GUI window.
+pub extern "null0" fn gui_end_window() void;
+/// A button. Returns true when it is clicked.
+pub extern "null0" fn gui_button(label: [*:0]const u8) bool;
+/// A static text label.
+pub extern "null0" fn gui_label(text: [*:0]const u8) void;
+/// A block of wrapping text.
+pub extern "null0" fn gui_text(text: [*:0]const u8) void;
+/// A checkbox. Returns the (possibly changed) state.
+pub extern "null0" fn gui_checkbox(label: [*:0]const u8, state: bool) bool;
+/// A slider. Returns the (possibly changed) value.
+pub extern "null0" fn gui_slider(value: f32, low: f32, high: f32) f32;
+/// Set the current layout row - the column widths (negative for flexible), and the row height.
+pub extern "null0" fn gui_layout_row(widths: [*]const i32, numWidths: i32, height: i32) void;
+/// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+pub extern "null0" fn gui_end() void;
+/// Draw the GUI to an image (0 is the screen).
+pub extern "null0" fn gui_draw(dst: Image) void;
+
 // INPUT
 /// Has the key been pressed? (tracks unpress/read correctly.)
 pub extern "null0" fn key_pressed(key: Key) bool;
