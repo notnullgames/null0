@@ -24,9 +24,6 @@ cp -R /src/. "/tmp/${CART_NAME}/"
 cd "/tmp/${CART_NAME}/"
 
 # Make the null0 bindings available
-if [ ! -f null0.zc ]; then
-    cp /usr/local/include/null0.zc .
-fi
 if [ ! -f null0.h ]; then
     cp /usr/local/include/null0.h .
 fi

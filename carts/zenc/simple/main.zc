@@ -2,7 +2,11 @@
 include "null0.h"
 
 export fn load() {
-    // Draw colored bars across the screen (no arrays — zenc v0.4.4 has issues with Color[])
+    // Draw colored bars across the screen, one predefined color constant
+    // at a time (zc v0.4.4 segfaults its own compiler on any cart-authored
+    // declaration naming Color/Vector/etc - see tools/gen_cart_zenc.js;
+    // carts/zenc/demo has a real Vector[] example via the generated
+    // primitive-typed draw_polygon wrapper)
 
     let margin: int = 10;
     let bar_width: int = (SCREEN_WIDTH - margin * 11) / 10;

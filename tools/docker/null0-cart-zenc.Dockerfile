@@ -23,7 +23,6 @@ WORKDIR /src
 ENV PATH="/opt/wasi-sdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ENV WASI_SDK_DIR="/opt/wasi-sdk"
 
-COPY carts/c/null0.h /usr/local/include/
-COPY carts/zenc/null0.zc /usr/local/include/
+COPY carts/zenc/null0.h /usr/local/include/
 
 ENTRYPOINT ["build_zenc.sh"]

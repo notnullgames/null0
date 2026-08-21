@@ -24,7 +24,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [x] [c3](https://c3-lang.org/)
 - [x] [Haxe](https://haxe.org/) (via HL/C - no try/catch, wasm has no exception-handling)
 - [x] Haskell (via [wasm32-wasi-ghc](https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta), reactor mode)
-- [x] [Zen-C](https://github.com/zenc-lang/zenc) (transpiles to C + wasi-sdk - zc 0.4.4's own compiler segfaults on any user declaration naming a C-interop struct type like `Color`/`Vector`, not just arrays; carts route around it with a raw `i32*`/`u8*` shim, see `carts/zenc/demo/polygon_shim.h`)
+- [x] [Zen-C](https://github.com/zenc-lang/zenc) (transpiles to C + wasi-sdk - zc 0.4.4's own compiler segfaults on any user declaration naming a C-interop struct type like `Color`/`Vector`, not just arrays; the 4 functions that need one to be called at all (`draw_polygon` and its siblings) are generated with an all-primitive `i32*`/`u8*` signature instead, see the comment at the top of `tools/gen_cart_zenc.js`)
 - [x] [Jik](https://jik-lang.org/) (also compiles to C + wasi-sdk)
 
 **interpreted**
@@ -84,6 +84,12 @@ investigating - not just "not gotten to yet". Full details in
   model is compiling one program into separate binaries per network node -
   that doesn't map onto a single cart wasm module even before a wasm
   backend would exist.
+
+## distibution
+
+- distibute the null0 file, and have users download the null0 runtime for their platform.
+- name your cart main.null0, and rename null0 (for each platform) to whatever you want
+- you can merge them: `cat null0 mygame.null0 > mygame && chmod +x mygame`
 
 ## todo/ideas
 

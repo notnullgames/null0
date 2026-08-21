@@ -1,12 +1,12 @@
 // null0 Zen-C demo: shapes, a Vector[] polygon, text, and animation state
 //
-// see polygon_shim.h for why draw_polygon is called through a raw-pointer
-// re-import instead of null0.zc's `points: *Vector` signature - zc v0.4.4
-// segfaults its own compiler on any user declaration naming Color/Vector/
-// Rectangle/Dimensions/SfxParams (the same issue carts/zenc/simple/main.zc
-// already works around by never binding those types to a variable).
+// draw_polygon (and its 3 siblings) take `i32* points, u8* color` here
+// instead of `Vector*, Color` - null0.h generates them that way for zc
+// specifically, since zc v0.4.4's own compiler segfaults on any cart-authored
+// declaration naming Color/Vector/Rectangle/Dimensions/SfxParams (see the
+// comment at the top of tools/gen_cart_zenc.js). Plain int/byte arrays like
+// the ones below don't trip it.
 include "null0.h"
-include "polygon_shim.h"
 
 let frame: int = 0;
 
@@ -20,7 +20,7 @@ export fn update() {
     draw_triangle(320, 150, 400, 150, 360, 60, BLUE);
     draw_line(40, 250, 600, 250, LIGHTGRAY);
 
-    // hexagon - the Vector[]/count array-arg call (via the raw shim)
+    // hexagon - the Vector[]/count array-arg call
     let hexagon: int[12];
     hexagon[0] = 460; hexagon[1] = 80;
     hexagon[2] = 520; hexagon[3] = 80;
@@ -30,7 +30,7 @@ export fn update() {
     hexagon[10] = 430; hexagon[11] = 140;
     let purple: byte[4];
     purple[0] = 200; purple[1] = 122; purple[2] = 255; purple[3] = 255;
-    draw_polygon_raw(hexagon, 6, purple);
+    draw_polygon(hexagon, 6, purple);
 
     // a circle sweeping left-to-right across the bottom, proving update()
     // is called repeatedly and state persists
