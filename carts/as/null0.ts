@@ -340,7 +340,7 @@ export const FONT_DEFAULT: u32 = 0;
 export const SCREEN: u32 = 0;
 export const SCREEN_WIDTH: i32 = 640;
 export const SCREEN_HEIGHT: i32 = 480;
-export const NULL0_VERSION: string = "0.0.8";
+export const NULL0_VERSION: string = "0.0.10";
 
 // Import functions from null0 module
 

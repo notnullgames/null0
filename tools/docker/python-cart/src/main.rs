@@ -1634,7 +1634,7 @@ fn register_constants(scope: &Scope, vm: &VirtualMachine) {
     scope.globals.set_item("BLANK", color_to_py(Color { r: 0, g: 0, b: 0, a: 0 }, vm), vm).unwrap();
     scope.globals.set_item("MAGENTA", color_to_py(Color { r: 255, g: 0, b: 255, a: 255 }, vm), vm).unwrap();
     scope.globals.set_item("RAYWHITE", color_to_py(Color { r: 245, g: 245, b: 245, a: 255 }, vm), vm).unwrap();
-    scope.globals.set_item("NULL0_VERSION", vm.ctx.new_str("0.0.8").into(), vm).unwrap();
+    scope.globals.set_item("NULL0_VERSION", vm.ctx.new_str("0.0.10").into(), vm).unwrap();
     scope.globals.set_item("FILTER_NEARESTNEIGHBOR", vm.ctx.new_int(0).into(), vm).unwrap();
     scope.globals.set_item("FILTER_BILINEAR", vm.ctx.new_int(1).into(), vm).unwrap();
     scope.globals.set_item("FILTER_SMOOTH", vm.ctx.new_int(2).into(), vm).unwrap();

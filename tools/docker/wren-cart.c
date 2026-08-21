@@ -846,7 +846,7 @@ static const char* NULL0_WREN =
   "var RAYWHITE = Color.new(245, 245, 245, 255)\n"
   "\n"
   "// The current tagged version of null0 engine\n"
-  "var NULL0_VERSION = \"0.0.8\"\n"
+  "var NULL0_VERSION = \"0.0.10\"\n"
   "\n"
   "// Potential image-filtering techniques for scale/etc.\n"
   "var FILTER_NEARESTNEIGHBOR = 0\n"
