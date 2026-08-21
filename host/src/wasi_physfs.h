@@ -493,43 +493,19 @@ static wasi_errno_t wasi_clock_res_get(wasm_exec_env_t exec_env, wasi_clockid_t 
 #endif
 }
 
+// carts are sandboxed: they get no environment variables at all, not the
+// host process's real ones (which may hold secrets - API keys, tokens,
+// paths - the host had no business exposing to guest code). A cart's own
+// runtime may still *reference* an env var (eg. GHC's RTS checks $PWD on
+// startup) - that's just it consulting an empty environment, which is the
+// correct sandboxed behavior, same as one preopen ("/") for the filesystem.
 static wasi_errno_t wasi_environ_sizes_get(wasm_exec_env_t exec_env, uint32_t *environ_count_app, uint32_t *environ_buf_size_app) {
-  extern char **environ;
-  uint32_t count = 0;
-  uint32_t buf_size = 0;
-  char **env_ptr = environ;
-
-  while (*env_ptr) {
-    count++;
-    buf_size += strlen(*env_ptr) + 1;
-    env_ptr++;
-  }
-
-  *environ_count_app = count;
-  *environ_buf_size_app = buf_size;
+  *environ_count_app = 0;
+  *environ_buf_size_app = 0;
   return WASI_ESUCCESS;
 }
 
 static wasi_errno_t wasi_environ_get(wasm_exec_env_t exec_env, uint32_t *environ_offsets, char *environ_buf) {
-  // environ_offsets/environ_buf are already native pointers here (WAMR
-  // translates '*'-typed native-symbol params before calling us); we only
-  // need to translate the app-space *value* we compute for environ_offsets[i]
-  wasm_module_inst_t module_inst = wasm_runtime_get_module_inst(exec_env);
-  extern char **environ;
-  char **env_ptr = environ;
-  uint32_t environ_buf_app = wasm_runtime_addr_native_to_app(module_inst, environ_buf);
-  uint32_t buf_offset = 0;
-  uint32_t i = 0;
-
-  while (*env_ptr) {
-    size_t len = strlen(*env_ptr) + 1;
-    environ_offsets[i] = environ_buf_app + buf_offset;
-    memcpy(environ_buf + buf_offset, *env_ptr, len);
-    buf_offset += len;
-    env_ptr++;
-    i++;
-  }
-
   return WASI_ESUCCESS;
 }
 

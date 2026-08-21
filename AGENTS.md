@@ -135,6 +135,11 @@ The native host runs WAMR's **fast interpreter**, with these consequences:
 - **WASI is a hand-written subset** (`host/src/wasi_physfs.h`) backed by physfs.
   One preopen, `/`, and **no working directory** - go's `os.ReadFile("main.lua")`
   fails, `os.ReadFile("/main.lua")` works. wasi-libc's relative paths do work.
+- **`environ_get`/`environ_sizes_get` always report zero variables**
+  (`wasi_physfs.h`) - carts get no environment, sandboxed like the filesystem.
+  A runtime whose libc trusts `$PWD` for `chdir`/`getcwd` (GHC's RTS does, on
+  startup) just sees it unset and no-ops, rather than chdir'ing to some real
+  host path that isn't the cart's one preopened `/`.
 - Writes go to a per-cart pref dir (`fs_set_write_dir` in `fs.c`), mounted last
   so cart files still win. `~/Library/Application Support/<cart>/` on mac,
   `~/.local/share/null0/<cart>/` on linux.
