@@ -22,8 +22,6 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [x] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
 - [x] [odin](https://odin-lang.org/)
 - [x] [c3](https://c3-lang.org/)
-- [ ] Kotlin
-- [ ] dart
 - [ ] R
 - [ ] [julia](https://github.com/tshort/WebAssemblyCompiler.jl)
 - [ ] Haskell
@@ -40,8 +38,31 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [x] python (interpreted, via RustPython)
 - [x] lua (interpreted, via GopherLua)
 - [x] [wren](https://wren.io)
-- [ ] [lisp](https://github.com/janet-lang/janet)
 - [ ] [cyber](https://github.com/fubark/cyber)
+
+**probably will not support**
+
+These have a concrete technical reason they don't work today, found while
+investigating - not just "not gotten to yet". Full details in
+[the add-cart-language skill](.claude/skills/add-cart-language/SKILL.md).
+
+- **Kotlin/Wasm** - close, but blocked by a real WAMR bug, not by policy. Its
+  `wasm-wasi` target is standalone (no JS needed) and compiles to real wasm-GC
+  structs, which null0's host now supports. But its stdlib relies on a wasm-GC
+  array with `anyref` elements, and WAMR's loader unconditionally rejects that
+  ("Not support using anyref in array element type"). It also needs the
+  `-Xwasm-use-traps-instead-of-exceptions` compiler flag, since WAMR's fast
+  interpreter can't be built with exception-handling support at all (a hard
+  incompatibility, not a missing flag). Worth retrying if WAMR fixes the
+  anyref-array gap upstream.
+- **dart** (dart2wasm) - its default output isn't standalone wasm: it imports
+  a `dart2wasm` JS namespace and the JS-string-builtins proposal, both only
+  servable by a real JS engine. Same problem as emscripten-style carts.
+- **[janet](https://github.com/janet-lang/janet)**, and lisps/scripting
+  languages implemented in C generally - they need setjmp/longjmp, which
+  needs the wasm exception-handling proposal. See the Kotlin point above:
+  WAMR's fast interpreter and exception-handling don't build together at all,
+  so no toolchain flag gets around it.
 
 ## todo/ideas
 
