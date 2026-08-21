@@ -38,7 +38,7 @@ change will vanish, and reviewers will assume the generator produced it:
 - `host/src/host.c` (from `tools/gen_host.js`)
 - `API.md` (from `tools/gen_api_docs.js`)
 - `carts/*/null0.*` - every language's bindings (`null0.h`, `null0.zig`, `null0.wren`, `null0.lua`, ...)
-- `tools/docker/quickjs-cart.c`, `tools/docker/wren-cart.c`, `tools/docker/lua-cart/main.go`, `tools/docker/python-cart/src/main.rs`
+- `tools/docker/quickjs-cart.c`, `tools/docker/wren-cart.c`, `tools/docker/lua-cart/main.go`, `tools/docker/python-cart/src/main.rs`, `tools/docker/haxe-cart/null0_shim.c`
 
 Hand-written host code lives in `host_header.h` (helpers, memory copying,
 `add_image`/`add_font`/`add_sound`), `host.h` (the `HOST_FUNCTION` macro),
@@ -145,7 +145,10 @@ There are two shapes. Copy the closest existing one instead of inventing.
 
 **Compiled** (c3, odin, zig, ...): the cart source compiles straight to wasm.
 The generator writes a header of `import`-declarations; the cart exports
-`load`/`update`/... directly.
+`load`/`update`/... directly. (haxe is a hybrid: the cart compiles to wasm,
+but via the HL/C target, so it also links a trimmed libhl runtime and a
+generated C shim from `tools/docker/haxe-cart/`; callbacks are closures
+registered through `Null0.onUpdate = ...` rather than exports.)
 
 **Interpreted** (js, python, wren, lua): `main.wasm` is an _interpreter_ baked
 into the docker image at image-build time; the cart ships its script next to it.

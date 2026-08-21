@@ -20,6 +20,7 @@ This directory is docker-builders of different carts.
 - `konsumer/null0-cart-wren` (interpreted)
 - `konsumer/null0-cart-lua` (interpreted, via GopherLua)
 - `konsumer/null0-cart-python` (interpreted, via RustPython)
+- `konsumer/null0-cart-haxe` (via HL/C + wasi-sdk, linux/amd64 only)
 
 ### how carts get their bindings
 
@@ -96,6 +97,7 @@ docker build -t konsumer/null0-cart-rust . -f tools/docker/null0-cart-rust.Docke
 docker build -t konsumer/null0-cart-wren . -f tools/docker/null0-cart-wren.Dockerfile
 docker build -t konsumer/null0-cart-lua . -f tools/docker/null0-cart-lua.Dockerfile
 docker build -t konsumer/null0-cart-python . -f tools/docker/null0-cart-python.Dockerfile
+docker build --platform linux/amd64 -t konsumer/null0-cart-haxe . -f tools/docker/null0-cart-haxe.Dockerfile
 
 # build & publish (needed on API change)
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-c . -f tools/docker/null0-cart-c.Dockerfile
@@ -116,6 +118,7 @@ docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-wren . -f tools/docker/null0-cart-wren.Dockerfile
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-lua . -f tools/docker/null0-cart-lua.Dockerfile
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-python . -f tools/docker/null0-cart-python.Dockerfile
+docker buildx build --push --platform linux/amd64 -t konsumer/null0-cart-haxe . -f tools/docker/null0-cart-haxe.Dockerfile
 
 # test
 docker run -it -v ./carts/c/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-c colorbars_c
@@ -151,4 +154,6 @@ docker run -it -v ./carts/rust/examples/simple:/src -v ./build/carts:/out konsum
 docker run -it -v ./carts/python/simple:/src -v ./build/carts:/out konsumer/null0-cart-python simple_python
 docker run -it -v ./carts/wren/simple:/src -v ./build/carts:/out konsumer/null0-cart-wren simple_wren
 docker run -it -v ./carts/lua/simple:/src -v ./build/carts:/out konsumer/null0-cart-lua simple_lua
+
+docker run -it --platform linux/amd64 -v ./carts/haxe/simple:/src -v ./build/carts:/out konsumer/null0-cart-haxe simple_haxe
 ```
