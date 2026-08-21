@@ -1,0 +1,508 @@
+// null0 - Jik bindings for the null0 fantasy console
+//
+// Jik types (int, double, char, bool) don't directly map to null0's
+// ABI (u8, f32, u32, u64). This file provides C wrappers in @embed
+// blocks to bridge the gap. Include what you need.
+//
+// Usage:
+//
+// ```jik
+// // Copy the wrappers you need from null0.jik into your cart's @embed block,
+// // or include this file and use the provided functions.
+//
+// @embed{C_END}
+// #include "null0.h"
+// C_END
+//
+// extern func clear as clear(r: int, g: int, b: int, a: int) -> void
+// // ... etc
+// ```
+
+// Embed the C header for the underlying C implementations.
+@embed{C_END}
+#include "null0.h"
+
+// C wrappers to bridge Jik's type system (int/double/char/bool)
+// to null0's ABI (u8, f32, u32, u64).
+// Each wrapper takes Jik-compatible types and calls the real null0 function.
+
+C_END
+
+// Handle types (u32 indices into host vectors)
+alias Image = int
+alias Font = int
+alias Sound = int
+alias Tilemap = int
+
+
+// NOTE: Jik does not have u8, f32, u32, or u64 types.
+// Struct returns use C wrappers. See the generated @embed blocks.
+// For a working example, see carts/jik/simple/main.jik
+
+
+// Potential image-filtering techniques for scale/etc.
+// FILTER_NEARESTNEIGHBOR = 0  (use as int)
+// FILTER_BILINEAR = 1  (use as int)
+// FILTER_SMOOTH = 2  (use as int)
+
+// Represents a Sfx preset type.
+// SFX_COIN = 0  (use as int)
+// SFX_LASER = 1  (use as int)
+// SFX_EXPLOSION = 2  (use as int)
+// SFX_POWERUP = 3  (use as int)
+// SFX_HURT = 4  (use as int)
+// SFX_JUMP = 5  (use as int)
+// SFX_SELECT = 6  (use as int)
+// SFX_SYNTH = 7  (use as int)
+
+// Represents a keyboard key.
+// KEY_INVALID = 0  (use as int)
+// KEY_SPACE = 32  (use as int)
+// KEY_APOSTROPHE = 39  (use as int)
+// KEY_COMMA = 44  (use as int)
+// KEY_MINUS = 45  (use as int)
+// KEY_PERIOD = 46  (use as int)
+// KEY_SLASH = 47  (use as int)
+// KEY_0 = 48  (use as int)
+// KEY_1 = 49  (use as int)
+// KEY_2 = 50  (use as int)
+// KEY_3 = 51  (use as int)
+// KEY_4 = 52  (use as int)
+// KEY_5 = 53  (use as int)
+// KEY_6 = 54  (use as int)
+// KEY_7 = 55  (use as int)
+// KEY_8 = 56  (use as int)
+// KEY_9 = 57  (use as int)
+// KEY_SEMICOLON = 59  (use as int)
+// KEY_EQUAL = 61  (use as int)
+// KEY_A = 65  (use as int)
+// KEY_B = 66  (use as int)
+// KEY_C = 67  (use as int)
+// KEY_D = 68  (use as int)
+// KEY_E = 69  (use as int)
+// KEY_F = 70  (use as int)
+// KEY_G = 71  (use as int)
+// KEY_H = 72  (use as int)
+// KEY_I = 73  (use as int)
+// KEY_J = 74  (use as int)
+// KEY_K = 75  (use as int)
+// KEY_L = 76  (use as int)
+// KEY_M = 77  (use as int)
+// KEY_N = 78  (use as int)
+// KEY_O = 79  (use as int)
+// KEY_P = 80  (use as int)
+// KEY_Q = 81  (use as int)
+// KEY_R = 82  (use as int)
+// KEY_S = 83  (use as int)
+// KEY_T = 84  (use as int)
+// KEY_U = 85  (use as int)
+// KEY_V = 86  (use as int)
+// KEY_W = 87  (use as int)
+// KEY_X = 88  (use as int)
+// KEY_Y = 89  (use as int)
+// KEY_Z = 90  (use as int)
+// KEY_LEFT_BRACKET = 91  (use as int)
+// KEY_BACKSLASH = 92  (use as int)
+// KEY_RIGHT_BRACKET = 93  (use as int)
+// KEY_GRAVE_ACCENT = 96  (use as int)
+// KEY_WORLD_1 = 161  (use as int)
+// KEY_WORLD_2 = 162  (use as int)
+// KEY_ESCAPE = 256  (use as int)
+// KEY_ENTER = 257  (use as int)
+// KEY_TAB = 258  (use as int)
+// KEY_BACKSPACE = 259  (use as int)
+// KEY_INSERT = 260  (use as int)
+// KEY_DELETE = 261  (use as int)
+// KEY_RIGHT = 262  (use as int)
+// KEY_LEFT = 263  (use as int)
+// KEY_DOWN = 264  (use as int)
+// KEY_UP = 265  (use as int)
+// KEY_PAGE_UP = 266  (use as int)
+// KEY_PAGE_DOWN = 267  (use as int)
+// KEY_HOME = 268  (use as int)
+// KEY_END = 269  (use as int)
+// KEY_CAPS_LOCK = 280  (use as int)
+// KEY_SCROLL_LOCK = 281  (use as int)
+// KEY_NUM_LOCK = 282  (use as int)
+// KEY_PRINT_SCREEN = 283  (use as int)
+// KEY_PAUSE = 284  (use as int)
+// KEY_F1 = 290  (use as int)
+// KEY_F2 = 291  (use as int)
+// KEY_F3 = 292  (use as int)
+// KEY_F4 = 293  (use as int)
+// KEY_F5 = 294  (use as int)
+// KEY_F6 = 295  (use as int)
+// KEY_F7 = 296  (use as int)
+// KEY_F8 = 297  (use as int)
+// KEY_F9 = 298  (use as int)
+// KEY_F10 = 299  (use as int)
+// KEY_F11 = 300  (use as int)
+// KEY_F12 = 301  (use as int)
+// KEY_F13 = 302  (use as int)
+// KEY_F14 = 303  (use as int)
+// KEY_F15 = 304  (use as int)
+// KEY_F16 = 305  (use as int)
+// KEY_F17 = 306  (use as int)
+// KEY_F18 = 307  (use as int)
+// KEY_F19 = 308  (use as int)
+// KEY_F20 = 309  (use as int)
+// KEY_F21 = 310  (use as int)
+// KEY_F22 = 311  (use as int)
+// KEY_F23 = 312  (use as int)
+// KEY_F24 = 313  (use as int)
+// KEY_F25 = 314  (use as int)
+// KEY_KP_0 = 320  (use as int)
+// KEY_KP_1 = 321  (use as int)
+// KEY_KP_2 = 322  (use as int)
+// KEY_KP_3 = 323  (use as int)
+// KEY_KP_4 = 324  (use as int)
+// KEY_KP_5 = 325  (use as int)
+// KEY_KP_6 = 326  (use as int)
+// KEY_KP_7 = 327  (use as int)
+// KEY_KP_8 = 328  (use as int)
+// KEY_KP_9 = 329  (use as int)
+// KEY_KP_DECIMAL = 330  (use as int)
+// KEY_KP_DIVIDE = 331  (use as int)
+// KEY_KP_MULTIPLY = 332  (use as int)
+// KEY_KP_SUBTRACT = 333  (use as int)
+// KEY_KP_ADD = 334  (use as int)
+// KEY_KP_ENTER = 335  (use as int)
+// KEY_KP_EQUAL = 336  (use as int)
+// KEY_LEFT_SHIFT = 340  (use as int)
+// KEY_LEFT_CONTROL = 341  (use as int)
+// KEY_LEFT_ALT = 342  (use as int)
+// KEY_LEFT_SUPER = 343  (use as int)
+// KEY_RIGHT_SHIFT = 344  (use as int)
+// KEY_RIGHT_CONTROL = 345  (use as int)
+// KEY_RIGHT_ALT = 346  (use as int)
+// KEY_RIGHT_SUPER = 347  (use as int)
+// KEY_MENU = 348  (use as int)
+
+// Represents a gamepad button.
+// GAMEPAD_BUTTON_UNKNOWN = 0  (use as int)
+// GAMEPAD_BUTTON_UP = 1  (use as int)
+// GAMEPAD_BUTTON_RIGHT = 2  (use as int)
+// GAMEPAD_BUTTON_DOWN = 3  (use as int)
+// GAMEPAD_BUTTON_LEFT = 4  (use as int)
+// GAMEPAD_BUTTON_Y = 5  (use as int)
+// GAMEPAD_BUTTON_B = 6  (use as int)
+// GAMEPAD_BUTTON_A = 7  (use as int)
+// GAMEPAD_BUTTON_X = 8  (use as int)
+// GAMEPAD_BUTTON_LEFT_SHOULDER = 9  (use as int)
+// GAMEPAD_BUTTON_LEFT_TRIGGER = 10  (use as int)
+// GAMEPAD_BUTTON_RIGHT_SHOULDER = 11  (use as int)
+// GAMEPAD_BUTTON_RIGHT_TRIGGER = 12  (use as int)
+// GAMEPAD_BUTTON_SELECT = 13  (use as int)
+// GAMEPAD_BUTTON_MENU = 14  (use as int)
+// GAMEPAD_BUTTON_START = 15  (use as int)
+// GAMEPAD_BUTTON_LEFT_THUMB = 16  (use as int)
+// GAMEPAD_BUTTON_RIGHT_THUMB = 17  (use as int)
+
+// Represents a mouse button.
+// MOUSE_BUTTON_UNKNOWN = 0  (use as int)
+// MOUSE_BUTTON_LEFT = 1  (use as int)
+// MOUSE_BUTTON_RIGHT = 2  (use as int)
+// MOUSE_BUTTON_MIDDLE = 3  (use as int)
+
+// Constants (use these values as int literals)
+// SCREEN = 0
+// SCREEN_WIDTH = 640
+// SCREEN_HEIGHT = 480
+// FONT_DEFAULT = 0
+
+// Color values (pass r,g,b,a as individual int arguments)
+// LIGHTGRAY: r=200, g=200, b=200, a=255
+// GRAY: r=130, g=130, b=130, a=255
+// DARKGRAY: r=80, g=80, b=80, a=255
+// YELLOW: r=253, g=249, b=0, a=255
+// GOLD: r=255, g=203, b=0, a=255
+// ORANGE: r=255, g=161, b=0, a=255
+// PINK: r=255, g=109, b=194, a=255
+// RED: r=230, g=41, b=55, a=255
+// MAROON: r=190, g=33, b=55, a=255
+// GREEN: r=0, g=228, b=48, a=255
+// LIME: r=0, g=158, b=47, a=255
+// DARKGREEN: r=0, g=117, b=44, a=255
+// SKYBLUE: r=102, g=191, b=255, a=255
+// BLUE: r=0, g=121, b=241, a=255
+// DARKBLUE: r=0, g=82, b=172, a=255
+// PURPLE: r=200, g=122, b=255, a=255
+// VIOLET: r=135, g=60, b=190, a=255
+// DARKPURPLE: r=112, g=31, b=126, a=255
+// BEIGE: r=211, g=176, b=131, a=255
+// BROWN: r=127, g=106, b=79, a=255
+// DARKBROWN: r=76, g=63, b=47, a=255
+// WHITE: r=255, g=255, b=255, a=255
+// BLACK: r=0, g=0, b=0, a=255
+// BLANK: r=0, g=0, b=0, a=0
+// MAGENTA: r=255, g=0, b=255, a=255
+// RAYWHITE: r=245, g=245, b=245, a=255
+
+// === EXTERN FUNCTIONS ===
+// Functions that take/return structs need C wrappers to bridge types.
+// Copy the @embed wrappers you need into your cart.
+
+// COLORS
+// Tint a color with another color.
+// extern func color_tint as color_tint(color: int, tint: int) -> int
+// Fade a color.
+// extern func color_fade as color_fade(color: int, alpha: double) -> int
+// Change the brightness of a color.
+// extern func color_brightness as color_brightness(color: int, factor: double) -> int
+// Invert a color.
+// extern func color_invert as color_invert(color: int) -> int
+// Blend 2 colors together.
+// extern func color_alpha_blend as color_alpha_blend(dst: int, src: int) -> int
+// Change contrast of a color.
+// extern func color_contrast as color_contrast(color: int, contrast: double) -> int
+// Interpolate colors.
+// extern func color_bilinear_interpolate as color_bilinear_interpolate(color00: int, color01: int, color10: int, color11: int, coordinateX: double, coordinateY: double) -> int
+// GRAPHICS
+// Create a new blank image.
+// extern func new_image as new_image(width: int, height: int, color: int) -> Image
+// Copy an image to a new image.
+// extern func image_copy as image_copy(image: Image) -> Image
+// Create an image from a region of another image.
+// extern func image_subimage as image_subimage(image: Image, x: int, y: int, width: int, height: int) -> Image
+// Clear the screen.
+// extern func clear as clear(color: int) -> void
+// Draw a single pixel on the screen.
+// extern func draw_point as draw_point(x: int, y: int, color: int) -> void
+// Draw a line on the screen.
+// extern func draw_line as draw_line(startPosX: int, startPosY: int, endPosX: int, endPosY: int, color: int) -> void
+// Draw a filled rectangle on the screen.
+// extern func draw_rectangle as draw_rectangle(posX: int, posY: int, width: int, height: int, color: int) -> void
+// Draw a filled triangle on the screen.
+// extern func draw_triangle as draw_triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, color: int) -> void
+// Draw a filled ellipse on the screen.
+// extern func draw_ellipse as draw_ellipse(centerX: int, centerY: int, radiusX: int, radiusY: int, color: int) -> void
+// Draw a filled circle on the screen.
+// extern func draw_circle as draw_circle(centerX: int, centerY: int, radius: int, color: int) -> void
+// Draw a filled polygon on the screen.
+// extern func draw_polygon as draw_polygon(points: *int, numPoints: int, color: int) -> void
+// Draw a filled arc on the screen.
+// extern func draw_arc as draw_arc(centerX: int, centerY: int, radius: double, startAngle: double, endAngle: double, segments: int, color: int) -> void
+// Draw a filled round-rectangle on the screen.
+// extern func draw_rectangle_rounded as draw_rectangle_rounded(x: int, y: int, width: int, height: int, cornerRadius: int, color: int) -> void
+// Draw an image on the screen.
+// extern func draw_image as draw_image(src: Image, posX: int, posY: int) -> void
+// Draw a tinted image on the screen.
+// extern func draw_image_tint as draw_image_tint(src: Image, posX: int, posY: int, tint: int) -> void
+// Draw an image, rotated, on the screen.
+// extern func draw_image_rotated as draw_image_rotated(src: Image, posX: int, posY: int, degrees: double, offsetX: double, offsetY: double, filter: int) -> void
+// Draw an image, flipped, on the screen.
+// extern func draw_image_flipped as draw_image_flipped(src: Image, posX: int, posY: int, flipHorizontal: bool, flipVertical: bool, flipDiagonal: bool) -> void
+// Draw an image, scaled, on the screen.
+// extern func draw_image_scaled as draw_image_scaled(src: Image, posX: int, posY: int, scaleX: double, scaleY: double, offsetX: double, offsetY: double, filter: int) -> void
+// Draw some text on the screen.
+// extern func draw_text as draw_text(font: Font, text: *char, posX: int, posY: int, color: int) -> void
+// Save an image to persistant storage.
+// extern func save_image as save_image(image: Image, filename: *char) -> void
+// Load an image from a file in cart.
+// extern func load_image as load_image(filename: *char) -> Image
+// Resize an image, return copy.
+// extern func image_resize as image_resize(image: Image, newWidth: int, newHeight: int, filter: int) -> Image
+// Scale an image, return copy.
+// extern func image_scale as image_scale(image: Image, scaleX: double, scaleY: double, filter: int) -> Image
+// Replace a color in an image, in-place.
+// extern func image_color_replace as image_color_replace(image: Image, color: int, replace: int) -> void
+// Tint a color in an image, in-place.
+// extern func image_color_tint as image_color_tint(image: Image, color: int) -> void
+// Fade a color in an image, in-place.
+// extern func image_color_fade as image_color_fade(image: Image, alpha: double) -> void
+// Copy a font to a new font.
+// extern func font_copy as font_copy(font: Font) -> Font
+// Scale a font, return a new font.
+// extern func font_scale as font_scale(font: Font, scaleX: double, scaleY: double, filter: int) -> Font
+// Load a BMF font from a file in cart.
+// extern func load_font_bmf as load_font_bmf(filename: *char, characters: *char) -> Font
+// Load a BMF font from an image.
+// extern func load_font_bmf_from_image as load_font_bmf_from_image(image: Image, characters: *char) -> Font
+// Measure the size of some text.
+// extern func measure_text as measure_text(font: Font, text: *char, textLength: int) -> int
+// Meaure an image (use 0 for screen).
+// extern func measure_image as measure_image(image: Image) -> int
+// Load a TTY font from a file in cart.
+// extern func load_font_tty as load_font_tty(filename: *char, glyphWidth: int, glyphHeight: int, characters: *char) -> Font
+// Load a TTY font from an image.
+// extern func load_font_tty_from_image as load_font_tty_from_image(image: Image, glyphWidth: int, glyphHeight: int, characters: *char) -> Font
+// Load a TTF font from a file in cart.
+// extern func load_font_ttf as load_font_ttf(filename: *char, fontSize: int) -> Font
+// Invert the colors in an image, in-place.
+// extern func image_color_invert as image_color_invert(image: Image) -> void
+// Calculate a rectangle representing the available alpha border in an image.
+// extern func image_alpha_border as image_alpha_border(image: Image, threshold: double) -> int
+// Crop an image, in-place.
+// extern func image_crop as image_crop(image: Image, x: int, y: int, width: int, height: int) -> void
+// Crop an image based on the alpha border, in-place.
+// extern func image_alpha_crop as image_alpha_crop(image: Image, threshold: double) -> void
+// Adjust the brightness of an image, in-place.
+// extern func image_color_brightness as image_color_brightness(image: Image, factor: double) -> void
+// Flip an image, in-place.
+// extern func image_flip as image_flip(image: Image, horizontal: bool, vertical: bool) -> void
+// Change the contrast of an image, in-place.
+// extern func image_color_contrast as image_color_contrast(image: Image, contrast: double) -> void
+// Use an image as an alpha-mask on another image.
+// extern func image_alpha_mask as image_alpha_mask(image: Image, alphaMask: Image, posX: int, posY: int) -> void
+// Create a new image, rotating another image.
+// extern func image_rotate as image_rotate(image: Image, degrees: double, filter: int) -> Image
+// Create a new image of a gradient.
+// extern func image_gradient as image_gradient(width: int, height: int, topLeft: int, topRight: int, bottomLeft: int, bottomRight: int) -> Image
+// Unload an image.
+// extern func unload_image as unload_image(image: Image) -> void
+// Unload a font.
+// extern func unload_font as unload_font(font: Font) -> void
+// Clear an image.
+// extern func clear_image as clear_image(destination: Image, color: int) -> void
+// Draw a single pixel on an image.
+// extern func draw_point_on_image as draw_point_on_image(destination: Image, x: int, y: int, color: int) -> void
+// Draw a line on an image.
+// extern func draw_line_on_image as draw_line_on_image(destination: Image, startPosX: int, startPosY: int, endPosX: int, endPosY: int, color: int) -> void
+// Draw a filled rectangle on an image.
+// extern func draw_rectangle_on_image as draw_rectangle_on_image(destination: Image, posX: int, posY: int, width: int, height: int, color: int) -> void
+// Draw a filled triangle on an image.
+// extern func draw_triangle_on_image as draw_triangle_on_image(destination: Image, x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, color: int) -> void
+// Draw a filled ellipse on an image.
+// extern func draw_ellipse_on_image as draw_ellipse_on_image(destination: Image, centerX: int, centerY: int, radiusX: int, radiusY: int, color: int) -> void
+// Draw a circle on an image.
+// extern func draw_circle_on_image as draw_circle_on_image(destination: Image, centerX: int, centerY: int, radius: int, color: int) -> void
+// Draw a filled polygon on an image.
+// extern func draw_polygon_on_image as draw_polygon_on_image(destination: Image, points: *int, numPoints: int, color: int) -> void
+// Draw a filled round-rectangle on an image.
+// extern func draw_rectangle_rounded_on_image as draw_rectangle_rounded_on_image(destination: Image, x: int, y: int, width: int, height: int, cornerRadius: int, color: int) -> void
+// Draw an image on an image.
+// extern func draw_image_on_image as draw_image_on_image(destination: Image, src: Image, posX: int, posY: int) -> void
+// Draw a tinted image on an image.
+// extern func draw_image_tint_on_image as draw_image_tint_on_image(destination: Image, src: Image, posX: int, posY: int, tint: int) -> void
+// Draw an image, rotated, on an image.
+// extern func draw_image_rotated_on_image as draw_image_rotated_on_image(destination: Image, src: Image, posX: int, posY: int, degrees: double, offsetX: double, offsetY: double, filter: int) -> void
+// Draw an image, flipped, on an image.
+// extern func draw_image_flipped_on_image as draw_image_flipped_on_image(destination: Image, src: Image, posX: int, posY: int, flipHorizontal: bool, flipVertical: bool, flipDiagonal: bool) -> void
+// Draw an image, scaled, on an image.
+// extern func draw_image_scaled_on_image as draw_image_scaled_on_image(destination: Image, src: Image, posX: int, posY: int, scaleX: double, scaleY: double, offsetX: double, offsetY: double, filter: int) -> void
+// Draw some text on an image.
+// extern func draw_text_on_image as draw_text_on_image(destination: Image, font: Font, text: *char, posX: int, posY: int, color: int) -> void
+// Draw a outlined (with thickness) rectangle on the screen.
+// extern func draw_rectangle_outline as draw_rectangle_outline(posX: int, posY: int, width: int, height: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) triangle on the screen.
+// extern func draw_triangle_outline as draw_triangle_outline(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) ellipse on the screen.
+// extern func draw_ellipse_outline as draw_ellipse_outline(centerX: int, centerY: int, radiusX: int, radiusY: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) circle on the screen.
+// extern func draw_circle_outline as draw_circle_outline(centerX: int, centerY: int, radius: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) polygon on the screen.
+// extern func draw_polygon_outline as draw_polygon_outline(points: *int, numPoints: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) arc on the screen.
+// extern func draw_arc_outline as draw_arc_outline(centerX: int, centerY: int, radius: double, startAngle: double, endAngle: double, segments: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) round-rectangle on the screen.
+// extern func draw_rectangle_rounded_outline as draw_rectangle_rounded_outline(x: int, y: int, width: int, height: int, cornerRadius: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) rectangle on an image.
+// extern func draw_rectangle_outline_on_image as draw_rectangle_outline_on_image(destination: Image, posX: int, posY: int, width: int, height: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) triangle on an image.
+// extern func draw_triangle_outline_on_image as draw_triangle_outline_on_image(destination: Image, x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) ellipse on an image.
+// extern func draw_ellipse_outline_on_image as draw_ellipse_outline_on_image(destination: Image, centerX: int, centerY: int, radiusX: int, radiusY: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) circle on an image.
+// extern func draw_circle_outline_on_image as draw_circle_outline_on_image(destination: Image, centerX: int, centerY: int, radius: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) polygon on an image.
+// extern func draw_polygon_outline_on_image as draw_polygon_outline_on_image(destination: Image, points: *int, numPoints: int, thickness: int, color: int) -> void
+// Draw a outlined (with thickness) round-rectangle on an image.
+// extern func draw_rectangle_rounded_outline_on_image as draw_rectangle_rounded_outline_on_image(destination: Image, x: int, y: int, width: int, height: int, cornerRadius: int, thickness: int, color: int) -> void
+// GUI
+// Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
+// extern func gui_begin_window as gui_begin_window(title: *char, rect: int) -> bool
+// End the current GUI window.
+// extern func gui_end_window as gui_end_window() -> void
+// A button. Returns true when it is clicked.
+// extern func gui_button as gui_button(label: *char) -> bool
+// A static text label.
+// extern func gui_label as gui_label(text: *char) -> void
+// A block of wrapping text.
+// extern func gui_text as gui_text(text: *char) -> void
+// A checkbox. Returns the (possibly changed) state.
+// extern func gui_checkbox as gui_checkbox(label: *char, state: bool) -> bool
+// A slider. Returns the (possibly changed) value.
+// extern func gui_slider as gui_slider(value: double, low: double, high: double) -> double
+// Set the current layout row - the column widths (negative for flexible), and the row height.
+// extern func gui_layout_row as gui_layout_row(widths: *int, numWidths: int, height: int) -> void
+// Finish building the GUI for this frame. Called automatically at the end of update if you do not call it.
+// extern func gui_end as gui_end() -> void
+// Draw the GUI to an image (0 is the screen).
+// extern func gui_draw as gui_draw(dst: Image) -> void
+// INPUT
+// Has the key been pressed? (tracks unpress/read correctly.)
+// extern func key_pressed as key_pressed(key: int) -> bool
+// Is the key currently down?
+// extern func key_down as key_down(key: int) -> bool
+// Has the key been released? (tracks press/read correctly.)
+// extern func key_released as key_released(key: int) -> bool
+// Is the key currently up?
+// extern func key_up as key_up(key: int) -> bool
+// Has the button been pressed? (tracks unpress/read correctly.)
+// extern func gamepad_button_pressed as gamepad_button_pressed(gamepad: int, button: int) -> bool
+// Is the button currently down?
+// extern func gamepad_button_down as gamepad_button_down(gamepad: int, button: int) -> bool
+// Has the button been released? (tracks press/read correctly.)
+// extern func gamepad_button_released as gamepad_button_released(gamepad: int, button: int) -> bool
+// Get current position of mouse.
+// extern func mouse_position as mouse_position() -> int
+// Has the button been pressed? (tracks unpress/read correctly.)
+// extern func mouse_button_pressed as mouse_button_pressed(button: int) -> bool
+// Is the button currently down?
+// extern func mouse_button_down as mouse_button_down(button: int) -> bool
+// Has the button been released? (tracks press/read correctly.)
+// extern func mouse_button_released as mouse_button_released(button: int) -> bool
+// Is the button currently up?
+// extern func mouse_button_up as mouse_button_up(button: int) -> bool
+// SOUND
+// Load a sound from a file in cart.
+// extern func load_sound as load_sound(filename: *char) -> Sound
+// Play a sound.
+// extern func play_sound as play_sound(sound: Sound, loop: bool) -> void
+// Stop a sound.
+// extern func stop_sound as stop_sound(sound: Sound) -> void
+// Unload a sound.
+// extern func unload_sound as unload_sound(sound: Sound) -> void
+// Speak some text and return a sound. Set things to 0 for defaults.
+// extern func tts_sound as tts_sound(text: *char, phonetic: bool, pitch: int, speed: int, throat: int, mouth: int, sing: bool) -> Sound
+// Create Sfx sound.
+// extern func sfx_sound as sfx_sound(params: *int) -> Sound
+// Create Sfx parameters.
+// extern func sfx_generate as sfx_generate(type: int) -> *int
+// TILE
+// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+// extern func load_tilemap as load_tilemap(filename: *char) -> Tilemap
+// Unload a tilemap.
+// extern func unload_tilemap as unload_tilemap(tilemap: Tilemap) -> void
+// Update a tilemap's animation timers (deltaTime is in seconds).
+// extern func tile_update as tile_update(tilemap: Tilemap, deltaTime: double) -> void
+// Draw a tilemap on the screen.
+// extern func tile_draw as tile_draw(tilemap: Tilemap, posX: int, posY: int) -> void
+// Draw a tilemap on the screen, tinted by a color.
+// extern func tile_draw_tint as tile_draw_tint(tilemap: Tilemap, posX: int, posY: int, tint: int) -> void
+// Draw a tilemap on an image.
+// extern func tile_draw_on_image as tile_draw_on_image(dst: Image, tilemap: Tilemap, posX: int, posY: int) -> void
+// Draw a single tile from a tilemap on the screen.
+// extern func tile_draw_tile as tile_draw_tile(tilemap: Tilemap, gid: int, posX: int, posY: int) -> void
+// Get the number of layers in a tilemap.
+// extern func tile_layer_count as tile_layer_count(tilemap: Tilemap) -> int
+// Get the gid of the tile at a column/row in a tilemap layer.
+// extern func tile_get_tile as tile_get_tile(tilemap: Tilemap, layer: int, column: int, row: int) -> int
+// Set the gid of the tile at a column/row in a tilemap layer.
+// extern func tile_set_tile as tile_set_tile(tilemap: Tilemap, layer: int, column: int, row: int, gid: int) -> void
+// Get a copy of the image of a single tile in a tilemap.
+// extern func tile_image as tile_image(tilemap: Tilemap, gid: int) -> Image
+// Render a whole tilemap to a new image.
+// extern func tilemap_image as tilemap_image(tilemap: Tilemap) -> Image
+// TYPES
+// UTILITIES
+// Get system-time (ms) since unix epoch.
+// extern func current_time as current_time() -> int
+// Get the change in time (seconds) since the last update run.
+// extern func delta_time as delta_time() -> double
+// Get a random integer between 2 numbers.
+// extern func random_int as random_int(min: int, max: int) -> int
+// Get the random-seed.
+// extern func random_seed_get as random_seed_get() -> int
+// Set the random-seed.
+// extern func random_seed_set as random_seed_set(seed: int) -> void

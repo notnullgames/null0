@@ -21,6 +21,8 @@ This directory is docker-builders of different carts.
 - `konsumer/null0-cart-lua` (interpreted, via GopherLua)
 - `konsumer/null0-cart-python` (interpreted, via RustPython)
 - `konsumer/null0-cart-haxe` (via HL/C + wasi-sdk, linux/amd64 only)
+- `konsumer/null0-cart-zenc` (Zen-C transpiles to C + wasi-sdk, linux/amd64 only)
+- `konsumer/null0-cart-jik` (Jik transpiles to C + wasi-sdk, linux/amd64 only)
 
 ### how carts get their bindings
 
@@ -98,6 +100,8 @@ docker build -t konsumer/null0-cart-wren . -f tools/docker/null0-cart-wren.Docke
 docker build -t konsumer/null0-cart-lua . -f tools/docker/null0-cart-lua.Dockerfile
 docker build -t konsumer/null0-cart-python . -f tools/docker/null0-cart-python.Dockerfile
 docker build --platform linux/amd64 -t konsumer/null0-cart-haxe . -f tools/docker/null0-cart-haxe.Dockerfile
+docker build --platform linux/amd64 -t konsumer/null0-cart-zenc . -f tools/docker/null0-cart-zenc.Dockerfile
+docker build --platform linux/amd64 -t konsumer/null0-cart-jik . -f tools/docker/null0-cart-jik.Dockerfile
 
 # build & publish (needed on API change)
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-c . -f tools/docker/null0-cart-c.Dockerfile
@@ -119,6 +123,8 @@ docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-lua . -f tools/docker/null0-cart-lua.Dockerfile
 docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-python . -f tools/docker/null0-cart-python.Dockerfile
 docker buildx build --push --platform linux/amd64 -t konsumer/null0-cart-haxe . -f tools/docker/null0-cart-haxe.Dockerfile
+docker buildx build --push --platform linux/amd64 -t konsumer/null0-cart-zenc . -f tools/docker/null0-cart-zenc.Dockerfile
+docker buildx build --push --platform linux/amd64 -t konsumer/null0-cart-jik . -f tools/docker/null0-cart-jik.Dockerfile
 
 # test
 docker run -it -v ./carts/c/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-c colorbars_c
@@ -156,4 +162,7 @@ docker run -it -v ./carts/wren/simple:/src -v ./build/carts:/out konsumer/null0-
 docker run -it -v ./carts/lua/simple:/src -v ./build/carts:/out konsumer/null0-cart-lua simple_lua
 
 docker run -it --platform linux/amd64 -v ./carts/haxe/simple:/src -v ./build/carts:/out konsumer/null0-cart-haxe simple_haxe
+
+docker run -it --platform linux/amd64 -v ./carts/zenc/simple:/src -v ./build/carts:/out konsumer/null0-cart-zenc simple_zenc
+docker run -it --platform linux/amd64 -v ./carts/jik/simple:/src -v ./build/carts:/out konsumer/null0-cart-jik simple_jik
 ```
