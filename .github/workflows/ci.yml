@@ -1,5 +1,4 @@
-on:
-  push
+on: push
 
 concurrency:
   group: global-ci # any run will cancel the others
@@ -9,9 +8,6 @@ permissions:
   contents: write
   pages: write
   id-token: write
-
-# TODO: codegen before each step
-# TODO: publish dockers automatically in "release" (so they have up-to-date headers after codegen)
 
 jobs:
   # TODO: seperate these into different steps and remove matrix?
