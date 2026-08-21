@@ -36,9 +36,9 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 
 These include the interpretor in `main.wasm`. This is repetitive (like every js cart has a big quickjs `main.wasm` in it) but it makes them more host-agnostic, and reusable. It also means you can tune your interpretor around your game, if you really need to.
 
-- [x] javascript (ESM, via QuickJS)
-- [x] python (interpreted, via RustPython)
-- [x] lua (interpreted, via GopherLua)
+- [x] javascript (ES5/6 via QuickJS)
+- [x] python (via RustPython)
+- [x] lua (via GopherLua)
 - [x] [wren](https://wren.io)
 - [ ] [cyber](https://github.com/fubark/cyber)
 
