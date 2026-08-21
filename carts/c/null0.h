@@ -759,6 +759,57 @@ NULL0_IMPORT("sfx_generate")
 extern SfxParams* sfx_generate(SfxPresetType type);
 
 
+// TILE
+
+// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+NULL0_IMPORT("load_tilemap")
+extern u32 load_tilemap(char* filename);
+
+// Unload a tilemap.
+NULL0_IMPORT("unload_tilemap")
+extern void unload_tilemap(u32 tilemap);
+
+// Update a tilemap's animation timers (deltaTime is in seconds).
+NULL0_IMPORT("tile_update")
+extern void tile_update(u32 tilemap, f32 deltaTime);
+
+// Draw a tilemap on the screen.
+NULL0_IMPORT("tile_draw")
+extern void tile_draw(u32 tilemap, i32 posX, i32 posY);
+
+// Draw a tilemap on the screen, tinted by a color.
+NULL0_IMPORT("tile_draw_tint")
+extern void tile_draw_tint(u32 tilemap, i32 posX, i32 posY, Color tint);
+
+// Draw a tilemap on an image.
+NULL0_IMPORT("tile_draw_on_image")
+extern void tile_draw_on_image(u32 dst, u32 tilemap, i32 posX, i32 posY);
+
+// Draw a single tile from a tilemap on the screen.
+NULL0_IMPORT("tile_draw_tile")
+extern void tile_draw_tile(u32 tilemap, i32 gid, i32 posX, i32 posY);
+
+// Get the number of layers in a tilemap.
+NULL0_IMPORT("tile_layer_count")
+extern i32 tile_layer_count(u32 tilemap);
+
+// Get the gid of the tile at a column/row in a tilemap layer.
+NULL0_IMPORT("tile_get_tile")
+extern i32 tile_get_tile(u32 tilemap, i32 layer, i32 column, i32 row);
+
+// Set the gid of the tile at a column/row in a tilemap layer.
+NULL0_IMPORT("tile_set_tile")
+extern void tile_set_tile(u32 tilemap, i32 layer, i32 column, i32 row, i32 gid);
+
+// Get a copy of the image of a single tile in a tilemap.
+NULL0_IMPORT("tile_image")
+extern u32 tile_image(u32 tilemap, i32 gid);
+
+// Render a whole tilemap to a new image.
+NULL0_IMPORT("tilemap_image")
+extern u32 tilemap_image(u32 tilemap);
+
+
 // TYPES
 
 

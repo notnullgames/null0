@@ -9,75 +9,92 @@ import { getApi } from './utils.js'
 const out = [
   `// null0 - Grain bindings for the null0 fantasy console
 //
-// Grain needs foreign declarations inside your own module, so copy the
-// ones you need from this file, like:
+// use it as a module (the null0-cart-grain docker image copies this file
+// next to your main.gr automatically if you don't ship your own):
 //
 //   module Main
 //
-//   from "runtime/unsafe/wasmi32" include WasmI32
+//   from "./null0.gr" include Null0
 //
-//   foreign wasm clear: (WasmI32) => Void from "null0"
-//
-//   // Color is a pointer to 4 bytes (r, g, b, a) in memory, not a packed
-//   // scalar - write the bytes once (e.g. first thing in load()) before
-//   // using a color constant:
 //   @unsafe
 //   provide let load = () => {
-//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(0), 0n)
-//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(121), 1n)
-//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(241), 2n)
-//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(255), 3n)
-//     clear(WasmI32.fromGrain(blue))
+//     Null0.initColors()
+//     Null0.clear(Null0.blue)
+//     Null0.draw_circle(100n, 100n, 50n, Null0.red)
 //   }
 //
 //   provide let update = () => void
 //
 // ABI notes:
-// - all handles (Image/Font/Sound), enums, bools are WasmI32
+// - everything crosses the wasm boundary as a raw WasmI32/WasmI64/WasmF32
+//   value - use the literal suffixes 1n/1N/1.0w, NEVER plain Numbers or
+//   fromGrain (those are tagged/boxed grain representations, not raw values)
+// - handles (Image/Font/Sound), bools and enum values are WasmI32 - the
+//   constants below are already WasmI32, pass them directly
 // - string is a pointer to a null-terminated UTF8 string in memory (WasmI32)
 // - Color/Vector/Rectangle/Dimensions/SfxParams are ALWAYS passed and
 //   returned as a WasmI32 pointer into wasm memory, never packed into a
 //   scalar - Color is 4 bytes (r, g, b, a); the color constants below are
-//   addresses (plain Numbers, wrap with WasmI32.fromGrain() like any other
-//   arg) - write the bytes there yourself (see the inline WasmI32.store8
-//   calls below each constant) before first use
-// - functions returning structs return a pointer (WasmI32) into your
-//   memory, read the fields with WasmI32.load / WasmI32.load8U at the
-//   offsets noted below
+//   pointers - call initColors() once (first thing in load()) to write the
+//   bytes there before first use
+// - functions returning structs return a WasmI32 pointer into your memory -
+//   read the fields with WasmI32.load / WasmI32.load8U at the offsets noted
+//   below - the pointer is only valid until the current callback returns,
+//   so copy out what you need
 // - anything touching Wasm types needs an @unsafe attribute
+
+module Null0
+
+from "runtime/unsafe/wasmi32" include WasmI32
+from "runtime/unsafe/wasmi64" include WasmI64
+from "runtime/unsafe/wasmf32" include WasmF32
 
 // constants
 
-let SCREEN = 0
-let SCREEN_WIDTH = 640
-let SCREEN_HEIGHT = 480
-let FONT_DEFAULT = 0
+@unsafe
+provide let screen = 0n
+@unsafe
+provide let screenWidth = 640n
+@unsafe
+provide let screenHeight = 480n
+@unsafe
+provide let fontDefault = 0n
 `
 ]
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
-// color constants: each is an address (pointer) at a fixed offset starting
-// at 65536 (1 page in) - copy the matching store8 calls into your own load()
-out.push('// colors (addresses; copy the matching stores into your own load())')
+// color constants: each is a pointer to 4 bytes (r, g, b, a) at a fixed
+// offset starting at 65536 (1 page in); initColors() writes the actual bytes
+out.push('// colors (pointers to r, g, b, a bytes - call initColors() before use)')
 const colorEntries = Object.entries(constants).filter(([, def]) => def.type === 'Color')
+const colorInits = []
 let colorOffset = 65536
 for (const [colorName, colorDef] of colorEntries) {
   const [r, g, b, a] = colorDef.value
   const lname = colorName.toLowerCase()
-  out.push(`let ${lname} = ${colorOffset} // ${colorName} = rgba(${r}, ${g}, ${b}, ${a})`)
+  out.push(`@unsafe`)
+  out.push(`provide let ${lname} = ${colorOffset}n // ${colorName} = rgba(${r}, ${g}, ${b}, ${a})`)
   const bytes = [r, g, b, a]
-  const stores = bytes.map((v, i) => `WasmI32.store8(WasmI32.fromGrain(${lname}), WasmI32.fromGrain(${v}), ${i}n)`).join('; ')
-  out.push(`// ${stores}`)
+  colorInits.push(...bytes.map((v, i) => `  WasmI32.store8(${lname}, ${v}n, ${i}n)`))
   colorOffset += 4
 }
 out.push('')
+out.push('// write every color-constant byte into memory - call once, first thing in load()')
+out.push('@unsafe')
+out.push('provide let initColors = () => {')
+out.push(colorInits.join('\n'))
+out.push('}')
+out.push('')
 
-// enum constants
+// enum constants, camelCased so they don't collide with function names
+// (KEY_UP vs key_up()) in this flat module namespace
+const camel = (s) => s.toLowerCase().replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase())
 for (const [enumName, enumDef] of Object.entries(enums)) {
   out.push('', `// ${enumName}: ${enumDef.description}`)
   for (const [enumValue, enumNumber] of Object.entries(enumDef.enums)) {
-    out.push(`let ${enumValue.toLowerCase()} = ${enumNumber}`)
+    out.push('@unsafe')
+    out.push(`provide let ${camel(enumValue)} = ${enumNumber}n`)
   }
 }
 out.push('')
@@ -115,7 +132,8 @@ for (const [apiName, funcDef] of Object.entries(api)) {
     const params = Object.values(args).map((type) => grainType(type))
     const result = grainType(returns)
     out.push(`// ${description}`)
-    out.push(`foreign wasm ${funcName}: (${params.join(', ')}) => ${result || 'Void'} from "null0"`)
+    out.push('@unsafe')
+    out.push(`provide foreign wasm ${funcName}: (${params.join(', ')}) => ${result || 'Void'} from "null0"`)
   }
 }
 

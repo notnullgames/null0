@@ -619,6 +619,45 @@ type SfxSound = (i32) => i32;
 type SfxGenerate = (i32) => i32;
 // import { sfx_generate: SfxGenerate } from 'null0';
 
+// -- TILE --
+
+// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+type LoadTilemap = (i32) => i32;
+// import { load_tilemap: LoadTilemap } from 'null0';
+// Unload a tilemap.
+type UnloadTilemap = (i32) => void;
+// import { unload_tilemap: UnloadTilemap } from 'null0';
+// Update a tilemap's animation timers (deltaTime is in seconds).
+type TileUpdate = (i32, f32) => void;
+// import { tile_update: TileUpdate } from 'null0';
+// Draw a tilemap on the screen.
+type TileDraw = (i32, i32, i32) => void;
+// import { tile_draw: TileDraw } from 'null0';
+// Draw a tilemap on the screen, tinted by a color.
+type TileDrawTint = (i32, i32, i32, i32) => void;
+// import { tile_draw_tint: TileDrawTint } from 'null0';
+// Draw a tilemap on an image.
+type TileDrawOnImage = (i32, i32, i32, i32) => void;
+// import { tile_draw_on_image: TileDrawOnImage } from 'null0';
+// Draw a single tile from a tilemap on the screen.
+type TileDrawTile = (i32, i32, i32, i32) => void;
+// import { tile_draw_tile: TileDrawTile } from 'null0';
+// Get the number of layers in a tilemap.
+type TileLayerCount = (i32) => i32;
+// import { tile_layer_count: TileLayerCount } from 'null0';
+// Get the gid of the tile at a column/row in a tilemap layer.
+type TileGetTile = (i32, i32, i32, i32) => i32;
+// import { tile_get_tile: TileGetTile } from 'null0';
+// Set the gid of the tile at a column/row in a tilemap layer.
+type TileSetTile = (i32, i32, i32, i32, i32) => void;
+// import { tile_set_tile: TileSetTile } from 'null0';
+// Get a copy of the image of a single tile in a tilemap.
+type TileImage = (i32, i32) => i32;
+// import { tile_image: TileImage } from 'null0';
+// Render a whole tilemap to a new image.
+type TilemapImage = (i32) => i32;
+// import { tilemap_image: TilemapImage } from 'null0';
+
 // -- TYPES --
 
 

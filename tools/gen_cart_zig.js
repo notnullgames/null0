@@ -53,6 +53,7 @@ const argTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   ImageFilter: 'ImageFilter',
   Key: 'Key',
   GamepadButton: 'GamepadButton',
@@ -78,6 +79,7 @@ const retTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   Vector: '*Vector',
   Dimensions: '*Dimensions',
   Color: '*Color',
@@ -103,6 +105,7 @@ const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 out.push('pub const Image = u32;')
 out.push('pub const Font = u32;')
 out.push('pub const Sound = u32;')
+out.push('pub const Tilemap = u32;')
 out.push('')
 // Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {

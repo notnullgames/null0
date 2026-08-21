@@ -16,6 +16,7 @@ const types = {
   Image: 'uint32_t',
   Font: 'uint32_t',
   Sound: 'uint32_t',
+  Tilemap: 'uint32_t',
   Color: 'uint32_t',
   ImageFilter: 'pntr_filter',
   Key: 'pntr_app_key',
@@ -138,7 +139,19 @@ const functions = {
   color_bilinear_interpolate: 'pntr_color_bilinear_interpolate(',
   tts_sound: 'null0_tts_sound(',
   sfx_sound: 'null0_sfx_sound(',
-  sfx_generate: 'null0_sfx_generate('
+  sfx_generate: 'null0_sfx_generate(',
+  load_tilemap: 'null0_load_tiled(',
+  unload_tilemap: 'pntr_unload_tiled(',
+  tile_update: 'pntr_update_tiled(',
+  tile_draw: 'pntr_draw_tiled(images[0], ',
+  tile_draw_tint: 'pntr_draw_tiled(images[0], ',
+  tile_draw_on_image: 'pntr_draw_tiled(',
+  tile_draw_tile: 'pntr_draw_tiled_tile(images[0], ',
+  tile_layer_count: 'pntr_tiled_layer_count(',
+  tile_get_tile: 'null0_tile_get_tile(',
+  tile_set_tile: 'null0_tile_set_tile(',
+  tile_image: 'null0_tile_image(',
+  tilemap_image: 'null0_gen_image_tiled('
 }
 
 // map args to host-types
@@ -150,7 +163,10 @@ const argsMap = (args) =>
 // fixed trailing args pntr needs that the null0 API doesn't expose (e.g. tint)
 const extraCallArgs = {
   draw_image_scaled: ', PNTR_WHITE',
-  draw_image_scaled_on_image: ', PNTR_WHITE'
+  draw_image_scaled_on_image: ', PNTR_WHITE',
+  tile_draw: ', PNTR_WHITE',
+  tile_draw_on_image: ', PNTR_WHITE',
+  tile_draw_tile: ', PNTR_WHITE'
 }
 
 // generate input/output mappers for args/return
@@ -158,6 +174,7 @@ function buildBody(name, args, returns) {
   const body = []
   const cleanup = []
   const callArgs = []
+  const guards = []
   const allArgs = Object.entries(args)
   let i = 0
   for (const [name, type] of allArgs) {
@@ -165,11 +182,21 @@ function buildBody(name, args, returns) {
       body.push(`pntr_color ${name}Host = copy_color_from_cart(${name});`)
       callArgs.push(`${name}Host`)
     } else if (type === 'Image') {
-      callArgs.push(`images[${name}]`)
+      body.push(`pntr_image* ${name}Host = get_image(${name});`)
+      guards.push(`${name}Host`)
+      callArgs.push(`${name}Host`)
     } else if (type === 'Sound') {
-      callArgs.push(`sounds[${name}]`)
+      body.push(`pntr_sound* ${name}Host = get_sound(${name});`)
+      guards.push(`${name}Host`)
+      callArgs.push(`${name}Host`)
     } else if (type === 'Font') {
-      callArgs.push(`fonts[${name}]`)
+      body.push(`pntr_font* ${name}Host = get_font(${name});`)
+      guards.push(`${name}Host`)
+      callArgs.push(`${name}Host`)
+    } else if (type === 'Tilemap') {
+      body.push(`cute_tiled_map_t* ${name}Host = get_tilemap(${name});`)
+      guards.push(`${name}Host`)
+      callArgs.push(`${name}Host`)
     } else if (type === 'string') {
       body.push(`char* ${name}Host = copy_string_from_cart(${name});`)
       cleanup.push(`free(${name}Host);`)
@@ -191,6 +218,12 @@ function buildBody(name, args, returns) {
     }
     i++
   }
+  // bail out (with a warning from get_image/get_font/get_sound) on bad handles
+  if (guards.length) {
+    body.push(`if (${guards.map((g) => `${g} == NULL`).join(' || ')}) {`)
+    body.push(indent([...cleanup, `return${returns && returns !== 'void' ? ' 0' : ''};`].join('\n')))
+    body.push('}')
+  }
   if (returns && returns !== 'void') {
     if (['i32', 'u32', 'f32'].includes(returns)) {
       body.push(`${types[returns]} retHost = ${functions[name]}${callArgs.join(', ')});`)
@@ -204,6 +237,8 @@ function buildBody(name, args, returns) {
         body.push(`uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(SfxParams));`)
       } else if (returns === 'Sound') {
         body.push(`uint32_t retHost = add_sound(${functions[name]}${callArgs.join(', ')}));`)
+      } else if (returns === 'Tilemap') {
+        body.push(`uint32_t retHost = add_tilemap(${functions[name]}${callArgs.join(', ')}));`)
       } else if (returns === 'Color') {
         body.push(`uint32_t retHost = copy_color_to_cart(${functions[name]}${callArgs.join(', ')}));`)
       } else if (returns === 'Vector') {

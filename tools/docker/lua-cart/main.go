@@ -375,6 +375,42 @@ func sfx_sound(params unsafe.Pointer) uint32
 //go:wasmimport null0 sfx_generate
 func sfx_generate(typeArg int32) unsafe.Pointer
 
+//go:wasmimport null0 load_tilemap
+func load_tilemap(filename unsafe.Pointer) uint32
+
+//go:wasmimport null0 unload_tilemap
+func unload_tilemap(tilemap uint32)
+
+//go:wasmimport null0 tile_update
+func tile_update(tilemap uint32, deltaTime float32)
+
+//go:wasmimport null0 tile_draw
+func tile_draw(tilemap uint32, posX int32, posY int32)
+
+//go:wasmimport null0 tile_draw_tint
+func tile_draw_tint(tilemap uint32, posX int32, posY int32, tint unsafe.Pointer)
+
+//go:wasmimport null0 tile_draw_on_image
+func tile_draw_on_image(dst uint32, tilemap uint32, posX int32, posY int32)
+
+//go:wasmimport null0 tile_draw_tile
+func tile_draw_tile(tilemap uint32, gid int32, posX int32, posY int32)
+
+//go:wasmimport null0 tile_layer_count
+func tile_layer_count(tilemap uint32) int32
+
+//go:wasmimport null0 tile_get_tile
+func tile_get_tile(tilemap uint32, layer int32, column int32, row int32) int32
+
+//go:wasmimport null0 tile_set_tile
+func tile_set_tile(tilemap uint32, layer int32, column int32, row int32, gid int32)
+
+//go:wasmimport null0 tile_image
+func tile_image(tilemap uint32, gid int32) uint32
+
+//go:wasmimport null0 tilemap_image
+func tilemap_image(tilemap uint32) uint32
+
 //go:wasmimport null0 current_time
 func current_time() uint64
 
@@ -1664,6 +1700,118 @@ func lua_sfx_generate(L *lua.LState) int {
 	return 1
 }
 
+// TILE
+
+// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+func lua_load_tilemap(L *lua.LState) int {
+	filenameBytes, filename := cstr(L.CheckString(1))
+	ret := load_tilemap(filename)
+	runtime.KeepAlive(filenameBytes)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Unload a tilemap.
+func lua_unload_tilemap(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	unload_tilemap(tilemap)
+	return 0
+}
+
+// Update a tilemap's animation timers (deltaTime is in seconds).
+func lua_tile_update(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	deltaTime := float32(L.CheckNumber(2))
+	tile_update(tilemap, deltaTime)
+	return 0
+}
+
+// Draw a tilemap on the screen.
+func lua_tile_draw(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	posX := int32(L.CheckInt(2))
+	posY := int32(L.CheckInt(3))
+	tile_draw(tilemap, posX, posY)
+	return 0
+}
+
+// Draw a tilemap on the screen, tinted by a color.
+func lua_tile_draw_tint(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	posX := int32(L.CheckInt(2))
+	posY := int32(L.CheckInt(3))
+	tint := colorArg(L, 4)
+	tile_draw_tint(tilemap, posX, posY, unsafe.Pointer(&tint))
+	return 0
+}
+
+// Draw a tilemap on an image.
+func lua_tile_draw_on_image(L *lua.LState) int {
+	dst := uint32(L.CheckInt(1))
+	tilemap := uint32(L.CheckInt(2))
+	posX := int32(L.CheckInt(3))
+	posY := int32(L.CheckInt(4))
+	tile_draw_on_image(dst, tilemap, posX, posY)
+	return 0
+}
+
+// Draw a single tile from a tilemap on the screen.
+func lua_tile_draw_tile(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	gid := int32(L.CheckInt(2))
+	posX := int32(L.CheckInt(3))
+	posY := int32(L.CheckInt(4))
+	tile_draw_tile(tilemap, gid, posX, posY)
+	return 0
+}
+
+// Get the number of layers in a tilemap.
+func lua_tile_layer_count(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	ret := tile_layer_count(tilemap)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Get the gid of the tile at a column/row in a tilemap layer.
+func lua_tile_get_tile(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	column := int32(L.CheckInt(3))
+	row := int32(L.CheckInt(4))
+	ret := tile_get_tile(tilemap, layer, column, row)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Set the gid of the tile at a column/row in a tilemap layer.
+func lua_tile_set_tile(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	column := int32(L.CheckInt(3))
+	row := int32(L.CheckInt(4))
+	gid := int32(L.CheckInt(5))
+	tile_set_tile(tilemap, layer, column, row, gid)
+	return 0
+}
+
+// Get a copy of the image of a single tile in a tilemap.
+func lua_tile_image(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	gid := int32(L.CheckInt(2))
+	ret := tile_image(tilemap, gid)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Render a whole tilemap to a new image.
+func lua_tilemap_image(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	ret := tilemap_image(tilemap)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
 // TYPES
 
 // UTILITIES
@@ -1997,6 +2145,18 @@ func registerAPI(L *lua.LState) {
 	L.SetGlobal("tts_sound", L.NewFunction(lua_tts_sound))
 	L.SetGlobal("sfx_sound", L.NewFunction(lua_sfx_sound))
 	L.SetGlobal("sfx_generate", L.NewFunction(lua_sfx_generate))
+	L.SetGlobal("load_tilemap", L.NewFunction(lua_load_tilemap))
+	L.SetGlobal("unload_tilemap", L.NewFunction(lua_unload_tilemap))
+	L.SetGlobal("tile_update", L.NewFunction(lua_tile_update))
+	L.SetGlobal("tile_draw", L.NewFunction(lua_tile_draw))
+	L.SetGlobal("tile_draw_tint", L.NewFunction(lua_tile_draw_tint))
+	L.SetGlobal("tile_draw_on_image", L.NewFunction(lua_tile_draw_on_image))
+	L.SetGlobal("tile_draw_tile", L.NewFunction(lua_tile_draw_tile))
+	L.SetGlobal("tile_layer_count", L.NewFunction(lua_tile_layer_count))
+	L.SetGlobal("tile_get_tile", L.NewFunction(lua_tile_get_tile))
+	L.SetGlobal("tile_set_tile", L.NewFunction(lua_tile_set_tile))
+	L.SetGlobal("tile_image", L.NewFunction(lua_tile_image))
+	L.SetGlobal("tilemap_image", L.NewFunction(lua_tilemap_image))
 	L.SetGlobal("current_time", L.NewFunction(lua_current_time))
 	L.SetGlobal("delta_time", L.NewFunction(lua_delta_time))
 	L.SetGlobal("random_int", L.NewFunction(lua_random_int))

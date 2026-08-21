@@ -85,6 +85,12 @@ Sound:
   c_ret: unt32_t
   host: unt32_t
 
+Tilemap:
+  description: A tilemap (a Tiled map, exported as JSON). 0 is an invalid tilemap.
+  c_arg: unt32_t
+  c_ret: unt32_t
+  host: unt32_t
+
 # pointers
 
 string:

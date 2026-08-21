@@ -33,8 +33,11 @@ language's binding.
 - **Unchecked pointer from physfs**: `PHYSFS_openRead/openWrite/openAppend`
   return NULL on failure. A missing NULL check crashes the host (this was the
   `save_image` bug: `si_addr: 0x8`).
-- **Unchecked handle**: `images[image]`, `fonts[font]`, `sounds[sound]` are
-  never bounds-checked. A bad handle from a cart reads garbage memory.
+- **Bad handle**: `Image`/`Font`/`Sound` handles are bounds-checked by
+  `get_image`/`get_font`/`get_sound` - an out-of-range handle logs a warning
+  and the call is skipped. If a cart still crashes the host with a handle, the
+  handle came back from an `add_*` with a NULL pointer (a failed load) and the
+  bug is there.
 - **ABI mismatch**: a binding that declares a struct return by value instead of
   as a cart pointer will corrupt the argument list. Symptom: shifted/garbage
   field values, then a crash. Verify against the host signature in `host.c`,

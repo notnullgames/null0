@@ -354,6 +354,7 @@ const argTypes = {
   Image: 'u32',
   Font: 'u32',
   Sound: 'u32',
+  Tilemap: 'u32',
   'Vector[]': 'Vector*',
   SfxParams: 'SfxParams'
 }
@@ -362,6 +363,7 @@ const retTypes = {
   Image: 'u32',
   Font: 'u32',
   Sound: 'u32',
+  Tilemap: 'u32',
   'Vector[]': 'Vector*',
   Vector: 'Vector*',
   Dimensions: 'Dimensions*',

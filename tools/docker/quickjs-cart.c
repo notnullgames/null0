@@ -930,6 +930,64 @@ static JSValue js_sfx_generate(JSContext *ctx, JSValueConst this_val, int argc, 
  return sfx_params_to_js(*ret);
 }
 
+// TILE
+
+// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+static JSValue js_load_tilemap(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u32_to_js(load_tilemap(string_from_js(argv[0])));
+}
+// Unload a tilemap.
+static JSValue js_unload_tilemap(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ unload_tilemap(u32_from_js(argv[0]));
+ return JS_UNDEFINED;
+}
+// Update a tilemap's animation timers (deltaTime is in seconds).
+static JSValue js_tile_update(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ tile_update(u32_from_js(argv[0]), f32_from_js(argv[1]));
+ return JS_UNDEFINED;
+}
+// Draw a tilemap on the screen.
+static JSValue js_tile_draw(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ tile_draw(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]));
+ return JS_UNDEFINED;
+}
+// Draw a tilemap on the screen, tinted by a color.
+static JSValue js_tile_draw_tint(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ tile_draw_tint(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), color_from_js(argv[3]));
+ return JS_UNDEFINED;
+}
+// Draw a tilemap on an image.
+static JSValue js_tile_draw_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ tile_draw_on_image(u32_from_js(argv[0]), u32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]));
+ return JS_UNDEFINED;
+}
+// Draw a single tile from a tilemap on the screen.
+static JSValue js_tile_draw_tile(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ tile_draw_tile(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]));
+ return JS_UNDEFINED;
+}
+// Get the number of layers in a tilemap.
+static JSValue js_tile_layer_count(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(tile_layer_count(u32_from_js(argv[0])));
+}
+// Get the gid of the tile at a column/row in a tilemap layer.
+static JSValue js_tile_get_tile(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(tile_get_tile(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3])));
+}
+// Set the gid of the tile at a column/row in a tilemap layer.
+static JSValue js_tile_set_tile(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ tile_set_tile(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]));
+ return JS_UNDEFINED;
+}
+// Get a copy of the image of a single tile in a tilemap.
+static JSValue js_tile_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u32_to_js(tile_image(u32_from_js(argv[0]), i32_from_js(argv[1])));
+}
+// Render a whole tilemap to a new image.
+static JSValue js_tilemap_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u32_to_js(tilemap_image(u32_from_js(argv[0])));
+}
+
 // TYPES
 
 
@@ -1244,6 +1302,18 @@ void expose_things_to_js() {
   JS_SetPropertyStr(ctx, global, "tts_sound", JS_NewCFunction(ctx, js_tts_sound, "tts_sound", 7));
   JS_SetPropertyStr(ctx, global, "sfx_sound", JS_NewCFunction(ctx, js_sfx_sound, "sfx_sound", 1));
   JS_SetPropertyStr(ctx, global, "sfx_generate", JS_NewCFunction(ctx, js_sfx_generate, "sfx_generate", 1));
+  JS_SetPropertyStr(ctx, global, "load_tilemap", JS_NewCFunction(ctx, js_load_tilemap, "load_tilemap", 1));
+  JS_SetPropertyStr(ctx, global, "unload_tilemap", JS_NewCFunction(ctx, js_unload_tilemap, "unload_tilemap", 1));
+  JS_SetPropertyStr(ctx, global, "tile_update", JS_NewCFunction(ctx, js_tile_update, "tile_update", 2));
+  JS_SetPropertyStr(ctx, global, "tile_draw", JS_NewCFunction(ctx, js_tile_draw, "tile_draw", 3));
+  JS_SetPropertyStr(ctx, global, "tile_draw_tint", JS_NewCFunction(ctx, js_tile_draw_tint, "tile_draw_tint", 4));
+  JS_SetPropertyStr(ctx, global, "tile_draw_on_image", JS_NewCFunction(ctx, js_tile_draw_on_image, "tile_draw_on_image", 4));
+  JS_SetPropertyStr(ctx, global, "tile_draw_tile", JS_NewCFunction(ctx, js_tile_draw_tile, "tile_draw_tile", 4));
+  JS_SetPropertyStr(ctx, global, "tile_layer_count", JS_NewCFunction(ctx, js_tile_layer_count, "tile_layer_count", 1));
+  JS_SetPropertyStr(ctx, global, "tile_get_tile", JS_NewCFunction(ctx, js_tile_get_tile, "tile_get_tile", 4));
+  JS_SetPropertyStr(ctx, global, "tile_set_tile", JS_NewCFunction(ctx, js_tile_set_tile, "tile_set_tile", 5));
+  JS_SetPropertyStr(ctx, global, "tile_image", JS_NewCFunction(ctx, js_tile_image, "tile_image", 2));
+  JS_SetPropertyStr(ctx, global, "tilemap_image", JS_NewCFunction(ctx, js_tilemap_image, "tilemap_image", 1));
   JS_SetPropertyStr(ctx, global, "current_time", JS_NewCFunction(ctx, js_current_time, "current_time", 0));
   JS_SetPropertyStr(ctx, global, "delta_time", JS_NewCFunction(ctx, js_delta_time, "delta_time", 0));
   JS_SetPropertyStr(ctx, global, "random_int", JS_NewCFunction(ctx, js_random_int, "random_int", 2));

@@ -692,6 +692,56 @@ static const char* NULL0_WREN =
   "  foreign static sfx_generate_(a0)\n"
   "  static sfx_generate(type) { SfxParams.fromList(sfx_generate_(type)) }\n"
   "\n"
+  "  // TILE\n"
+  "\n"
+  "  // Load a tilemap (a Tiled map, exported as JSON) from a file in cart.\n"
+  "  foreign static load_tilemap_(a0)\n"
+  "  static load_tilemap(filename) { load_tilemap_(filename) }\n"
+  "\n"
+  "  // Unload a tilemap.\n"
+  "  foreign static unload_tilemap_(a0)\n"
+  "  static unload_tilemap(tilemap) { unload_tilemap_(tilemap) }\n"
+  "\n"
+  "  // Update a tilemap's animation timers (deltaTime is in seconds).\n"
+  "  foreign static tile_update_(a0, a1)\n"
+  "  static tile_update(tilemap, deltaTime) { tile_update_(tilemap, deltaTime) }\n"
+  "\n"
+  "  // Draw a tilemap on the screen.\n"
+  "  foreign static tile_draw_(a0, a1, a2)\n"
+  "  static tile_draw(tilemap, posX, posY) { tile_draw_(tilemap, posX, posY) }\n"
+  "\n"
+  "  // Draw a tilemap on the screen, tinted by a color.\n"
+  "  foreign static tile_draw_tint_(a0, a1, a2, a3)\n"
+  "  static tile_draw_tint(tilemap, posX, posY, tint) { tile_draw_tint_(tilemap, posX, posY, tint.value) }\n"
+  "\n"
+  "  // Draw a tilemap on an image.\n"
+  "  foreign static tile_draw_on_image_(a0, a1, a2, a3)\n"
+  "  static tile_draw_on_image(dst, tilemap, posX, posY) { tile_draw_on_image_(dst, tilemap, posX, posY) }\n"
+  "\n"
+  "  // Draw a single tile from a tilemap on the screen.\n"
+  "  foreign static tile_draw_tile_(a0, a1, a2, a3)\n"
+  "  static tile_draw_tile(tilemap, gid, posX, posY) { tile_draw_tile_(tilemap, gid, posX, posY) }\n"
+  "\n"
+  "  // Get the number of layers in a tilemap.\n"
+  "  foreign static tile_layer_count_(a0)\n"
+  "  static tile_layer_count(tilemap) { tile_layer_count_(tilemap) }\n"
+  "\n"
+  "  // Get the gid of the tile at a column/row in a tilemap layer.\n"
+  "  foreign static tile_get_tile_(a0, a1, a2, a3)\n"
+  "  static tile_get_tile(tilemap, layer, column, row) { tile_get_tile_(tilemap, layer, column, row) }\n"
+  "\n"
+  "  // Set the gid of the tile at a column/row in a tilemap layer.\n"
+  "  foreign static tile_set_tile_(a0, a1, a2, a3, a4)\n"
+  "  static tile_set_tile(tilemap, layer, column, row, gid) { tile_set_tile_(tilemap, layer, column, row, gid) }\n"
+  "\n"
+  "  // Get a copy of the image of a single tile in a tilemap.\n"
+  "  foreign static tile_image_(a0, a1)\n"
+  "  static tile_image(tilemap, gid) { tile_image_(tilemap, gid) }\n"
+  "\n"
+  "  // Render a whole tilemap to a new image.\n"
+  "  foreign static tilemap_image_(a0)\n"
+  "  static tilemap_image(tilemap) { tilemap_image_(tilemap) }\n"
+  "\n"
   "  // TYPES\n"
   "\n"
   "  // UTILITIES\n"
@@ -2076,6 +2126,113 @@ static void wren_sfx_generate(WrenVM* vm) {
 }
 
 
+// TILE
+
+// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+static void wren_load_tilemap(WrenVM* vm) {
+  char* filename = (char*)string_arg(vm, 1);
+  u32 ret = load_tilemap(filename);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Unload a tilemap.
+static void wren_unload_tilemap(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  unload_tilemap(tilemap);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Update a tilemap's animation timers (deltaTime is in seconds).
+static void wren_tile_update(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  f32 deltaTime = (f32)number_arg(vm, 2);
+  tile_update(tilemap, deltaTime);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Draw a tilemap on the screen.
+static void wren_tile_draw(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 posX = (i32)number_arg(vm, 2);
+  i32 posY = (i32)number_arg(vm, 3);
+  tile_draw(tilemap, posX, posY);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Draw a tilemap on the screen, tinted by a color.
+static void wren_tile_draw_tint(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 posX = (i32)number_arg(vm, 2);
+  i32 posY = (i32)number_arg(vm, 3);
+  Color tint = color_arg(vm, 4);
+  tile_draw_tint(tilemap, posX, posY, tint);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Draw a tilemap on an image.
+static void wren_tile_draw_on_image(WrenVM* vm) {
+  u32 dst = (u32)number_arg(vm, 1);
+  u32 tilemap = (u32)number_arg(vm, 2);
+  i32 posX = (i32)number_arg(vm, 3);
+  i32 posY = (i32)number_arg(vm, 4);
+  tile_draw_on_image(dst, tilemap, posX, posY);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Draw a single tile from a tilemap on the screen.
+static void wren_tile_draw_tile(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 gid = (i32)number_arg(vm, 2);
+  i32 posX = (i32)number_arg(vm, 3);
+  i32 posY = (i32)number_arg(vm, 4);
+  tile_draw_tile(tilemap, gid, posX, posY);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Get the number of layers in a tilemap.
+static void wren_tile_layer_count(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 ret = tile_layer_count(tilemap);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Get the gid of the tile at a column/row in a tilemap layer.
+static void wren_tile_get_tile(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 column = (i32)number_arg(vm, 3);
+  i32 row = (i32)number_arg(vm, 4);
+  i32 ret = tile_get_tile(tilemap, layer, column, row);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Set the gid of the tile at a column/row in a tilemap layer.
+static void wren_tile_set_tile(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 column = (i32)number_arg(vm, 3);
+  i32 row = (i32)number_arg(vm, 4);
+  i32 gid = (i32)number_arg(vm, 5);
+  tile_set_tile(tilemap, layer, column, row, gid);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Get a copy of the image of a single tile in a tilemap.
+static void wren_tile_image(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 gid = (i32)number_arg(vm, 2);
+  u32 ret = tile_image(tilemap, gid);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Render a whole tilemap to a new image.
+static void wren_tilemap_image(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  u32 ret = tilemap_image(tilemap);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+
 // TYPES
 
 
@@ -2219,6 +2376,18 @@ static WrenForeignMethodFn bind_foreign_method(WrenVM* vm, const char* module, c
   if (strcmp(signature, "tts_sound_(_,_,_,_,_,_,_)") == 0) return wren_tts_sound;
   if (strcmp(signature, "sfx_sound_(_)") == 0) return wren_sfx_sound;
   if (strcmp(signature, "sfx_generate_(_)") == 0) return wren_sfx_generate;
+  if (strcmp(signature, "load_tilemap_(_)") == 0) return wren_load_tilemap;
+  if (strcmp(signature, "unload_tilemap_(_)") == 0) return wren_unload_tilemap;
+  if (strcmp(signature, "tile_update_(_,_)") == 0) return wren_tile_update;
+  if (strcmp(signature, "tile_draw_(_,_,_)") == 0) return wren_tile_draw;
+  if (strcmp(signature, "tile_draw_tint_(_,_,_,_)") == 0) return wren_tile_draw_tint;
+  if (strcmp(signature, "tile_draw_on_image_(_,_,_,_)") == 0) return wren_tile_draw_on_image;
+  if (strcmp(signature, "tile_draw_tile_(_,_,_,_)") == 0) return wren_tile_draw_tile;
+  if (strcmp(signature, "tile_layer_count_(_)") == 0) return wren_tile_layer_count;
+  if (strcmp(signature, "tile_get_tile_(_,_,_,_)") == 0) return wren_tile_get_tile;
+  if (strcmp(signature, "tile_set_tile_(_,_,_,_,_)") == 0) return wren_tile_set_tile;
+  if (strcmp(signature, "tile_image_(_,_)") == 0) return wren_tile_image;
+  if (strcmp(signature, "tilemap_image_(_)") == 0) return wren_tilemap_image;
   if (strcmp(signature, "current_time_") == 0) return wren_current_time;
   if (strcmp(signature, "delta_time_") == 0) return wren_delta_time;
   if (strcmp(signature, "random_int_(_,_)") == 0) return wren_random_int;

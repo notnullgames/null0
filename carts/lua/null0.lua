@@ -793,6 +793,81 @@ function sfx_sound(params) end
 ---@return SfxParams
 function sfx_generate(type) end
 
+-- TILE
+
+---Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+---@param filename string
+---@return integer
+function load_tilemap(filename) end
+
+---Unload a tilemap.
+---@param tilemap integer
+function unload_tilemap(tilemap) end
+
+---Update a tilemap's animation timers (deltaTime is in seconds).
+---@param tilemap integer
+---@param deltaTime number
+function tile_update(tilemap, deltaTime) end
+
+---Draw a tilemap on the screen.
+---@param tilemap integer
+---@param posX integer
+---@param posY integer
+function tile_draw(tilemap, posX, posY) end
+
+---Draw a tilemap on the screen, tinted by a color.
+---@param tilemap integer
+---@param posX integer
+---@param posY integer
+---@param tint Color
+function tile_draw_tint(tilemap, posX, posY, tint) end
+
+---Draw a tilemap on an image.
+---@param dst integer
+---@param tilemap integer
+---@param posX integer
+---@param posY integer
+function tile_draw_on_image(dst, tilemap, posX, posY) end
+
+---Draw a single tile from a tilemap on the screen.
+---@param tilemap integer
+---@param gid integer
+---@param posX integer
+---@param posY integer
+function tile_draw_tile(tilemap, gid, posX, posY) end
+
+---Get the number of layers in a tilemap.
+---@param tilemap integer
+---@return integer
+function tile_layer_count(tilemap) end
+
+---Get the gid of the tile at a column/row in a tilemap layer.
+---@param tilemap integer
+---@param layer integer
+---@param column integer
+---@param row integer
+---@return integer
+function tile_get_tile(tilemap, layer, column, row) end
+
+---Set the gid of the tile at a column/row in a tilemap layer.
+---@param tilemap integer
+---@param layer integer
+---@param column integer
+---@param row integer
+---@param gid integer
+function tile_set_tile(tilemap, layer, column, row, gid) end
+
+---Get a copy of the image of a single tile in a tilemap.
+---@param tilemap integer
+---@param gid integer
+---@return integer
+function tile_image(tilemap, gid) end
+
+---Render a whole tilemap to a new image.
+---@param tilemap integer
+---@return integer
+function tilemap_image(tilemap) end
+
 -- TYPES
 
 -- UTILITIES

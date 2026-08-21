@@ -17,6 +17,7 @@ import ldc.attributes;
 alias Image = uint;
 alias Font = uint;
 alias Sound = uint;
+alias Tilemap = uint;
 
 /// Create a Color from r, g, b, a components
 Color rgba(ubyte r, ubyte g, ubyte b, ubyte a) {
@@ -618,6 +619,44 @@ extern(C) Sound sfx_sound(const(SfxParams)* params);
 /// Create Sfx parameters.
 @(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "sfx_generate"))
 extern(C) SfxParams* sfx_generate(SfxPresetType type);
+
+// TILE
+/// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "load_tilemap"))
+extern(C) Tilemap load_tilemap(const(char)* filename);
+/// Unload a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "unload_tilemap"))
+extern(C) void unload_tilemap(Tilemap tilemap);
+/// Update a tilemap's animation timers (deltaTime is in seconds).
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_update"))
+extern(C) void tile_update(Tilemap tilemap, float deltaTime);
+/// Draw a tilemap on the screen.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw"))
+extern(C) void tile_draw(Tilemap tilemap, int posX, int posY);
+/// Draw a tilemap on the screen, tinted by a color.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw_tint"))
+extern(C) void tile_draw_tint(Tilemap tilemap, int posX, int posY, Color tint);
+/// Draw a tilemap on an image.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw_on_image"))
+extern(C) void tile_draw_on_image(Image dst, Tilemap tilemap, int posX, int posY);
+/// Draw a single tile from a tilemap on the screen.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw_tile"))
+extern(C) void tile_draw_tile(Tilemap tilemap, int gid, int posX, int posY);
+/// Get the number of layers in a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_count"))
+extern(C) int tile_layer_count(Tilemap tilemap);
+/// Get the gid of the tile at a column/row in a tilemap layer.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_get_tile"))
+extern(C) int tile_get_tile(Tilemap tilemap, int layer, int column, int row);
+/// Set the gid of the tile at a column/row in a tilemap layer.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_set_tile"))
+extern(C) void tile_set_tile(Tilemap tilemap, int layer, int column, int row, int gid);
+/// Get a copy of the image of a single tile in a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_image"))
+extern(C) Image tile_image(Tilemap tilemap, int gid);
+/// Render a whole tilemap to a new image.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tilemap_image"))
+extern(C) Image tilemap_image(Tilemap tilemap);
 
 // TYPES
 

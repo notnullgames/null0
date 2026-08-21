@@ -18,6 +18,7 @@
 #include "fs.h"
 #include "pntr_app.h"
 #include "pntr_app_sfx.h"
+#include "pntr_tiled.h"
 #include "sam.h"
 #include "reciter.h"
 #include <stdbool.h>
@@ -55,6 +56,9 @@ void cart_free(uint32_t ptr);
 // Allocate memory in cart
 uint32_t cart_malloc(size_t size);
 
+// Free everything the host allocated in cart memory since the last cart callback
+void cart_gc();
+
 // Using pointer, copy memory to cart from host
 void mem_to_cart(uint32_t dest, void *src, size_t size);
 
@@ -81,6 +85,15 @@ void *copy_memory_from_cart(unsigned int cart_pointer, unsigned int size);
 
 // Returns cart-pointer (unsigned int) for a host-pointer
 unsigned int copy_memory_to_cart(void *host_pointer, unsigned int size);
+
+// Get an image by handle, NULL (with a warning) if out of range
+pntr_image *get_image(unsigned int id);
+
+// Get a font by handle, NULL (with a warning) if out of range
+pntr_font *get_font(unsigned int id);
+
+// Get a sound by handle, NULL (with a warning) if out of range
+pntr_sound *get_sound(unsigned int id);
 
 // Add an image to loaded images
 unsigned int add_image(pntr_image *image);

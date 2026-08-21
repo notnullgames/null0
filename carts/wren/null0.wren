@@ -680,6 +680,56 @@ class Null0 {
   foreign static sfx_generate_(a0)
   static sfx_generate(type) { SfxParams.fromList(sfx_generate_(type)) }
 
+  // TILE
+
+  // Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+  foreign static load_tilemap_(a0)
+  static load_tilemap(filename) { load_tilemap_(filename) }
+
+  // Unload a tilemap.
+  foreign static unload_tilemap_(a0)
+  static unload_tilemap(tilemap) { unload_tilemap_(tilemap) }
+
+  // Update a tilemap's animation timers (deltaTime is in seconds).
+  foreign static tile_update_(a0, a1)
+  static tile_update(tilemap, deltaTime) { tile_update_(tilemap, deltaTime) }
+
+  // Draw a tilemap on the screen.
+  foreign static tile_draw_(a0, a1, a2)
+  static tile_draw(tilemap, posX, posY) { tile_draw_(tilemap, posX, posY) }
+
+  // Draw a tilemap on the screen, tinted by a color.
+  foreign static tile_draw_tint_(a0, a1, a2, a3)
+  static tile_draw_tint(tilemap, posX, posY, tint) { tile_draw_tint_(tilemap, posX, posY, tint.value) }
+
+  // Draw a tilemap on an image.
+  foreign static tile_draw_on_image_(a0, a1, a2, a3)
+  static tile_draw_on_image(dst, tilemap, posX, posY) { tile_draw_on_image_(dst, tilemap, posX, posY) }
+
+  // Draw a single tile from a tilemap on the screen.
+  foreign static tile_draw_tile_(a0, a1, a2, a3)
+  static tile_draw_tile(tilemap, gid, posX, posY) { tile_draw_tile_(tilemap, gid, posX, posY) }
+
+  // Get the number of layers in a tilemap.
+  foreign static tile_layer_count_(a0)
+  static tile_layer_count(tilemap) { tile_layer_count_(tilemap) }
+
+  // Get the gid of the tile at a column/row in a tilemap layer.
+  foreign static tile_get_tile_(a0, a1, a2, a3)
+  static tile_get_tile(tilemap, layer, column, row) { tile_get_tile_(tilemap, layer, column, row) }
+
+  // Set the gid of the tile at a column/row in a tilemap layer.
+  foreign static tile_set_tile_(a0, a1, a2, a3, a4)
+  static tile_set_tile(tilemap, layer, column, row, gid) { tile_set_tile_(tilemap, layer, column, row, gid) }
+
+  // Get a copy of the image of a single tile in a tilemap.
+  foreign static tile_image_(a0, a1)
+  static tile_image(tilemap, gid) { tile_image_(tilemap, gid) }
+
+  // Render a whole tilemap to a new image.
+  foreign static tilemap_image_(a0)
+  static tilemap_image(tilemap) { tilemap_image_(tilemap) }
+
   // TYPES
 
   // UTILITIES

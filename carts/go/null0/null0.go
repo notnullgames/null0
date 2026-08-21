@@ -28,6 +28,9 @@ type Font = uint32
 // Sound is a handle to a sound.
 type Sound = uint32
 
+// Tilemap is a handle to a tilemap (a Tiled map, exported as JSON).
+type Tilemap = uint32
+
 // NewColor creates a Color from r, g, b, a components.
 func NewColor(r, g, b, a uint8) Color {
 	return Color{R: r, G: g, B: b, A: a}
@@ -1168,6 +1171,104 @@ func sfx_generate(type_ int32) unsafe.Pointer
 // SfxGenerate: Create Sfx parameters.
 func SfxGenerate(type_ SfxPresetType) SfxParams {
 	return *(*SfxParams)(sfx_generate(int32(type_)))
+}
+
+// TILE
+
+//go:wasmimport null0 load_tilemap
+func load_tilemap(filename unsafe.Pointer) uint32
+
+// LoadTilemap: Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+func LoadTilemap(filename string) Tilemap {
+	return load_tilemap(cstr(filename))
+}
+
+//go:wasmimport null0 unload_tilemap
+func unload_tilemap(tilemap uint32)
+
+// UnloadTilemap: Unload a tilemap.
+func UnloadTilemap(tilemap Tilemap) {
+	unload_tilemap(tilemap)
+}
+
+//go:wasmimport null0 tile_update
+func tile_update(tilemap uint32, deltaTime float32)
+
+// TileUpdate: Update a tilemap's animation timers (deltaTime is in seconds).
+func TileUpdate(tilemap Tilemap, deltaTime float32) {
+	tile_update(tilemap, deltaTime)
+}
+
+//go:wasmimport null0 tile_draw
+func tile_draw(tilemap uint32, posX int32, posY int32)
+
+// TileDraw: Draw a tilemap on the screen.
+func TileDraw(tilemap Tilemap, posX int32, posY int32) {
+	tile_draw(tilemap, posX, posY)
+}
+
+//go:wasmimport null0 tile_draw_tint
+func tile_draw_tint(tilemap uint32, posX int32, posY int32, tint unsafe.Pointer)
+
+// TileDrawTint: Draw a tilemap on the screen, tinted by a color.
+func TileDrawTint(tilemap Tilemap, posX int32, posY int32, tint Color) {
+	tile_draw_tint(tilemap, posX, posY, unsafe.Pointer(&tint))
+}
+
+//go:wasmimport null0 tile_draw_on_image
+func tile_draw_on_image(dst uint32, tilemap uint32, posX int32, posY int32)
+
+// TileDrawOnImage: Draw a tilemap on an image.
+func TileDrawOnImage(dst Image, tilemap Tilemap, posX int32, posY int32) {
+	tile_draw_on_image(dst, tilemap, posX, posY)
+}
+
+//go:wasmimport null0 tile_draw_tile
+func tile_draw_tile(tilemap uint32, gid int32, posX int32, posY int32)
+
+// TileDrawTile: Draw a single tile from a tilemap on the screen.
+func TileDrawTile(tilemap Tilemap, gid int32, posX int32, posY int32) {
+	tile_draw_tile(tilemap, gid, posX, posY)
+}
+
+//go:wasmimport null0 tile_layer_count
+func tile_layer_count(tilemap uint32) int32
+
+// TileLayerCount: Get the number of layers in a tilemap.
+func TileLayerCount(tilemap Tilemap) int32 {
+	return tile_layer_count(tilemap)
+}
+
+//go:wasmimport null0 tile_get_tile
+func tile_get_tile(tilemap uint32, layer int32, column int32, row int32) int32
+
+// TileGetTile: Get the gid of the tile at a column/row in a tilemap layer.
+func TileGetTile(tilemap Tilemap, layer int32, column int32, row int32) int32 {
+	return tile_get_tile(tilemap, layer, column, row)
+}
+
+//go:wasmimport null0 tile_set_tile
+func tile_set_tile(tilemap uint32, layer int32, column int32, row int32, gid int32)
+
+// TileSetTile: Set the gid of the tile at a column/row in a tilemap layer.
+func TileSetTile(tilemap Tilemap, layer int32, column int32, row int32, gid int32) {
+	tile_set_tile(tilemap, layer, column, row, gid)
+}
+
+//go:wasmimport null0 tile_image
+func tile_image(tilemap uint32, gid int32) uint32
+
+// TileImage: Get a copy of the image of a single tile in a tilemap.
+func TileImage(tilemap Tilemap, gid int32) Image {
+	return tile_image(tilemap, gid)
+}
+
+//go:wasmimport null0 tilemap_image
+func tilemap_image(tilemap uint32) uint32
+
+// TilemapImage: Render a whole tilemap to a new image.
+func TilemapImage(tilemap Tilemap) Image {
+	return tilemap_image(tilemap)
 }
 
 // TYPES

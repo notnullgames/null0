@@ -4,6 +4,8 @@ Notes for LLM agents working on null0. Read this before changing anything: most 
 the mistakes people make here come from not knowing which files are generated,
 and from the wasm ABI rules the whole engine is built on.
 
+You can find skills in `.claude/skills/`.
+
 ## What this is
 
 null0 is a small fantasy console. A game is a **cart** (`.null0` = a zip with
@@ -28,15 +30,6 @@ README mentions libretro, but there is no libretro code in the tree yet.
 | `webroot/`          | The web player (`null0.js` loads the emscripten host, then the cart).                               |
 | `build/`, `wbuild/` | Native and web build output (gitignored).                                                           |
 
-## Skills
-
-`.claude/skills/` has step-by-step guides for the common jobs, and Claude Code
-loads them on demand: `make-cart` (write a game in any supported language),
-`run-cart` (the build/test/screenshot loop), `add-api-function` (change
-`api/*.yml` and propagate it), `add-cart-language` (support a new language),
-`fix-host-bug` (debug the engine). Follow them - they encode the verification
-steps this repo expects.
-
 ## Rule 1: know what is generated
 
 Running `npm run gen` regenerates all of these. **Never hand-edit them** - your
@@ -51,7 +44,7 @@ Hand-written host code lives in `host_header.h` (helpers, memory copying,
 `add_image`/`add_font`/`add_sound`), `host.h` (the `HOST_FUNCTION` macro),
 `fs.c`, `wasi_physfs.h`, `cart_wamr.c`, `cart_emscripten.c`, `main.c`.
 
-### How host.c is generated
+### How `host.c` is generated
 
 `gen_host.js` has a `functions` map from null0 API name -> the pntr call that
 implements it (`draw_circle: 'pntr_draw_circle_fill(images[0], '`). It builds
@@ -64,7 +57,7 @@ implementation). If the pntr call needs something the API doesn't express, add a
 `EMSCRIPTEN_KEEPALIVE host_*` export on web (the web loader maps `_host_x` ->
 import `null0.x`). Adding an API function therefore wires up both hosts for free.
 
-### The api/*.yml schema
+### The `api/*.yml` schema
 
 ```yml
 draw_circle:
@@ -104,11 +97,14 @@ garbage or a SIGSEGV in the host:
 - **`T[]` args are followed by a count arg** in the yml (`points: Vector[]`,
   `numPoints: i32`). High-level bindings hide the count (the list knows its own
   length) but must still pass it to the host.
-- **Struct returns leak.** `cart_malloc` memory is never freed (10MB WAMR app
-  heap). Fine for occasional calls, avoid calling `color_tint` 1000x/frame.
+- **Struct returns are freed after the callback.** Everything the host copies
+  into cart memory (struct/string returns) is tracked and freed by `cart_gc()`
+  when the current cart callback (`load`/`update`/event) returns. A binding
+  must copy out what it needs during the call and never stash the pointer.
 - Handles (`Image`, `Font`, `Sound`) are `u32` indexes into host-side vectors.
-  `0` is the screen / default font. There is no bounds checking - an out-of-range
-  handle crashes the host.
+  `0` is the screen / default font. Handles are bounds-checked: an out-of-range
+  handle logs a warning and the call is skipped (returns 0) rather than
+  crashing the host.
 
 ## Rule 3: what the host runtime can and cannot do
 
@@ -152,7 +148,12 @@ Checklist:
    tone: show `load`/`update`, list the other callbacks in comments.
 3. `tools/docker/null0-cart-<lang>.Dockerfile` + `tools/docker/build_<lang>.sh`
    (copy `/src` -> tmp, build, then `zipcart.sh <name> <dir> /out`). Pin the
-   toolchain version with an `ARG`.
+   toolchain version with an `ARG`. Bake the generated bindings into the image
+   (`COPY carts/<lang>/null0.* /usr/local/include/`) and have `build_<lang>.sh`
+   copy them next to the source when the user didn't ship their own, so a cart
+   project is self-contained - for interpreted languages the baked `main.wasm`
+   plays this role. (wat/walt can't: no include mechanism, their generated
+   files are reference copies of the import list.)
 4. `package.json`: `gen:cart_<lang>`, `cart:simple_<lang>`, `docker:cart_<lang>`,
    `docker_publish:cart_<lang>` - the `*` globs in `gen`/`carts`/`docker` pick
    them up automatically.
@@ -171,8 +172,8 @@ generate doc-comments from the yml `description`.
 # 1. build the native host once (incremental after that)
 cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --target host
 
-# 2. build a cart. call docker directly - the npm scripts use `-it`, which
-#    fails without a TTY
+# 2. build a cart. call docker directly, or use `npm run cart:simple_lua`
+#    (the scripts no longer use `-it`, so they work without a TTY)
 docker run --rm --user $(id -u):$(id -g) \
   -v ./carts/lua/simple:/src -v ./build/carts:/out \
   konsumer/null0-cart-lua simple_lua
@@ -217,10 +218,10 @@ timeout kills the process; a cart with no `main()` logs a harmless
 
 ## Known rough edges
 
-- CI (`.github/workflows/ci.yml`) only builds c/js/as/nelua carts. Newer
-  languages are not wired in.
-- The `images`/`fonts`/`sounds` handle vectors are unbounded - a bad handle from
-  a cart crashes the host.
-- Struct-returning host functions leak cart memory (see Rule 2).
 - The docker images bake generated headers/glue, so a stale image silently builds
-  carts against an old API. Rebuild after `npm run gen`.
+  carts against an old API. Rebuild after `npm run gen`. CI builds carts with
+  the _published_ images, so publish them before tagging a release that changed
+  the API.
+- On the web host, struct/string returns need the cart to export `malloc`
+  (and `free` for the gc) - carts without them (wat/walt/grain) can't use
+  struct-returning functions on the web.

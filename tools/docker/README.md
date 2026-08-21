@@ -24,6 +24,16 @@ experimental (bindings/examples exist, but the toolchain can't call null0 host-f
 
 - `konsumer/null0-cart-python` (interpreted, via RustPython)
 
+### how carts get their bindings
+
+You don't ship the null0 bindings with your cart source. Compiled-language
+images bake the generated `null0.*` header/module into the image and the build
+script copies it next to your source if it's missing (or adds it to the
+include/module path); interpreted-language images bake a `main.wasm`
+interpreter instead. (wat and walt are the exception: neither toolchain has an
+include mechanism, so their generated files in the image are reference copies
+of the import list to paste from.)
+
 ### example usage
 
 ```sh

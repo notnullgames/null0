@@ -1,267 +1,537 @@
 // null0 - Grain bindings for the null0 fantasy console
 //
-// Grain needs foreign declarations inside your own module, so copy the
-// ones you need from this file, like:
+// use it as a module (the null0-cart-grain docker image copies this file
+// next to your main.gr automatically if you don't ship your own):
 //
 //   module Main
 //
-//   from "runtime/unsafe/wasmi32" include WasmI32
+//   from "./null0.gr" include Null0
 //
-//   foreign wasm clear: (WasmI32) => Void from "null0"
-//
-//   // Color is a pointer to 4 bytes (r, g, b, a) in memory, not a packed
-//   // scalar - write the bytes once (e.g. first thing in load()) before
-//   // using a color constant:
 //   @unsafe
 //   provide let load = () => {
-//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(0), 0n)
-//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(121), 1n)
-//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(241), 2n)
-//     WasmI32.store8(WasmI32.fromGrain(65536), WasmI32.fromGrain(255), 3n)
-//     clear(WasmI32.fromGrain(blue))
+//     Null0.initColors()
+//     Null0.clear(Null0.blue)
+//     Null0.draw_circle(100n, 100n, 50n, Null0.red)
 //   }
 //
 //   provide let update = () => void
 //
 // ABI notes:
-// - all handles (Image/Font/Sound), enums, bools are WasmI32
+// - everything crosses the wasm boundary as a raw WasmI32/WasmI64/WasmF32
+//   value - use the literal suffixes 1n/1N/1.0w, NEVER plain Numbers or
+//   fromGrain (those are tagged/boxed grain representations, not raw values)
+// - handles (Image/Font/Sound), bools and enum values are WasmI32 - the
+//   constants below are already WasmI32, pass them directly
 // - string is a pointer to a null-terminated UTF8 string in memory (WasmI32)
 // - Color/Vector/Rectangle/Dimensions/SfxParams are ALWAYS passed and
 //   returned as a WasmI32 pointer into wasm memory, never packed into a
 //   scalar - Color is 4 bytes (r, g, b, a); the color constants below are
-//   addresses (plain Numbers, wrap with WasmI32.fromGrain() like any other
-//   arg) - write the bytes there yourself (see the inline WasmI32.store8
-//   calls below each constant) before first use
-// - functions returning structs return a pointer (WasmI32) into your
-//   memory, read the fields with WasmI32.load / WasmI32.load8U at the
-//   offsets noted below
+//   pointers - call initColors() once (first thing in load()) to write the
+//   bytes there before first use
+// - functions returning structs return a WasmI32 pointer into your memory -
+//   read the fields with WasmI32.load / WasmI32.load8U at the offsets noted
+//   below - the pointer is only valid until the current callback returns,
+//   so copy out what you need
 // - anything touching Wasm types needs an @unsafe attribute
+
+module Null0
+
+from "runtime/unsafe/wasmi32" include WasmI32
+from "runtime/unsafe/wasmi64" include WasmI64
+from "runtime/unsafe/wasmf32" include WasmF32
 
 // constants
 
-let SCREEN = 0
-let SCREEN_WIDTH = 640
-let SCREEN_HEIGHT = 480
-let FONT_DEFAULT = 0
+@unsafe
+provide let screen = 0n
+@unsafe
+provide let screenWidth = 640n
+@unsafe
+provide let screenHeight = 480n
+@unsafe
+provide let fontDefault = 0n
 
-// colors (addresses; copy the matching stores into your own load())
-let lightgray = 65536 // LIGHTGRAY = rgba(200, 200, 200, 255)
-// WasmI32.store8(WasmI32.fromGrain(lightgray), WasmI32.fromGrain(200), 0n); WasmI32.store8(WasmI32.fromGrain(lightgray), WasmI32.fromGrain(200), 1n); WasmI32.store8(WasmI32.fromGrain(lightgray), WasmI32.fromGrain(200), 2n); WasmI32.store8(WasmI32.fromGrain(lightgray), WasmI32.fromGrain(255), 3n)
-let gray = 65540 // GRAY = rgba(130, 130, 130, 255)
-// WasmI32.store8(WasmI32.fromGrain(gray), WasmI32.fromGrain(130), 0n); WasmI32.store8(WasmI32.fromGrain(gray), WasmI32.fromGrain(130), 1n); WasmI32.store8(WasmI32.fromGrain(gray), WasmI32.fromGrain(130), 2n); WasmI32.store8(WasmI32.fromGrain(gray), WasmI32.fromGrain(255), 3n)
-let darkgray = 65544 // DARKGRAY = rgba(80, 80, 80, 255)
-// WasmI32.store8(WasmI32.fromGrain(darkgray), WasmI32.fromGrain(80), 0n); WasmI32.store8(WasmI32.fromGrain(darkgray), WasmI32.fromGrain(80), 1n); WasmI32.store8(WasmI32.fromGrain(darkgray), WasmI32.fromGrain(80), 2n); WasmI32.store8(WasmI32.fromGrain(darkgray), WasmI32.fromGrain(255), 3n)
-let yellow = 65548 // YELLOW = rgba(253, 249, 0, 255)
-// WasmI32.store8(WasmI32.fromGrain(yellow), WasmI32.fromGrain(253), 0n); WasmI32.store8(WasmI32.fromGrain(yellow), WasmI32.fromGrain(249), 1n); WasmI32.store8(WasmI32.fromGrain(yellow), WasmI32.fromGrain(0), 2n); WasmI32.store8(WasmI32.fromGrain(yellow), WasmI32.fromGrain(255), 3n)
-let gold = 65552 // GOLD = rgba(255, 203, 0, 255)
-// WasmI32.store8(WasmI32.fromGrain(gold), WasmI32.fromGrain(255), 0n); WasmI32.store8(WasmI32.fromGrain(gold), WasmI32.fromGrain(203), 1n); WasmI32.store8(WasmI32.fromGrain(gold), WasmI32.fromGrain(0), 2n); WasmI32.store8(WasmI32.fromGrain(gold), WasmI32.fromGrain(255), 3n)
-let orange = 65556 // ORANGE = rgba(255, 161, 0, 255)
-// WasmI32.store8(WasmI32.fromGrain(orange), WasmI32.fromGrain(255), 0n); WasmI32.store8(WasmI32.fromGrain(orange), WasmI32.fromGrain(161), 1n); WasmI32.store8(WasmI32.fromGrain(orange), WasmI32.fromGrain(0), 2n); WasmI32.store8(WasmI32.fromGrain(orange), WasmI32.fromGrain(255), 3n)
-let pink = 65560 // PINK = rgba(255, 109, 194, 255)
-// WasmI32.store8(WasmI32.fromGrain(pink), WasmI32.fromGrain(255), 0n); WasmI32.store8(WasmI32.fromGrain(pink), WasmI32.fromGrain(109), 1n); WasmI32.store8(WasmI32.fromGrain(pink), WasmI32.fromGrain(194), 2n); WasmI32.store8(WasmI32.fromGrain(pink), WasmI32.fromGrain(255), 3n)
-let red = 65564 // RED = rgba(230, 41, 55, 255)
-// WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(230), 0n); WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(41), 1n); WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(55), 2n); WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(255), 3n)
-let maroon = 65568 // MAROON = rgba(190, 33, 55, 255)
-// WasmI32.store8(WasmI32.fromGrain(maroon), WasmI32.fromGrain(190), 0n); WasmI32.store8(WasmI32.fromGrain(maroon), WasmI32.fromGrain(33), 1n); WasmI32.store8(WasmI32.fromGrain(maroon), WasmI32.fromGrain(55), 2n); WasmI32.store8(WasmI32.fromGrain(maroon), WasmI32.fromGrain(255), 3n)
-let green = 65572 // GREEN = rgba(0, 228, 48, 255)
-// WasmI32.store8(WasmI32.fromGrain(green), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(green), WasmI32.fromGrain(228), 1n); WasmI32.store8(WasmI32.fromGrain(green), WasmI32.fromGrain(48), 2n); WasmI32.store8(WasmI32.fromGrain(green), WasmI32.fromGrain(255), 3n)
-let lime = 65576 // LIME = rgba(0, 158, 47, 255)
-// WasmI32.store8(WasmI32.fromGrain(lime), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(lime), WasmI32.fromGrain(158), 1n); WasmI32.store8(WasmI32.fromGrain(lime), WasmI32.fromGrain(47), 2n); WasmI32.store8(WasmI32.fromGrain(lime), WasmI32.fromGrain(255), 3n)
-let darkgreen = 65580 // DARKGREEN = rgba(0, 117, 44, 255)
-// WasmI32.store8(WasmI32.fromGrain(darkgreen), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(darkgreen), WasmI32.fromGrain(117), 1n); WasmI32.store8(WasmI32.fromGrain(darkgreen), WasmI32.fromGrain(44), 2n); WasmI32.store8(WasmI32.fromGrain(darkgreen), WasmI32.fromGrain(255), 3n)
-let skyblue = 65584 // SKYBLUE = rgba(102, 191, 255, 255)
-// WasmI32.store8(WasmI32.fromGrain(skyblue), WasmI32.fromGrain(102), 0n); WasmI32.store8(WasmI32.fromGrain(skyblue), WasmI32.fromGrain(191), 1n); WasmI32.store8(WasmI32.fromGrain(skyblue), WasmI32.fromGrain(255), 2n); WasmI32.store8(WasmI32.fromGrain(skyblue), WasmI32.fromGrain(255), 3n)
-let blue = 65588 // BLUE = rgba(0, 121, 241, 255)
-// WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(121), 1n); WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(241), 2n); WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(255), 3n)
-let darkblue = 65592 // DARKBLUE = rgba(0, 82, 172, 255)
-// WasmI32.store8(WasmI32.fromGrain(darkblue), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(darkblue), WasmI32.fromGrain(82), 1n); WasmI32.store8(WasmI32.fromGrain(darkblue), WasmI32.fromGrain(172), 2n); WasmI32.store8(WasmI32.fromGrain(darkblue), WasmI32.fromGrain(255), 3n)
-let purple = 65596 // PURPLE = rgba(200, 122, 255, 255)
-// WasmI32.store8(WasmI32.fromGrain(purple), WasmI32.fromGrain(200), 0n); WasmI32.store8(WasmI32.fromGrain(purple), WasmI32.fromGrain(122), 1n); WasmI32.store8(WasmI32.fromGrain(purple), WasmI32.fromGrain(255), 2n); WasmI32.store8(WasmI32.fromGrain(purple), WasmI32.fromGrain(255), 3n)
-let violet = 65600 // VIOLET = rgba(135, 60, 190, 255)
-// WasmI32.store8(WasmI32.fromGrain(violet), WasmI32.fromGrain(135), 0n); WasmI32.store8(WasmI32.fromGrain(violet), WasmI32.fromGrain(60), 1n); WasmI32.store8(WasmI32.fromGrain(violet), WasmI32.fromGrain(190), 2n); WasmI32.store8(WasmI32.fromGrain(violet), WasmI32.fromGrain(255), 3n)
-let darkpurple = 65604 // DARKPURPLE = rgba(112, 31, 126, 255)
-// WasmI32.store8(WasmI32.fromGrain(darkpurple), WasmI32.fromGrain(112), 0n); WasmI32.store8(WasmI32.fromGrain(darkpurple), WasmI32.fromGrain(31), 1n); WasmI32.store8(WasmI32.fromGrain(darkpurple), WasmI32.fromGrain(126), 2n); WasmI32.store8(WasmI32.fromGrain(darkpurple), WasmI32.fromGrain(255), 3n)
-let beige = 65608 // BEIGE = rgba(211, 176, 131, 255)
-// WasmI32.store8(WasmI32.fromGrain(beige), WasmI32.fromGrain(211), 0n); WasmI32.store8(WasmI32.fromGrain(beige), WasmI32.fromGrain(176), 1n); WasmI32.store8(WasmI32.fromGrain(beige), WasmI32.fromGrain(131), 2n); WasmI32.store8(WasmI32.fromGrain(beige), WasmI32.fromGrain(255), 3n)
-let brown = 65612 // BROWN = rgba(127, 106, 79, 255)
-// WasmI32.store8(WasmI32.fromGrain(brown), WasmI32.fromGrain(127), 0n); WasmI32.store8(WasmI32.fromGrain(brown), WasmI32.fromGrain(106), 1n); WasmI32.store8(WasmI32.fromGrain(brown), WasmI32.fromGrain(79), 2n); WasmI32.store8(WasmI32.fromGrain(brown), WasmI32.fromGrain(255), 3n)
-let darkbrown = 65616 // DARKBROWN = rgba(76, 63, 47, 255)
-// WasmI32.store8(WasmI32.fromGrain(darkbrown), WasmI32.fromGrain(76), 0n); WasmI32.store8(WasmI32.fromGrain(darkbrown), WasmI32.fromGrain(63), 1n); WasmI32.store8(WasmI32.fromGrain(darkbrown), WasmI32.fromGrain(47), 2n); WasmI32.store8(WasmI32.fromGrain(darkbrown), WasmI32.fromGrain(255), 3n)
-let white = 65620 // WHITE = rgba(255, 255, 255, 255)
-// WasmI32.store8(WasmI32.fromGrain(white), WasmI32.fromGrain(255), 0n); WasmI32.store8(WasmI32.fromGrain(white), WasmI32.fromGrain(255), 1n); WasmI32.store8(WasmI32.fromGrain(white), WasmI32.fromGrain(255), 2n); WasmI32.store8(WasmI32.fromGrain(white), WasmI32.fromGrain(255), 3n)
-let black = 65624 // BLACK = rgba(0, 0, 0, 255)
-// WasmI32.store8(WasmI32.fromGrain(black), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(black), WasmI32.fromGrain(0), 1n); WasmI32.store8(WasmI32.fromGrain(black), WasmI32.fromGrain(0), 2n); WasmI32.store8(WasmI32.fromGrain(black), WasmI32.fromGrain(255), 3n)
-let blank = 65628 // BLANK = rgba(0, 0, 0, 0)
-// WasmI32.store8(WasmI32.fromGrain(blank), WasmI32.fromGrain(0), 0n); WasmI32.store8(WasmI32.fromGrain(blank), WasmI32.fromGrain(0), 1n); WasmI32.store8(WasmI32.fromGrain(blank), WasmI32.fromGrain(0), 2n); WasmI32.store8(WasmI32.fromGrain(blank), WasmI32.fromGrain(0), 3n)
-let magenta = 65632 // MAGENTA = rgba(255, 0, 255, 255)
-// WasmI32.store8(WasmI32.fromGrain(magenta), WasmI32.fromGrain(255), 0n); WasmI32.store8(WasmI32.fromGrain(magenta), WasmI32.fromGrain(0), 1n); WasmI32.store8(WasmI32.fromGrain(magenta), WasmI32.fromGrain(255), 2n); WasmI32.store8(WasmI32.fromGrain(magenta), WasmI32.fromGrain(255), 3n)
-let raywhite = 65636 // RAYWHITE = rgba(245, 245, 245, 255)
-// WasmI32.store8(WasmI32.fromGrain(raywhite), WasmI32.fromGrain(245), 0n); WasmI32.store8(WasmI32.fromGrain(raywhite), WasmI32.fromGrain(245), 1n); WasmI32.store8(WasmI32.fromGrain(raywhite), WasmI32.fromGrain(245), 2n); WasmI32.store8(WasmI32.fromGrain(raywhite), WasmI32.fromGrain(255), 3n)
+// colors (pointers to r, g, b, a bytes - call initColors() before use)
+@unsafe
+provide let lightgray = 65536n // LIGHTGRAY = rgba(200, 200, 200, 255)
+@unsafe
+provide let gray = 65540n // GRAY = rgba(130, 130, 130, 255)
+@unsafe
+provide let darkgray = 65544n // DARKGRAY = rgba(80, 80, 80, 255)
+@unsafe
+provide let yellow = 65548n // YELLOW = rgba(253, 249, 0, 255)
+@unsafe
+provide let gold = 65552n // GOLD = rgba(255, 203, 0, 255)
+@unsafe
+provide let orange = 65556n // ORANGE = rgba(255, 161, 0, 255)
+@unsafe
+provide let pink = 65560n // PINK = rgba(255, 109, 194, 255)
+@unsafe
+provide let red = 65564n // RED = rgba(230, 41, 55, 255)
+@unsafe
+provide let maroon = 65568n // MAROON = rgba(190, 33, 55, 255)
+@unsafe
+provide let green = 65572n // GREEN = rgba(0, 228, 48, 255)
+@unsafe
+provide let lime = 65576n // LIME = rgba(0, 158, 47, 255)
+@unsafe
+provide let darkgreen = 65580n // DARKGREEN = rgba(0, 117, 44, 255)
+@unsafe
+provide let skyblue = 65584n // SKYBLUE = rgba(102, 191, 255, 255)
+@unsafe
+provide let blue = 65588n // BLUE = rgba(0, 121, 241, 255)
+@unsafe
+provide let darkblue = 65592n // DARKBLUE = rgba(0, 82, 172, 255)
+@unsafe
+provide let purple = 65596n // PURPLE = rgba(200, 122, 255, 255)
+@unsafe
+provide let violet = 65600n // VIOLET = rgba(135, 60, 190, 255)
+@unsafe
+provide let darkpurple = 65604n // DARKPURPLE = rgba(112, 31, 126, 255)
+@unsafe
+provide let beige = 65608n // BEIGE = rgba(211, 176, 131, 255)
+@unsafe
+provide let brown = 65612n // BROWN = rgba(127, 106, 79, 255)
+@unsafe
+provide let darkbrown = 65616n // DARKBROWN = rgba(76, 63, 47, 255)
+@unsafe
+provide let white = 65620n // WHITE = rgba(255, 255, 255, 255)
+@unsafe
+provide let black = 65624n // BLACK = rgba(0, 0, 0, 255)
+@unsafe
+provide let blank = 65628n // BLANK = rgba(0, 0, 0, 0)
+@unsafe
+provide let magenta = 65632n // MAGENTA = rgba(255, 0, 255, 255)
+@unsafe
+provide let raywhite = 65636n // RAYWHITE = rgba(245, 245, 245, 255)
+
+// write every color-constant byte into memory - call once, first thing in load()
+@unsafe
+provide let initColors = () => {
+  WasmI32.store8(lightgray, 200n, 0n)
+  WasmI32.store8(lightgray, 200n, 1n)
+  WasmI32.store8(lightgray, 200n, 2n)
+  WasmI32.store8(lightgray, 255n, 3n)
+  WasmI32.store8(gray, 130n, 0n)
+  WasmI32.store8(gray, 130n, 1n)
+  WasmI32.store8(gray, 130n, 2n)
+  WasmI32.store8(gray, 255n, 3n)
+  WasmI32.store8(darkgray, 80n, 0n)
+  WasmI32.store8(darkgray, 80n, 1n)
+  WasmI32.store8(darkgray, 80n, 2n)
+  WasmI32.store8(darkgray, 255n, 3n)
+  WasmI32.store8(yellow, 253n, 0n)
+  WasmI32.store8(yellow, 249n, 1n)
+  WasmI32.store8(yellow, 0n, 2n)
+  WasmI32.store8(yellow, 255n, 3n)
+  WasmI32.store8(gold, 255n, 0n)
+  WasmI32.store8(gold, 203n, 1n)
+  WasmI32.store8(gold, 0n, 2n)
+  WasmI32.store8(gold, 255n, 3n)
+  WasmI32.store8(orange, 255n, 0n)
+  WasmI32.store8(orange, 161n, 1n)
+  WasmI32.store8(orange, 0n, 2n)
+  WasmI32.store8(orange, 255n, 3n)
+  WasmI32.store8(pink, 255n, 0n)
+  WasmI32.store8(pink, 109n, 1n)
+  WasmI32.store8(pink, 194n, 2n)
+  WasmI32.store8(pink, 255n, 3n)
+  WasmI32.store8(red, 230n, 0n)
+  WasmI32.store8(red, 41n, 1n)
+  WasmI32.store8(red, 55n, 2n)
+  WasmI32.store8(red, 255n, 3n)
+  WasmI32.store8(maroon, 190n, 0n)
+  WasmI32.store8(maroon, 33n, 1n)
+  WasmI32.store8(maroon, 55n, 2n)
+  WasmI32.store8(maroon, 255n, 3n)
+  WasmI32.store8(green, 0n, 0n)
+  WasmI32.store8(green, 228n, 1n)
+  WasmI32.store8(green, 48n, 2n)
+  WasmI32.store8(green, 255n, 3n)
+  WasmI32.store8(lime, 0n, 0n)
+  WasmI32.store8(lime, 158n, 1n)
+  WasmI32.store8(lime, 47n, 2n)
+  WasmI32.store8(lime, 255n, 3n)
+  WasmI32.store8(darkgreen, 0n, 0n)
+  WasmI32.store8(darkgreen, 117n, 1n)
+  WasmI32.store8(darkgreen, 44n, 2n)
+  WasmI32.store8(darkgreen, 255n, 3n)
+  WasmI32.store8(skyblue, 102n, 0n)
+  WasmI32.store8(skyblue, 191n, 1n)
+  WasmI32.store8(skyblue, 255n, 2n)
+  WasmI32.store8(skyblue, 255n, 3n)
+  WasmI32.store8(blue, 0n, 0n)
+  WasmI32.store8(blue, 121n, 1n)
+  WasmI32.store8(blue, 241n, 2n)
+  WasmI32.store8(blue, 255n, 3n)
+  WasmI32.store8(darkblue, 0n, 0n)
+  WasmI32.store8(darkblue, 82n, 1n)
+  WasmI32.store8(darkblue, 172n, 2n)
+  WasmI32.store8(darkblue, 255n, 3n)
+  WasmI32.store8(purple, 200n, 0n)
+  WasmI32.store8(purple, 122n, 1n)
+  WasmI32.store8(purple, 255n, 2n)
+  WasmI32.store8(purple, 255n, 3n)
+  WasmI32.store8(violet, 135n, 0n)
+  WasmI32.store8(violet, 60n, 1n)
+  WasmI32.store8(violet, 190n, 2n)
+  WasmI32.store8(violet, 255n, 3n)
+  WasmI32.store8(darkpurple, 112n, 0n)
+  WasmI32.store8(darkpurple, 31n, 1n)
+  WasmI32.store8(darkpurple, 126n, 2n)
+  WasmI32.store8(darkpurple, 255n, 3n)
+  WasmI32.store8(beige, 211n, 0n)
+  WasmI32.store8(beige, 176n, 1n)
+  WasmI32.store8(beige, 131n, 2n)
+  WasmI32.store8(beige, 255n, 3n)
+  WasmI32.store8(brown, 127n, 0n)
+  WasmI32.store8(brown, 106n, 1n)
+  WasmI32.store8(brown, 79n, 2n)
+  WasmI32.store8(brown, 255n, 3n)
+  WasmI32.store8(darkbrown, 76n, 0n)
+  WasmI32.store8(darkbrown, 63n, 1n)
+  WasmI32.store8(darkbrown, 47n, 2n)
+  WasmI32.store8(darkbrown, 255n, 3n)
+  WasmI32.store8(white, 255n, 0n)
+  WasmI32.store8(white, 255n, 1n)
+  WasmI32.store8(white, 255n, 2n)
+  WasmI32.store8(white, 255n, 3n)
+  WasmI32.store8(black, 0n, 0n)
+  WasmI32.store8(black, 0n, 1n)
+  WasmI32.store8(black, 0n, 2n)
+  WasmI32.store8(black, 255n, 3n)
+  WasmI32.store8(blank, 0n, 0n)
+  WasmI32.store8(blank, 0n, 1n)
+  WasmI32.store8(blank, 0n, 2n)
+  WasmI32.store8(blank, 0n, 3n)
+  WasmI32.store8(magenta, 255n, 0n)
+  WasmI32.store8(magenta, 0n, 1n)
+  WasmI32.store8(magenta, 255n, 2n)
+  WasmI32.store8(magenta, 255n, 3n)
+  WasmI32.store8(raywhite, 245n, 0n)
+  WasmI32.store8(raywhite, 245n, 1n)
+  WasmI32.store8(raywhite, 245n, 2n)
+  WasmI32.store8(raywhite, 255n, 3n)
+}
 
 
 // ImageFilter: Potential image-filtering techniques for scale/etc.
-let filter_nearestneighbor = 0
-let filter_bilinear = 1
-let filter_smooth = 2
+@unsafe
+provide let filterNearestneighbor = 0n
+@unsafe
+provide let filterBilinear = 1n
+@unsafe
+provide let filterSmooth = 2n
 
 // SfxPresetType: Represents a Sfx preset type.
-let sfx_coin = 0
-let sfx_laser = 1
-let sfx_explosion = 2
-let sfx_powerup = 3
-let sfx_hurt = 4
-let sfx_jump = 5
-let sfx_select = 6
-let sfx_synth = 7
+@unsafe
+provide let sfxCoin = 0n
+@unsafe
+provide let sfxLaser = 1n
+@unsafe
+provide let sfxExplosion = 2n
+@unsafe
+provide let sfxPowerup = 3n
+@unsafe
+provide let sfxHurt = 4n
+@unsafe
+provide let sfxJump = 5n
+@unsafe
+provide let sfxSelect = 6n
+@unsafe
+provide let sfxSynth = 7n
 
 // Key: Represents a keyboard key.
-let key_invalid = 0
-let key_space = 32
-let key_apostrophe = 39
-let key_comma = 44
-let key_minus = 45
-let key_period = 46
-let key_slash = 47
-let key_0 = 48
-let key_1 = 49
-let key_2 = 50
-let key_3 = 51
-let key_4 = 52
-let key_5 = 53
-let key_6 = 54
-let key_7 = 55
-let key_8 = 56
-let key_9 = 57
-let key_semicolon = 59
-let key_equal = 61
-let key_a = 65
-let key_b = 66
-let key_c = 67
-let key_d = 68
-let key_e = 69
-let key_f = 70
-let key_g = 71
-let key_h = 72
-let key_i = 73
-let key_j = 74
-let key_k = 75
-let key_l = 76
-let key_m = 77
-let key_n = 78
-let key_o = 79
-let key_p = 80
-let key_q = 81
-let key_r = 82
-let key_s = 83
-let key_t = 84
-let key_u = 85
-let key_v = 86
-let key_w = 87
-let key_x = 88
-let key_y = 89
-let key_z = 90
-let key_left_bracket = 91
-let key_backslash = 92
-let key_right_bracket = 93
-let key_grave_accent = 96
-let key_world_1 = 161
-let key_world_2 = 162
-let key_escape = 256
-let key_enter = 257
-let key_tab = 258
-let key_backspace = 259
-let key_insert = 260
-let key_delete = 261
-let key_right = 262
-let key_left = 263
-let key_down = 264
-let key_up = 265
-let key_page_up = 266
-let key_page_down = 267
-let key_home = 268
-let key_end = 269
-let key_caps_lock = 280
-let key_scroll_lock = 281
-let key_num_lock = 282
-let key_print_screen = 283
-let key_pause = 284
-let key_f1 = 290
-let key_f2 = 291
-let key_f3 = 292
-let key_f4 = 293
-let key_f5 = 294
-let key_f6 = 295
-let key_f7 = 296
-let key_f8 = 297
-let key_f9 = 298
-let key_f10 = 299
-let key_f11 = 300
-let key_f12 = 301
-let key_f13 = 302
-let key_f14 = 303
-let key_f15 = 304
-let key_f16 = 305
-let key_f17 = 306
-let key_f18 = 307
-let key_f19 = 308
-let key_f20 = 309
-let key_f21 = 310
-let key_f22 = 311
-let key_f23 = 312
-let key_f24 = 313
-let key_f25 = 314
-let key_kp_0 = 320
-let key_kp_1 = 321
-let key_kp_2 = 322
-let key_kp_3 = 323
-let key_kp_4 = 324
-let key_kp_5 = 325
-let key_kp_6 = 326
-let key_kp_7 = 327
-let key_kp_8 = 328
-let key_kp_9 = 329
-let key_kp_decimal = 330
-let key_kp_divide = 331
-let key_kp_multiply = 332
-let key_kp_subtract = 333
-let key_kp_add = 334
-let key_kp_enter = 335
-let key_kp_equal = 336
-let key_left_shift = 340
-let key_left_control = 341
-let key_left_alt = 342
-let key_left_super = 343
-let key_right_shift = 344
-let key_right_control = 345
-let key_right_alt = 346
-let key_right_super = 347
-let key_menu = 348
+@unsafe
+provide let keyInvalid = 0n
+@unsafe
+provide let keySpace = 32n
+@unsafe
+provide let keyApostrophe = 39n
+@unsafe
+provide let keyComma = 44n
+@unsafe
+provide let keyMinus = 45n
+@unsafe
+provide let keyPeriod = 46n
+@unsafe
+provide let keySlash = 47n
+@unsafe
+provide let key0 = 48n
+@unsafe
+provide let key1 = 49n
+@unsafe
+provide let key2 = 50n
+@unsafe
+provide let key3 = 51n
+@unsafe
+provide let key4 = 52n
+@unsafe
+provide let key5 = 53n
+@unsafe
+provide let key6 = 54n
+@unsafe
+provide let key7 = 55n
+@unsafe
+provide let key8 = 56n
+@unsafe
+provide let key9 = 57n
+@unsafe
+provide let keySemicolon = 59n
+@unsafe
+provide let keyEqual = 61n
+@unsafe
+provide let keyA = 65n
+@unsafe
+provide let keyB = 66n
+@unsafe
+provide let keyC = 67n
+@unsafe
+provide let keyD = 68n
+@unsafe
+provide let keyE = 69n
+@unsafe
+provide let keyF = 70n
+@unsafe
+provide let keyG = 71n
+@unsafe
+provide let keyH = 72n
+@unsafe
+provide let keyI = 73n
+@unsafe
+provide let keyJ = 74n
+@unsafe
+provide let keyK = 75n
+@unsafe
+provide let keyL = 76n
+@unsafe
+provide let keyM = 77n
+@unsafe
+provide let keyN = 78n
+@unsafe
+provide let keyO = 79n
+@unsafe
+provide let keyP = 80n
+@unsafe
+provide let keyQ = 81n
+@unsafe
+provide let keyR = 82n
+@unsafe
+provide let keyS = 83n
+@unsafe
+provide let keyT = 84n
+@unsafe
+provide let keyU = 85n
+@unsafe
+provide let keyV = 86n
+@unsafe
+provide let keyW = 87n
+@unsafe
+provide let keyX = 88n
+@unsafe
+provide let keyY = 89n
+@unsafe
+provide let keyZ = 90n
+@unsafe
+provide let keyLeftBracket = 91n
+@unsafe
+provide let keyBackslash = 92n
+@unsafe
+provide let keyRightBracket = 93n
+@unsafe
+provide let keyGraveAccent = 96n
+@unsafe
+provide let keyWorld1 = 161n
+@unsafe
+provide let keyWorld2 = 162n
+@unsafe
+provide let keyEscape = 256n
+@unsafe
+provide let keyEnter = 257n
+@unsafe
+provide let keyTab = 258n
+@unsafe
+provide let keyBackspace = 259n
+@unsafe
+provide let keyInsert = 260n
+@unsafe
+provide let keyDelete = 261n
+@unsafe
+provide let keyRight = 262n
+@unsafe
+provide let keyLeft = 263n
+@unsafe
+provide let keyDown = 264n
+@unsafe
+provide let keyUp = 265n
+@unsafe
+provide let keyPageUp = 266n
+@unsafe
+provide let keyPageDown = 267n
+@unsafe
+provide let keyHome = 268n
+@unsafe
+provide let keyEnd = 269n
+@unsafe
+provide let keyCapsLock = 280n
+@unsafe
+provide let keyScrollLock = 281n
+@unsafe
+provide let keyNumLock = 282n
+@unsafe
+provide let keyPrintScreen = 283n
+@unsafe
+provide let keyPause = 284n
+@unsafe
+provide let keyF1 = 290n
+@unsafe
+provide let keyF2 = 291n
+@unsafe
+provide let keyF3 = 292n
+@unsafe
+provide let keyF4 = 293n
+@unsafe
+provide let keyF5 = 294n
+@unsafe
+provide let keyF6 = 295n
+@unsafe
+provide let keyF7 = 296n
+@unsafe
+provide let keyF8 = 297n
+@unsafe
+provide let keyF9 = 298n
+@unsafe
+provide let keyF10 = 299n
+@unsafe
+provide let keyF11 = 300n
+@unsafe
+provide let keyF12 = 301n
+@unsafe
+provide let keyF13 = 302n
+@unsafe
+provide let keyF14 = 303n
+@unsafe
+provide let keyF15 = 304n
+@unsafe
+provide let keyF16 = 305n
+@unsafe
+provide let keyF17 = 306n
+@unsafe
+provide let keyF18 = 307n
+@unsafe
+provide let keyF19 = 308n
+@unsafe
+provide let keyF20 = 309n
+@unsafe
+provide let keyF21 = 310n
+@unsafe
+provide let keyF22 = 311n
+@unsafe
+provide let keyF23 = 312n
+@unsafe
+provide let keyF24 = 313n
+@unsafe
+provide let keyF25 = 314n
+@unsafe
+provide let keyKp0 = 320n
+@unsafe
+provide let keyKp1 = 321n
+@unsafe
+provide let keyKp2 = 322n
+@unsafe
+provide let keyKp3 = 323n
+@unsafe
+provide let keyKp4 = 324n
+@unsafe
+provide let keyKp5 = 325n
+@unsafe
+provide let keyKp6 = 326n
+@unsafe
+provide let keyKp7 = 327n
+@unsafe
+provide let keyKp8 = 328n
+@unsafe
+provide let keyKp9 = 329n
+@unsafe
+provide let keyKpDecimal = 330n
+@unsafe
+provide let keyKpDivide = 331n
+@unsafe
+provide let keyKpMultiply = 332n
+@unsafe
+provide let keyKpSubtract = 333n
+@unsafe
+provide let keyKpAdd = 334n
+@unsafe
+provide let keyKpEnter = 335n
+@unsafe
+provide let keyKpEqual = 336n
+@unsafe
+provide let keyLeftShift = 340n
+@unsafe
+provide let keyLeftControl = 341n
+@unsafe
+provide let keyLeftAlt = 342n
+@unsafe
+provide let keyLeftSuper = 343n
+@unsafe
+provide let keyRightShift = 344n
+@unsafe
+provide let keyRightControl = 345n
+@unsafe
+provide let keyRightAlt = 346n
+@unsafe
+provide let keyRightSuper = 347n
+@unsafe
+provide let keyMenu = 348n
 
 // GamepadButton: Represents a gamepad button.
-let gamepad_button_unknown = 0
-let gamepad_button_up = 1
-let gamepad_button_right = 2
-let gamepad_button_down = 3
-let gamepad_button_left = 4
-let gamepad_button_y = 5
-let gamepad_button_b = 6
-let gamepad_button_a = 7
-let gamepad_button_x = 8
-let gamepad_button_left_shoulder = 9
-let gamepad_button_left_trigger = 10
-let gamepad_button_right_shoulder = 11
-let gamepad_button_right_trigger = 12
-let gamepad_button_select = 13
-let gamepad_button_menu = 14
-let gamepad_button_start = 15
-let gamepad_button_left_thumb = 16
-let gamepad_button_right_thumb = 17
+@unsafe
+provide let gamepadButtonUnknown = 0n
+@unsafe
+provide let gamepadButtonUp = 1n
+@unsafe
+provide let gamepadButtonRight = 2n
+@unsafe
+provide let gamepadButtonDown = 3n
+@unsafe
+provide let gamepadButtonLeft = 4n
+@unsafe
+provide let gamepadButtonY = 5n
+@unsafe
+provide let gamepadButtonB = 6n
+@unsafe
+provide let gamepadButtonA = 7n
+@unsafe
+provide let gamepadButtonX = 8n
+@unsafe
+provide let gamepadButtonLeftShoulder = 9n
+@unsafe
+provide let gamepadButtonLeftTrigger = 10n
+@unsafe
+provide let gamepadButtonRightShoulder = 11n
+@unsafe
+provide let gamepadButtonRightTrigger = 12n
+@unsafe
+provide let gamepadButtonSelect = 13n
+@unsafe
+provide let gamepadButtonMenu = 14n
+@unsafe
+provide let gamepadButtonStart = 15n
+@unsafe
+provide let gamepadButtonLeftThumb = 16n
+@unsafe
+provide let gamepadButtonRightThumb = 17n
 
 // MouseButton: Represents a mouse button.
-let mouse_button_unknown = 0
-let mouse_button_left = 1
-let mouse_button_right = 2
-let mouse_button_middle = 3
+@unsafe
+provide let mouseButtonUnknown = 0n
+@unsafe
+provide let mouseButtonLeft = 1n
+@unsafe
+provide let mouseButtonRight = 2n
+@unsafe
+provide let mouseButtonMiddle = 3n
 
 
 // struct SfxParams: Sfx parameters.
@@ -314,216 +584,356 @@ let mouse_button_middle = 3
 // -- COLORS --
 
 // Tint a color with another color.
-foreign wasm color_tint: (WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm color_tint: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Fade a color.
-foreign wasm color_fade: (WasmI32, WasmF32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm color_fade: (WasmI32, WasmF32) => WasmI32 from "null0"
 // Change the brightness of a color.
-foreign wasm color_brightness: (WasmI32, WasmF32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm color_brightness: (WasmI32, WasmF32) => WasmI32 from "null0"
 // Invert a color.
-foreign wasm color_invert: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm color_invert: (WasmI32) => WasmI32 from "null0"
 // Blend 2 colors together.
-foreign wasm color_alpha_blend: (WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm color_alpha_blend: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Change contrast of a color.
-foreign wasm color_contrast: (WasmI32, WasmF32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm color_contrast: (WasmI32, WasmF32) => WasmI32 from "null0"
 // Interpolate colors.
-foreign wasm color_bilinear_interpolate: (WasmI32, WasmI32, WasmI32, WasmI32, WasmF32, WasmF32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm color_bilinear_interpolate: (WasmI32, WasmI32, WasmI32, WasmI32, WasmF32, WasmF32) => WasmI32 from "null0"
 
 // -- GRAPHICS --
 
 // Create a new blank image.
-foreign wasm new_image: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm new_image: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
 // Copy an image to a new image.
-foreign wasm image_copy: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm image_copy: (WasmI32) => WasmI32 from "null0"
 // Create an image from a region of another image.
-foreign wasm image_subimage: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm image_subimage: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
 // Clear the screen.
-foreign wasm clear: (WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm clear: (WasmI32) => Void from "null0"
 // Draw a single pixel on the screen.
-foreign wasm draw_point: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_point: (WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a line on the screen.
-foreign wasm draw_line: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_line: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled rectangle on the screen.
-foreign wasm draw_rectangle: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_rectangle: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled triangle on the screen.
-foreign wasm draw_triangle: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_triangle: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled ellipse on the screen.
-foreign wasm draw_ellipse: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_ellipse: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled circle on the screen.
-foreign wasm draw_circle: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_circle: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled polygon on the screen.
-foreign wasm draw_polygon: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_polygon: (WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled arc on the screen.
-foreign wasm draw_arc: (WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_arc: (WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled round-rectangle on the screen.
-foreign wasm draw_rectangle_rounded: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_rectangle_rounded: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw an image on the screen.
-foreign wasm draw_image: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_image: (WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a tinted image on the screen.
-foreign wasm draw_image_tint: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_image_tint: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw an image, rotated, on the screen.
-foreign wasm draw_image_rotated: (WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_image_rotated: (WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
 // Draw an image, flipped, on the screen.
-foreign wasm draw_image_flipped: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_image_flipped: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw an image, scaled, on the screen.
-foreign wasm draw_image_scaled: (WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_image_scaled: (WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
 // Draw some text on the screen.
-foreign wasm draw_text: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_text: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Save an image to persistant storage.
-foreign wasm save_image: (WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm save_image: (WasmI32, WasmI32) => Void from "null0"
 // Load an image from a file in cart.
-foreign wasm load_image: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm load_image: (WasmI32) => WasmI32 from "null0"
 // Resize an image, return copy.
-foreign wasm image_resize: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm image_resize: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
 // Scale an image, return copy.
-foreign wasm image_scale: (WasmI32, WasmF32, WasmF32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm image_scale: (WasmI32, WasmF32, WasmF32, WasmI32) => WasmI32 from "null0"
 // Replace a color in an image, in-place.
-foreign wasm image_color_replace: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm image_color_replace: (WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Tint a color in an image, in-place.
-foreign wasm image_color_tint: (WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm image_color_tint: (WasmI32, WasmI32) => Void from "null0"
 // Fade a color in an image, in-place.
-foreign wasm image_color_fade: (WasmI32, WasmF32) => Void from "null0"
+@unsafe
+provide foreign wasm image_color_fade: (WasmI32, WasmF32) => Void from "null0"
 // Copy a font to a new font.
-foreign wasm font_copy: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm font_copy: (WasmI32) => WasmI32 from "null0"
 // Scale a font, return a new font.
-foreign wasm font_scale: (WasmI32, WasmF32, WasmF32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm font_scale: (WasmI32, WasmF32, WasmF32, WasmI32) => WasmI32 from "null0"
 // Load a BMF font from a file in cart.
-foreign wasm load_font_bmf: (WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm load_font_bmf: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Load a BMF font from an image.
-foreign wasm load_font_bmf_from_image: (WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm load_font_bmf_from_image: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Measure the size of some text.
-foreign wasm measure_text: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm measure_text: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
 // Meaure an image (use 0 for screen).
-foreign wasm measure_image: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm measure_image: (WasmI32) => WasmI32 from "null0"
 // Load a TTY font from a file in cart.
-foreign wasm load_font_tty: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm load_font_tty: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
 // Load a TTY font from an image.
-foreign wasm load_font_tty_from_image: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm load_font_tty_from_image: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
 // Load a TTF font from a file in cart.
-foreign wasm load_font_ttf: (WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm load_font_ttf: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Invert the colors in an image, in-place.
-foreign wasm image_color_invert: (WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm image_color_invert: (WasmI32) => Void from "null0"
 // Calculate a rectangle representing the available alpha border in an image.
-foreign wasm image_alpha_border: (WasmI32, WasmF32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm image_alpha_border: (WasmI32, WasmF32) => WasmI32 from "null0"
 // Crop an image, in-place.
-foreign wasm image_crop: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm image_crop: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Crop an image based on the alpha border, in-place.
-foreign wasm image_alpha_crop: (WasmI32, WasmF32) => Void from "null0"
+@unsafe
+provide foreign wasm image_alpha_crop: (WasmI32, WasmF32) => Void from "null0"
 // Adjust the brightness of an image, in-place.
-foreign wasm image_color_brightness: (WasmI32, WasmF32) => Void from "null0"
+@unsafe
+provide foreign wasm image_color_brightness: (WasmI32, WasmF32) => Void from "null0"
 // Flip an image, in-place.
-foreign wasm image_flip: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm image_flip: (WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Change the contrast of an image, in-place.
-foreign wasm image_color_contrast: (WasmI32, WasmF32) => Void from "null0"
+@unsafe
+provide foreign wasm image_color_contrast: (WasmI32, WasmF32) => Void from "null0"
 // Use an image as an alpha-mask on another image.
-foreign wasm image_alpha_mask: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm image_alpha_mask: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Create a new image, rotating another image.
-foreign wasm image_rotate: (WasmI32, WasmF32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm image_rotate: (WasmI32, WasmF32, WasmI32) => WasmI32 from "null0"
 // Create a new image of a gradient.
-foreign wasm image_gradient: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm image_gradient: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
 // Unload an image.
-foreign wasm unload_image: (WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm unload_image: (WasmI32) => Void from "null0"
 // Unload a font.
-foreign wasm unload_font: (WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm unload_font: (WasmI32) => Void from "null0"
 // Clear an image.
-foreign wasm clear_image: (WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm clear_image: (WasmI32, WasmI32) => Void from "null0"
 // Draw a single pixel on an image.
-foreign wasm draw_point_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_point_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a line on an image.
-foreign wasm draw_line_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_line_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled rectangle on an image.
-foreign wasm draw_rectangle_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_rectangle_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled triangle on an image.
-foreign wasm draw_triangle_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_triangle_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled ellipse on an image.
-foreign wasm draw_ellipse_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_ellipse_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a circle on an image.
-foreign wasm draw_circle_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_circle_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled polygon on an image.
-foreign wasm draw_polygon_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_polygon_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a filled round-rectangle on an image.
-foreign wasm draw_rectangle_rounded_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_rectangle_rounded_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw an image on an image.
-foreign wasm draw_image_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_image_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a tinted image on an image.
-foreign wasm draw_image_tint_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_image_tint_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw an image, rotated, on an image.
-foreign wasm draw_image_rotated_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_image_rotated_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
 // Draw an image, flipped, on an image.
-foreign wasm draw_image_flipped_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_image_flipped_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw an image, scaled, on an image.
-foreign wasm draw_image_scaled_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_image_scaled_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmF32, WasmI32) => Void from "null0"
 // Draw some text on an image.
-foreign wasm draw_text_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_text_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) rectangle on the screen.
-foreign wasm draw_rectangle_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_rectangle_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) triangle on the screen.
-foreign wasm draw_triangle_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_triangle_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) ellipse on the screen.
-foreign wasm draw_ellipse_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_ellipse_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) circle on the screen.
-foreign wasm draw_circle_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_circle_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) polygon on the screen.
-foreign wasm draw_polygon_outline: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_polygon_outline: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) arc on the screen.
-foreign wasm draw_arc_outline: (WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_arc_outline: (WasmI32, WasmI32, WasmF32, WasmF32, WasmF32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) round-rectangle on the screen.
-foreign wasm draw_rectangle_rounded_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_rectangle_rounded_outline: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) rectangle on an image.
-foreign wasm draw_rectangle_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_rectangle_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) triangle on an image.
-foreign wasm draw_triangle_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_triangle_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) ellipse on an image.
-foreign wasm draw_ellipse_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_ellipse_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) circle on an image.
-foreign wasm draw_circle_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_circle_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) polygon on an image.
-foreign wasm draw_polygon_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_polygon_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 // Draw a outlined (with thickness) round-rectangle on an image.
-foreign wasm draw_rectangle_rounded_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm draw_rectangle_rounded_outline_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
 
 // -- INPUT --
 
 // Has the key been pressed? (tracks unpress/read correctly.)
-foreign wasm key_pressed: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm key_pressed: (WasmI32) => WasmI32 from "null0"
 // Is the key currently down?
-foreign wasm key_down: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm key_down: (WasmI32) => WasmI32 from "null0"
 // Has the key been released? (tracks press/read correctly.)
-foreign wasm key_released: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm key_released: (WasmI32) => WasmI32 from "null0"
 // Is the key currently up?
-foreign wasm key_up: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm key_up: (WasmI32) => WasmI32 from "null0"
 // Has the button been pressed? (tracks unpress/read correctly.)
-foreign wasm gamepad_button_pressed: (WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm gamepad_button_pressed: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Is the button currently down?
-foreign wasm gamepad_button_down: (WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm gamepad_button_down: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Has the button been released? (tracks press/read correctly.)
-foreign wasm gamepad_button_released: (WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm gamepad_button_released: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Get current position of mouse.
-foreign wasm mouse_position: () => WasmI32 from "null0"
+@unsafe
+provide foreign wasm mouse_position: () => WasmI32 from "null0"
 // Has the button been pressed? (tracks unpress/read correctly.)
-foreign wasm mouse_button_pressed: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm mouse_button_pressed: (WasmI32) => WasmI32 from "null0"
 // Is the button currently down?
-foreign wasm mouse_button_down: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm mouse_button_down: (WasmI32) => WasmI32 from "null0"
 // Has the button been released? (tracks press/read correctly.)
-foreign wasm mouse_button_released: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm mouse_button_released: (WasmI32) => WasmI32 from "null0"
 // Is the button currently up?
-foreign wasm mouse_button_up: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm mouse_button_up: (WasmI32) => WasmI32 from "null0"
 
 // -- SOUND --
 
 // Load a sound from a file in cart.
-foreign wasm load_sound: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm load_sound: (WasmI32) => WasmI32 from "null0"
 // Play a sound.
-foreign wasm play_sound: (WasmI32, WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm play_sound: (WasmI32, WasmI32) => Void from "null0"
 // Stop a sound.
-foreign wasm stop_sound: (WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm stop_sound: (WasmI32) => Void from "null0"
 // Unload a sound.
-foreign wasm unload_sound: (WasmI32) => Void from "null0"
+@unsafe
+provide foreign wasm unload_sound: (WasmI32) => Void from "null0"
 // Speak some text and return a sound. Set things to 0 for defaults.
-foreign wasm tts_sound: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm tts_sound: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
 // Create Sfx sound.
-foreign wasm sfx_sound: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm sfx_sound: (WasmI32) => WasmI32 from "null0"
 // Create Sfx parameters.
-foreign wasm sfx_generate: (WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm sfx_generate: (WasmI32) => WasmI32 from "null0"
+
+// -- TILE --
+
+// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+@unsafe
+provide foreign wasm load_tilemap: (WasmI32) => WasmI32 from "null0"
+// Unload a tilemap.
+@unsafe
+provide foreign wasm unload_tilemap: (WasmI32) => Void from "null0"
+// Update a tilemap's animation timers (deltaTime is in seconds).
+@unsafe
+provide foreign wasm tile_update: (WasmI32, WasmF32) => Void from "null0"
+// Draw a tilemap on the screen.
+@unsafe
+provide foreign wasm tile_draw: (WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a tilemap on the screen, tinted by a color.
+@unsafe
+provide foreign wasm tile_draw_tint: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a tilemap on an image.
+@unsafe
+provide foreign wasm tile_draw_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a single tile from a tilemap on the screen.
+@unsafe
+provide foreign wasm tile_draw_tile: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Get the number of layers in a tilemap.
+@unsafe
+provide foreign wasm tile_layer_count: (WasmI32) => WasmI32 from "null0"
+// Get the gid of the tile at a column/row in a tilemap layer.
+@unsafe
+provide foreign wasm tile_get_tile: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Set the gid of the tile at a column/row in a tilemap layer.
+@unsafe
+provide foreign wasm tile_set_tile: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Get a copy of the image of a single tile in a tilemap.
+@unsafe
+provide foreign wasm tile_image: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Render a whole tilemap to a new image.
+@unsafe
+provide foreign wasm tilemap_image: (WasmI32) => WasmI32 from "null0"
 
 // -- TYPES --
 
@@ -531,12 +941,17 @@ foreign wasm sfx_generate: (WasmI32) => WasmI32 from "null0"
 // -- UTILITIES --
 
 // Get system-time (ms) since unix epoch.
-foreign wasm current_time: () => WasmI64 from "null0"
+@unsafe
+provide foreign wasm current_time: () => WasmI64 from "null0"
 // Get the change in time (seconds) since the last update run.
-foreign wasm delta_time: () => WasmF32 from "null0"
+@unsafe
+provide foreign wasm delta_time: () => WasmF32 from "null0"
 // Get a random integer between 2 numbers.
-foreign wasm random_int: (WasmI32, WasmI32) => WasmI32 from "null0"
+@unsafe
+provide foreign wasm random_int: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Get the random-seed.
-foreign wasm random_seed_get: () => WasmI64 from "null0"
+@unsafe
+provide foreign wasm random_seed_get: () => WasmI64 from "null0"
 // Set the random-seed.
-foreign wasm random_seed_set: (WasmI64) => Void from "null0"
+@unsafe
+provide foreign wasm random_seed_set: (WasmI64) => Void from "null0"

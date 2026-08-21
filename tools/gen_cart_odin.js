@@ -28,6 +28,7 @@ package null0
 Image :: distinct u32
 Font :: distinct u32
 Sound :: distinct u32
+Tilemap :: distinct u32
 
 // Create a Color from r, g, b, a components
 rgba :: proc(r, g, b, a: u8) -> Color {
@@ -52,6 +53,7 @@ const argTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   ImageFilter: 'ImageFilter',
   Key: 'Key',
   GamepadButton: 'GamepadButton',
@@ -77,6 +79,7 @@ const retTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   Vector: '^Vector',
   Dimensions: '^Dimensions',
   Color: '^Color',

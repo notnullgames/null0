@@ -29,6 +29,7 @@ const out = [
 Image :: #distinct u32;
 Font :: #distinct u32;
 Sound :: #distinct u32;
+Tilemap :: #distinct u32;
 
 // Create a Color from r, g, b, a components
 rgba :: (r: u8, g: u8, b: u8, a: u8) -> Color {
@@ -51,6 +52,7 @@ const argTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   ImageFilter: 'i32',
   Key: 'i32',
   GamepadButton: 'i32',
@@ -75,6 +77,7 @@ const retTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   Vector: 'u32', // pointer to Vector
   Dimensions: 'u32', // pointer to Dimensions
   Color: 'u32', // pointer to Color

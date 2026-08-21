@@ -1,0 +1,91 @@
+load_tilemap:
+  args:
+    filename: string
+  returns: Tilemap
+  description: Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+
+unload_tilemap:
+  args:
+    tilemap: Tilemap
+  returns: void
+  description: Unload a tilemap.
+
+tile_update:
+  args:
+    tilemap: Tilemap
+    deltaTime: f32
+  returns: void
+  description: Update a tilemap's animation timers (deltaTime is in seconds).
+
+tile_draw:
+  args:
+    tilemap: Tilemap
+    posX: i32
+    posY: i32
+  returns: void
+  description: Draw a tilemap on the screen.
+
+tile_draw_tint:
+  args:
+    tilemap: Tilemap
+    posX: i32
+    posY: i32
+    tint: Color
+  returns: void
+  description: Draw a tilemap on the screen, tinted by a color.
+
+tile_draw_on_image:
+  args:
+    dst: Image
+    tilemap: Tilemap
+    posX: i32
+    posY: i32
+  returns: void
+  description: Draw a tilemap on an image.
+
+tile_draw_tile:
+  args:
+    tilemap: Tilemap
+    gid: i32
+    posX: i32
+    posY: i32
+  returns: void
+  description: Draw a single tile from a tilemap on the screen.
+
+tile_layer_count:
+  args:
+    tilemap: Tilemap
+  returns: i32
+  description: Get the number of layers in a tilemap.
+
+tile_get_tile:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    column: i32
+    row: i32
+  returns: i32
+  description: Get the gid of the tile at a column/row in a tilemap layer.
+
+tile_set_tile:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    column: i32
+    row: i32
+    gid: i32
+  returns: void
+  description: Set the gid of the tile at a column/row in a tilemap layer.
+
+tile_image:
+  args:
+    tilemap: Tilemap
+    gid: i32
+  returns: Image
+  description: Get a copy of the image of a single tile in a tilemap.
+
+tilemap_image:
+  args:
+    tilemap: Tilemap
+  returns: Image
+  description: Render a whole tilemap to a new image.

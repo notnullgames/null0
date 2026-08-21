@@ -25,6 +25,7 @@ const externTypes = {
   Image: 'u32',
   Font: 'u32',
   Sound: 'u32',
+  Tilemap: 'u32',
   ImageFilter: 'i32',
   Key: 'i32',
   GamepadButton: 'i32',

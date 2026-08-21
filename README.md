@@ -48,7 +48,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 You can currently do all of these things yourself, or use a library for your language, but I think it would be cool to abstract them into the engine:
 
 - [ ] UI : [microui](https://github.com/notnullgames/pntr_microui) or [nuklear_console](https://github.com/RobLoach/nuklear_console)
-- [ ] tiled map/sprite
+- [x] tiled map/sprite
 - [ ] physics
 - [ ] FFT for audio/radio
 - [ ] behind CLI flag: call native program, native files

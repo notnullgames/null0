@@ -512,6 +512,33 @@
 ;; Create Sfx parameters.
 (import "null0" "sfx_generate" (func $sfx_generate (param i32) (result i32)))
 
+;; -- TILE --
+
+;; Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+(import "null0" "load_tilemap" (func $load_tilemap (param i32) (result i32)))
+;; Unload a tilemap.
+(import "null0" "unload_tilemap" (func $unload_tilemap (param i32)))
+;; Update a tilemap's animation timers (deltaTime is in seconds).
+(import "null0" "tile_update" (func $tile_update (param i32 f32)))
+;; Draw a tilemap on the screen.
+(import "null0" "tile_draw" (func $tile_draw (param i32 i32 i32)))
+;; Draw a tilemap on the screen, tinted by a color.
+(import "null0" "tile_draw_tint" (func $tile_draw_tint (param i32 i32 i32 i32)))
+;; Draw a tilemap on an image.
+(import "null0" "tile_draw_on_image" (func $tile_draw_on_image (param i32 i32 i32 i32)))
+;; Draw a single tile from a tilemap on the screen.
+(import "null0" "tile_draw_tile" (func $tile_draw_tile (param i32 i32 i32 i32)))
+;; Get the number of layers in a tilemap.
+(import "null0" "tile_layer_count" (func $tile_layer_count (param i32) (result i32)))
+;; Get the gid of the tile at a column/row in a tilemap layer.
+(import "null0" "tile_get_tile" (func $tile_get_tile (param i32 i32 i32 i32) (result i32)))
+;; Set the gid of the tile at a column/row in a tilemap layer.
+(import "null0" "tile_set_tile" (func $tile_set_tile (param i32 i32 i32 i32 i32)))
+;; Get a copy of the image of a single tile in a tilemap.
+(import "null0" "tile_image" (func $tile_image (param i32 i32) (result i32)))
+;; Render a whole tilemap to a new image.
+(import "null0" "tilemap_image" (func $tilemap_image (param i32) (result i32)))
+
 ;; -- TYPES --
 
 

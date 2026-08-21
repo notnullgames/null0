@@ -26,6 +26,7 @@ import ldc.attributes;
 alias Image = uint;
 alias Font = uint;
 alias Sound = uint;
+alias Tilemap = uint;
 
 /// Create a Color from r, g, b, a components
 Color rgba(ubyte r, ubyte g, ubyte b, ubyte a) {
@@ -65,6 +66,7 @@ const argTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   ImageFilter: 'ImageFilter',
   Key: 'Key',
   GamepadButton: 'GamepadButton',
@@ -90,6 +92,7 @@ const retTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   Vector: 'Vector*',
   Dimensions: 'Dimensions*',
   Color: 'Color*',

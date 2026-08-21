@@ -177,6 +177,18 @@ extern "C" {
     pub fn tts_sound(text: *const u8, phonetic: bool, pitch: i32, speed: i32, throat: i32, mouth: i32, sing: bool) -> u32;
     pub fn sfx_sound(params: SfxParams) -> u32;
     pub fn sfx_generate(r#type: i32) -> u32;
+    pub fn load_tilemap(filename: *const u8) -> u32;
+    pub fn unload_tilemap(tilemap: u32);
+    pub fn tile_update(tilemap: u32, deltaTime: f32);
+    pub fn tile_draw(tilemap: u32, posX: i32, posY: i32);
+    pub fn tile_draw_tint(tilemap: u32, posX: i32, posY: i32, tint: Color);
+    pub fn tile_draw_on_image(dst: u32, tilemap: u32, posX: i32, posY: i32);
+    pub fn tile_draw_tile(tilemap: u32, gid: i32, posX: i32, posY: i32);
+    pub fn tile_layer_count(tilemap: u32) -> i32;
+    pub fn tile_get_tile(tilemap: u32, layer: i32, column: i32, row: i32) -> i32;
+    pub fn tile_set_tile(tilemap: u32, layer: i32, column: i32, row: i32, gid: i32);
+    pub fn tile_image(tilemap: u32, gid: i32) -> u32;
+    pub fn tilemap_image(tilemap: u32) -> u32;
     pub fn current_time() -> u64;
     pub fn delta_time() -> f32;
     pub fn random_int(min: i32, max: i32) -> i32;
@@ -1353,6 +1365,113 @@ fn nf_sfx_generate(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef>
     Ok(sfxparams_to_py(unsafe { *ret }, vm))
 }
 
+// TILE
+
+/// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+fn nf_load_tilemap(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let filename_cs = CString::new(args.args[0].clone().try_into_value::<String>(vm)?).unwrap();
+    let filename = filename_cs.as_ptr() as *const u8;
+    let ret = unsafe { load_tilemap(filename) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Unload a tilemap.
+fn nf_unload_tilemap(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    unsafe { unload_tilemap(tilemap) };
+    Ok(vm.ctx.none())
+}
+
+/// Update a tilemap's animation timers (deltaTime is in seconds).
+fn nf_tile_update(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let deltaTime = args.args[1].clone().try_into_value::<f32>(vm)?;
+    unsafe { tile_update(tilemap, deltaTime) };
+    Ok(vm.ctx.none())
+}
+
+/// Draw a tilemap on the screen.
+fn nf_tile_draw(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let posX = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let posY = args.args[2].clone().try_into_value::<i32>(vm)?;
+    unsafe { tile_draw(tilemap, posX, posY) };
+    Ok(vm.ctx.none())
+}
+
+/// Draw a tilemap on the screen, tinted by a color.
+fn nf_tile_draw_tint(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let posX = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let posY = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let tint = color_from_py(&args.args[3], vm)?;
+    unsafe { tile_draw_tint(tilemap, posX, posY, tint) };
+    Ok(vm.ctx.none())
+}
+
+/// Draw a tilemap on an image.
+fn nf_tile_draw_on_image(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let dst = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let tilemap = args.args[1].clone().try_into_value::<u32>(vm)?;
+    let posX = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let posY = args.args[3].clone().try_into_value::<i32>(vm)?;
+    unsafe { tile_draw_on_image(dst, tilemap, posX, posY) };
+    Ok(vm.ctx.none())
+}
+
+/// Draw a single tile from a tilemap on the screen.
+fn nf_tile_draw_tile(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let gid = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let posX = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let posY = args.args[3].clone().try_into_value::<i32>(vm)?;
+    unsafe { tile_draw_tile(tilemap, gid, posX, posY) };
+    Ok(vm.ctx.none())
+}
+
+/// Get the number of layers in a tilemap.
+fn nf_tile_layer_count(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let ret = unsafe { tile_layer_count(tilemap) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Get the gid of the tile at a column/row in a tilemap layer.
+fn nf_tile_get_tile(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let column = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let row = args.args[3].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_get_tile(tilemap, layer, column, row) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Set the gid of the tile at a column/row in a tilemap layer.
+fn nf_tile_set_tile(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let column = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let row = args.args[3].clone().try_into_value::<i32>(vm)?;
+    let gid = args.args[4].clone().try_into_value::<i32>(vm)?;
+    unsafe { tile_set_tile(tilemap, layer, column, row, gid) };
+    Ok(vm.ctx.none())
+}
+
+/// Get a copy of the image of a single tile in a tilemap.
+fn nf_tile_image(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let gid = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_image(tilemap, gid) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Render a whole tilemap to a new image.
+fn nf_tilemap_image(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let ret = unsafe { tilemap_image(tilemap) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
 // TYPES
 
 // UTILITIES
@@ -1682,6 +1801,18 @@ fn register_all(scope: &Scope, vm: &VirtualMachine) {
     scope.globals.set_item("tts_sound", vm.new_function("tts_sound", nf_tts_sound).into(), vm).unwrap();
     scope.globals.set_item("sfx_sound", vm.new_function("sfx_sound", nf_sfx_sound).into(), vm).unwrap();
     scope.globals.set_item("sfx_generate", vm.new_function("sfx_generate", nf_sfx_generate).into(), vm).unwrap();
+    scope.globals.set_item("load_tilemap", vm.new_function("load_tilemap", nf_load_tilemap).into(), vm).unwrap();
+    scope.globals.set_item("unload_tilemap", vm.new_function("unload_tilemap", nf_unload_tilemap).into(), vm).unwrap();
+    scope.globals.set_item("tile_update", vm.new_function("tile_update", nf_tile_update).into(), vm).unwrap();
+    scope.globals.set_item("tile_draw", vm.new_function("tile_draw", nf_tile_draw).into(), vm).unwrap();
+    scope.globals.set_item("tile_draw_tint", vm.new_function("tile_draw_tint", nf_tile_draw_tint).into(), vm).unwrap();
+    scope.globals.set_item("tile_draw_on_image", vm.new_function("tile_draw_on_image", nf_tile_draw_on_image).into(), vm).unwrap();
+    scope.globals.set_item("tile_draw_tile", vm.new_function("tile_draw_tile", nf_tile_draw_tile).into(), vm).unwrap();
+    scope.globals.set_item("tile_layer_count", vm.new_function("tile_layer_count", nf_tile_layer_count).into(), vm).unwrap();
+    scope.globals.set_item("tile_get_tile", vm.new_function("tile_get_tile", nf_tile_get_tile).into(), vm).unwrap();
+    scope.globals.set_item("tile_set_tile", vm.new_function("tile_set_tile", nf_tile_set_tile).into(), vm).unwrap();
+    scope.globals.set_item("tile_image", vm.new_function("tile_image", nf_tile_image).into(), vm).unwrap();
+    scope.globals.set_item("tilemap_image", vm.new_function("tilemap_image", nf_tilemap_image).into(), vm).unwrap();
     scope.globals.set_item("current_time", vm.new_function("current_time", nf_current_time).into(), vm).unwrap();
     scope.globals.set_item("delta_time", vm.new_function("delta_time", nf_delta_time).into(), vm).unwrap();
     scope.globals.set_item("random_int", vm.new_function("random_int", nf_random_int).into(), vm).unwrap();

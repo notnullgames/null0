@@ -139,114 +139,34 @@ jobs:
           name: host_web
           path: wbuild/host/null0.mjs
 
-  cart_c:
-    name: C Carts
+  # builds every example cart, one job per language. the cart:*_<lang> npm
+  # scripts are the source of truth for what gets built (see package.json),
+  # and the published konsumer/null0-cart-<lang> images do the building
+  carts:
+    name: Carts (${{ matrix.lang }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        cart:
-          - colorbars
-          - example
-          - gradient
-          - input
-          - sfx
-          - speak
-          - wasi_demo
+        lang: [c, js, as, nelua, nim, rust, zig, go, wat, walt, d, odin, c3, onyx, grain, python, wren, lua]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Build C ${{ matrix.cart }} cart
-        run: docker run -v ./carts/c/${{ matrix.cart }}:/src -v .:/out konsumer/null0-cart-c ${{ matrix.cart }}_c
-      - name: Upload C ${{ matrix.cart }} cart artifact
+      - name: Build ${{ matrix.lang }} carts
+        run: npx -y npm-run-all --parallel 'cart:*_${{ matrix.lang }}'
+      - name: Upload ${{ matrix.lang }} cart artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cart_c_${{ matrix.cart }}
-          path: ${{ matrix.cart }}_c.null0
+          name: carts_${{ matrix.lang }}
+          path: build/carts/*_${{ matrix.lang }}.null0
 
-  cart_js:
-    name: JS Carts
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        cart:
-          - demo
-          - input
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build JS ${{ matrix.cart }} cart
-        run: docker run -v ./carts/js/${{ matrix.cart }}:/src -v .:/out konsumer/null0-cart-quickjs ${{ matrix.cart }}_js
-      - name: Upload JS ${{ matrix.cart }} cart artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: cart_quickjs_${{ matrix.cart }}
-          path: ${{ matrix.cart }}_js.null0
-
-  cart_as:
-    name: Assemblyscript Carts
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        cart:
-          - simple
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build Assemblyscript ${{ matrix.cart }} cart
-        run: docker run -v ./carts/as/${{ matrix.cart }}:/src -v .:/out konsumer/null0-cart-assemblyscript ${{ matrix.cart }}_as
-      - name: Upload Assemblyscript ${{ matrix.cart }} cart artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: cart_as_${{ matrix.cart }}
-          path: ${{ matrix.cart }}_as.null0
-
-  cart_nelua:
-    name: Nelua Carts
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        cart:
-          - basic
-          - colorbars
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build Nelua ${{ matrix.cart }} cart
-        run: docker run -v ./carts/nelua/${{ matrix.cart }}:/src -v .:/out konsumer/null0-cart-nelua ${{ matrix.cart }}_nelua
-      - name: Upload Nelua ${{ matrix.cart }} cart artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: cart_nelua_${{ matrix.cart }}
-          path: ${{ matrix.cart }}_nelua.null0
-  
-  # cart_nim:
-  #   name: Nim Carts
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       cart:
-  #         - simple
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Build Nim ${{ matrix.cart }} cart
-  #       run: docker run -v ./carts/nim/${{ matrix.cart }}:/src -v .:/out konsumer/null0-cart-nim ${{ matrix.cart }}_nim
-  #     - name: Upload Nim ${{ matrix.cart }} cart artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ${{ matrix.cart }}_nim
-  #         path: ${{ matrix.cart }}_nim.null0
-  
   # this creates a release on any tag, and attaches all the artifacts to it, then uploads demo page
   release:
     name: Release Tag
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
     needs:
-      - cart_c
-      - cart_js
-      - cart_as
-      - cart_nelua
+      - carts
       - host_linux
       - host_mac
       - host_windows
@@ -266,9 +186,9 @@ jobs:
       - name: Setup website
         run: |
           cd webroot
-          mv ../artifacts/null0.mjs .
+          mv ../artifacts/host_web/null0.mjs .
           mkdir -p carts
-          mv ../artifacts/**/*.null0 carts/
+          mv ../artifacts/carts_*/*.null0 carts/
           cd carts
           ls *.null0 > list.txt
       - name: Setup Pages

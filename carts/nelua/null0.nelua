@@ -572,6 +572,45 @@ global function sfx_sound(params: SfxParams): uint32 <cimport,nodecl> end
 global function sfx_generate(type: SfxPresetType): SfxParams <cimport,nodecl> end
 
 
+-- TILE
+
+-- Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+global function load_tilemap(filename: cstring): uint32 <cimport,nodecl> end
+
+-- Unload a tilemap.
+global function unload_tilemap(tilemap: uint32): void <cimport,nodecl> end
+
+-- Update a tilemap's animation timers (deltaTime is in seconds).
+global function tile_update(tilemap: uint32, deltaTime: float32): void <cimport,nodecl> end
+
+-- Draw a tilemap on the screen.
+global function tile_draw(tilemap: uint32, posX: int32, posY: int32): void <cimport,nodecl> end
+
+-- Draw a tilemap on the screen, tinted by a color.
+global function tile_draw_tint(tilemap: uint32, posX: int32, posY: int32, tint: Color): void <cimport,nodecl> end
+
+-- Draw a tilemap on an image.
+global function tile_draw_on_image(dst: uint32, tilemap: uint32, posX: int32, posY: int32): void <cimport,nodecl> end
+
+-- Draw a single tile from a tilemap on the screen.
+global function tile_draw_tile(tilemap: uint32, gid: int32, posX: int32, posY: int32): void <cimport,nodecl> end
+
+-- Get the number of layers in a tilemap.
+global function tile_layer_count(tilemap: uint32): int32 <cimport,nodecl> end
+
+-- Get the gid of the tile at a column/row in a tilemap layer.
+global function tile_get_tile(tilemap: uint32, layer: int32, column: int32, row: int32): int32 <cimport,nodecl> end
+
+-- Set the gid of the tile at a column/row in a tilemap layer.
+global function tile_set_tile(tilemap: uint32, layer: int32, column: int32, row: int32, gid: int32): void <cimport,nodecl> end
+
+-- Get a copy of the image of a single tile in a tilemap.
+global function tile_image(tilemap: uint32, gid: int32): uint32 <cimport,nodecl> end
+
+-- Render a whole tilemap to a new image.
+global function tilemap_image(tilemap: uint32): uint32 <cimport,nodecl> end
+
+
 -- TYPES
 
 

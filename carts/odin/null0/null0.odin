@@ -19,6 +19,7 @@ package null0
 Image :: distinct u32
 Font :: distinct u32
 Sound :: distinct u32
+Tilemap :: distinct u32
 
 // Create a Color from r, g, b, a components
 rgba :: proc(r, g, b, a: u8) -> Color {
@@ -509,6 +510,32 @@ foreign null0_api {
     sfx_sound :: proc(params: ^SfxParams) -> Sound ---
     // Create Sfx parameters.
     sfx_generate :: proc(type: SfxPresetType) -> ^SfxParams ---
+
+    // TILE
+    // Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+    load_tilemap :: proc(filename: cstring) -> Tilemap ---
+    // Unload a tilemap.
+    unload_tilemap :: proc(tilemap: Tilemap) ---
+    // Update a tilemap's animation timers (deltaTime is in seconds).
+    tile_update :: proc(tilemap: Tilemap, deltaTime: f32) ---
+    // Draw a tilemap on the screen.
+    tile_draw :: proc(tilemap: Tilemap, posX: i32, posY: i32) ---
+    // Draw a tilemap on the screen, tinted by a color.
+    tile_draw_tint :: proc(tilemap: Tilemap, posX: i32, posY: i32, tint: Color) ---
+    // Draw a tilemap on an image.
+    tile_draw_on_image :: proc(dst: Image, tilemap: Tilemap, posX: i32, posY: i32) ---
+    // Draw a single tile from a tilemap on the screen.
+    tile_draw_tile :: proc(tilemap: Tilemap, gid: i32, posX: i32, posY: i32) ---
+    // Get the number of layers in a tilemap.
+    tile_layer_count :: proc(tilemap: Tilemap) -> i32 ---
+    // Get the gid of the tile at a column/row in a tilemap layer.
+    tile_get_tile :: proc(tilemap: Tilemap, layer: i32, column: i32, row: i32) -> i32 ---
+    // Set the gid of the tile at a column/row in a tilemap layer.
+    tile_set_tile :: proc(tilemap: Tilemap, layer: i32, column: i32, row: i32, gid: i32) ---
+    // Get a copy of the image of a single tile in a tilemap.
+    tile_image :: proc(tilemap: Tilemap, gid: i32) -> Image ---
+    // Render a whole tilemap to a new image.
+    tilemap_image :: proc(tilemap: Tilemap) -> Image ---
 
     // TYPES
 

@@ -16,6 +16,7 @@ module null0;
 alias Image = uint;
 alias Font = uint;
 alias Sound = uint;
+alias Tilemap = uint;
 
 // Create a Color from r, g, b, a components
 fn Color rgba(char r, char g, char b, char a) {
@@ -501,6 +502,32 @@ extern fn Sound tts_sound(char* text, bool phonetic, int pitch, int speed, int t
 extern fn Sound sfx_sound(SfxParams* params) @wasm("null0", "sfx_sound");
 // Create Sfx parameters.
 extern fn SfxParams* sfx_generate(int type) @wasm("null0", "sfx_generate");
+
+// TILE
+// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+extern fn Tilemap load_tilemap(char* filename) @wasm("null0", "load_tilemap");
+// Unload a tilemap.
+extern fn void unload_tilemap(Tilemap tilemap) @wasm("null0", "unload_tilemap");
+// Update a tilemap's animation timers (deltaTime is in seconds).
+extern fn void tile_update(Tilemap tilemap, float deltaTime) @wasm("null0", "tile_update");
+// Draw a tilemap on the screen.
+extern fn void tile_draw(Tilemap tilemap, int posX, int posY) @wasm("null0", "tile_draw");
+// Draw a tilemap on the screen, tinted by a color.
+extern fn void tile_draw_tint(Tilemap tilemap, int posX, int posY, Color tint) @wasm("null0", "tile_draw_tint");
+// Draw a tilemap on an image.
+extern fn void tile_draw_on_image(Image dst, Tilemap tilemap, int posX, int posY) @wasm("null0", "tile_draw_on_image");
+// Draw a single tile from a tilemap on the screen.
+extern fn void tile_draw_tile(Tilemap tilemap, int gid, int posX, int posY) @wasm("null0", "tile_draw_tile");
+// Get the number of layers in a tilemap.
+extern fn int tile_layer_count(Tilemap tilemap) @wasm("null0", "tile_layer_count");
+// Get the gid of the tile at a column/row in a tilemap layer.
+extern fn int tile_get_tile(Tilemap tilemap, int layer, int column, int row) @wasm("null0", "tile_get_tile");
+// Set the gid of the tile at a column/row in a tilemap layer.
+extern fn void tile_set_tile(Tilemap tilemap, int layer, int column, int row, int gid) @wasm("null0", "tile_set_tile");
+// Get a copy of the image of a single tile in a tilemap.
+extern fn Image tile_image(Tilemap tilemap, int gid) @wasm("null0", "tile_image");
+// Render a whole tilemap to a new image.
+extern fn Image tilemap_image(Tilemap tilemap) @wasm("null0", "tilemap_image");
 
 // TYPES
 

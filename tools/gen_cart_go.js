@@ -44,6 +44,9 @@ type Font = uint32
 // Sound is a handle to a sound.
 type Sound = uint32
 
+// Tilemap is a handle to a tilemap (a Tiled map, exported as JSON).
+type Tilemap = uint32
+
 // NewColor creates a Color from r, g, b, a components.
 func NewColor(r, g, b, a uint8) Color {
 	return Color{R: r, G: g, B: b, A: a}
@@ -88,6 +91,7 @@ const rawArgTypes = {
   Image: 'uint32',
   Font: 'uint32',
   Sound: 'uint32',
+  Tilemap: 'uint32',
   ImageFilter: 'int32',
   Key: 'int32',
   GamepadButton: 'int32',
@@ -112,6 +116,7 @@ const niceArgTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   ImageFilter: 'ImageFilter',
   Key: 'Key',
   GamepadButton: 'GamepadButton',
@@ -136,6 +141,7 @@ const rawRetTypes = {
   Image: 'uint32',
   Font: 'uint32',
   Sound: 'uint32',
+  Tilemap: 'uint32',
   Vector: 'unsafe.Pointer',
   Dimensions: 'unsafe.Pointer',
   Color: 'unsafe.Pointer',
@@ -155,6 +161,7 @@ const niceRetTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   Vector: 'Vector',
   Dimensions: 'Dimensions',
   Color: 'Color',
@@ -186,6 +193,7 @@ const rawConvert = (name, type) => {
     case 'Image':
     case 'Font':
     case 'Sound':
+    case 'Tilemap':
     case 'i32':
     case 'f32':
     case 'u32':
@@ -213,6 +221,7 @@ const niceConvert = (type, expr) => {
     case 'Image':
     case 'Font':
     case 'Sound':
+    case 'Tilemap':
     case 'i32':
     case 'f32':
     case 'u32':

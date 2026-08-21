@@ -16,6 +16,28 @@ static pntr_app *null0_app;
 static cvector_vector_type(pntr_image *) images;
 static cvector_vector_type(pntr_font *) fonts;
 static cvector_vector_type(pntr_sound *) sounds;
+static cvector_vector_type(cute_tiled_map_t *) tilemaps;
+
+// host-side allocations in cart memory, freed by cart_gc() after the current
+// cart callback (load/update/event) returns
+static cvector_vector_type(uint32_t) cart_allocations;
+
+// allocate memory in the cart, tracked so cart_gc() can free it later
+uint32_t cart_alloc_tracked(size_t size) {
+  uint32_t ptr = cart_malloc(size);
+  cvector_push_back(cart_allocations, ptr);
+  return ptr;
+}
+
+// free everything the host allocated in cart memory since the last callback.
+// this means host-returned pointers (struct/string returns) are only valid
+// until the current cart callback returns - carts must copy what they need
+void cart_gc() {
+  for (size_t i = 0; i < cvector_size(cart_allocations); i++) {
+    cart_free(cart_allocations[i]);
+  }
+  cvector_clear(cart_allocations);
+}
 
 // add an image to loaded images
 uint32_t add_image(pntr_image *image) {
@@ -45,6 +67,106 @@ uint32_t add_sound(pntr_sound *sound) {
   uint32_t id = cvector_size(sounds);
   cvector_push_back(sounds, sound);
   return id;
+}
+
+// add a tilemap to loaded tilemaps
+uint32_t add_tilemap(cute_tiled_map_t *tilemap) {
+  if (tilemap == NULL) {
+    return 0;
+  }
+  uint32_t id = cvector_size(tilemaps);
+  cvector_push_back(tilemaps, tilemap);
+  return id;
+}
+
+// get an image by handle, NULL (with a warning) if out of range
+pntr_image *get_image(uint32_t id) {
+  if (id >= (uint32_t)cvector_size(images)) {
+    pntr_app_log_ex(PNTR_APP_LOG_ERROR, "null0: invalid image handle: %u", id);
+    return NULL;
+  }
+  return images[id];
+}
+
+// get a font by handle, NULL (with a warning) if out of range
+pntr_font *get_font(uint32_t id) {
+  if (id >= (uint32_t)cvector_size(fonts)) {
+    pntr_app_log_ex(PNTR_APP_LOG_ERROR, "null0: invalid font handle: %u", id);
+    return NULL;
+  }
+  return fonts[id];
+}
+
+// get a sound by handle, NULL (with a warning) if out of range
+pntr_sound *get_sound(uint32_t id) {
+  if (id >= (uint32_t)cvector_size(sounds)) {
+    pntr_app_log_ex(PNTR_APP_LOG_ERROR, "null0: invalid sound handle: %u", id);
+    return NULL;
+  }
+  return sounds[id];
+}
+
+// get a tilemap by handle, NULL (with a warning) if out of range
+cute_tiled_map_t *get_tilemap(uint32_t id) {
+  if (id >= (uint32_t)cvector_size(tilemaps)) {
+    pntr_app_log_ex(PNTR_APP_LOG_ERROR, "null0: invalid tilemap handle: %u", id);
+    return NULL;
+  }
+  return tilemaps[id];
+}
+
+// pntr_tiled blends layer->tintcolor into the tint when drawing object
+// layers, but cute_tiled leaves tintcolor 0 when the layer has no tint, and
+// pntr_tiled_color(0) is opaque black - default missing tints to white
+static void null0_tiled_fix_layer_tints(cute_tiled_layer_t *layer) {
+  while (layer != NULL) {
+    if (layer->tintcolor == 0) {
+      layer->tintcolor = 0xFFFFFFFF;
+    }
+    null0_tiled_fix_layer_tints(layer->layers);
+    layer = layer->next;
+  }
+}
+
+// load a Tiled map, fixing up missing layer tints (see above)
+cute_tiled_map_t *null0_load_tiled(const char *filename) {
+  cute_tiled_map_t *map = pntr_load_tiled(filename);
+  if (map != NULL) {
+    null0_tiled_fix_layer_tints(map->layers);
+  }
+  return map;
+}
+
+// get the gid of a tile in a layer (by index) of a tilemap
+int null0_tile_get_tile(cute_tiled_map_t *map, int layer, int column, int row) {
+  cute_tiled_layer_t *l = pntr_tiled_layer_from_index(map, layer);
+  if (l == NULL) {
+    return 0;
+  }
+  return pntr_layer_tile(l, column, row);
+}
+
+// set the gid of a tile in a layer (by index) of a tilemap
+void null0_tile_set_tile(cute_tiled_map_t *map, int layer, int column, int row, int gid) {
+  cute_tiled_layer_t *l = pntr_tiled_layer_from_index(map, layer);
+  if (l == NULL) {
+    return;
+  }
+  pntr_set_layer_tile(l, column, row, gid);
+}
+
+// get a copy of a tile's image, so the cart can unload it like any other image
+pntr_image *null0_tile_image(cute_tiled_map_t *map, int gid) {
+  pntr_image *tileImage = pntr_tiled_tile_image(map, gid);
+  if (tileImage == NULL) {
+    return NULL;
+  }
+  return pntr_image_copy(tileImage);
+}
+
+// render a whole tilemap to a new image
+pntr_image *null0_gen_image_tiled(cute_tiled_map_t *map) {
+  return pntr_gen_image_tiled(map, PNTR_WHITE);
 }
 
 // SAM TTS function - generates WAV data from text
@@ -222,7 +344,7 @@ char *copy_string_from_cart(uint32_t cart_pointer) {
 // copy a string from host to cart
 uint32_t copy_string_to_cart(char *host_pointer) {
   uint32_t size = strlen(host_pointer) + 1;
-  uint32_t ret = cart_malloc(size);
+  uint32_t ret = cart_alloc_tracked(size);
   mem_to_cart(ret, (void *)host_pointer, size);
   return ret;
 }
@@ -242,7 +364,7 @@ uint32_t copy_color_to_cart(pntr_color color) {
   c->g = color.rgba.g;
   c->b = color.rgba.b;
   c->a = color.rgba.a;
-  uint32_t ret = cart_malloc(sizeof(CartColor));
+  uint32_t ret = cart_alloc_tracked(sizeof(CartColor));
   mem_to_cart(ret, c, sizeof(CartColor));
   return ret;
 }
@@ -256,7 +378,7 @@ void *copy_memory_from_cart(uint32_t src, uint32_t size) {
 
 // Allocate & copy memory from host to cart
 uint32_t copy_memory_to_cart(void *src, uint32_t size) {
-  uint32_t dest = cart_malloc(size);
+  uint32_t dest = cart_alloc_tracked(size);
   mem_to_cart(dest, src, size);
   return dest;
 }
@@ -356,16 +478,21 @@ bool host_init(pntr_app *app) {
   add_image(app->screen);
   add_font(pntr_load_font_default());
 
+  // there is no "default tilemap", so reserve handle 0 as invalid
+  cvector_push_back(tilemaps, (cute_tiled_map_t *)NULL);
+
   bool ret = cart_init(app, wasmBytes, wasmSize);
   // NOTE: Do NOT free cartBytes here! PHYSFS_mountMemory keeps a pointer to it.
   // It will be freed when PHYSFS_deinit() is called at shutdown.
   // if (cartBytes) free(cartBytes);
   free(wasmBytes);
+  cart_gc();
   return ret;
 }
 
 bool host_update(pntr_app *app) {
   cart_update();
+  cart_gc();
   return true;
 }
 
@@ -440,6 +567,7 @@ void host_event(pntr_app_event *event) {
     }
 #endif
   }
+  cart_gc();
 }
 
 // called from carts: these are lil wrappers/helpers to put things in right shape

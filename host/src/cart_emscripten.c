@@ -47,7 +47,10 @@ EM_JS(uint32_t, cart_malloc, (size_t size), {
 });
 
 EM_JS(void, cart_free, (uint32_t ptr), {
-  Module.cart.free(ptr);
+  // not every cart exports free() - leak rather than throw for those
+  if (Module.cart && Module.cart.free) {
+    Module.cart.free(ptr);
+  }
 });
 
 EM_JS(void, mem_to_cart, (uint32_t dest, void* src, size_t size), {

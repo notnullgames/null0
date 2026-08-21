@@ -1,33 +1,15 @@
 module Main
 
-from "runtime/unsafe/wasmi32" include WasmI32
-
-// null0 imports (see null0.gr for the full list)
-foreign wasm clear: (WasmI32) => Void from "null0"
-foreign wasm draw_circle: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
-
-// Color is a pointer to 4 bytes (r, g, b, a) in memory, not a packed
-// scalar - these are addresses that load() populates at startup.
-let blue = 65536 // rgba(0, 121, 241, 255)
-let red = 65540 // rgba(230, 41, 55, 255)
+// the null0-cart-grain docker image provides null0.gr; you only need to
+// ship your own copy if you build outside docker
+from "./null0.gr" include Null0
 
 // called on load
 @unsafe
 provide let load = () => {
-  WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(0), 0n)
-  WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(121), 1n)
-  WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(241), 2n)
-  WasmI32.store8(WasmI32.fromGrain(blue), WasmI32.fromGrain(255), 3n)
-  WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(230), 0n)
-  WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(41), 1n)
-  WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(55), 2n)
-  WasmI32.store8(WasmI32.fromGrain(red), WasmI32.fromGrain(255), 3n)
-  clear(WasmI32.fromGrain(blue))
-  draw_circle(
-    WasmI32.fromGrain(100),
-    WasmI32.fromGrain(100),
-    WasmI32.fromGrain(50),
-    WasmI32.fromGrain(red))
+  Null0.initColors()
+  Null0.clear(Null0.blue)
+  Null0.draw_circle(100n, 100n, 50n, Null0.red)
 }
 
 // called on every frame

@@ -32,6 +32,9 @@ Font
 // A sound.
 Sound
 
+// A tilemap (a Tiled map, exported as JSON). 0 is an invalid tilemap.
+Tilemap
+
 // Pointer to a null-terminated UTF8 string. (char*)
 string
 
@@ -1320,6 +1323,117 @@ Create Sfx parameters.
 
 ```c
 SfxParams sfx_generate(SfxPresetType type)
+```
+
+---
+
+### tile
+
+#### load_tilemap
+
+Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+
+```c
+Tilemap load_tilemap(string filename)
+```
+
+
+#### unload_tilemap
+
+Unload a tilemap.
+
+```c
+void unload_tilemap(Tilemap tilemap)
+```
+
+
+#### tile_update
+
+Update a tilemap's animation timers (deltaTime is in seconds).
+
+```c
+void tile_update(Tilemap tilemap, f32 deltaTime)
+```
+
+
+#### tile_draw
+
+Draw a tilemap on the screen.
+
+```c
+void tile_draw(Tilemap tilemap, i32 posX, i32 posY)
+```
+
+
+#### tile_draw_tint
+
+Draw a tilemap on the screen, tinted by a color.
+
+```c
+void tile_draw_tint(Tilemap tilemap, i32 posX, i32 posY, Color tint)
+```
+
+
+#### tile_draw_on_image
+
+Draw a tilemap on an image.
+
+```c
+void tile_draw_on_image(Image dst, Tilemap tilemap, i32 posX, i32 posY)
+```
+
+
+#### tile_draw_tile
+
+Draw a single tile from a tilemap on the screen.
+
+```c
+void tile_draw_tile(Tilemap tilemap, i32 gid, i32 posX, i32 posY)
+```
+
+
+#### tile_layer_count
+
+Get the number of layers in a tilemap.
+
+```c
+i32 tile_layer_count(Tilemap tilemap)
+```
+
+
+#### tile_get_tile
+
+Get the gid of the tile at a column/row in a tilemap layer.
+
+```c
+i32 tile_get_tile(Tilemap tilemap, i32 layer, i32 column, i32 row)
+```
+
+
+#### tile_set_tile
+
+Set the gid of the tile at a column/row in a tilemap layer.
+
+```c
+void tile_set_tile(Tilemap tilemap, i32 layer, i32 column, i32 row, i32 gid)
+```
+
+
+#### tile_image
+
+Get a copy of the image of a single tile in a tilemap.
+
+```c
+Image tile_image(Tilemap tilemap, i32 gid)
+```
+
+
+#### tilemap_image
+
+Render a whole tilemap to a new image.
+
+```c
+Image tilemap_image(Tilemap tilemap)
 ```
 
 ---

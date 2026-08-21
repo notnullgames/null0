@@ -655,6 +655,44 @@ export declare function sfx_sound(params: SfxParams): u32;
 @external("null0", "sfx_generate")
 export declare function sfx_generate(type: SfxPresetType): SfxParams;
 
+// Tile functions
+/** Load a tilemap (a Tiled map, exported as JSON) from a file in cart. */
+@external("null0", "load_tilemap")
+export declare function load_tilemap(filename: usize): u32;
+/** Unload a tilemap. */
+@external("null0", "unload_tilemap")
+export declare function unload_tilemap(tilemap: u32): void;
+/** Update a tilemap's animation timers (deltaTime is in seconds). */
+@external("null0", "tile_update")
+export declare function tile_update(tilemap: u32, deltaTime: f32): void;
+/** Draw a tilemap on the screen. */
+@external("null0", "tile_draw")
+export declare function tile_draw(tilemap: u32, posX: i32, posY: i32): void;
+/** Draw a tilemap on the screen, tinted by a color. */
+@external("null0", "tile_draw_tint")
+export declare function tile_draw_tint(tilemap: u32, posX: i32, posY: i32, tint: Color): void;
+/** Draw a tilemap on an image. */
+@external("null0", "tile_draw_on_image")
+export declare function tile_draw_on_image(dst: u32, tilemap: u32, posX: i32, posY: i32): void;
+/** Draw a single tile from a tilemap on the screen. */
+@external("null0", "tile_draw_tile")
+export declare function tile_draw_tile(tilemap: u32, gid: i32, posX: i32, posY: i32): void;
+/** Get the number of layers in a tilemap. */
+@external("null0", "tile_layer_count")
+export declare function tile_layer_count(tilemap: u32): i32;
+/** Get the gid of the tile at a column/row in a tilemap layer. */
+@external("null0", "tile_get_tile")
+export declare function tile_get_tile(tilemap: u32, layer: i32, column: i32, row: i32): i32;
+/** Set the gid of the tile at a column/row in a tilemap layer. */
+@external("null0", "tile_set_tile")
+export declare function tile_set_tile(tilemap: u32, layer: i32, column: i32, row: i32, gid: i32): void;
+/** Get a copy of the image of a single tile in a tilemap. */
+@external("null0", "tile_image")
+export declare function tile_image(tilemap: u32, gid: i32): u32;
+/** Render a whole tilemap to a new image. */
+@external("null0", "tilemap_image")
+export declare function tilemap_image(tilemap: u32): u32;
+
 // Types functions
 
 // Utilities functions

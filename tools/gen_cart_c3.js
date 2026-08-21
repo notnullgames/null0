@@ -25,6 +25,7 @@ module null0;
 alias Image = uint;
 alias Font = uint;
 alias Sound = uint;
+alias Tilemap = uint;
 
 // Create a Color from r, g, b, a components
 fn Color rgba(char r, char g, char b, char a) {
@@ -49,6 +50,7 @@ const argTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   ImageFilter: 'int',
   Key: 'int',
   GamepadButton: 'int',
@@ -74,6 +76,7 @@ const retTypes = {
   Image: 'Image',
   Font: 'Font',
   Sound: 'Sound',
+  Tilemap: 'Tilemap',
   Vector: 'Vector*',
   Dimensions: 'Dimensions*',
   Color: 'Color*',

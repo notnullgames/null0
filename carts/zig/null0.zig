@@ -29,6 +29,7 @@ export fn free(ptr: ?*anyopaque) void {
 pub const Image = u32;
 pub const Font = u32;
 pub const Sound = u32;
+pub const Tilemap = u32;
 
 
 /// Sfx parameters.
@@ -513,6 +514,32 @@ pub extern "null0" fn tts_sound(text: [*:0]const u8, phonetic: bool, pitch: i32,
 pub extern "null0" fn sfx_sound(params: *const SfxParams) Sound;
 /// Create Sfx parameters.
 pub extern "null0" fn sfx_generate(type: SfxPresetType) *SfxParams;
+
+// TILE
+/// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+pub extern "null0" fn load_tilemap(filename: [*:0]const u8) Tilemap;
+/// Unload a tilemap.
+pub extern "null0" fn unload_tilemap(tilemap: Tilemap) void;
+/// Update a tilemap's animation timers (deltaTime is in seconds).
+pub extern "null0" fn tile_update(tilemap: Tilemap, deltaTime: f32) void;
+/// Draw a tilemap on the screen.
+pub extern "null0" fn tile_draw(tilemap: Tilemap, posX: i32, posY: i32) void;
+/// Draw a tilemap on the screen, tinted by a color.
+pub extern "null0" fn tile_draw_tint(tilemap: Tilemap, posX: i32, posY: i32, tint: Color) void;
+/// Draw a tilemap on an image.
+pub extern "null0" fn tile_draw_on_image(dst: Image, tilemap: Tilemap, posX: i32, posY: i32) void;
+/// Draw a single tile from a tilemap on the screen.
+pub extern "null0" fn tile_draw_tile(tilemap: Tilemap, gid: i32, posX: i32, posY: i32) void;
+/// Get the number of layers in a tilemap.
+pub extern "null0" fn tile_layer_count(tilemap: Tilemap) i32;
+/// Get the gid of the tile at a column/row in a tilemap layer.
+pub extern "null0" fn tile_get_tile(tilemap: Tilemap, layer: i32, column: i32, row: i32) i32;
+/// Set the gid of the tile at a column/row in a tilemap layer.
+pub extern "null0" fn tile_set_tile(tilemap: Tilemap, layer: i32, column: i32, row: i32, gid: i32) void;
+/// Get a copy of the image of a single tile in a tilemap.
+pub extern "null0" fn tile_image(tilemap: Tilemap, gid: i32) Image;
+/// Render a whole tilemap to a new image.
+pub extern "null0" fn tilemap_image(tilemap: Tilemap) Image;
 
 // TYPES
 

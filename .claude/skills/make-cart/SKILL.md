@@ -79,9 +79,9 @@ to test in a browser and what the common error messages mean.
   whatever is natural in that language: a struct in C/rust/zig, a table in lua,
   a dict in python, an object in JS, a class in wren.
 - Colors have named constants (`BLUE`, `RAYWHITE`, ...) in every language.
-- Keep per-frame work small: functions that return a struct (`color_tint`,
-  `measure_text`) allocate cart memory that is never freed, so hoist them out of
-  hot loops.
+- Functions that return a struct (`color_tint`, `measure_text`) hand you a
+  pointer into cart memory that the host frees when the current callback
+  returns - copy the fields out, never stash the pointer across frames.
 - If a cart prints nothing, remember output is buffered - C carts should
   `fflush(stdout)` after `printf`.
 - Never claim a cart works without running it.

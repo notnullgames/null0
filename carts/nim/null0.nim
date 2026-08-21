@@ -375,6 +375,20 @@ proc tts_sound*(text: cstring, phonetic: bool, pitch: cint, speed: cint, throat:
 proc sfx_sound*(params: SfxParams): uint32 {.null0_import.}
 proc sfx_generate*(`type`: SfxPresetType): SfxParams {.null0_import.}
 
+# Tile functions
+proc load_tilemap*(filename: cstring): uint32 {.null0_import.}
+proc unload_tilemap*(tilemap: uint32) {.null0_import.}
+proc tile_update*(tilemap: uint32, deltaTime: cfloat) {.null0_import.}
+proc tile_draw*(tilemap: uint32, posX: cint, posY: cint) {.null0_import.}
+proc tile_draw_tint*(tilemap: uint32, posX: cint, posY: cint, tint: Color) {.null0_import.}
+proc tile_draw_on_image*(dst: uint32, tilemap: uint32, posX: cint, posY: cint) {.null0_import.}
+proc tile_draw_tile*(tilemap: uint32, gid: cint, posX: cint, posY: cint) {.null0_import.}
+proc tile_layer_count*(tilemap: uint32): cint {.null0_import.}
+proc tile_get_tile*(tilemap: uint32, layer: cint, column: cint, row: cint): cint {.null0_import.}
+proc tile_set_tile*(tilemap: uint32, layer: cint, column: cint, row: cint, gid: cint) {.null0_import.}
+proc tile_image*(tilemap: uint32, gid: cint): uint32 {.null0_import.}
+proc tilemap_image*(tilemap: uint32): uint32 {.null0_import.}
+
 # Types functions
 
 # Utilities functions

@@ -469,6 +469,7 @@ const returnMap = {
 
   // Resource references
   Sound: 'u32_to_js',
+  Tilemap: 'u32_to_js',
   Image: 'u32_to_js',
   Font: 'u32_to_js',
 
@@ -494,6 +495,7 @@ const argTypes = {
 
   // Resource references and enums
   Sound: 'u32_from_js',
+  Tilemap: 'u32_from_js',
   Image: 'u32_from_js',
   Font: 'u32_from_js',
   ImageFilter: 'i32_from_js',

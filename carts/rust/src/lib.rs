@@ -538,6 +538,32 @@ extern "C" {
     /// Create Sfx parameters.
     pub fn sfx_generate(r#type: SfxPresetType) -> SfxParams;
 
+    // Tile functions
+    /// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
+    pub fn load_tilemap(filename: *const u8) -> u32;
+    /// Unload a tilemap.
+    pub fn unload_tilemap(tilemap: u32);
+    /// Update a tilemap's animation timers (deltaTime is in seconds).
+    pub fn tile_update(tilemap: u32, deltaTime: f32);
+    /// Draw a tilemap on the screen.
+    pub fn tile_draw(tilemap: u32, posX: i32, posY: i32);
+    /// Draw a tilemap on the screen, tinted by a color.
+    pub fn tile_draw_tint(tilemap: u32, posX: i32, posY: i32, tint: Color);
+    /// Draw a tilemap on an image.
+    pub fn tile_draw_on_image(dst: u32, tilemap: u32, posX: i32, posY: i32);
+    /// Draw a single tile from a tilemap on the screen.
+    pub fn tile_draw_tile(tilemap: u32, gid: i32, posX: i32, posY: i32);
+    /// Get the number of layers in a tilemap.
+    pub fn tile_layer_count(tilemap: u32) -> i32;
+    /// Get the gid of the tile at a column/row in a tilemap layer.
+    pub fn tile_get_tile(tilemap: u32, layer: i32, column: i32, row: i32) -> i32;
+    /// Set the gid of the tile at a column/row in a tilemap layer.
+    pub fn tile_set_tile(tilemap: u32, layer: i32, column: i32, row: i32, gid: i32);
+    /// Get a copy of the image of a single tile in a tilemap.
+    pub fn tile_image(tilemap: u32, gid: i32) -> u32;
+    /// Render a whole tilemap to a new image.
+    pub fn tilemap_image(tilemap: u32) -> u32;
+
     // Types functions
 
     // Utilities functions

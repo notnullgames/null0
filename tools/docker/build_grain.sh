@@ -22,6 +22,11 @@ mkdir -p "/tmp/${CART_NAME}"
 cp -R /src/. "/tmp/${CART_NAME}/"
 cd "/tmp/${CART_NAME}/"
 
+# make the null0 bindings available to `from "./null0.gr" include Null0`
+if [ ! -f null0.gr ]; then
+    cp /usr/local/include/null0.gr .
+fi
+
 grain compile main.gr -o main.wasm
 rm -rf target main.gro
 
