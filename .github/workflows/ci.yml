@@ -188,7 +188,7 @@ jobs:
       - name: Setup website
         run: |
           cd webroot
-          mv ../artifacts/host_web/null0.mjs .
+          unzip -j ../artifacts/host_web/null0_web.zip -d .
           mkdir -p carts
           mv ../artifacts/carts_*/*.null0 carts/
           cd carts
