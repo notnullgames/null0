@@ -1,0 +1,52 @@
+// null0 Zen-C demo: shapes, a Vector[] polygon, text, and animation state
+//
+// see polygon_shim.h for why draw_polygon is called through a raw-pointer
+// re-import instead of null0.zc's `points: *Vector` signature - zc v0.4.4
+// segfaults its own compiler on any user declaration naming Color/Vector/
+// Rectangle/Dimensions/SfxParams (the same issue carts/zenc/simple/main.zc
+// already works around by never binding those types to a variable).
+include "null0.h"
+include "polygon_shim.h"
+
+let frame: int = 0;
+
+export fn update() {
+    frame += 1;
+
+    clear(DARKGRAY);
+    draw_text(FONT_DEFAULT, "null0 demo", 20, 20, WHITE);
+    draw_rectangle(40, 80, 100, 70, RED);
+    draw_circle(220, 115, 45, GREEN);
+    draw_triangle(320, 150, 400, 150, 360, 60, BLUE);
+    draw_line(40, 250, 600, 250, LIGHTGRAY);
+
+    // hexagon - the Vector[]/count array-arg call (via the raw shim)
+    let hexagon: int[12];
+    hexagon[0] = 460; hexagon[1] = 80;
+    hexagon[2] = 520; hexagon[3] = 80;
+    hexagon[4] = 550; hexagon[5] = 140;
+    hexagon[6] = 520; hexagon[7] = 200;
+    hexagon[8] = 460; hexagon[9] = 200;
+    hexagon[10] = 430; hexagon[11] = 140;
+    let purple: byte[4];
+    purple[0] = 200; purple[1] = 122; purple[2] = 255; purple[3] = 255;
+    draw_polygon_raw(hexagon, 6, purple);
+
+    // a circle sweeping left-to-right across the bottom, proving update()
+    // is called repeatedly and state persists
+    let x: int = frame % 600;
+    draw_circle(x + 20, 350, 20, YELLOW);
+
+    draw_text(FONT_DEFAULT, "shapes + animation + text", 20, 440, ORANGE);
+}
+
+// Other available callbacks:
+// export fn load() { }
+// export fn unload() { }
+// export fn keyDown(key: int) { }
+// export fn keyUp(key: int) { }
+// export fn buttonDown(button: int, player: uint) { }
+// export fn buttonUp(button: int, player: uint) { }
+// export fn mouseDown(button: int) { }
+// export fn mouseUp(button: int) { }
+// export fn mouseMoved(x: float, y: float) { }

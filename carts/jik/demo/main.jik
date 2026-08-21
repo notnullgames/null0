@@ -1,0 +1,94 @@
+// null0 Jik demo: shapes + text + animation
+//
+// NOTE: Jik does not have u8, f32, or uint types, so we use C wrappers
+// in the @embed block to bridge the gap (see carts/jik/null0.jik).
+// Jik also has no native array-to-pointer FFI, so the hexagon's points
+// are assembled from individual ints inside the C wrapper, and the
+// per-frame animation counter is kept as C static state as well.
+
+@embed{C_END}
+#include "null0.h"
+
+// C wrappers to bridge Jik's type system to null0's ABI
+
+static void jik_clear(int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    clear(c);
+}
+// Jik has no pointer/string FFI type, so text is hardcoded on the C side -
+// these wrappers still exercise the real draw_text(Font, char*, ...) call.
+static void jik_draw_title(int x, int y, int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    draw_text(0, "null0 demo", x, y, c);
+}
+static void jik_draw_caption(int x, int y, int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    draw_text(0, "shapes + animation + text", x, y, c);
+}
+static void jik_draw_rect(int x, int y, int w, int h, int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    draw_rectangle(x, y, w, h, c);
+}
+static void jik_draw_circ(int cx, int cy, int rad, int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    draw_circle(cx, cy, rad, c);
+}
+static void jik_draw_tri(int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    draw_triangle(x1, y1, x2, y2, x3, y3, c);
+}
+static void jik_draw_ln(int x1, int y1, int x2, int y2, int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    draw_line(x1, y1, x2, y2, c);
+}
+// Draws a filled hexagon (6-point polygon) via null0's real Vector[] array arg.
+static void jik_draw_hexagon(
+    int x0, int y0, int x1, int y1, int x2, int y2,
+    int x3, int y3, int x4, int y4, int x5, int y5,
+    int r, int g, int b, int a
+) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    Vector points[6] = {
+        { x0, y0 }, { x1, y1 }, { x2, y2 },
+        { x3, y3 }, { x4, y4 }, { x5, y5 }
+    };
+    draw_polygon(points, 6, c);
+}
+// Persistent frame counter (C static state), returns x = frame % 600.
+static int jik_next_x(void) {
+    static int frame = 0;
+    int x = frame % 600;
+    frame = frame + 1;
+    return x;
+}
+
+C_END
+
+// Jik extern declarations for the C wrappers
+extern func jik_clear as clear(r: int, g: int, b: int, a: int) -> void
+extern func jik_draw_title as draw_title(x: int, y: int, r: int, g: int, b: int, a: int) -> void
+extern func jik_draw_caption as draw_caption(x: int, y: int, r: int, g: int, b: int, a: int) -> void
+extern func jik_draw_rect as draw_rect(x: int, y: int, w: int, h: int, r: int, g: int, b: int, a: int) -> void
+extern func jik_draw_circ as draw_circle(cx: int, cy: int, rad: int, r: int, g: int, b: int, a: int) -> void
+extern func jik_draw_tri as draw_triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, r: int, g: int, b: int, a: int) -> void
+extern func jik_draw_ln as draw_line(x1: int, y1: int, x2: int, y2: int, r: int, g: int, b: int, a: int) -> void
+extern func jik_draw_hexagon as draw_hexagon(x0: int, y0: int, x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int, x5: int, y5: int, r: int, g: int, b: int, a: int) -> void
+extern func jik_next_x as next_x() -> int
+
+func update():
+    clear(80, 80, 80, 255)
+    draw_title(20, 20, 255, 255, 255, 255)
+    draw_rect(40, 80, 100, 70, 230, 41, 55, 255)
+    draw_circle(220, 115, 45, 0, 228, 48, 255)
+    draw_triangle(320, 150, 400, 150, 360, 60, 0, 121, 241, 255)
+    draw_line(40, 250, 600, 250, 200, 200, 200, 255)
+    draw_hexagon(460, 80, 520, 80, 550, 140, 520, 200, 460, 200, 430, 140, 200, 122, 255, 255)
+
+    x := next_x()
+    draw_circle(x + 20, 350, 20, 253, 249, 0, 255)
+
+    draw_caption(20, 440, 255, 161, 0, 255)
+end
+
+func main():
+end

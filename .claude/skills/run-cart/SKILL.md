@@ -102,7 +102,7 @@ After host or generator changes, re-run one cart per family - they exercise
 different toolchains:
 
 ```sh
-for c in example_c demo_js simple_wren simple_lua simple_python simple_zig; do
+for c in simple_c simple_js simple_wren simple_lua simple_python simple_zig; do
   printf "%-14s " "$c"; timeout 5 ./build/host/null0 build/carts/$c.null0 2>&1 | head -1
 done
 ```

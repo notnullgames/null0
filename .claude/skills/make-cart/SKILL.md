@@ -19,7 +19,7 @@ directory, source filename, docker image, and how callbacks are declared.
 Start a new cart by copying an example into its own directory:
 
 ```sh
-cp -R carts/lua/simple ~/mygame     # or carts/c/example, carts/zig/simple, ...
+cp -R carts/lua/simple ~/mygame     # or carts/zig/simple, carts/zig/simple, ...
 ```
 
 The cart directory holds **only your source** (`main.lua`, `main.c`, ...) plus

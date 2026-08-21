@@ -25,11 +25,15 @@ const out = [
 // - functions returning structs (Vector/Dimensions/Rectangle/Color/SfxParams)
 //   return a u32 pointer into your memory
 
-// handle types
-Image :: #distinct u32;
-Font :: #distinct u32;
-Sound :: #distinct u32;
-Tilemap :: #distinct u32;
+// handle types - plain u32 aliases, not #distinct: they're opaque
+// ref-counted indexes (same as every other language's binding), not a type
+// safety boundary worth the friction of a distinct type (constants like
+// FONT_DEFAULT/SCREEN are untyped integer literals and don't auto-coerce
+// to a #distinct wrapper, forcing casts at every call site)
+Image :: u32;
+Font :: u32;
+Sound :: u32;
+Tilemap :: u32;
 
 // Create a Color from r, g, b, a components
 rgba :: (r: u8, g: u8, b: u8, a: u8) -> Color {

@@ -1,0 +1,42 @@
+-- Import the null0 API functions
+require 'null0'
+
+-- module-level state, persists across update() calls
+global frame: int32 = 0
+
+global function update(): void <cexport "update">
+  frame = frame + 1
+
+  clear(DARKGRAY)
+  draw_text(FONT_DEFAULT, "null0 demo", 20, 20, WHITE)
+  draw_rectangle(40, 80, 100, 70, RED)
+  draw_circle(220, 115, 45, GREEN)
+  draw_triangle(320, 150, 400, 150, 360, 60, BLUE)
+  draw_line(40, 250, 600, 250, LIGHTGRAY)
+
+  -- hexagon - the trickiest binding: an array of Vector structs
+  local hexagon: [6]Vector = {
+    {x = 460, y = 80}, {x = 520, y = 80}, {x = 550, y = 140},
+    {x = 520, y = 200}, {x = 460, y = 200}, {x = 430, y = 140}
+  }
+  draw_polygon(&hexagon[0], 6, PURPLE)
+
+  -- sweep a circle left-to-right across the bottom, proving update() runs
+  -- repeatedly and state persists
+  local x: int32 = frame % 600
+  draw_circle(x + 20, 350, 20, YELLOW)
+
+  draw_text(FONT_DEFAULT, "shapes + animation + text", 20, 440, ORANGE)
+end
+
+-- callbacks (optional - implement as needed)
+
+-- local function load() <cexport'load'> end
+-- local function unload() <cexport'unload'> end
+-- local function buttonUp(button: GamepadButton, player: uint32) <cexport'buttonUp'> end
+-- local function buttonDown(button: GamepadButton, player: uint32) <cexport'buttonDown'> end
+-- local function keyUp(key: Key) <cexport'keyUp'> end
+-- local function keyDown(key: Key) <cexport'keyDown'> end
+-- local function mouseDown(button: MouseButton) <cexport'mouseDown'> end
+-- local function mouseUp(button: MouseButton) <cexport'mouseUp'> end
+-- local function mouseMoved(x: float32, y: float32) <cexport'mouseMoved'> end

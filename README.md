@@ -24,7 +24,7 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [x] [c3](https://c3-lang.org/)
 - [x] [Haxe](https://haxe.org/) (via HL/C - no try/catch, wasm has no exception-handling)
 - [x] Haskell (via [wasm32-wasi-ghc](https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta), reactor mode)
-- [x] [Zen-C](https://github.com/zenc-lang/zenc) (transpiles to C + wasi-sdk)
+- [x] [Zen-C](https://github.com/zenc-lang/zenc) (transpiles to C + wasi-sdk - zc 0.4.4's own compiler segfaults on any user declaration naming a C-interop struct type like `Color`/`Vector`, not just arrays; carts route around it with a raw `i32*`/`u8*` shim, see `carts/zenc/demo/polygon_shim.h`)
 - [x] [Jik](https://jik-lang.org/) (also compiles to C + wasi-sdk)
 
 **interpreted**
@@ -92,7 +92,7 @@ You can currently do all of these things yourself, or use a library for your lan
 - [x] GUI : [microui](https://github.com/notnullgames/pntr_microui). [nuklear_console](https://github.com/RobLoach/nuklear_console) is also very nice for joystick-driven, but API is a bit more complicated. I may switch to this.
 - [x] tiled map/sprite
 - [ ] physics
-- [ ] FFT for audio/radio
+- [ ] radio. consider `rx_sdr -f 100M -s 2.4M - | csdr convert_u8_f | csdr fft_cc 1024 | python3 plot_fft.py`
 - [ ] behind CLI flag: call native program, native files
 
 ## thanks

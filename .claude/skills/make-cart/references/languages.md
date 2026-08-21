@@ -6,7 +6,7 @@
 
 | Language   | Example               | File        | Image     | Callback syntax             | API style                                            |
 | ---------- | --------------------- | ----------- | --------- | --------------------------- | ---------------------------------------------------- |
-| javascript | `carts/js/demo`       | `main.js`   | `quickjs` | `export function load() {}` | flat globals, ESM imports of other cart files work   |
+| javascript | `carts/js/simple`       | `main.js`   | `quickjs` | `export function load() {}` | flat globals, ESM imports of other cart files work   |
 | python     | `carts/python/simple` | `main.py`   | `python`  | `def load():`               | flat globals, structs are dicts                      |
 | lua        | `carts/lua/simple`    | `main.lua`  | `lua`     | `function load() end`       | flat globals, structs are tables, `require` works    |
 | wren       | `carts/wren/simple`   | `main.wren` | `wren`    | `var load = Fn.new {}`      | `import "null0" for Null0, BLUE`, methods on `Null0` |
@@ -18,12 +18,12 @@
 
 | Language       | Example                      | File         | Image            | Callback syntax                         | Notes                                                  |
 | -------------- | ---------------------------- | ------------ | ---------------- | --------------------------------------- | ------------------------------------------------------ |
-| C              | `carts/c/example`            | `main.c`     | `c`              | `void update() {}`                      | `#include "null0.h"`, wasi-sdk clang                   |
+| C              | `carts/c/simple`            | `main.c`     | `c`              | `void update() {}`                      | `#include "null0.h"`, wasi-sdk clang                   |
 | rust           | `carts/rust/examples/simple` | `src/lib.rs` | `rust`           | `#[no_mangle] pub extern "C" fn load()` | `no_std`, `crate-type = ["cdylib"]`, `panic = "abort"` |
 | zig            | `carts/zig/simple`           | `main.zig`   | `zig`            | `export fn load() void`                 | needs `pub fn main() void {}`                          |
 | go             | `carts/go/simple`            | `main.go`    | `go`             | `//export load`                         | tinygo, needs `func main() {}`                         |
 | nim            | `carts/nim/simple`           | `main.nim`   | `nim`            | `proc load*() {.wasm.} =`               | `import null0`                                         |
-| nelua          | `carts/nelua/basic`          | `main.nelua` | `nelua`          | `local function load() <cexport'load'>` | `require 'null0'`                                      |
+| nelua          | `carts/nelua/simple`          | `main.nelua` | `nelua`          | `local function load() <cexport'load'>` | `require 'null0'`                                      |
 | odin           | `carts/odin/simple`          | `main.odin`  | `odin`           | `@(export) load :: proc "c" () {}`      | `import null0 "null0"`                                 |
 | c3             | `carts/c3/simple`            | `main.c3`    | `c3`             | `fn void load() @export("load")`        | `module main` + `import null0`                         |
 | D              | `carts/d/simple`             | `main.d`     | `d`              | `export extern(C) void load()`          | ldc                                                    |

@@ -1,0 +1,88 @@
+module Main
+
+// the null0-cart-grain docker image provides null0.gr; you only need to
+// ship your own copy if you build outside docker
+from "./null0.gr" include Null0
+
+from "runtime/unsafe/wasmi32" include WasmI32
+from "runtime/unsafe/memory" include Memory
+use WasmI32.{ (+), remS }
+
+// null0 wants a null-terminated UTF8 pointer, but a grain String is a
+// boxed grain value (length at offset 4, bytes at offset 8) - copy its
+// bytes into a fresh null-terminated buffer
+@unsafe
+let cstr = (s: String) => {
+  let src = WasmI32.fromGrain(s)
+  let len = WasmI32.load(src, 4n)
+  let buf = Memory.malloc(len + 1n)
+  Memory.copy(buf, src + 8n, len)
+  WasmI32.store8(buf + len, 0n, 0n)
+  buf
+}
+
+// a Vector is 2 packed i32s (x, y) - build the 6 points of a hexagon in
+// raw memory for draw_polygon, which wants a pointer + count
+@unsafe
+let hexagonPoints = () => {
+  let buf = Memory.malloc(48n) // 6 vectors * 8 bytes
+  WasmI32.store(buf, 460n, 0n)
+  WasmI32.store(buf, 80n, 4n)
+  WasmI32.store(buf, 520n, 8n)
+  WasmI32.store(buf, 80n, 12n)
+  WasmI32.store(buf, 550n, 16n)
+  WasmI32.store(buf, 140n, 20n)
+  WasmI32.store(buf, 520n, 24n)
+  WasmI32.store(buf, 200n, 28n)
+  WasmI32.store(buf, 460n, 32n)
+  WasmI32.store(buf, 200n, 36n)
+  WasmI32.store(buf, 430n, 40n)
+  WasmI32.store(buf, 140n, 44n)
+  buf
+}
+
+// persistent frame counter, incremented once per update()
+@unsafe
+let mut frame = 0n
+
+// called on load
+@unsafe
+provide let load = () => {
+  Null0.initColors()
+}
+
+// called on every frame
+@unsafe
+provide let update = () => {
+  Null0.clear(Null0.darkgray)
+  Null0.draw_text(Null0.fontDefault, cstr("null0 demo"), 20n, 20n, Null0.white)
+
+  Null0.draw_rectangle(40n, 80n, 100n, 70n, Null0.red)
+  Null0.draw_circle(220n, 115n, 45n, Null0.green)
+  Null0.draw_triangle(320n, 150n, 400n, 150n, 360n, 60n, Null0.blue)
+  Null0.draw_line(40n, 250n, 600n, 250n, Null0.lightgray)
+  Null0.draw_polygon(hexagonPoints(), 6n, Null0.purple)
+
+  frame = frame + 1n
+  let x = remS(frame, 600n)
+  Null0.draw_circle(x + 20n, 350n, 20n, Null0.yellow)
+
+  Null0.draw_text(Null0.fontDefault, cstr("shapes + animation + text"), 20n, 440n, Null0.orange)
+}
+
+// other callbacks you can implement:
+// provide let unload = () => void
+// @unsafe
+// provide let buttonUp = (button: WasmI32, player: WasmI32) => void
+// @unsafe
+// provide let buttonDown = (button: WasmI32, player: WasmI32) => void
+// @unsafe
+// provide let keyUp = (key: WasmI32) => void
+// @unsafe
+// provide let keyDown = (key: WasmI32) => void
+// @unsafe
+// provide let mouseDown = (button: WasmI32) => void
+// @unsafe
+// provide let mouseUp = (button: WasmI32) => void
+// @unsafe
+// provide let mouseMoved = (x: WasmF32, y: WasmF32) => void

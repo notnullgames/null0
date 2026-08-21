@@ -1,0 +1,107 @@
+// demo walt cart for null0 (see ../null0.walt for the full bindings)
+//
+// Color/Vector are pointers into memory, not packed scalars - these
+// constants are addresses that load() populates at startup. Strings are
+// also just addresses of null-terminated UTF8 bytes we write ourselves.
+
+const memory: Memory = { initial: 2 };
+
+const FONT_DEFAULT: i32 = 0;
+
+const DARKGRAY: i32 = 65536; // rgba(80, 80, 80, 255)
+const WHITE: i32 = 65540; // rgba(255, 255, 255, 255)
+const RED: i32 = 65544; // rgba(230, 41, 55, 255)
+const GREEN: i32 = 65548; // rgba(0, 228, 48, 255)
+const BLUE: i32 = 65552; // rgba(0, 121, 241, 255)
+const LIGHTGRAY: i32 = 65556; // rgba(200, 200, 200, 255)
+const PURPLE: i32 = 65560; // rgba(200, 122, 255, 255)
+const YELLOW: i32 = 65564; // rgba(253, 249, 0, 255)
+const ORANGE: i32 = 65568; // rgba(255, 161, 0, 255)
+
+const TITLE_STR: i32 = 65600; // "null0 demo\0"
+const CAPTION_STR: i32 = 65700; // "shapes + animation + text\0"
+const HEX_POINTS: i32 = 65800; // Vector[6] for draw_polygon
+
+// persistent frame counter, incremented once per update()
+let frame: i32 = 0;
+
+type Clear = (i32) => void;
+type DrawText = (i32, i32, i32, i32, i32) => void;
+type DrawRectangle = (i32, i32, i32, i32, i32) => void;
+type DrawCircle = (i32, i32, i32, i32) => void;
+type DrawTriangle = (i32, i32, i32, i32, i32, i32, i32) => void;
+type DrawLine = (i32, i32, i32, i32, i32) => void;
+type DrawPolygon = (i32, i32, i32) => void;
+import {
+  clear: Clear,
+  draw_text: DrawText,
+  draw_rectangle: DrawRectangle,
+  draw_circle: DrawCircle,
+  draw_triangle: DrawTriangle,
+  draw_line: DrawLine,
+  draw_polygon: DrawPolygon
+} from 'null0';
+
+// called on load - inline all stores here (not helper functions); wrapping
+// them in their own function triggers a walt-compiler codegen bug
+export function load(): void {
+  // colors
+  i32.store8(65536, 80); i32.store8(65537, 80); i32.store8(65538, 80); i32.store8(65539, 255);
+  i32.store8(65540, 255); i32.store8(65541, 255); i32.store8(65542, 255); i32.store8(65543, 255);
+  i32.store8(65544, 230); i32.store8(65545, 41); i32.store8(65546, 55); i32.store8(65547, 255);
+  i32.store8(65548, 0); i32.store8(65549, 228); i32.store8(65550, 48); i32.store8(65551, 255);
+  i32.store8(65552, 0); i32.store8(65553, 121); i32.store8(65554, 241); i32.store8(65555, 255);
+  i32.store8(65556, 200); i32.store8(65557, 200); i32.store8(65558, 200); i32.store8(65559, 255);
+  i32.store8(65560, 200); i32.store8(65561, 122); i32.store8(65562, 255); i32.store8(65563, 255);
+  i32.store8(65564, 253); i32.store8(65565, 249); i32.store8(65566, 0); i32.store8(65567, 255);
+  i32.store8(65568, 255); i32.store8(65569, 161); i32.store8(65570, 0); i32.store8(65571, 255);
+
+  // "null0 demo\0"
+  i32.store8(65600, 110); i32.store8(65601, 117); i32.store8(65602, 108); i32.store8(65603, 108);
+  i32.store8(65604, 48); i32.store8(65605, 32); i32.store8(65606, 100); i32.store8(65607, 101);
+  i32.store8(65608, 109); i32.store8(65609, 111); i32.store8(65610, 0);
+
+  // "shapes + animation + text\0"
+  i32.store8(65700, 115); i32.store8(65701, 104); i32.store8(65702, 97); i32.store8(65703, 112);
+  i32.store8(65704, 101); i32.store8(65705, 115); i32.store8(65706, 32); i32.store8(65707, 43);
+  i32.store8(65708, 32); i32.store8(65709, 97); i32.store8(65710, 110); i32.store8(65711, 105);
+  i32.store8(65712, 109); i32.store8(65713, 97); i32.store8(65714, 116); i32.store8(65715, 105);
+  i32.store8(65716, 111); i32.store8(65717, 110); i32.store8(65718, 32); i32.store8(65719, 43);
+  i32.store8(65720, 32); i32.store8(65721, 116); i32.store8(65722, 101); i32.store8(65723, 120);
+  i32.store8(65724, 116); i32.store8(65725, 0);
+
+  // hexagon points for draw_polygon: Vector[6] (i32 x, i32 y)
+  i32.store(65800, 460); i32.store(65804, 80);
+  i32.store(65808, 520); i32.store(65812, 80);
+  i32.store(65816, 550); i32.store(65820, 140);
+  i32.store(65824, 520); i32.store(65828, 200);
+  i32.store(65832, 460); i32.store(65836, 200);
+  i32.store(65840, 430); i32.store(65844, 140);
+}
+
+// called on every frame
+export function update(): void {
+  clear(DARKGRAY);
+  draw_text(FONT_DEFAULT, TITLE_STR, 20, 20, WHITE);
+  draw_rectangle(40, 80, 100, 70, RED);
+  draw_circle(220, 115, 45, GREEN);
+  draw_triangle(320, 150, 400, 150, 360, 60, BLUE);
+  draw_line(40, 250, 600, 250, LIGHTGRAY);
+  draw_polygon(HEX_POINTS, 6, PURPLE);
+
+  // animate a circle sweeping left-to-right across the bottom of the screen
+  frame = frame + 1;
+  draw_circle((frame % 600) + 20, 350, 20, YELLOW);
+
+  draw_text(FONT_DEFAULT, CAPTION_STR, 20, 440, ORANGE);
+}
+
+// other callbacks you can implement:
+// export function unload(): void {}
+// export function buttonUp(button: i32, player: i32): void {}
+// export function buttonDown(button: i32, player: i32): void {}
+// export function keyUp(key: i32): void {}
+// export function keyDown(key: i32): void {}
+// export function mouseDown(button: i32): void {}
+// export function mouseUp(button: i32): void {}
+// export function mouseMoved(x: f32, y: f32): void {}

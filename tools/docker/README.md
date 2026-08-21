@@ -130,19 +130,19 @@ docker buildx build --push --platform linux/amd64 -t konsumer/null0-cart-jik . -
 
 # test
 docker run -it -v ./carts/c/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-c colorbars_c
-docker run -it -v ./carts/c/example:/src -v ./build/carts:/out konsumer/null0-cart-c example_c
+docker run -it -v ./carts/c/simple:/src -v ./build/carts:/out konsumer/null0-cart-c simple_c
 docker run -it -v ./carts/c/gradient:/src -v ./build/carts:/out konsumer/null0-cart-c gradient_c
 docker run -it -v ./carts/c/input:/src -v ./build/carts:/out konsumer/null0-cart-c input_c
 docker run -it -v ./carts/c/sfx:/src -v ./build/carts:/out konsumer/null0-cart-c sfx_c
 docker run -it -v ./carts/c/speak:/src -v ./build/carts:/out konsumer/null0-cart-c speak_c
 docker run -it -v ./carts/c/wasi_demo:/src -v ./build/carts:/out konsumer/null0-cart-c wasi_demo_c
 
-docker run -it -v ./carts/js/demo:/src -v ./build/carts:/out konsumer/null0-cart-quickjs demo_js
+docker run -it -v ./carts/js/simple:/src -v ./build/carts:/out konsumer/null0-cart-quickjs simple_js
 docker run -it -v ./carts/js/input:/src -v ./build/carts:/out konsumer/null0-cart-quickjs input_js
 
 docker run -it -v ./carts/as/simple:/src -v ./build/carts:/out konsumer/null0-cart-assemblyscript simple_as
 
-docker run -it -v ./carts/nelua/basic:/src -v ./build/carts:/out konsumer/null0-cart-nelua basic_nelua
+docker run -it -v ./carts/nelua/simple:/src -v ./build/carts:/out konsumer/null0-cart-nelua simple_nelua
 docker run -it -v ./carts/nelua/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-nelua colorbars_nelua
 
 docker run -it -v ./carts/nim/simple:/src -v ./build/carts:/out konsumer/null0-cart-nim simple_nim
