@@ -1,6 +1,6 @@
 ---
 name: add-api-function
-description: Add, change, or remove a function, type, enum, or constant in the null0 API (api/*.yml) and propagate it to the host and all 18 language bindings. Use when someone wants a new engine feature exposed to carts (drawing, sound, input, tilemap, physics, ui) or wants to change an existing API signature.
+description: Add, change, or remove a function, type, enum, or constant in the null0 API (api/*.yml) and propagate it to the host and every supported language's bindings. Use when someone wants a new engine feature exposed to carts (drawing, sound, input, tilemap, physics, ui) or wants to change an existing API signature.
 ---
 
 # Change the null0 API
@@ -11,9 +11,8 @@ Editing a generated file by hand is always wrong.
 
 ## 1. Describe it in the yml
 
-Pick the group file (`graphics.yml`, `sound.yml`, `input.yml`, `colors.yml`,
-`utilities.yml`, `gui.yml`, `tile.yml`, or a new one - a new file becomes a
-new API group automatically):
+Pick the group file (`ls api/*.yml` for the current list - each file is a
+group, so a new file becomes a new API group automatically):
 
 ```yml
 draw_star:
@@ -27,11 +26,12 @@ draw_star:
   description: Draw a filled star on the screen.
 ```
 
-Only use types that already exist in `api/types.yml` (`i32`, `u32`, `u64`,
-`f32`, `bool`, `string`, `Image`, `Font`, `Sound`, `Tilemap`, `Color`, `Vector`,
-`Rectangle`, `Dimensions`, `SfxParams`, `Vector[]`, `i32[]`, and the enums).
-Every generator has a lookup table keyed by these names, so a **new type means
-editing all 20 generators** - avoid it unless it's truly needed.
+Only use types that already exist in `api/types.yml` - read it rather than
+trusting a remembered list, it grows over time (scalars, resource handles like
+`Image`/`Tilemap`, `Vector[]`-style arrays, structs, enums). Every generator
+(every `tools/gen_cart_*.js`, plus `gen_host.js` and `gen_api_docs.js`) has a
+lookup table keyed by these names, so a **new type means editing all of
+them** - avoid it unless it's truly needed.
 
 An array arg is always followed by its count: `points: Vector[]` then
 `numPoints: i32`. Generators for high-level languages hide the count.
