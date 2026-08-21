@@ -22,15 +22,10 @@ I'd like to support a lot of cart-languages. For these to be considered "complet
 - [x] [WAT](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Understanding_the_text_format)
 - [x] [odin](https://odin-lang.org/)
 - [x] [c3](https://c3-lang.org/)
-- [ ] R
-- [ ] [julia](https://github.com/tshort/WebAssemblyCompiler.jl)
-- [ ] Haskell
-- [ ] Ada
-- [ ] [spaceship/orbit](https://github.com/SIE-Libraries/orbit)
-- [ ] [Zen-C](https://github.com/z-libs/Zen-C)
-- [ ] [Haxe](https://github.com/back2dos/wasmix)
-- [ ] [Jik](https://jik-lang.org/)
-- [ ] [wyzer](https://github.com/Wyzer-Lang/wyzer)
+- [x] [Haxe](https://haxe.org/) (via HL/C - no try/catch, wasm has no exception-handling)
+- [ ] Haskell (wasm32-wasi backend, tech preview - worth a prototype)
+- [ ] [Zen-C](https://github.com/z-libs/Zen-C) (transpiles to C - can likely reuse the wasi-sdk toolchain)
+- [ ] [Jik](https://jik-lang.org/) (also compiles to C - same idea)
 
 **interpreted**
 
@@ -40,7 +35,7 @@ These include the interpretor in `main.wasm`. This is repetitive (like every js 
 - [x] python (via RustPython)
 - [x] lua (via GopherLua)
 - [x] [wren](https://wren.io)
-- [ ] [cyber](https://github.com/fubark/cyber)
+- [ ] [cyber](https://github.com/fubark/cyber) (has an official `WASM WASI` build target - worth a prototype)
 
 **probably will not support**
 
@@ -65,6 +60,30 @@ investigating - not just "not gotten to yet". Full details in
   needs the wasm exception-handling proposal. See the Kotlin point above:
   WAMR's fast interpreter and exception-handling don't build together at all,
   so no toolchain flag gets around it.
+- **R** ([webR](https://github.com/r-wasm/webr)) - built with Emscripten and
+  patched against R's source specifically to run inside an Emscripten JS
+  runtime in a browser/Node. There's no standalone WASI build; same JS-glue
+  problem as dart2wasm.
+- **[julia](https://github.com/tshort/WebAssemblyCompiler.jl)** - still
+  experimental (type-stable code only, no exception handling, no
+  multi-dimensional arrays or pointers), requires wasm-GC for heap
+  allocation, and its docs frame it around exchanging objects with
+  JavaScript rather than a standalone WASI import model. Worth another look
+  once it's less narrow and less JS-shaped.
+- **Ada** - GNAT-LLVM does have a `wasm32` target, but the only real runtime
+  built on it ([AdaWebPack](https://github.com/godunko/adawebpack)) is
+  purpose-built for browser/Web API interop, not a standalone module with
+  custom host imports. No evidence anyone ships a bare wasm32 GNAT runtime
+  without that JS-facing layer.
+- **[spaceship/orbit](https://github.com/SIE-Libraries/orbit)** - not a wasm
+  target at all. It's a shell-replacement language that JIT-compiles to
+  native code via LLVM for direct POSIX syscalls; no WebAssembly output
+  exists or is planned.
+- **[wyzer](https://github.com/Wyzer-Lang/wyzer)** - no WebAssembly target
+  exists. It's a choreographic distributed-systems language whose whole
+  model is compiling one program into separate binaries per network node -
+  that doesn't map onto a single cart wasm module even before a wasm
+  backend would exist.
 
 ## todo/ideas
 
