@@ -101,6 +101,29 @@ struct Color {
     ubyte a;
 }
 
+/// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+struct TilemapProp {
+    char* name;
+    TilePropType type;
+    int integer;
+    float number;
+    char* text;
+}
+
+/// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+struct TilemapObject {
+    int id;
+    char* name;
+    char* type;
+    int gid;
+    float x;
+    float y;
+    float width;
+    float height;
+    float rotation;
+    int visible;
+}
+
 /// Potential image-filtering techniques for scale/etc.
 enum ImageFilter : int {
     FILTER_NEARESTNEIGHBOR = 0,
@@ -273,6 +296,25 @@ enum MouseButton : int {
     MOUSE_BUTTON_LEFT = 1,
     MOUSE_BUTTON_RIGHT = 2,
     MOUSE_BUTTON_MIDDLE = 3,
+}
+
+/// The kind of a layer in a tilemap.
+enum TileLayerKind : int {
+    LAYER_NONE = 0,
+    LAYER_TILE = 1,
+    LAYER_OBJECT = 2,
+    LAYER_IMAGE = 3,
+    LAYER_GROUP = 4,
+}
+
+/// The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+enum TilePropType : int {
+    PROP_NONE = 0,
+    PROP_INT = 1,
+    PROP_BOOL = 2,
+    PROP_FLOAT = 3,
+    PROP_STRING = 4,
+    PROP_COLOR = 5,
 }
 
 // Constants
@@ -662,6 +704,21 @@ extern(C) void unload_tilemap(Tilemap tilemap);
 /// Update a tilemap's animation timers (deltaTime is in seconds).
 @(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_update"))
 extern(C) void tile_update(Tilemap tilemap, float deltaTime);
+/// Get the size of a tilemap, in tiles.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_map_size"))
+extern(C) Dimensions* tile_map_size(Tilemap tilemap);
+/// Get the size of a single tile of a tilemap, in pixels.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_tile_size"))
+extern(C) Dimensions* tile_tile_size(Tilemap tilemap);
+/// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_map_prop"))
+extern(C) TilemapProp* tile_map_prop(Tilemap tilemap, const(char)* name);
+/// Get the number of custom properties on a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_map_prop_count"))
+extern(C) int tile_map_prop_count(Tilemap tilemap);
+/// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_map_prop_at"))
+extern(C) TilemapProp* tile_map_prop_at(Tilemap tilemap, int index);
 /// Draw a tilemap on the screen.
 @(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw"))
 extern(C) void tile_draw(Tilemap tilemap, int posX, int posY);
@@ -671,24 +728,87 @@ extern(C) void tile_draw_tint(Tilemap tilemap, int posX, int posY, Color tint);
 /// Draw a tilemap on an image.
 @(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw_on_image"))
 extern(C) void tile_draw_on_image(Image dst, Tilemap tilemap, int posX, int posY);
-/// Draw a single tile from a tilemap on the screen.
-@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw_tile"))
-extern(C) void tile_draw_tile(Tilemap tilemap, int gid, int posX, int posY);
-/// Get the number of layers in a tilemap.
-@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_count"))
-extern(C) int tile_layer_count(Tilemap tilemap);
-/// Get the gid of the tile at a column/row in a tilemap layer.
-@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_get_tile"))
-extern(C) int tile_get_tile(Tilemap tilemap, int layer, int column, int row);
-/// Set the gid of the tile at a column/row in a tilemap layer.
-@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_set_tile"))
-extern(C) void tile_set_tile(Tilemap tilemap, int layer, int column, int row, int gid);
-/// Get a copy of the image of a single tile in a tilemap.
-@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_image"))
-extern(C) Image tile_image(Tilemap tilemap, int gid);
 /// Render a whole tilemap to a new image.
 @(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tilemap_image"))
 extern(C) Image tilemap_image(Tilemap tilemap);
+/// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_count"))
+extern(C) int tile_layer_count(Tilemap tilemap);
+/// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_index"))
+extern(C) int tile_layer_index(Tilemap tilemap, const(char)* name);
+/// Get the name of a layer of a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_name"))
+extern(C) char* tile_layer_name(Tilemap tilemap, int layer);
+/// Get the kind of a layer of a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_type"))
+extern(C) TileLayerKind tile_layer_type(Tilemap tilemap, int layer);
+/// Get the size of a layer of a tilemap, in tiles.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_size"))
+extern(C) Dimensions* tile_layer_size(Tilemap tilemap, int layer);
+/// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_visible"))
+extern(C) bool tile_layer_visible(Tilemap tilemap, int layer);
+/// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_prop"))
+extern(C) TilemapProp* tile_layer_prop(Tilemap tilemap, int layer, const(char)* name);
+/// Get the number of custom properties on a layer of a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_prop_count"))
+extern(C) int tile_layer_prop_count(Tilemap tilemap, int layer);
+/// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_prop_at"))
+extern(C) TilemapProp* tile_layer_prop_at(Tilemap tilemap, int layer, int index);
+/// Draw a single layer of a tilemap on the screen.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw_layer"))
+extern(C) void tile_draw_layer(Tilemap tilemap, int layer, int posX, int posY);
+/// Draw a single layer of a tilemap on the screen, tinted by a color.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw_layer_tint"))
+extern(C) void tile_draw_layer_tint(Tilemap tilemap, int layer, int posX, int posY, Color tint);
+/// Draw a single layer of a tilemap on an image.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw_layer_on_image"))
+extern(C) void tile_draw_layer_on_image(Image dst, Tilemap tilemap, int layer, int posX, int posY);
+/// Render a single layer of a tilemap to a new image.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_layer_image"))
+extern(C) Image tile_layer_image(Tilemap tilemap, int layer);
+/// Get the gid of the tile at a column/row in a tilemap layer.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_get_tile"))
+extern(C) int tile_get_tile(Tilemap tilemap, int layer, int column, int row);
+/// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_set_tile"))
+extern(C) void tile_set_tile(Tilemap tilemap, int layer, int column, int row, int gid);
+/// Draw a single tile from a tilemap on the screen.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_draw_tile"))
+extern(C) void tile_draw_tile(Tilemap tilemap, int gid, int posX, int posY);
+/// Get a copy of the image of a single tile in a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_image"))
+extern(C) Image tile_image(Tilemap tilemap, int gid);
+/// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_gid_prop"))
+extern(C) TilemapProp* tile_gid_prop(Tilemap tilemap, int gid, const(char)* name);
+/// Get the number of custom properties on a tile of a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_gid_prop_count"))
+extern(C) int tile_gid_prop_count(Tilemap tilemap, int gid);
+/// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_gid_prop_at"))
+extern(C) TilemapProp* tile_gid_prop_at(Tilemap tilemap, int gid, int index);
+/// Get the number of objects on an object-layer of a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_object_count"))
+extern(C) int tile_object_count(Tilemap tilemap, int layer);
+/// Get an object from an object-layer of a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_object"))
+extern(C) TilemapObject* tile_object(Tilemap tilemap, int layer, int index);
+/// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_object_index"))
+extern(C) int tile_object_index(Tilemap tilemap, int layer, const(char)* name);
+/// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_object_prop"))
+extern(C) TilemapProp* tile_object_prop(Tilemap tilemap, int layer, int index, const(char)* name);
+/// Get the number of custom properties on an object of a tilemap.
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_object_prop_count"))
+extern(C) int tile_object_prop_count(Tilemap tilemap, int layer, int index);
+/// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+@(llvmAttr("wasm-import-module", "null0"), llvmAttr("wasm-import-name", "tile_object_prop_at"))
+extern(C) TilemapProp* tile_object_prop_at(Tilemap tilemap, int layer, int index, int propIndex);
 
 // TYPES
 

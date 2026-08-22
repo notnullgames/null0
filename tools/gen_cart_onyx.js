@@ -4,7 +4,7 @@
 // Generates Onyx code from the API definitions
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const out = [
   `// null0 - Onyx bindings for the null0 fantasy console
@@ -95,10 +95,17 @@ const memberTypes = {
   i32: 'i32',
   f32: 'f32',
   u32: 'u32',
-  u8: 'u8'
+  u8: 'u8',
+  string: 'u32' // pointer to the host's utf8 bytes
 }
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// a new struct fills itself in, following this language's convention
+// onyx has no enum types of its own - the values are plain i32 constants
+seedTypes(argTypes, { enums, structs }, { enumType: 'i32', structType: 'u32' })
+seedTypes(retTypes, { enums, structs }, { enumType: 'i32', structType: 'u32' })
+seedTypes(memberTypes, { enums }, { enumType: 'i32' })
 
 // Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {

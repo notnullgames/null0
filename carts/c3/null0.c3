@@ -85,6 +85,29 @@ struct Color {
     char a;
 }
 
+// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+struct TilemapProp {
+    char* name;
+    TilePropType type;
+    int integer;
+    float number;
+    char* text;
+}
+
+// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+struct TilemapObject {
+    int id;
+    char* name;
+    char* type;
+    int gid;
+    float x;
+    float y;
+    float width;
+    float height;
+    float rotation;
+    int visible;
+}
+
 // Potential image-filtering techniques for scale/etc.
 constdef ImageFilter : int {
     FILTER_NEARESTNEIGHBOR = 0,
@@ -257,6 +280,25 @@ constdef MouseButton : int {
     MOUSE_BUTTON_LEFT = 1,
     MOUSE_BUTTON_RIGHT = 2,
     MOUSE_BUTTON_MIDDLE = 3,
+}
+
+// The kind of a layer in a tilemap.
+constdef TileLayerKind : int {
+    LAYER_NONE = 0,
+    LAYER_TILE = 1,
+    LAYER_OBJECT = 2,
+    LAYER_IMAGE = 3,
+    LAYER_GROUP = 4,
+}
+
+// The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+constdef TilePropType : int {
+    PROP_NONE = 0,
+    PROP_INT = 1,
+    PROP_BOOL = 2,
+    PROP_FLOAT = 3,
+    PROP_STRING = 4,
+    PROP_COLOR = 5,
 }
 
 // Constants
@@ -532,24 +574,76 @@ extern fn Tilemap load_tilemap(char* filename) @wasm("null0", "load_tilemap");
 extern fn void unload_tilemap(Tilemap tilemap) @wasm("null0", "unload_tilemap");
 // Update a tilemap's animation timers (deltaTime is in seconds).
 extern fn void tile_update(Tilemap tilemap, float deltaTime) @wasm("null0", "tile_update");
+// Get the size of a tilemap, in tiles.
+extern fn Dimensions* tile_map_size(Tilemap tilemap) @wasm("null0", "tile_map_size");
+// Get the size of a single tile of a tilemap, in pixels.
+extern fn Dimensions* tile_tile_size(Tilemap tilemap) @wasm("null0", "tile_tile_size");
+// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+extern fn TilemapProp* tile_map_prop(Tilemap tilemap, char* name) @wasm("null0", "tile_map_prop");
+// Get the number of custom properties on a tilemap.
+extern fn int tile_map_prop_count(Tilemap tilemap) @wasm("null0", "tile_map_prop_count");
+// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+extern fn TilemapProp* tile_map_prop_at(Tilemap tilemap, int index) @wasm("null0", "tile_map_prop_at");
 // Draw a tilemap on the screen.
 extern fn void tile_draw(Tilemap tilemap, int posX, int posY) @wasm("null0", "tile_draw");
 // Draw a tilemap on the screen, tinted by a color.
 extern fn void tile_draw_tint(Tilemap tilemap, int posX, int posY, Color tint) @wasm("null0", "tile_draw_tint");
 // Draw a tilemap on an image.
 extern fn void tile_draw_on_image(Image dst, Tilemap tilemap, int posX, int posY) @wasm("null0", "tile_draw_on_image");
-// Draw a single tile from a tilemap on the screen.
-extern fn void tile_draw_tile(Tilemap tilemap, int gid, int posX, int posY) @wasm("null0", "tile_draw_tile");
-// Get the number of layers in a tilemap.
-extern fn int tile_layer_count(Tilemap tilemap) @wasm("null0", "tile_layer_count");
-// Get the gid of the tile at a column/row in a tilemap layer.
-extern fn int tile_get_tile(Tilemap tilemap, int layer, int column, int row) @wasm("null0", "tile_get_tile");
-// Set the gid of the tile at a column/row in a tilemap layer.
-extern fn void tile_set_tile(Tilemap tilemap, int layer, int column, int row, int gid) @wasm("null0", "tile_set_tile");
-// Get a copy of the image of a single tile in a tilemap.
-extern fn Image tile_image(Tilemap tilemap, int gid) @wasm("null0", "tile_image");
 // Render a whole tilemap to a new image.
 extern fn Image tilemap_image(Tilemap tilemap) @wasm("null0", "tilemap_image");
+// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+extern fn int tile_layer_count(Tilemap tilemap) @wasm("null0", "tile_layer_count");
+// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+extern fn int tile_layer_index(Tilemap tilemap, char* name) @wasm("null0", "tile_layer_index");
+// Get the name of a layer of a tilemap.
+extern fn char* tile_layer_name(Tilemap tilemap, int layer) @wasm("null0", "tile_layer_name");
+// Get the kind of a layer of a tilemap.
+extern fn TileLayerKind tile_layer_type(Tilemap tilemap, int layer) @wasm("null0", "tile_layer_type");
+// Get the size of a layer of a tilemap, in tiles.
+extern fn Dimensions* tile_layer_size(Tilemap tilemap, int layer) @wasm("null0", "tile_layer_size");
+// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+extern fn bool tile_layer_visible(Tilemap tilemap, int layer) @wasm("null0", "tile_layer_visible");
+// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+extern fn TilemapProp* tile_layer_prop(Tilemap tilemap, int layer, char* name) @wasm("null0", "tile_layer_prop");
+// Get the number of custom properties on a layer of a tilemap.
+extern fn int tile_layer_prop_count(Tilemap tilemap, int layer) @wasm("null0", "tile_layer_prop_count");
+// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+extern fn TilemapProp* tile_layer_prop_at(Tilemap tilemap, int layer, int index) @wasm("null0", "tile_layer_prop_at");
+// Draw a single layer of a tilemap on the screen.
+extern fn void tile_draw_layer(Tilemap tilemap, int layer, int posX, int posY) @wasm("null0", "tile_draw_layer");
+// Draw a single layer of a tilemap on the screen, tinted by a color.
+extern fn void tile_draw_layer_tint(Tilemap tilemap, int layer, int posX, int posY, Color tint) @wasm("null0", "tile_draw_layer_tint");
+// Draw a single layer of a tilemap on an image.
+extern fn void tile_draw_layer_on_image(Image dst, Tilemap tilemap, int layer, int posX, int posY) @wasm("null0", "tile_draw_layer_on_image");
+// Render a single layer of a tilemap to a new image.
+extern fn Image tile_layer_image(Tilemap tilemap, int layer) @wasm("null0", "tile_layer_image");
+// Get the gid of the tile at a column/row in a tilemap layer.
+extern fn int tile_get_tile(Tilemap tilemap, int layer, int column, int row) @wasm("null0", "tile_get_tile");
+// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+extern fn void tile_set_tile(Tilemap tilemap, int layer, int column, int row, int gid) @wasm("null0", "tile_set_tile");
+// Draw a single tile from a tilemap on the screen.
+extern fn void tile_draw_tile(Tilemap tilemap, int gid, int posX, int posY) @wasm("null0", "tile_draw_tile");
+// Get a copy of the image of a single tile in a tilemap.
+extern fn Image tile_image(Tilemap tilemap, int gid) @wasm("null0", "tile_image");
+// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+extern fn TilemapProp* tile_gid_prop(Tilemap tilemap, int gid, char* name) @wasm("null0", "tile_gid_prop");
+// Get the number of custom properties on a tile of a tilemap.
+extern fn int tile_gid_prop_count(Tilemap tilemap, int gid) @wasm("null0", "tile_gid_prop_count");
+// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+extern fn TilemapProp* tile_gid_prop_at(Tilemap tilemap, int gid, int index) @wasm("null0", "tile_gid_prop_at");
+// Get the number of objects on an object-layer of a tilemap.
+extern fn int tile_object_count(Tilemap tilemap, int layer) @wasm("null0", "tile_object_count");
+// Get an object from an object-layer of a tilemap.
+extern fn TilemapObject* tile_object(Tilemap tilemap, int layer, int index) @wasm("null0", "tile_object");
+// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+extern fn int tile_object_index(Tilemap tilemap, int layer, char* name) @wasm("null0", "tile_object_index");
+// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+extern fn TilemapProp* tile_object_prop(Tilemap tilemap, int layer, int index, char* name) @wasm("null0", "tile_object_prop");
+// Get the number of custom properties on an object of a tilemap.
+extern fn int tile_object_prop_count(Tilemap tilemap, int layer, int index) @wasm("null0", "tile_object_prop_count");
+// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+extern fn TilemapProp* tile_object_prop_at(Tilemap tilemap, int layer, int index, int propIndex) @wasm("null0", "tile_object_prop_at");
 
 // TYPES
 

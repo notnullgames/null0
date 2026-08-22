@@ -1,5 +1,55 @@
 #include "host_header.h"
 
+// cart-layout TilemapProp
+typedef struct {
+  uint32_t name;
+  int32_t type;
+  int32_t integer;
+  float number;
+  uint32_t text;
+} Null0CartTilemapProp;
+
+// copy a TilemapProp (and its strings) into cart memory
+static uint32_t tilemapProp_to_cart(Null0TilemapProp v) {
+  Null0CartTilemapProp c;
+  c.name = copy_string_to_cart(v.name);
+  c.type = (int32_t)v.type;
+  c.integer = (int32_t)v.integer;
+  c.number = (float)v.number;
+  c.text = copy_string_to_cart(v.text);
+  return copy_memory_to_cart(&c, sizeof(c));
+}
+
+// cart-layout TilemapObject
+typedef struct {
+  int32_t id;
+  uint32_t name;
+  uint32_t type;
+  int32_t gid;
+  float x;
+  float y;
+  float width;
+  float height;
+  float rotation;
+  int32_t visible;
+} Null0CartTilemapObject;
+
+// copy a TilemapObject (and its strings) into cart memory
+static uint32_t tilemapObject_to_cart(Null0TilemapObject v) {
+  Null0CartTilemapObject c;
+  c.id = (int32_t)v.id;
+  c.name = copy_string_to_cart(v.name);
+  c.type = copy_string_to_cart(v.type);
+  c.gid = (int32_t)v.gid;
+  c.x = (float)v.x;
+  c.y = (float)v.y;
+  c.width = (float)v.width;
+  c.height = (float)v.height;
+  c.rotation = (float)v.rotation;
+  c.visible = (int32_t)v.visible;
+  return copy_memory_to_cart(&c, sizeof(c));
+}
+
 // COLORS
 
 // Tint a color with another color.
@@ -994,6 +1044,61 @@ HOST_FUNCTION(void, tile_update, (uint32_t tilemap, float deltaTime), {
  pntr_update_tiled(tilemapHost, deltaTime);
 })
 
+// Get the size of a tilemap, in tiles.
+HOST_FUNCTION(uint32_t, tile_map_size, (uint32_t tilemap), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ pntr_vector retHostVal = null0_tile_map_size(tilemapHost);
+ uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(pntr_vector));
+ return retHost;
+})
+
+// Get the size of a single tile of a tilemap, in pixels.
+HOST_FUNCTION(uint32_t, tile_tile_size, (uint32_t tilemap), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ pntr_vector retHostVal = null0_tile_tile_size(tilemapHost);
+ uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(pntr_vector));
+ return retHost;
+})
+
+// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+HOST_FUNCTION(uint32_t, tile_map_prop, (uint32_t tilemap, uint32_t name), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ char* nameHost = copy_string_from_cart(name);
+ if (tilemapHost == NULL) {
+  free(nameHost);
+  return 0;
+ }
+ uint32_t retHost = tilemapProp_to_cart(null0_tile_map_prop(tilemapHost, nameHost));
+ free(nameHost);
+ return retHost;
+})
+
+// Get the number of custom properties on a tilemap.
+HOST_FUNCTION(int32_t, tile_map_prop_count, (uint32_t tilemap), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ int32_t retHost = null0_tile_map_prop_count(tilemapHost);
+ return retHost;
+})
+
+// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+HOST_FUNCTION(uint32_t, tile_map_prop_at, (uint32_t tilemap, int32_t index), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ uint32_t retHost = tilemapProp_to_cart(null0_tile_map_prop_at(tilemapHost, index));
+ return retHost;
+})
+
 // Draw a tilemap on the screen.
 HOST_FUNCTION(void, tile_draw, (uint32_t tilemap, int32_t posX, int32_t posY), {
  cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
@@ -1023,22 +1128,149 @@ HOST_FUNCTION(void, tile_draw_on_image, (uint32_t dst, uint32_t tilemap, int32_t
  pntr_draw_tiled(dstHost, tilemapHost, posX, posY, PNTR_WHITE);
 })
 
-// Draw a single tile from a tilemap on the screen.
-HOST_FUNCTION(void, tile_draw_tile, (uint32_t tilemap, int32_t gid, int32_t posX, int32_t posY), {
+// Render a whole tilemap to a new image.
+HOST_FUNCTION(uint32_t, tilemap_image, (uint32_t tilemap), {
  cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
  if (tilemapHost == NULL) {
-  return;
+  return 0;
  }
- null0_tile_draw_tile(images[0], tilemapHost, gid, posX, posY, PNTR_WHITE);
+ uint32_t retHost = add_image(null0_gen_image_tiled(tilemapHost));
+ return retHost;
 })
 
-// Get the number of layers in a tilemap.
+// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 HOST_FUNCTION(int32_t, tile_layer_count, (uint32_t tilemap), {
  cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
  if (tilemapHost == NULL) {
   return 0;
  }
- int32_t retHost = pntr_tiled_layer_count(tilemapHost);
+ int32_t retHost = null0_tile_layer_count(tilemapHost);
+ return retHost;
+})
+
+// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+HOST_FUNCTION(int32_t, tile_layer_index, (uint32_t tilemap, uint32_t name), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ char* nameHost = copy_string_from_cart(name);
+ if (tilemapHost == NULL) {
+  free(nameHost);
+  return 0;
+ }
+ int32_t retHost = null0_tile_layer_index(tilemapHost, nameHost);
+ free(nameHost);
+ return retHost;
+})
+
+// Get the name of a layer of a tilemap.
+HOST_FUNCTION(uint32_t, tile_layer_name, (uint32_t tilemap, int32_t layer), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ uint32_t retHost = copy_string_to_cart(null0_tile_layer_name(tilemapHost, layer));
+ return retHost;
+})
+
+// Get the kind of a layer of a tilemap.
+HOST_FUNCTION(int32_t, tile_layer_type, (uint32_t tilemap, int32_t layer), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ int32_t retHost = null0_tile_layer_type(tilemapHost, layer);
+ return retHost;
+})
+
+// Get the size of a layer of a tilemap, in tiles.
+HOST_FUNCTION(uint32_t, tile_layer_size, (uint32_t tilemap, int32_t layer), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ pntr_vector retHostVal = null0_tile_layer_size(tilemapHost, layer);
+ uint32_t retHost = copy_memory_to_cart(&retHostVal, sizeof(pntr_vector));
+ return retHost;
+})
+
+// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+HOST_FUNCTION(bool, tile_layer_visible, (uint32_t tilemap, int32_t layer), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ bool retHost = null0_tile_layer_visible(tilemapHost, layer);
+ return retHost;
+})
+
+// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+HOST_FUNCTION(uint32_t, tile_layer_prop, (uint32_t tilemap, int32_t layer, uint32_t name), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ char* nameHost = copy_string_from_cart(name);
+ if (tilemapHost == NULL) {
+  free(nameHost);
+  return 0;
+ }
+ uint32_t retHost = tilemapProp_to_cart(null0_tile_layer_prop(tilemapHost, layer, nameHost));
+ free(nameHost);
+ return retHost;
+})
+
+// Get the number of custom properties on a layer of a tilemap.
+HOST_FUNCTION(int32_t, tile_layer_prop_count, (uint32_t tilemap, int32_t layer), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ int32_t retHost = null0_tile_layer_prop_count(tilemapHost, layer);
+ return retHost;
+})
+
+// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+HOST_FUNCTION(uint32_t, tile_layer_prop_at, (uint32_t tilemap, int32_t layer, int32_t index), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ uint32_t retHost = tilemapProp_to_cart(null0_tile_layer_prop_at(tilemapHost, layer, index));
+ return retHost;
+})
+
+// Draw a single layer of a tilemap on the screen.
+HOST_FUNCTION(void, tile_draw_layer, (uint32_t tilemap, int32_t layer, int32_t posX, int32_t posY), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return;
+ }
+ null0_tile_draw_layer(images[0], tilemapHost, layer, posX, posY, PNTR_WHITE);
+})
+
+// Draw a single layer of a tilemap on the screen, tinted by a color.
+HOST_FUNCTION(void, tile_draw_layer_tint, (uint32_t tilemap, int32_t layer, int32_t posX, int32_t posY, uint32_t tint), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ pntr_color tintHost = copy_color_from_cart(tint);
+ if (tilemapHost == NULL) {
+  return;
+ }
+ null0_tile_draw_layer(images[0], tilemapHost, layer, posX, posY, tintHost);
+})
+
+// Draw a single layer of a tilemap on an image.
+HOST_FUNCTION(void, tile_draw_layer_on_image, (uint32_t dst, uint32_t tilemap, int32_t layer, int32_t posX, int32_t posY), {
+ pntr_image* dstHost = get_image(dst);
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (dstHost == NULL || tilemapHost == NULL) {
+  return;
+ }
+ null0_tile_draw_layer(dstHost, tilemapHost, layer, posX, posY, PNTR_WHITE);
+})
+
+// Render a single layer of a tilemap to a new image.
+HOST_FUNCTION(uint32_t, tile_layer_image, (uint32_t tilemap, int32_t layer), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ uint32_t retHost = add_image(null0_tile_layer_image(tilemapHost, layer));
  return retHost;
 })
 
@@ -1052,13 +1284,22 @@ HOST_FUNCTION(int32_t, tile_get_tile, (uint32_t tilemap, int32_t layer, int32_t 
  return retHost;
 })
 
-// Set the gid of the tile at a column/row in a tilemap layer.
+// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 HOST_FUNCTION(void, tile_set_tile, (uint32_t tilemap, int32_t layer, int32_t column, int32_t row, int32_t gid), {
  cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
  if (tilemapHost == NULL) {
   return;
  }
  null0_tile_set_tile(tilemapHost, layer, column, row, gid);
+})
+
+// Draw a single tile from a tilemap on the screen.
+HOST_FUNCTION(void, tile_draw_tile, (uint32_t tilemap, int32_t gid, int32_t posX, int32_t posY), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return;
+ }
+ null0_tile_draw_tile(images[0], tilemapHost, gid, posX, posY, PNTR_WHITE);
 })
 
 // Get a copy of the image of a single tile in a tilemap.
@@ -1071,13 +1312,102 @@ HOST_FUNCTION(uint32_t, tile_image, (uint32_t tilemap, int32_t gid), {
  return retHost;
 })
 
-// Render a whole tilemap to a new image.
-HOST_FUNCTION(uint32_t, tilemap_image, (uint32_t tilemap), {
+// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+HOST_FUNCTION(uint32_t, tile_gid_prop, (uint32_t tilemap, int32_t gid, uint32_t name), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ char* nameHost = copy_string_from_cart(name);
+ if (tilemapHost == NULL) {
+  free(nameHost);
+  return 0;
+ }
+ uint32_t retHost = tilemapProp_to_cart(null0_tile_gid_prop(tilemapHost, gid, nameHost));
+ free(nameHost);
+ return retHost;
+})
+
+// Get the number of custom properties on a tile of a tilemap.
+HOST_FUNCTION(int32_t, tile_gid_prop_count, (uint32_t tilemap, int32_t gid), {
  cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
  if (tilemapHost == NULL) {
   return 0;
  }
- uint32_t retHost = add_image(null0_gen_image_tiled(tilemapHost));
+ int32_t retHost = null0_tile_gid_prop_count(tilemapHost, gid);
+ return retHost;
+})
+
+// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+HOST_FUNCTION(uint32_t, tile_gid_prop_at, (uint32_t tilemap, int32_t gid, int32_t index), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ uint32_t retHost = tilemapProp_to_cart(null0_tile_gid_prop_at(tilemapHost, gid, index));
+ return retHost;
+})
+
+// Get the number of objects on an object-layer of a tilemap.
+HOST_FUNCTION(int32_t, tile_object_count, (uint32_t tilemap, int32_t layer), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ int32_t retHost = null0_tile_object_count(tilemapHost, layer);
+ return retHost;
+})
+
+// Get an object from an object-layer of a tilemap.
+HOST_FUNCTION(uint32_t, tile_object, (uint32_t tilemap, int32_t layer, int32_t index), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ uint32_t retHost = tilemapObject_to_cart(null0_tile_object(tilemapHost, layer, index));
+ return retHost;
+})
+
+// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+HOST_FUNCTION(int32_t, tile_object_index, (uint32_t tilemap, int32_t layer, uint32_t name), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ char* nameHost = copy_string_from_cart(name);
+ if (tilemapHost == NULL) {
+  free(nameHost);
+  return 0;
+ }
+ int32_t retHost = null0_tile_object_index(tilemapHost, layer, nameHost);
+ free(nameHost);
+ return retHost;
+})
+
+// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+HOST_FUNCTION(uint32_t, tile_object_prop, (uint32_t tilemap, int32_t layer, int32_t index, uint32_t name), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ char* nameHost = copy_string_from_cart(name);
+ if (tilemapHost == NULL) {
+  free(nameHost);
+  return 0;
+ }
+ uint32_t retHost = tilemapProp_to_cart(null0_tile_object_prop(tilemapHost, layer, index, nameHost));
+ free(nameHost);
+ return retHost;
+})
+
+// Get the number of custom properties on an object of a tilemap.
+HOST_FUNCTION(int32_t, tile_object_prop_count, (uint32_t tilemap, int32_t layer, int32_t index), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ int32_t retHost = null0_tile_object_prop_count(tilemapHost, layer, index);
+ return retHost;
+})
+
+// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+HOST_FUNCTION(uint32_t, tile_object_prop_at, (uint32_t tilemap, int32_t layer, int32_t index, int32_t propIndex), {
+ cute_tiled_map_t* tilemapHost = get_tilemap(tilemap);
+ if (tilemapHost == NULL) {
+  return 0;
+ }
+ uint32_t retHost = tilemapProp_to_cart(null0_tile_object_prop_at(tilemapHost, layer, index, propIndex));
  return retHost;
 })
 

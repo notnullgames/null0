@@ -257,6 +257,46 @@ typedef enum MouseButton {
   MOUSE_BUTTON_MIDDLE = 3,
 } MouseButton;
 
+typedef enum TileLayerKind {
+  LAYER_NONE = 0,
+  LAYER_TILE = 1,
+  LAYER_OBJECT = 2,
+  LAYER_IMAGE = 3,
+  LAYER_GROUP = 4,
+} TileLayerKind;
+
+typedef enum TilePropType {
+  PROP_NONE = 0,
+  PROP_INT = 1,
+  PROP_BOOL = 2,
+  PROP_FLOAT = 3,
+  PROP_STRING = 4,
+  PROP_COLOR = 5,
+} TilePropType;
+
+// only the member named by type is set: a PROP_BOOL is 0/1 in integer, and a
+// PROP_COLOR is RGBA bytes in integer
+typedef struct {
+  char* name;
+  TilePropType type;
+  i32 integer;
+  f32 number;
+  char* text;
+} TilemapProp;
+
+typedef struct {
+  i32 id;
+  char* name;
+  char* type;
+  i32 gid;
+  f32 x;
+  f32 y;
+  f32 width;
+  f32 height;
+  f32 rotation;
+  i32 visible;
+} TilemapObject;
+
 #define SCREEN 0
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
@@ -816,6 +856,26 @@ extern void unload_tilemap(u32 tilemap);
 NULL0_IMPORT("tile_update")
 extern void tile_update(u32 tilemap, f32 deltaTime);
 
+// Get the size of a tilemap, in tiles.
+NULL0_IMPORT("tile_map_size")
+extern Dimensions* tile_map_size(u32 tilemap);
+
+// Get the size of a single tile of a tilemap, in pixels.
+NULL0_IMPORT("tile_tile_size")
+extern Dimensions* tile_tile_size(u32 tilemap);
+
+// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+NULL0_IMPORT("tile_map_prop")
+extern TilemapProp* tile_map_prop(u32 tilemap, char* name);
+
+// Get the number of custom properties on a tilemap.
+NULL0_IMPORT("tile_map_prop_count")
+extern i32 tile_map_prop_count(u32 tilemap);
+
+// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+NULL0_IMPORT("tile_map_prop_at")
+extern TilemapProp* tile_map_prop_at(u32 tilemap, i32 index);
+
 // Draw a tilemap on the screen.
 NULL0_IMPORT("tile_draw")
 extern void tile_draw(u32 tilemap, i32 posX, i32 posY);
@@ -828,29 +888,113 @@ extern void tile_draw_tint(u32 tilemap, i32 posX, i32 posY, Color tint);
 NULL0_IMPORT("tile_draw_on_image")
 extern void tile_draw_on_image(u32 dst, u32 tilemap, i32 posX, i32 posY);
 
-// Draw a single tile from a tilemap on the screen.
-NULL0_IMPORT("tile_draw_tile")
-extern void tile_draw_tile(u32 tilemap, i32 gid, i32 posX, i32 posY);
+// Render a whole tilemap to a new image.
+NULL0_IMPORT("tilemap_image")
+extern u32 tilemap_image(u32 tilemap);
 
-// Get the number of layers in a tilemap.
+// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 NULL0_IMPORT("tile_layer_count")
 extern i32 tile_layer_count(u32 tilemap);
+
+// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+NULL0_IMPORT("tile_layer_index")
+extern i32 tile_layer_index(u32 tilemap, char* name);
+
+// Get the name of a layer of a tilemap.
+NULL0_IMPORT("tile_layer_name")
+extern char* tile_layer_name(u32 tilemap, i32 layer);
+
+// Get the kind of a layer of a tilemap.
+NULL0_IMPORT("tile_layer_type")
+extern TileLayerKind tile_layer_type(u32 tilemap, i32 layer);
+
+// Get the size of a layer of a tilemap, in tiles.
+NULL0_IMPORT("tile_layer_size")
+extern Dimensions* tile_layer_size(u32 tilemap, i32 layer);
+
+// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+NULL0_IMPORT("tile_layer_visible")
+extern bool tile_layer_visible(u32 tilemap, i32 layer);
+
+// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+NULL0_IMPORT("tile_layer_prop")
+extern TilemapProp* tile_layer_prop(u32 tilemap, i32 layer, char* name);
+
+// Get the number of custom properties on a layer of a tilemap.
+NULL0_IMPORT("tile_layer_prop_count")
+extern i32 tile_layer_prop_count(u32 tilemap, i32 layer);
+
+// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+NULL0_IMPORT("tile_layer_prop_at")
+extern TilemapProp* tile_layer_prop_at(u32 tilemap, i32 layer, i32 index);
+
+// Draw a single layer of a tilemap on the screen.
+NULL0_IMPORT("tile_draw_layer")
+extern void tile_draw_layer(u32 tilemap, i32 layer, i32 posX, i32 posY);
+
+// Draw a single layer of a tilemap on the screen, tinted by a color.
+NULL0_IMPORT("tile_draw_layer_tint")
+extern void tile_draw_layer_tint(u32 tilemap, i32 layer, i32 posX, i32 posY, Color tint);
+
+// Draw a single layer of a tilemap on an image.
+NULL0_IMPORT("tile_draw_layer_on_image")
+extern void tile_draw_layer_on_image(u32 dst, u32 tilemap, i32 layer, i32 posX, i32 posY);
+
+// Render a single layer of a tilemap to a new image.
+NULL0_IMPORT("tile_layer_image")
+extern u32 tile_layer_image(u32 tilemap, i32 layer);
 
 // Get the gid of the tile at a column/row in a tilemap layer.
 NULL0_IMPORT("tile_get_tile")
 extern i32 tile_get_tile(u32 tilemap, i32 layer, i32 column, i32 row);
 
-// Set the gid of the tile at a column/row in a tilemap layer.
+// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 NULL0_IMPORT("tile_set_tile")
 extern void tile_set_tile(u32 tilemap, i32 layer, i32 column, i32 row, i32 gid);
+
+// Draw a single tile from a tilemap on the screen.
+NULL0_IMPORT("tile_draw_tile")
+extern void tile_draw_tile(u32 tilemap, i32 gid, i32 posX, i32 posY);
 
 // Get a copy of the image of a single tile in a tilemap.
 NULL0_IMPORT("tile_image")
 extern u32 tile_image(u32 tilemap, i32 gid);
 
-// Render a whole tilemap to a new image.
-NULL0_IMPORT("tilemap_image")
-extern u32 tilemap_image(u32 tilemap);
+// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+NULL0_IMPORT("tile_gid_prop")
+extern TilemapProp* tile_gid_prop(u32 tilemap, i32 gid, char* name);
+
+// Get the number of custom properties on a tile of a tilemap.
+NULL0_IMPORT("tile_gid_prop_count")
+extern i32 tile_gid_prop_count(u32 tilemap, i32 gid);
+
+// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+NULL0_IMPORT("tile_gid_prop_at")
+extern TilemapProp* tile_gid_prop_at(u32 tilemap, i32 gid, i32 index);
+
+// Get the number of objects on an object-layer of a tilemap.
+NULL0_IMPORT("tile_object_count")
+extern i32 tile_object_count(u32 tilemap, i32 layer);
+
+// Get an object from an object-layer of a tilemap.
+NULL0_IMPORT("tile_object")
+extern TilemapObject* tile_object(u32 tilemap, i32 layer, i32 index);
+
+// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+NULL0_IMPORT("tile_object_index")
+extern i32 tile_object_index(u32 tilemap, i32 layer, char* name);
+
+// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+NULL0_IMPORT("tile_object_prop")
+extern TilemapProp* tile_object_prop(u32 tilemap, i32 layer, i32 index, char* name);
+
+// Get the number of custom properties on an object of a tilemap.
+NULL0_IMPORT("tile_object_prop_count")
+extern i32 tile_object_prop_count(u32 tilemap, i32 layer, i32 index);
+
+// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+NULL0_IMPORT("tile_object_prop_at")
+extern TilemapProp* tile_object_prop_at(u32 tilemap, i32 layer, i32 index, i32 propIndex);
 
 
 // TYPES

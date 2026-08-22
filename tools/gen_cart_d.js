@@ -4,7 +4,7 @@
 // Generates D code from the API definitions (for ldc2 -betterC wasm32)
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const out = [
   `//! null0 - D bindings for the null0 fantasy console
@@ -106,7 +106,8 @@ const memberTypes = {
   i32: 'int',
   f32: 'float',
   u32: 'uint',
-  u8: 'ubyte'
+  u8: 'ubyte',
+  string: 'char*'
 }
 
 const argsMap = (args) =>
@@ -115,6 +116,10 @@ const argsMap = (args) =>
     .join(', ')
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// a new struct fills itself in, following this language's convention
+seedTypes(argTypes, { structs }, { structType: (name) => name })
+seedTypes(retTypes, { structs }, { structType: (name) => `${name}*` })
 
 // Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {

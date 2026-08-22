@@ -17,6 +17,7 @@
     "cart:sfx_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -v ./carts/c/sfx:/src -v ./build/carts:/out konsumer/null0-cart-c sfx_c",
     "cart:speak_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -v ./carts/c/speak:/src -v ./build/carts:/out konsumer/null0-cart-c speak_c",
     "cart:tile_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -v ./carts/c/tile:/src -v ./build/carts:/out konsumer/null0-cart-c tile_c",
+    "cart:tile_lua": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -v ./carts/lua/tile:/src -v ./build/carts:/out konsumer/null0-cart-lua tile_lua",
     "cart:gui_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -v ./carts/c/gui:/src -v ./build/carts:/out konsumer/null0-cart-c gui_c",
     "cart:wasi_demo_c": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -v ./carts/c/wasi_demo:/src -v ./build/carts:/out konsumer/null0-cart-c wasi_demo_c",
     "cart:simple_as": "mkdir -p build/carts && docker run --user $(id -u):$(id -g) -v ./carts/as/simple:/src -v ./build/carts:/out konsumer/null0-cart-assemblyscript simple_as",

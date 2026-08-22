@@ -88,6 +88,29 @@ pub const Color = extern struct {
     a: u8 = 0,
 };
 
+/// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+pub const TilemapProp = extern struct {
+    name: [*:0]u8 = undefined,
+    type: TilePropType = @enumFromInt(0),
+    integer: i32 = 0,
+    number: f32 = 0,
+    text: [*:0]u8 = undefined,
+};
+
+/// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+pub const TilemapObject = extern struct {
+    id: i32 = 0,
+    name: [*:0]u8 = undefined,
+    type: [*:0]u8 = undefined,
+    gid: i32 = 0,
+    x: f32 = 0,
+    y: f32 = 0,
+    width: f32 = 0,
+    height: f32 = 0,
+    rotation: f32 = 0,
+    visible: i32 = 0,
+};
+
 /// Create a Color from r, g, b, a components
 pub fn rgba(r: u8, g: u8, b: u8, a: u8) Color {
     return .{ .r = r, .g = g, .b = b, .a = a };
@@ -270,6 +293,25 @@ pub const MouseButton = enum(i32) {
     MOUSE_BUTTON_LEFT = 1,
     MOUSE_BUTTON_RIGHT = 2,
     MOUSE_BUTTON_MIDDLE = 3,
+};
+
+/// The kind of a layer in a tilemap.
+pub const TileLayerKind = enum(i32) {
+    LAYER_NONE = 0,
+    LAYER_TILE = 1,
+    LAYER_OBJECT = 2,
+    LAYER_IMAGE = 3,
+    LAYER_GROUP = 4,
+};
+
+/// The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+pub const TilePropType = enum(i32) {
+    PROP_NONE = 0,
+    PROP_INT = 1,
+    PROP_BOOL = 2,
+    PROP_FLOAT = 3,
+    PROP_STRING = 4,
+    PROP_COLOR = 5,
 };
 
 // Constants
@@ -544,24 +586,76 @@ pub extern "null0" fn load_tilemap(filename: [*:0]const u8) Tilemap;
 pub extern "null0" fn unload_tilemap(tilemap: Tilemap) void;
 /// Update a tilemap's animation timers (deltaTime is in seconds).
 pub extern "null0" fn tile_update(tilemap: Tilemap, deltaTime: f32) void;
+/// Get the size of a tilemap, in tiles.
+pub extern "null0" fn tile_map_size(tilemap: Tilemap) *Dimensions;
+/// Get the size of a single tile of a tilemap, in pixels.
+pub extern "null0" fn tile_tile_size(tilemap: Tilemap) *Dimensions;
+/// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+pub extern "null0" fn tile_map_prop(tilemap: Tilemap, name: [*:0]const u8) *TilemapProp;
+/// Get the number of custom properties on a tilemap.
+pub extern "null0" fn tile_map_prop_count(tilemap: Tilemap) i32;
+/// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+pub extern "null0" fn tile_map_prop_at(tilemap: Tilemap, index: i32) *TilemapProp;
 /// Draw a tilemap on the screen.
 pub extern "null0" fn tile_draw(tilemap: Tilemap, posX: i32, posY: i32) void;
 /// Draw a tilemap on the screen, tinted by a color.
 pub extern "null0" fn tile_draw_tint(tilemap: Tilemap, posX: i32, posY: i32, tint: Color) void;
 /// Draw a tilemap on an image.
 pub extern "null0" fn tile_draw_on_image(dst: Image, tilemap: Tilemap, posX: i32, posY: i32) void;
-/// Draw a single tile from a tilemap on the screen.
-pub extern "null0" fn tile_draw_tile(tilemap: Tilemap, gid: i32, posX: i32, posY: i32) void;
-/// Get the number of layers in a tilemap.
-pub extern "null0" fn tile_layer_count(tilemap: Tilemap) i32;
-/// Get the gid of the tile at a column/row in a tilemap layer.
-pub extern "null0" fn tile_get_tile(tilemap: Tilemap, layer: i32, column: i32, row: i32) i32;
-/// Set the gid of the tile at a column/row in a tilemap layer.
-pub extern "null0" fn tile_set_tile(tilemap: Tilemap, layer: i32, column: i32, row: i32, gid: i32) void;
-/// Get a copy of the image of a single tile in a tilemap.
-pub extern "null0" fn tile_image(tilemap: Tilemap, gid: i32) Image;
 /// Render a whole tilemap to a new image.
 pub extern "null0" fn tilemap_image(tilemap: Tilemap) Image;
+/// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+pub extern "null0" fn tile_layer_count(tilemap: Tilemap) i32;
+/// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+pub extern "null0" fn tile_layer_index(tilemap: Tilemap, name: [*:0]const u8) i32;
+/// Get the name of a layer of a tilemap.
+pub extern "null0" fn tile_layer_name(tilemap: Tilemap, layer: i32) [*:0]u8;
+/// Get the kind of a layer of a tilemap.
+pub extern "null0" fn tile_layer_type(tilemap: Tilemap, layer: i32) TileLayerKind;
+/// Get the size of a layer of a tilemap, in tiles.
+pub extern "null0" fn tile_layer_size(tilemap: Tilemap, layer: i32) *Dimensions;
+/// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+pub extern "null0" fn tile_layer_visible(tilemap: Tilemap, layer: i32) bool;
+/// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+pub extern "null0" fn tile_layer_prop(tilemap: Tilemap, layer: i32, name: [*:0]const u8) *TilemapProp;
+/// Get the number of custom properties on a layer of a tilemap.
+pub extern "null0" fn tile_layer_prop_count(tilemap: Tilemap, layer: i32) i32;
+/// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+pub extern "null0" fn tile_layer_prop_at(tilemap: Tilemap, layer: i32, index: i32) *TilemapProp;
+/// Draw a single layer of a tilemap on the screen.
+pub extern "null0" fn tile_draw_layer(tilemap: Tilemap, layer: i32, posX: i32, posY: i32) void;
+/// Draw a single layer of a tilemap on the screen, tinted by a color.
+pub extern "null0" fn tile_draw_layer_tint(tilemap: Tilemap, layer: i32, posX: i32, posY: i32, tint: Color) void;
+/// Draw a single layer of a tilemap on an image.
+pub extern "null0" fn tile_draw_layer_on_image(dst: Image, tilemap: Tilemap, layer: i32, posX: i32, posY: i32) void;
+/// Render a single layer of a tilemap to a new image.
+pub extern "null0" fn tile_layer_image(tilemap: Tilemap, layer: i32) Image;
+/// Get the gid of the tile at a column/row in a tilemap layer.
+pub extern "null0" fn tile_get_tile(tilemap: Tilemap, layer: i32, column: i32, row: i32) i32;
+/// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+pub extern "null0" fn tile_set_tile(tilemap: Tilemap, layer: i32, column: i32, row: i32, gid: i32) void;
+/// Draw a single tile from a tilemap on the screen.
+pub extern "null0" fn tile_draw_tile(tilemap: Tilemap, gid: i32, posX: i32, posY: i32) void;
+/// Get a copy of the image of a single tile in a tilemap.
+pub extern "null0" fn tile_image(tilemap: Tilemap, gid: i32) Image;
+/// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+pub extern "null0" fn tile_gid_prop(tilemap: Tilemap, gid: i32, name: [*:0]const u8) *TilemapProp;
+/// Get the number of custom properties on a tile of a tilemap.
+pub extern "null0" fn tile_gid_prop_count(tilemap: Tilemap, gid: i32) i32;
+/// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+pub extern "null0" fn tile_gid_prop_at(tilemap: Tilemap, gid: i32, index: i32) *TilemapProp;
+/// Get the number of objects on an object-layer of a tilemap.
+pub extern "null0" fn tile_object_count(tilemap: Tilemap, layer: i32) i32;
+/// Get an object from an object-layer of a tilemap.
+pub extern "null0" fn tile_object(tilemap: Tilemap, layer: i32, index: i32) *TilemapObject;
+/// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+pub extern "null0" fn tile_object_index(tilemap: Tilemap, layer: i32, name: [*:0]const u8) i32;
+/// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+pub extern "null0" fn tile_object_prop(tilemap: Tilemap, layer: i32, index: i32, name: [*:0]const u8) *TilemapProp;
+/// Get the number of custom properties on an object of a tilemap.
+pub extern "null0" fn tile_object_prop_count(tilemap: Tilemap, layer: i32, index: i32) i32;
+/// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+pub extern "null0" fn tile_object_prop_at(tilemap: Tilemap, layer: i32, index: i32, propIndex: i32) *TilemapProp;
 
 // TYPES
 

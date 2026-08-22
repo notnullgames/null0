@@ -263,6 +263,46 @@ typedef enum MouseButton {
   MOUSE_BUTTON_MIDDLE = 3,
 } MouseButton;
 
+typedef enum TileLayerKind {
+  LAYER_NONE = 0,
+  LAYER_TILE = 1,
+  LAYER_OBJECT = 2,
+  LAYER_IMAGE = 3,
+  LAYER_GROUP = 4,
+} TileLayerKind;
+
+typedef enum TilePropType {
+  PROP_NONE = 0,
+  PROP_INT = 1,
+  PROP_BOOL = 2,
+  PROP_FLOAT = 3,
+  PROP_STRING = 4,
+  PROP_COLOR = 5,
+} TilePropType;
+
+// only the member named by type is set: a PROP_BOOL is 0/1 in integer, and a
+// PROP_COLOR is RGBA bytes in integer
+typedef struct {
+  char* name;
+  TilePropType type;
+  i32 integer;
+  f32 number;
+  char* text;
+} TilemapProp;
+
+typedef struct {
+  i32 id;
+  char* name;
+  char* type;
+  i32 gid;
+  f32 x;
+  f32 y;
+  f32 width;
+  f32 height;
+  f32 rotation;
+  i32 visible;
+} TilemapObject;
+
 #define SCREEN 0
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480

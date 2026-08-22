@@ -4,7 +4,7 @@
 // Generates C3 code from the API definitions
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const out = [
   `// null0 - C3 bindings for the null0 fantasy console
@@ -90,10 +90,15 @@ const memberTypes = {
   i32: 'int',
   f32: 'float',
   u32: 'uint',
-  u8: 'char'
+  u8: 'char',
+  string: 'char*'
 }
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// a new struct fills itself in, following this language's convention
+seedTypes(argTypes, { structs }, { structType: (name) => name })
+seedTypes(retTypes, { structs }, { structType: (name) => `${name}*` })
 
 // Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {

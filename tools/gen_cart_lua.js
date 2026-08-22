@@ -21,7 +21,7 @@
 import { writeFile, mkdir } from 'node:fs/promises'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
@@ -70,7 +70,7 @@ const goRetTypes = {
   SfxParams: 'unsafe.Pointer'
 }
 
-const goMemberTypes = { i32: 'int32', f32: 'float32', u32: 'uint32', u8: 'uint8' }
+const goMemberTypes = { i32: 'int32', f32: 'float32', u32: 'uint32', u8: 'uint8', string: 'uint32' }
 
 // a few API args (sfx_generate's `type`) are go keywords
 const goKeywords = new Set(['break', 'case', 'chan', 'const', 'continue', 'default', 'defer', 'else', 'fallthrough', 'for', 'func', 'go', 'goto', 'if', 'import', 'interface', 'map', 'package', 'range', 'return', 'select', 'struct', 'switch', 'type', 'var'])
@@ -103,7 +103,16 @@ const luaTypes = {
   'i32[]': 'integer[]'
 }
 
-const luaMemberTypes = { i32: 'integer', f32: 'number', u32: 'integer', u8: 'integer' }
+const luaMemberTypes = { i32: 'integer', f32: 'number', u32: 'integer', u8: 'integer', string: 'string' }
+
+// a new enum crosses as an int, a new struct as a pointer into cart memory
+seedTypes(goArgTypes, { enums, structs }, { enumType: 'int32', structType: 'unsafe.Pointer' })
+seedTypes(goRetTypes, { enums, structs }, { enumType: 'int32', structType: 'unsafe.Pointer' })
+seedTypes(luaTypes, { enums, structs }, { enumType: 'integer', structType: (name) => name })
+seedTypes(goMemberTypes, { enums }, { enumType: 'int32' })
+
+// a host string comes back as a pointer we read out before the callback ends
+goRetTypes.string = 'unsafe.Pointer'
 
 // go name for a struct-table helper, e.g. Color -> colorArg/colorTable
 const lower = (name) => name.charAt(0).toLowerCase() + name.slice(1)
@@ -199,6 +208,22 @@ func free(ptr uint32) {
 \tdelete(pinned, ptr)
 }
 
+// a host string (a pointer into our own memory) as a go string
+func ptrToString(p unsafe.Pointer) string {
+	if p == nil {
+		return ""
+	}
+	b := []byte{}
+	for i := uintptr(0); ; i++ {
+		c := *(*byte)(unsafe.Add(p, i))
+		if c == 0 {
+			break
+		}
+		b = append(b, c)
+	}
+	return string(b)
+}
+
 // a null-terminated copy of a lua string, for the host. keep the bytes
 // alive (runtime.KeepAlive) until the host call has returned
 func cstr(s string) ([]byte, unsafe.Pointer) {
@@ -234,7 +259,10 @@ for (const [structName, structDef] of Object.entries(structs)) {
   go.push('\tt := L.CheckTable(n)')
   go.push(`\treturn ${structName}{`)
   for (const [memberName, memberType] of members) {
-    go.push(`\t\t${memberName.charAt(0).toUpperCase() + memberName.slice(1)}: ${goMemberTypes[memberType]}(fieldNumber(t, "${memberName}")),`)
+    if (memberType === 'string') {
+      continue // no API function takes one of these as an arg
+    }
+    go.push(`\t\t${memberName.charAt(0).toUpperCase() + memberName.slice(1)}: ${goMemberTypes[memberType] || 'int32'}(fieldNumber(t, "${memberName}")),`)
   }
   go.push('\t}')
   go.push('}', '')
@@ -246,8 +274,13 @@ for (const [structName, structDef] of Object.entries(structs)) {
   go.push('\t}')
   go.push(`\ts := (*${structName})(v)`)
   go.push('\tt := L.NewTable()')
-  for (const [memberName] of members) {
-    go.push(`\tt.RawSetString("${memberName}", lua.LNumber(s.${memberName.charAt(0).toUpperCase() + memberName.slice(1)}))`)
+  for (const [memberName, memberType] of members) {
+    const field = memberName.charAt(0).toUpperCase() + memberName.slice(1)
+    go.push(
+      memberType === 'string'
+        ? `\tt.RawSetString("${memberName}", lua.LString(ptrToString(unsafe.Pointer(uintptr(s.${field})))))`
+        : `\tt.RawSetString("${memberName}", lua.LNumber(s.${field}))`
+    )
   }
   go.push('\treturn t')
   go.push('}', '')
@@ -360,6 +393,8 @@ for (const [apiName, apiObj] of Object.entries(api)) {
       go.push(...keepAlive)
       if (returns === 'bool') {
         go.push('\tL.Push(luaBool(ret))')
+      } else if (returns === 'string') {
+        go.push('\tL.Push(lua.LString(ptrToString(ret)))')
       } else if (goRetTypes[returns] === 'unsafe.Pointer') {
         go.push(`\tL.Push(${lower(returns)}Table(L, ret))`)
       } else {

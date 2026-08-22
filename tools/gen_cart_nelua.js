@@ -4,7 +4,7 @@
 // Generates Nelua code from the API definitions
 
 import { writeFile } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const out = [
   `-- null0 API for Nelua
@@ -62,6 +62,44 @@ global SfxParams <cimport'SfxParams', nodecl> = @record{
   lpfResonance: float32,
   hpfCutoff: float32,
   hpfCutoffSweep: float32
+}
+
+global TilemapProp <cimport'TilemapProp', nodecl> = @record{
+  name: cstring,
+  type: int32,
+  integer: int32,
+  number: float32,
+  text: cstring
+}
+
+global TilemapObject <cimport'TilemapObject', nodecl> = @record{
+  id: int32,
+  name: cstring,
+  type: cstring,
+  gid: int32,
+  x: float32,
+  y: float32,
+  width: float32,
+  height: float32,
+  rotation: float32,
+  visible: int32
+}
+
+global TileLayerKind <cimport'TileLayerKind', nodecl> = @enum(int32){
+  LAYER_NONE = 0,
+  LAYER_TILE = 1,
+  LAYER_OBJECT = 2,
+  LAYER_IMAGE = 3,
+  LAYER_GROUP = 4
+}
+
+global TilePropType <cimport'TilePropType', nodecl> = @enum(int32){
+  PROP_NONE = 0,
+  PROP_INT = 1,
+  PROP_BOOL = 2,
+  PROP_FLOAT = 3,
+  PROP_STRING = 4,
+  PROP_COLOR = 5
 }
 
 global ImageFilter <cimport'ImageFilter', nodecl> = @enum(int32){
@@ -304,9 +342,9 @@ const retTypes = {
   Tilemap: 'uint32',
   Vector: '*Vector',
   Dimensions: '*Dimensions',
-  Color: 'Color',
-  Rectangle: 'Rectangle',
-  SfxParams: 'SfxParams'
+  Color: '*Color',
+  Rectangle: '*Rectangle',
+  SfxParams: '*SfxParams'
 }
 
 // Generate parameter list for function signature
@@ -321,6 +359,10 @@ const argsMap = (args) => {
 // TODO: I could build all of the above code with constants/enums/structs/scalars/callbacks
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// struct returns are pointers into cart memory (AGENTS.md rule 2)
+seedTypes(argTypes, { structs }, { structType: (name) => name })
+seedTypes(retTypes, { structs }, { structType: (name) => `*${name}` })
 
 for (const [apiName, funcDef] of Object.entries(api)) {
   out.push('', `-- ${apiName.toUpperCase()}`, '')

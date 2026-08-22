@@ -256,6 +256,21 @@ const MOUSE_BUTTON_LEFT: i32 = 1;
 const MOUSE_BUTTON_RIGHT: i32 = 2;
 const MOUSE_BUTTON_MIDDLE: i32 = 3;
 
+// TileLayerKind: The kind of a layer in a tilemap.
+const LAYER_NONE: i32 = 0;
+const LAYER_TILE: i32 = 1;
+const LAYER_OBJECT: i32 = 2;
+const LAYER_IMAGE: i32 = 3;
+const LAYER_GROUP: i32 = 4;
+
+// TilePropType: The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+const PROP_NONE: i32 = 0;
+const PROP_INT: i32 = 1;
+const PROP_BOOL: i32 = 2;
+const PROP_FLOAT: i32 = 3;
+const PROP_STRING: i32 = 4;
+const PROP_COLOR: i32 = 5;
+
 
 // struct SfxParams: Sfx parameters.
 //   offset 0: randSeed (u32)
@@ -302,6 +317,25 @@ const MOUSE_BUTTON_MIDDLE: i32 = 3;
 //   offset 1: g (u8)
 //   offset 2: b (u8)
 //   offset 3: a (u8)
+
+// struct TilemapProp: A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+//   offset 0: name (string)
+//   offset 4: type (TilePropType)
+//   offset 8: integer (i32)
+//   offset 12: number (f32)
+//   offset 16: text (string)
+
+// struct TilemapObject: An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+//   offset 0: id (i32)
+//   offset 4: name (string)
+//   offset 8: type (string)
+//   offset 12: gid (i32)
+//   offset 16: x (f32)
+//   offset 20: y (f32)
+//   offset 24: width (f32)
+//   offset 28: height (f32)
+//   offset 32: rotation (f32)
+//   offset 36: visible (i32)
 
 
 // -- COLORS --
@@ -663,6 +697,21 @@ type UnloadTilemap = (i32) => void;
 // Update a tilemap's animation timers (deltaTime is in seconds).
 type TileUpdate = (i32, f32) => void;
 // import { tile_update: TileUpdate } from 'null0';
+// Get the size of a tilemap, in tiles.
+type TileMapSize = (i32) => i32;
+// import { tile_map_size: TileMapSize } from 'null0';
+// Get the size of a single tile of a tilemap, in pixels.
+type TileTileSize = (i32) => i32;
+// import { tile_tile_size: TileTileSize } from 'null0';
+// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+type TileMapProp = (i32, i32) => i32;
+// import { tile_map_prop: TileMapProp } from 'null0';
+// Get the number of custom properties on a tilemap.
+type TileMapPropCount = (i32) => i32;
+// import { tile_map_prop_count: TileMapPropCount } from 'null0';
+// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+type TileMapPropAt = (i32, i32) => i32;
+// import { tile_map_prop_at: TileMapPropAt } from 'null0';
 // Draw a tilemap on the screen.
 type TileDraw = (i32, i32, i32) => void;
 // import { tile_draw: TileDraw } from 'null0';
@@ -672,24 +721,87 @@ type TileDrawTint = (i32, i32, i32, i32) => void;
 // Draw a tilemap on an image.
 type TileDrawOnImage = (i32, i32, i32, i32) => void;
 // import { tile_draw_on_image: TileDrawOnImage } from 'null0';
-// Draw a single tile from a tilemap on the screen.
-type TileDrawTile = (i32, i32, i32, i32) => void;
-// import { tile_draw_tile: TileDrawTile } from 'null0';
-// Get the number of layers in a tilemap.
-type TileLayerCount = (i32) => i32;
-// import { tile_layer_count: TileLayerCount } from 'null0';
-// Get the gid of the tile at a column/row in a tilemap layer.
-type TileGetTile = (i32, i32, i32, i32) => i32;
-// import { tile_get_tile: TileGetTile } from 'null0';
-// Set the gid of the tile at a column/row in a tilemap layer.
-type TileSetTile = (i32, i32, i32, i32, i32) => void;
-// import { tile_set_tile: TileSetTile } from 'null0';
-// Get a copy of the image of a single tile in a tilemap.
-type TileImage = (i32, i32) => i32;
-// import { tile_image: TileImage } from 'null0';
 // Render a whole tilemap to a new image.
 type TilemapImage = (i32) => i32;
 // import { tilemap_image: TilemapImage } from 'null0';
+// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+type TileLayerCount = (i32) => i32;
+// import { tile_layer_count: TileLayerCount } from 'null0';
+// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+type TileLayerIndex = (i32, i32) => i32;
+// import { tile_layer_index: TileLayerIndex } from 'null0';
+// Get the name of a layer of a tilemap.
+type TileLayerName = (i32, i32) => i32;
+// import { tile_layer_name: TileLayerName } from 'null0';
+// Get the kind of a layer of a tilemap.
+type TileLayerType = (i32, i32) => i32;
+// import { tile_layer_type: TileLayerType } from 'null0';
+// Get the size of a layer of a tilemap, in tiles.
+type TileLayerSize = (i32, i32) => i32;
+// import { tile_layer_size: TileLayerSize } from 'null0';
+// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+type TileLayerVisible = (i32, i32) => i32;
+// import { tile_layer_visible: TileLayerVisible } from 'null0';
+// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+type TileLayerProp = (i32, i32, i32) => i32;
+// import { tile_layer_prop: TileLayerProp } from 'null0';
+// Get the number of custom properties on a layer of a tilemap.
+type TileLayerPropCount = (i32, i32) => i32;
+// import { tile_layer_prop_count: TileLayerPropCount } from 'null0';
+// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+type TileLayerPropAt = (i32, i32, i32) => i32;
+// import { tile_layer_prop_at: TileLayerPropAt } from 'null0';
+// Draw a single layer of a tilemap on the screen.
+type TileDrawLayer = (i32, i32, i32, i32) => void;
+// import { tile_draw_layer: TileDrawLayer } from 'null0';
+// Draw a single layer of a tilemap on the screen, tinted by a color.
+type TileDrawLayerTint = (i32, i32, i32, i32, i32) => void;
+// import { tile_draw_layer_tint: TileDrawLayerTint } from 'null0';
+// Draw a single layer of a tilemap on an image.
+type TileDrawLayerOnImage = (i32, i32, i32, i32, i32) => void;
+// import { tile_draw_layer_on_image: TileDrawLayerOnImage } from 'null0';
+// Render a single layer of a tilemap to a new image.
+type TileLayerImage = (i32, i32) => i32;
+// import { tile_layer_image: TileLayerImage } from 'null0';
+// Get the gid of the tile at a column/row in a tilemap layer.
+type TileGetTile = (i32, i32, i32, i32) => i32;
+// import { tile_get_tile: TileGetTile } from 'null0';
+// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+type TileSetTile = (i32, i32, i32, i32, i32) => void;
+// import { tile_set_tile: TileSetTile } from 'null0';
+// Draw a single tile from a tilemap on the screen.
+type TileDrawTile = (i32, i32, i32, i32) => void;
+// import { tile_draw_tile: TileDrawTile } from 'null0';
+// Get a copy of the image of a single tile in a tilemap.
+type TileImage = (i32, i32) => i32;
+// import { tile_image: TileImage } from 'null0';
+// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+type TileGidProp = (i32, i32, i32) => i32;
+// import { tile_gid_prop: TileGidProp } from 'null0';
+// Get the number of custom properties on a tile of a tilemap.
+type TileGidPropCount = (i32, i32) => i32;
+// import { tile_gid_prop_count: TileGidPropCount } from 'null0';
+// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+type TileGidPropAt = (i32, i32, i32) => i32;
+// import { tile_gid_prop_at: TileGidPropAt } from 'null0';
+// Get the number of objects on an object-layer of a tilemap.
+type TileObjectCount = (i32, i32) => i32;
+// import { tile_object_count: TileObjectCount } from 'null0';
+// Get an object from an object-layer of a tilemap.
+type TileObject = (i32, i32, i32) => i32;
+// import { tile_object: TileObject } from 'null0';
+// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+type TileObjectIndex = (i32, i32, i32) => i32;
+// import { tile_object_index: TileObjectIndex } from 'null0';
+// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+type TileObjectProp = (i32, i32, i32, i32) => i32;
+// import { tile_object_prop: TileObjectProp } from 'null0';
+// Get the number of custom properties on an object of a tilemap.
+type TileObjectPropCount = (i32, i32, i32) => i32;
+// import { tile_object_prop_count: TileObjectPropCount } from 'null0';
+// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+type TileObjectPropAt = (i32, i32, i32, i32) => i32;
+// import { tile_object_prop_at: TileObjectPropAt } from 'null0';
 
 // -- TYPES --
 

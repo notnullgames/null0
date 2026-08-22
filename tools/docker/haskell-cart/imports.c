@@ -62,6 +62,27 @@ typedef struct {
   uint8_t a;
 } Color;
 
+typedef struct {
+  char* name;
+  int32_t type;
+  int32_t integer;
+  float number;
+  char* text;
+} TilemapProp;
+
+typedef struct {
+  int32_t id;
+  char* name;
+  char* type;
+  int32_t gid;
+  float x;
+  float y;
+  float width;
+  float height;
+  float rotation;
+  int32_t visible;
+} TilemapObject;
+
 
 // COLORS
 
@@ -764,6 +785,36 @@ void tile_update(uint32_t tilemap, float deltaTime) {
   _tile_update(tilemap, deltaTime);
 }
 
+NULL0_IMPORT("tile_map_size")
+extern Dimensions* _tile_map_size(uint32_t tilemap);
+Dimensions* tile_map_size(uint32_t tilemap) {
+  return _tile_map_size(tilemap);
+}
+
+NULL0_IMPORT("tile_tile_size")
+extern Dimensions* _tile_tile_size(uint32_t tilemap);
+Dimensions* tile_tile_size(uint32_t tilemap) {
+  return _tile_tile_size(tilemap);
+}
+
+NULL0_IMPORT("tile_map_prop")
+extern TilemapProp* _tile_map_prop(uint32_t tilemap, char* name);
+TilemapProp* tile_map_prop(uint32_t tilemap, char* name) {
+  return _tile_map_prop(tilemap, name);
+}
+
+NULL0_IMPORT("tile_map_prop_count")
+extern int32_t _tile_map_prop_count(uint32_t tilemap);
+int32_t tile_map_prop_count(uint32_t tilemap) {
+  return _tile_map_prop_count(tilemap);
+}
+
+NULL0_IMPORT("tile_map_prop_at")
+extern TilemapProp* _tile_map_prop_at(uint32_t tilemap, int32_t index);
+TilemapProp* tile_map_prop_at(uint32_t tilemap, int32_t index) {
+  return _tile_map_prop_at(tilemap, index);
+}
+
 NULL0_IMPORT("tile_draw")
 extern void _tile_draw(uint32_t tilemap, int32_t posX, int32_t posY);
 void tile_draw(uint32_t tilemap, int32_t posX, int32_t posY) {
@@ -782,16 +833,88 @@ void tile_draw_on_image(uint32_t dst, uint32_t tilemap, int32_t posX, int32_t po
   _tile_draw_on_image(dst, tilemap, posX, posY);
 }
 
-NULL0_IMPORT("tile_draw_tile")
-extern void _tile_draw_tile(uint32_t tilemap, int32_t gid, int32_t posX, int32_t posY);
-void tile_draw_tile(uint32_t tilemap, int32_t gid, int32_t posX, int32_t posY) {
-  _tile_draw_tile(tilemap, gid, posX, posY);
+NULL0_IMPORT("tilemap_image")
+extern uint32_t _tilemap_image(uint32_t tilemap);
+uint32_t tilemap_image(uint32_t tilemap) {
+  return _tilemap_image(tilemap);
 }
 
 NULL0_IMPORT("tile_layer_count")
 extern int32_t _tile_layer_count(uint32_t tilemap);
 int32_t tile_layer_count(uint32_t tilemap) {
   return _tile_layer_count(tilemap);
+}
+
+NULL0_IMPORT("tile_layer_index")
+extern int32_t _tile_layer_index(uint32_t tilemap, char* name);
+int32_t tile_layer_index(uint32_t tilemap, char* name) {
+  return _tile_layer_index(tilemap, name);
+}
+
+NULL0_IMPORT("tile_layer_name")
+extern char* _tile_layer_name(uint32_t tilemap, int32_t layer);
+char* tile_layer_name(uint32_t tilemap, int32_t layer) {
+  return _tile_layer_name(tilemap, layer);
+}
+
+NULL0_IMPORT("tile_layer_type")
+extern int32_t _tile_layer_type(uint32_t tilemap, int32_t layer);
+int32_t tile_layer_type(uint32_t tilemap, int32_t layer) {
+  return _tile_layer_type(tilemap, layer);
+}
+
+NULL0_IMPORT("tile_layer_size")
+extern Dimensions* _tile_layer_size(uint32_t tilemap, int32_t layer);
+Dimensions* tile_layer_size(uint32_t tilemap, int32_t layer) {
+  return _tile_layer_size(tilemap, layer);
+}
+
+NULL0_IMPORT("tile_layer_visible")
+extern bool _tile_layer_visible(uint32_t tilemap, int32_t layer);
+bool tile_layer_visible(uint32_t tilemap, int32_t layer) {
+  return _tile_layer_visible(tilemap, layer);
+}
+
+NULL0_IMPORT("tile_layer_prop")
+extern TilemapProp* _tile_layer_prop(uint32_t tilemap, int32_t layer, char* name);
+TilemapProp* tile_layer_prop(uint32_t tilemap, int32_t layer, char* name) {
+  return _tile_layer_prop(tilemap, layer, name);
+}
+
+NULL0_IMPORT("tile_layer_prop_count")
+extern int32_t _tile_layer_prop_count(uint32_t tilemap, int32_t layer);
+int32_t tile_layer_prop_count(uint32_t tilemap, int32_t layer) {
+  return _tile_layer_prop_count(tilemap, layer);
+}
+
+NULL0_IMPORT("tile_layer_prop_at")
+extern TilemapProp* _tile_layer_prop_at(uint32_t tilemap, int32_t layer, int32_t index);
+TilemapProp* tile_layer_prop_at(uint32_t tilemap, int32_t layer, int32_t index) {
+  return _tile_layer_prop_at(tilemap, layer, index);
+}
+
+NULL0_IMPORT("tile_draw_layer")
+extern void _tile_draw_layer(uint32_t tilemap, int32_t layer, int32_t posX, int32_t posY);
+void tile_draw_layer(uint32_t tilemap, int32_t layer, int32_t posX, int32_t posY) {
+  _tile_draw_layer(tilemap, layer, posX, posY);
+}
+
+NULL0_IMPORT("tile_draw_layer_tint")
+extern void _tile_draw_layer_tint(uint32_t tilemap, int32_t layer, int32_t posX, int32_t posY, Color tint);
+void tile_draw_layer_tint(uint32_t tilemap, int32_t layer, int32_t posX, int32_t posY, Color* tint) {
+  _tile_draw_layer_tint(tilemap, layer, posX, posY, *tint);
+}
+
+NULL0_IMPORT("tile_draw_layer_on_image")
+extern void _tile_draw_layer_on_image(uint32_t dst, uint32_t tilemap, int32_t layer, int32_t posX, int32_t posY);
+void tile_draw_layer_on_image(uint32_t dst, uint32_t tilemap, int32_t layer, int32_t posX, int32_t posY) {
+  _tile_draw_layer_on_image(dst, tilemap, layer, posX, posY);
+}
+
+NULL0_IMPORT("tile_layer_image")
+extern uint32_t _tile_layer_image(uint32_t tilemap, int32_t layer);
+uint32_t tile_layer_image(uint32_t tilemap, int32_t layer) {
+  return _tile_layer_image(tilemap, layer);
 }
 
 NULL0_IMPORT("tile_get_tile")
@@ -806,16 +929,70 @@ void tile_set_tile(uint32_t tilemap, int32_t layer, int32_t column, int32_t row,
   _tile_set_tile(tilemap, layer, column, row, gid);
 }
 
+NULL0_IMPORT("tile_draw_tile")
+extern void _tile_draw_tile(uint32_t tilemap, int32_t gid, int32_t posX, int32_t posY);
+void tile_draw_tile(uint32_t tilemap, int32_t gid, int32_t posX, int32_t posY) {
+  _tile_draw_tile(tilemap, gid, posX, posY);
+}
+
 NULL0_IMPORT("tile_image")
 extern uint32_t _tile_image(uint32_t tilemap, int32_t gid);
 uint32_t tile_image(uint32_t tilemap, int32_t gid) {
   return _tile_image(tilemap, gid);
 }
 
-NULL0_IMPORT("tilemap_image")
-extern uint32_t _tilemap_image(uint32_t tilemap);
-uint32_t tilemap_image(uint32_t tilemap) {
-  return _tilemap_image(tilemap);
+NULL0_IMPORT("tile_gid_prop")
+extern TilemapProp* _tile_gid_prop(uint32_t tilemap, int32_t gid, char* name);
+TilemapProp* tile_gid_prop(uint32_t tilemap, int32_t gid, char* name) {
+  return _tile_gid_prop(tilemap, gid, name);
+}
+
+NULL0_IMPORT("tile_gid_prop_count")
+extern int32_t _tile_gid_prop_count(uint32_t tilemap, int32_t gid);
+int32_t tile_gid_prop_count(uint32_t tilemap, int32_t gid) {
+  return _tile_gid_prop_count(tilemap, gid);
+}
+
+NULL0_IMPORT("tile_gid_prop_at")
+extern TilemapProp* _tile_gid_prop_at(uint32_t tilemap, int32_t gid, int32_t index);
+TilemapProp* tile_gid_prop_at(uint32_t tilemap, int32_t gid, int32_t index) {
+  return _tile_gid_prop_at(tilemap, gid, index);
+}
+
+NULL0_IMPORT("tile_object_count")
+extern int32_t _tile_object_count(uint32_t tilemap, int32_t layer);
+int32_t tile_object_count(uint32_t tilemap, int32_t layer) {
+  return _tile_object_count(tilemap, layer);
+}
+
+NULL0_IMPORT("tile_object")
+extern TilemapObject* _tile_object(uint32_t tilemap, int32_t layer, int32_t index);
+TilemapObject* tile_object(uint32_t tilemap, int32_t layer, int32_t index) {
+  return _tile_object(tilemap, layer, index);
+}
+
+NULL0_IMPORT("tile_object_index")
+extern int32_t _tile_object_index(uint32_t tilemap, int32_t layer, char* name);
+int32_t tile_object_index(uint32_t tilemap, int32_t layer, char* name) {
+  return _tile_object_index(tilemap, layer, name);
+}
+
+NULL0_IMPORT("tile_object_prop")
+extern TilemapProp* _tile_object_prop(uint32_t tilemap, int32_t layer, int32_t index, char* name);
+TilemapProp* tile_object_prop(uint32_t tilemap, int32_t layer, int32_t index, char* name) {
+  return _tile_object_prop(tilemap, layer, index, name);
+}
+
+NULL0_IMPORT("tile_object_prop_count")
+extern int32_t _tile_object_prop_count(uint32_t tilemap, int32_t layer, int32_t index);
+int32_t tile_object_prop_count(uint32_t tilemap, int32_t layer, int32_t index) {
+  return _tile_object_prop_count(tilemap, layer, index);
+}
+
+NULL0_IMPORT("tile_object_prop_at")
+extern TilemapProp* _tile_object_prop_at(uint32_t tilemap, int32_t layer, int32_t index, int32_t propIndex);
+TilemapProp* tile_object_prop_at(uint32_t tilemap, int32_t layer, int32_t index, int32_t propIndex) {
+  return _tile_object_prop_at(tilemap, layer, index, propIndex);
 }
 
 

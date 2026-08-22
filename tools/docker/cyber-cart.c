@@ -88,6 +88,27 @@ static const char* NULL0_CY =
   "  b byte\n"
   "  a byte\n"
   "\n"
+  "-- A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.\n"
+  "type TilemapProp struct:\n"
+  "  name str\n"
+  "  type i32\n"
+  "  integer i32\n"
+  "  number f32\n"
+  "  text str\n"
+  "\n"
+  "-- An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.\n"
+  "type TilemapObject struct:\n"
+  "  id i32\n"
+  "  name str\n"
+  "  type str\n"
+  "  gid i32\n"
+  "  x f32\n"
+  "  y f32\n"
+  "  width f32\n"
+  "  height f32\n"
+  "  rotation f32\n"
+  "  visible i32\n"
+  "\n"
   "-- COLORS\n"
   "-- Tint a color with another color.\n"
   "#[bind] fn color_tint(color Color, tint Color) -> Color\n"
@@ -327,24 +348,76 @@ static const char* NULL0_CY =
   "#[bind] fn unload_tilemap(tilemap r32)\n"
   "-- Update a tilemap's animation timers (deltaTime is in seconds).\n"
   "#[bind] fn tile_update(tilemap r32, deltaTime f32)\n"
+  "-- Get the size of a tilemap, in tiles.\n"
+  "#[bind] fn tile_map_size(tilemap r32) -> Dimensions\n"
+  "-- Get the size of a single tile of a tilemap, in pixels.\n"
+  "#[bind] fn tile_tile_size(tilemap r32) -> Dimensions\n"
+  "-- Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)\n"
+  "#[bind] fn tile_map_prop(tilemap r32, name str) -> TilemapProp\n"
+  "-- Get the number of custom properties on a tilemap.\n"
+  "#[bind] fn tile_map_prop_count(tilemap r32) -> i32\n"
+  "-- Get a custom property of a tilemap, by index (PROP_NONE when out of range.)\n"
+  "#[bind] fn tile_map_prop_at(tilemap r32, index i32) -> TilemapProp\n"
   "-- Draw a tilemap on the screen.\n"
   "#[bind] fn tile_draw(tilemap r32, posX i32, posY i32)\n"
   "-- Draw a tilemap on the screen, tinted by a color.\n"
   "#[bind] fn tile_draw_tint(tilemap r32, posX i32, posY i32, tint Color)\n"
   "-- Draw a tilemap on an image.\n"
   "#[bind] fn tile_draw_on_image(dst r32, tilemap r32, posX i32, posY i32)\n"
-  "-- Draw a single tile from a tilemap on the screen.\n"
-  "#[bind] fn tile_draw_tile(tilemap r32, gid i32, posX i32, posY i32)\n"
-  "-- Get the number of layers in a tilemap.\n"
-  "#[bind] fn tile_layer_count(tilemap r32) -> i32\n"
-  "-- Get the gid of the tile at a column/row in a tilemap layer.\n"
-  "#[bind] fn tile_get_tile(tilemap r32, layer i32, column i32, row i32) -> i32\n"
-  "-- Set the gid of the tile at a column/row in a tilemap layer.\n"
-  "#[bind] fn tile_set_tile(tilemap r32, layer i32, column i32, row i32, gid i32)\n"
-  "-- Get a copy of the image of a single tile in a tilemap.\n"
-  "#[bind] fn tile_image(tilemap r32, gid i32) -> r32\n"
   "-- Render a whole tilemap to a new image.\n"
   "#[bind] fn tilemap_image(tilemap r32) -> r32\n"
+  "-- Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.\n"
+  "#[bind] fn tile_layer_count(tilemap r32) -> i32\n"
+  "-- Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)\n"
+  "#[bind] fn tile_layer_index(tilemap r32, name str) -> i32\n"
+  "-- Get the name of a layer of a tilemap.\n"
+  "#[bind] fn tile_layer_name(tilemap r32, layer i32) -> str\n"
+  "-- Get the kind of a layer of a tilemap.\n"
+  "#[bind] fn tile_layer_type(tilemap r32, layer i32) -> i32\n"
+  "-- Get the size of a layer of a tilemap, in tiles.\n"
+  "#[bind] fn tile_layer_size(tilemap r32, layer i32) -> Dimensions\n"
+  "-- Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.\n"
+  "#[bind] fn tile_layer_visible(tilemap r32, layer i32) -> bool\n"
+  "-- Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)\n"
+  "#[bind] fn tile_layer_prop(tilemap r32, layer i32, name str) -> TilemapProp\n"
+  "-- Get the number of custom properties on a layer of a tilemap.\n"
+  "#[bind] fn tile_layer_prop_count(tilemap r32, layer i32) -> i32\n"
+  "-- Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)\n"
+  "#[bind] fn tile_layer_prop_at(tilemap r32, layer i32, index i32) -> TilemapProp\n"
+  "-- Draw a single layer of a tilemap on the screen.\n"
+  "#[bind] fn tile_draw_layer(tilemap r32, layer i32, posX i32, posY i32)\n"
+  "-- Draw a single layer of a tilemap on the screen, tinted by a color.\n"
+  "#[bind] fn tile_draw_layer_tint(tilemap r32, layer i32, posX i32, posY i32, tint Color)\n"
+  "-- Draw a single layer of a tilemap on an image.\n"
+  "#[bind] fn tile_draw_layer_on_image(dst r32, tilemap r32, layer i32, posX i32, posY i32)\n"
+  "-- Render a single layer of a tilemap to a new image.\n"
+  "#[bind] fn tile_layer_image(tilemap r32, layer i32) -> r32\n"
+  "-- Get the gid of the tile at a column/row in a tilemap layer.\n"
+  "#[bind] fn tile_get_tile(tilemap r32, layer i32, column i32, row i32) -> i32\n"
+  "-- Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.\n"
+  "#[bind] fn tile_set_tile(tilemap r32, layer i32, column i32, row i32, gid i32)\n"
+  "-- Draw a single tile from a tilemap on the screen.\n"
+  "#[bind] fn tile_draw_tile(tilemap r32, gid i32, posX i32, posY i32)\n"
+  "-- Get a copy of the image of a single tile in a tilemap.\n"
+  "#[bind] fn tile_image(tilemap r32, gid i32) -> r32\n"
+  "-- Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.\n"
+  "#[bind] fn tile_gid_prop(tilemap r32, gid i32, name str) -> TilemapProp\n"
+  "-- Get the number of custom properties on a tile of a tilemap.\n"
+  "#[bind] fn tile_gid_prop_count(tilemap r32, gid i32) -> i32\n"
+  "-- Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)\n"
+  "#[bind] fn tile_gid_prop_at(tilemap r32, gid i32, index i32) -> TilemapProp\n"
+  "-- Get the number of objects on an object-layer of a tilemap.\n"
+  "#[bind] fn tile_object_count(tilemap r32, layer i32) -> i32\n"
+  "-- Get an object from an object-layer of a tilemap.\n"
+  "#[bind] fn tile_object(tilemap r32, layer i32, index i32) -> TilemapObject\n"
+  "-- Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)\n"
+  "#[bind] fn tile_object_index(tilemap r32, layer i32, name str) -> i32\n"
+  "-- Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)\n"
+  "#[bind] fn tile_object_prop(tilemap r32, layer i32, index i32, name str) -> TilemapProp\n"
+  "-- Get the number of custom properties on an object of a tilemap.\n"
+  "#[bind] fn tile_object_prop_count(tilemap r32, layer i32, index i32) -> i32\n"
+  "-- Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)\n"
+  "#[bind] fn tile_object_prop_at(tilemap r32, layer i32, index i32, propIndex i32) -> TilemapProp\n"
   "\n"
   "-- TYPES\n"
   "\n"
@@ -555,8 +628,44 @@ static const char* NULL0_CY =
   "global MOUSE_BUTTON_LEFT i32 = 1\n"
   "global MOUSE_BUTTON_RIGHT i32 = 2\n"
   "global MOUSE_BUTTON_MIDDLE i32 = 3\n"
+  "-- The kind of a layer in a tilemap.\n"
+  "global LAYER_NONE i32 = 0\n"
+  "global LAYER_TILE i32 = 1\n"
+  "global LAYER_OBJECT i32 = 2\n"
+  "global LAYER_IMAGE i32 = 3\n"
+  "global LAYER_GROUP i32 = 4\n"
+  "-- The type of a tilemap property's value. Tiled's \"file\" properties arrive as PROP_STRING.\n"
+  "global PROP_NONE i32 = 0\n"
+  "global PROP_INT i32 = 1\n"
+  "global PROP_BOOL i32 = 2\n"
+  "global PROP_FLOAT i32 = 3\n"
+  "global PROP_STRING i32 = 4\n"
+  "global PROP_COLOR i32 = 5\n"
   "\n"
 ;
+
+// TilemapProp as cyber lays it out
+typedef struct {
+  CLstr name;
+  int32_t type;
+  int32_t integer;
+  float number;
+  CLstr text;
+} CyTilemapProp;
+
+// TilemapObject as cyber lays it out
+typedef struct {
+  int32_t id;
+  CLstr name;
+  CLstr type;
+  int32_t gid;
+  float x;
+  float y;
+  float width;
+  float height;
+  float rotation;
+  int32_t visible;
+} CyTilemapObject;
 
 // BINDINGS
 
@@ -1919,6 +2028,66 @@ static CLRet cyber_tile_update(CLThread* t) {
   return CL_RET_OK;
 }
 
+// Get the size of a tilemap, in tiles.
+static CLRet cyber_tile_map_size(CLThread* t) {
+  Dimensions* out = (Dimensions*)cl_thread_ret(t, sizeof(Dimensions));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  Dimensions* ret = tile_map_size(tilemap);
+  *out = *ret;
+  return CL_RET_OK;
+}
+
+// Get the size of a single tile of a tilemap, in pixels.
+static CLRet cyber_tile_tile_size(CLThread* t) {
+  Dimensions* out = (Dimensions*)cl_thread_ret(t, sizeof(Dimensions));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  Dimensions* ret = tile_tile_size(tilemap);
+  *out = *ret;
+  return CL_RET_OK;
+}
+
+// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+static CLRet cyber_tile_map_prop(CLThread* t) {
+  CyTilemapProp* out = (CyTilemapProp*)cl_thread_ret(t, sizeof(CyTilemapProp));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  CLstr name_s = cl_thread_str(t);
+  CLBytes name_b = cl_str_bytes(name_s);
+  char* name = malloc(name_b.len + 1);
+  memcpy(name, name_b.ptr, name_b.len);
+  name[name_b.len] = '\0';
+  TilemapProp* ret = tile_map_prop(tilemap, name);
+  out->name = cl_ustr_init(t, CL_BYTES(ret->name == NULL ? "" : ret->name));
+  out->type = ret->type;
+  out->integer = ret->integer;
+  out->number = ret->number;
+  out->text = cl_ustr_init(t, CL_BYTES(ret->text == NULL ? "" : ret->text));
+  free(name);
+  return CL_RET_OK;
+}
+
+// Get the number of custom properties on a tilemap.
+static CLRet cyber_tile_map_prop_count(CLThread* t) {
+  i32* out = (i32*)cl_thread_ret(t, sizeof(i32));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 ret = tile_map_prop_count(tilemap);
+  *out = ret;
+  return CL_RET_OK;
+}
+
+// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+static CLRet cyber_tile_map_prop_at(CLThread* t) {
+  CyTilemapProp* out = (CyTilemapProp*)cl_thread_ret(t, sizeof(CyTilemapProp));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 index = cl_thread_i32(t);
+  TilemapProp* ret = tile_map_prop_at(tilemap, index);
+  out->name = cl_ustr_init(t, CL_BYTES(ret->name == NULL ? "" : ret->name));
+  out->type = ret->type;
+  out->integer = ret->integer;
+  out->number = ret->number;
+  out->text = cl_ustr_init(t, CL_BYTES(ret->text == NULL ? "" : ret->text));
+  return CL_RET_OK;
+}
+
 // Draw a tilemap on the screen.
 static CLRet cyber_tile_draw(CLThread* t) {
   cl_thread_ret(t, 0);
@@ -1951,22 +2120,165 @@ static CLRet cyber_tile_draw_on_image(CLThread* t) {
   return CL_RET_OK;
 }
 
-// Draw a single tile from a tilemap on the screen.
-static CLRet cyber_tile_draw_tile(CLThread* t) {
-  cl_thread_ret(t, 0);
+// Render a whole tilemap to a new image.
+static CLRet cyber_tilemap_image(CLThread* t) {
+  u32* out = (u32*)cl_thread_ret(t, sizeof(u32));
   u32 tilemap = (u32)cl_thread_r32(t);
-  i32 gid = cl_thread_i32(t);
-  i32 posX = cl_thread_i32(t);
-  i32 posY = cl_thread_i32(t);
-  tile_draw_tile(tilemap, gid, posX, posY);
+  u32 ret = tilemap_image(tilemap);
+  *out = ret;
   return CL_RET_OK;
 }
 
-// Get the number of layers in a tilemap.
+// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 static CLRet cyber_tile_layer_count(CLThread* t) {
   i32* out = (i32*)cl_thread_ret(t, sizeof(i32));
   u32 tilemap = (u32)cl_thread_r32(t);
   i32 ret = tile_layer_count(tilemap);
+  *out = ret;
+  return CL_RET_OK;
+}
+
+// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+static CLRet cyber_tile_layer_index(CLThread* t) {
+  i32* out = (i32*)cl_thread_ret(t, sizeof(i32));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  CLstr name_s = cl_thread_str(t);
+  CLBytes name_b = cl_str_bytes(name_s);
+  char* name = malloc(name_b.len + 1);
+  memcpy(name, name_b.ptr, name_b.len);
+  name[name_b.len] = '\0';
+  i32 ret = tile_layer_index(tilemap, name);
+  *out = ret;
+  free(name);
+  return CL_RET_OK;
+}
+
+// Get the name of a layer of a tilemap.
+static CLRet cyber_tile_layer_name(CLThread* t) {
+  CLstr* out = (CLstr*)cl_thread_ret(t, sizeof(CLstr));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  char* ret = tile_layer_name(tilemap, layer);
+  *out = cl_ustr_init(t, CL_BYTES(ret));
+  return CL_RET_OK;
+}
+
+// Get the kind of a layer of a tilemap.
+static CLRet cyber_tile_layer_type(CLThread* t) {
+  i32* out = (i32*)cl_thread_ret(t, sizeof(i32));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 ret = tile_layer_type(tilemap, layer);
+  *out = ret;
+  return CL_RET_OK;
+}
+
+// Get the size of a layer of a tilemap, in tiles.
+static CLRet cyber_tile_layer_size(CLThread* t) {
+  Dimensions* out = (Dimensions*)cl_thread_ret(t, sizeof(Dimensions));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  Dimensions* ret = tile_layer_size(tilemap, layer);
+  *out = *ret;
+  return CL_RET_OK;
+}
+
+// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+static CLRet cyber_tile_layer_visible(CLThread* t) {
+  bool* out = (bool*)cl_thread_ret(t, sizeof(bool));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  bool ret = tile_layer_visible(tilemap, layer);
+  *out = ret;
+  return CL_RET_OK;
+}
+
+// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+static CLRet cyber_tile_layer_prop(CLThread* t) {
+  CyTilemapProp* out = (CyTilemapProp*)cl_thread_ret(t, sizeof(CyTilemapProp));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  CLstr name_s = cl_thread_str(t);
+  CLBytes name_b = cl_str_bytes(name_s);
+  char* name = malloc(name_b.len + 1);
+  memcpy(name, name_b.ptr, name_b.len);
+  name[name_b.len] = '\0';
+  TilemapProp* ret = tile_layer_prop(tilemap, layer, name);
+  out->name = cl_ustr_init(t, CL_BYTES(ret->name == NULL ? "" : ret->name));
+  out->type = ret->type;
+  out->integer = ret->integer;
+  out->number = ret->number;
+  out->text = cl_ustr_init(t, CL_BYTES(ret->text == NULL ? "" : ret->text));
+  free(name);
+  return CL_RET_OK;
+}
+
+// Get the number of custom properties on a layer of a tilemap.
+static CLRet cyber_tile_layer_prop_count(CLThread* t) {
+  i32* out = (i32*)cl_thread_ret(t, sizeof(i32));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 ret = tile_layer_prop_count(tilemap, layer);
+  *out = ret;
+  return CL_RET_OK;
+}
+
+// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+static CLRet cyber_tile_layer_prop_at(CLThread* t) {
+  CyTilemapProp* out = (CyTilemapProp*)cl_thread_ret(t, sizeof(CyTilemapProp));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 index = cl_thread_i32(t);
+  TilemapProp* ret = tile_layer_prop_at(tilemap, layer, index);
+  out->name = cl_ustr_init(t, CL_BYTES(ret->name == NULL ? "" : ret->name));
+  out->type = ret->type;
+  out->integer = ret->integer;
+  out->number = ret->number;
+  out->text = cl_ustr_init(t, CL_BYTES(ret->text == NULL ? "" : ret->text));
+  return CL_RET_OK;
+}
+
+// Draw a single layer of a tilemap on the screen.
+static CLRet cyber_tile_draw_layer(CLThread* t) {
+  cl_thread_ret(t, 0);
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 posX = cl_thread_i32(t);
+  i32 posY = cl_thread_i32(t);
+  tile_draw_layer(tilemap, layer, posX, posY);
+  return CL_RET_OK;
+}
+
+// Draw a single layer of a tilemap on the screen, tinted by a color.
+static CLRet cyber_tile_draw_layer_tint(CLThread* t) {
+  cl_thread_ret(t, 0);
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 posX = cl_thread_i32(t);
+  i32 posY = cl_thread_i32(t);
+  Color* tint = (Color*)cl_thread_param(t, sizeof(Color));
+  tile_draw_layer_tint(tilemap, layer, posX, posY, *tint);
+  return CL_RET_OK;
+}
+
+// Draw a single layer of a tilemap on an image.
+static CLRet cyber_tile_draw_layer_on_image(CLThread* t) {
+  cl_thread_ret(t, 0);
+  u32 dst = (u32)cl_thread_r32(t);
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 posX = cl_thread_i32(t);
+  i32 posY = cl_thread_i32(t);
+  tile_draw_layer_on_image(dst, tilemap, layer, posX, posY);
+  return CL_RET_OK;
+}
+
+// Render a single layer of a tilemap to a new image.
+static CLRet cyber_tile_layer_image(CLThread* t) {
+  u32* out = (u32*)cl_thread_ret(t, sizeof(u32));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  u32 ret = tile_layer_image(tilemap, layer);
   *out = ret;
   return CL_RET_OK;
 }
@@ -1983,7 +2295,7 @@ static CLRet cyber_tile_get_tile(CLThread* t) {
   return CL_RET_OK;
 }
 
-// Set the gid of the tile at a column/row in a tilemap layer.
+// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 static CLRet cyber_tile_set_tile(CLThread* t) {
   cl_thread_ret(t, 0);
   u32 tilemap = (u32)cl_thread_r32(t);
@@ -1992,6 +2304,17 @@ static CLRet cyber_tile_set_tile(CLThread* t) {
   i32 row = cl_thread_i32(t);
   i32 gid = cl_thread_i32(t);
   tile_set_tile(tilemap, layer, column, row, gid);
+  return CL_RET_OK;
+}
+
+// Draw a single tile from a tilemap on the screen.
+static CLRet cyber_tile_draw_tile(CLThread* t) {
+  cl_thread_ret(t, 0);
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 gid = cl_thread_i32(t);
+  i32 posX = cl_thread_i32(t);
+  i32 posY = cl_thread_i32(t);
+  tile_draw_tile(tilemap, gid, posX, posY);
   return CL_RET_OK;
 }
 
@@ -2005,12 +2328,142 @@ static CLRet cyber_tile_image(CLThread* t) {
   return CL_RET_OK;
 }
 
-// Render a whole tilemap to a new image.
-static CLRet cyber_tilemap_image(CLThread* t) {
-  u32* out = (u32*)cl_thread_ret(t, sizeof(u32));
+// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+static CLRet cyber_tile_gid_prop(CLThread* t) {
+  CyTilemapProp* out = (CyTilemapProp*)cl_thread_ret(t, sizeof(CyTilemapProp));
   u32 tilemap = (u32)cl_thread_r32(t);
-  u32 ret = tilemap_image(tilemap);
+  i32 gid = cl_thread_i32(t);
+  CLstr name_s = cl_thread_str(t);
+  CLBytes name_b = cl_str_bytes(name_s);
+  char* name = malloc(name_b.len + 1);
+  memcpy(name, name_b.ptr, name_b.len);
+  name[name_b.len] = '\0';
+  TilemapProp* ret = tile_gid_prop(tilemap, gid, name);
+  out->name = cl_ustr_init(t, CL_BYTES(ret->name == NULL ? "" : ret->name));
+  out->type = ret->type;
+  out->integer = ret->integer;
+  out->number = ret->number;
+  out->text = cl_ustr_init(t, CL_BYTES(ret->text == NULL ? "" : ret->text));
+  free(name);
+  return CL_RET_OK;
+}
+
+// Get the number of custom properties on a tile of a tilemap.
+static CLRet cyber_tile_gid_prop_count(CLThread* t) {
+  i32* out = (i32*)cl_thread_ret(t, sizeof(i32));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 gid = cl_thread_i32(t);
+  i32 ret = tile_gid_prop_count(tilemap, gid);
   *out = ret;
+  return CL_RET_OK;
+}
+
+// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+static CLRet cyber_tile_gid_prop_at(CLThread* t) {
+  CyTilemapProp* out = (CyTilemapProp*)cl_thread_ret(t, sizeof(CyTilemapProp));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 gid = cl_thread_i32(t);
+  i32 index = cl_thread_i32(t);
+  TilemapProp* ret = tile_gid_prop_at(tilemap, gid, index);
+  out->name = cl_ustr_init(t, CL_BYTES(ret->name == NULL ? "" : ret->name));
+  out->type = ret->type;
+  out->integer = ret->integer;
+  out->number = ret->number;
+  out->text = cl_ustr_init(t, CL_BYTES(ret->text == NULL ? "" : ret->text));
+  return CL_RET_OK;
+}
+
+// Get the number of objects on an object-layer of a tilemap.
+static CLRet cyber_tile_object_count(CLThread* t) {
+  i32* out = (i32*)cl_thread_ret(t, sizeof(i32));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 ret = tile_object_count(tilemap, layer);
+  *out = ret;
+  return CL_RET_OK;
+}
+
+// Get an object from an object-layer of a tilemap.
+static CLRet cyber_tile_object(CLThread* t) {
+  CyTilemapObject* out = (CyTilemapObject*)cl_thread_ret(t, sizeof(CyTilemapObject));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 index = cl_thread_i32(t);
+  TilemapObject* ret = tile_object(tilemap, layer, index);
+  out->id = ret->id;
+  out->name = cl_ustr_init(t, CL_BYTES(ret->name == NULL ? "" : ret->name));
+  out->type = cl_ustr_init(t, CL_BYTES(ret->type == NULL ? "" : ret->type));
+  out->gid = ret->gid;
+  out->x = ret->x;
+  out->y = ret->y;
+  out->width = ret->width;
+  out->height = ret->height;
+  out->rotation = ret->rotation;
+  out->visible = ret->visible;
+  return CL_RET_OK;
+}
+
+// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+static CLRet cyber_tile_object_index(CLThread* t) {
+  i32* out = (i32*)cl_thread_ret(t, sizeof(i32));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  CLstr name_s = cl_thread_str(t);
+  CLBytes name_b = cl_str_bytes(name_s);
+  char* name = malloc(name_b.len + 1);
+  memcpy(name, name_b.ptr, name_b.len);
+  name[name_b.len] = '\0';
+  i32 ret = tile_object_index(tilemap, layer, name);
+  *out = ret;
+  free(name);
+  return CL_RET_OK;
+}
+
+// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+static CLRet cyber_tile_object_prop(CLThread* t) {
+  CyTilemapProp* out = (CyTilemapProp*)cl_thread_ret(t, sizeof(CyTilemapProp));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 index = cl_thread_i32(t);
+  CLstr name_s = cl_thread_str(t);
+  CLBytes name_b = cl_str_bytes(name_s);
+  char* name = malloc(name_b.len + 1);
+  memcpy(name, name_b.ptr, name_b.len);
+  name[name_b.len] = '\0';
+  TilemapProp* ret = tile_object_prop(tilemap, layer, index, name);
+  out->name = cl_ustr_init(t, CL_BYTES(ret->name == NULL ? "" : ret->name));
+  out->type = ret->type;
+  out->integer = ret->integer;
+  out->number = ret->number;
+  out->text = cl_ustr_init(t, CL_BYTES(ret->text == NULL ? "" : ret->text));
+  free(name);
+  return CL_RET_OK;
+}
+
+// Get the number of custom properties on an object of a tilemap.
+static CLRet cyber_tile_object_prop_count(CLThread* t) {
+  i32* out = (i32*)cl_thread_ret(t, sizeof(i32));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 index = cl_thread_i32(t);
+  i32 ret = tile_object_prop_count(tilemap, layer, index);
+  *out = ret;
+  return CL_RET_OK;
+}
+
+// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+static CLRet cyber_tile_object_prop_at(CLThread* t) {
+  CyTilemapProp* out = (CyTilemapProp*)cl_thread_ret(t, sizeof(CyTilemapProp));
+  u32 tilemap = (u32)cl_thread_r32(t);
+  i32 layer = cl_thread_i32(t);
+  i32 index = cl_thread_i32(t);
+  i32 propIndex = cl_thread_i32(t);
+  TilemapProp* ret = tile_object_prop_at(tilemap, layer, index, propIndex);
+  out->name = cl_ustr_init(t, CL_BYTES(ret->name == NULL ? "" : ret->name));
+  out->type = ret->type;
+  out->integer = ret->integer;
+  out->number = ret->number;
+  out->text = cl_ustr_init(t, CL_BYTES(ret->text == NULL ? "" : ret->text));
   return CL_RET_OK;
 }
 
@@ -2183,15 +2636,41 @@ static bool module_loader(CLVM* vmp, CLSym* mod, CLBytes uri, CLLoaderResult* re
   cl_mod_add_func(mod, CL_BYTES("load_tilemap"), CL_BIND_FUNC(cyber_load_tilemap));
   cl_mod_add_func(mod, CL_BYTES("unload_tilemap"), CL_BIND_FUNC(cyber_unload_tilemap));
   cl_mod_add_func(mod, CL_BYTES("tile_update"), CL_BIND_FUNC(cyber_tile_update));
+  cl_mod_add_func(mod, CL_BYTES("tile_map_size"), CL_BIND_FUNC(cyber_tile_map_size));
+  cl_mod_add_func(mod, CL_BYTES("tile_tile_size"), CL_BIND_FUNC(cyber_tile_tile_size));
+  cl_mod_add_func(mod, CL_BYTES("tile_map_prop"), CL_BIND_FUNC(cyber_tile_map_prop));
+  cl_mod_add_func(mod, CL_BYTES("tile_map_prop_count"), CL_BIND_FUNC(cyber_tile_map_prop_count));
+  cl_mod_add_func(mod, CL_BYTES("tile_map_prop_at"), CL_BIND_FUNC(cyber_tile_map_prop_at));
   cl_mod_add_func(mod, CL_BYTES("tile_draw"), CL_BIND_FUNC(cyber_tile_draw));
   cl_mod_add_func(mod, CL_BYTES("tile_draw_tint"), CL_BIND_FUNC(cyber_tile_draw_tint));
   cl_mod_add_func(mod, CL_BYTES("tile_draw_on_image"), CL_BIND_FUNC(cyber_tile_draw_on_image));
-  cl_mod_add_func(mod, CL_BYTES("tile_draw_tile"), CL_BIND_FUNC(cyber_tile_draw_tile));
+  cl_mod_add_func(mod, CL_BYTES("tilemap_image"), CL_BIND_FUNC(cyber_tilemap_image));
   cl_mod_add_func(mod, CL_BYTES("tile_layer_count"), CL_BIND_FUNC(cyber_tile_layer_count));
+  cl_mod_add_func(mod, CL_BYTES("tile_layer_index"), CL_BIND_FUNC(cyber_tile_layer_index));
+  cl_mod_add_func(mod, CL_BYTES("tile_layer_name"), CL_BIND_FUNC(cyber_tile_layer_name));
+  cl_mod_add_func(mod, CL_BYTES("tile_layer_type"), CL_BIND_FUNC(cyber_tile_layer_type));
+  cl_mod_add_func(mod, CL_BYTES("tile_layer_size"), CL_BIND_FUNC(cyber_tile_layer_size));
+  cl_mod_add_func(mod, CL_BYTES("tile_layer_visible"), CL_BIND_FUNC(cyber_tile_layer_visible));
+  cl_mod_add_func(mod, CL_BYTES("tile_layer_prop"), CL_BIND_FUNC(cyber_tile_layer_prop));
+  cl_mod_add_func(mod, CL_BYTES("tile_layer_prop_count"), CL_BIND_FUNC(cyber_tile_layer_prop_count));
+  cl_mod_add_func(mod, CL_BYTES("tile_layer_prop_at"), CL_BIND_FUNC(cyber_tile_layer_prop_at));
+  cl_mod_add_func(mod, CL_BYTES("tile_draw_layer"), CL_BIND_FUNC(cyber_tile_draw_layer));
+  cl_mod_add_func(mod, CL_BYTES("tile_draw_layer_tint"), CL_BIND_FUNC(cyber_tile_draw_layer_tint));
+  cl_mod_add_func(mod, CL_BYTES("tile_draw_layer_on_image"), CL_BIND_FUNC(cyber_tile_draw_layer_on_image));
+  cl_mod_add_func(mod, CL_BYTES("tile_layer_image"), CL_BIND_FUNC(cyber_tile_layer_image));
   cl_mod_add_func(mod, CL_BYTES("tile_get_tile"), CL_BIND_FUNC(cyber_tile_get_tile));
   cl_mod_add_func(mod, CL_BYTES("tile_set_tile"), CL_BIND_FUNC(cyber_tile_set_tile));
+  cl_mod_add_func(mod, CL_BYTES("tile_draw_tile"), CL_BIND_FUNC(cyber_tile_draw_tile));
   cl_mod_add_func(mod, CL_BYTES("tile_image"), CL_BIND_FUNC(cyber_tile_image));
-  cl_mod_add_func(mod, CL_BYTES("tilemap_image"), CL_BIND_FUNC(cyber_tilemap_image));
+  cl_mod_add_func(mod, CL_BYTES("tile_gid_prop"), CL_BIND_FUNC(cyber_tile_gid_prop));
+  cl_mod_add_func(mod, CL_BYTES("tile_gid_prop_count"), CL_BIND_FUNC(cyber_tile_gid_prop_count));
+  cl_mod_add_func(mod, CL_BYTES("tile_gid_prop_at"), CL_BIND_FUNC(cyber_tile_gid_prop_at));
+  cl_mod_add_func(mod, CL_BYTES("tile_object_count"), CL_BIND_FUNC(cyber_tile_object_count));
+  cl_mod_add_func(mod, CL_BYTES("tile_object"), CL_BIND_FUNC(cyber_tile_object));
+  cl_mod_add_func(mod, CL_BYTES("tile_object_index"), CL_BIND_FUNC(cyber_tile_object_index));
+  cl_mod_add_func(mod, CL_BYTES("tile_object_prop"), CL_BIND_FUNC(cyber_tile_object_prop));
+  cl_mod_add_func(mod, CL_BYTES("tile_object_prop_count"), CL_BIND_FUNC(cyber_tile_object_prop_count));
+  cl_mod_add_func(mod, CL_BYTES("tile_object_prop_at"), CL_BIND_FUNC(cyber_tile_object_prop_at));
   cl_mod_add_func(mod, CL_BYTES("current_time"), CL_BIND_FUNC(cyber_current_time));
   cl_mod_add_func(mod, CL_BYTES("delta_time"), CL_BIND_FUNC(cyber_delta_time));
   cl_mod_add_func(mod, CL_BYTES("random_int"), CL_BIND_FUNC(cyber_random_int));

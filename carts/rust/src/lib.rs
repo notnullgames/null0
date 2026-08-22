@@ -108,6 +108,33 @@ pub struct Color {
     pub a: u8,
 }
 
+/// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TilemapProp {
+    pub name: *const u8,
+    pub r#type: TilePropType,
+    pub integer: i32,
+    pub number: f32,
+    pub text: *const u8,
+}
+
+/// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TilemapObject {
+    pub id: i32,
+    pub name: *const u8,
+    pub r#type: *const u8,
+    pub gid: i32,
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+    pub rotation: f32,
+    pub visible: i32,
+}
+
 /// Potential image-filtering techniques for scale/etc.
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -292,6 +319,29 @@ pub enum MouseButton {
     MOUSE_BUTTON_MIDDLE = 3,
 }
 
+/// The kind of a layer in a tilemap.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TileLayerKind {
+    LAYER_NONE = 0,
+    LAYER_TILE = 1,
+    LAYER_OBJECT = 2,
+    LAYER_IMAGE = 3,
+    LAYER_GROUP = 4,
+}
+
+/// The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TilePropType {
+    PROP_NONE = 0,
+    PROP_INT = 1,
+    PROP_BOOL = 2,
+    PROP_FLOAT = 3,
+    PROP_STRING = 4,
+    PROP_COLOR = 5,
+}
+
 // Screen and font constants
 pub const SCREEN: u32 = 0;
 pub const SCREEN_WIDTH: i32 = 640;
@@ -330,19 +380,19 @@ pub const RAYWHITE: Color = Color { r: 245, g: 245, b: 245, a: 255 };
 extern "C" {
     // Colors functions
     /// Tint a color with another color.
-    pub fn color_tint(color: Color, tint: Color) -> Color;
+    pub fn color_tint(color: Color, tint: Color) -> *const Color;
     /// Fade a color.
-    pub fn color_fade(color: Color, alpha: f32) -> Color;
+    pub fn color_fade(color: Color, alpha: f32) -> *const Color;
     /// Change the brightness of a color.
-    pub fn color_brightness(color: Color, factor: f32) -> Color;
+    pub fn color_brightness(color: Color, factor: f32) -> *const Color;
     /// Invert a color.
-    pub fn color_invert(color: Color) -> Color;
+    pub fn color_invert(color: Color) -> *const Color;
     /// Blend 2 colors together.
-    pub fn color_alpha_blend(dst: Color, src: Color) -> Color;
+    pub fn color_alpha_blend(dst: Color, src: Color) -> *const Color;
     /// Change contrast of a color.
-    pub fn color_contrast(color: Color, contrast: f32) -> Color;
+    pub fn color_contrast(color: Color, contrast: f32) -> *const Color;
     /// Interpolate colors.
-    pub fn color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32) -> Color;
+    pub fn color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: f32, coordinateY: f32) -> *const Color;
 
     // Graphics functions
     /// Create a new blank image.
@@ -406,9 +456,9 @@ extern "C" {
     /// Load a BMF font from an image.
     pub fn load_font_bmf_from_image(image: u32, characters: *const u8) -> u32;
     /// Measure the size of some text.
-    pub fn measure_text(font: u32, text: *const u8, textLength: i32) -> Dimensions;
+    pub fn measure_text(font: u32, text: *const u8, textLength: i32) -> *const Dimensions;
     /// Meaure an image (use 0 for screen).
-    pub fn measure_image(image: u32) -> Dimensions;
+    pub fn measure_image(image: u32) -> *const Dimensions;
     /// Load a TTY font from a file in cart.
     pub fn load_font_tty(filename: *const u8, glyphWidth: i32, glyphHeight: i32, characters: *const u8) -> u32;
     /// Load a TTY font from an image.
@@ -418,7 +468,7 @@ extern "C" {
     /// Invert the colors in an image, in-place.
     pub fn image_color_invert(image: u32);
     /// Calculate a rectangle representing the available alpha border in an image.
-    pub fn image_alpha_border(image: u32, threshold: f32) -> Rectangle;
+    pub fn image_alpha_border(image: u32, threshold: f32) -> *const Rectangle;
     /// Crop an image, in-place.
     pub fn image_crop(image: u32, x: i32, y: i32, width: i32, height: i32);
     /// Crop an image based on the alpha border, in-place.
@@ -534,7 +584,7 @@ extern "C" {
     /// Has the button been released? (tracks press/read correctly.)
     pub fn gamepad_button_released(gamepad: i32, button: GamepadButton) -> bool;
     /// Get current position of mouse.
-    pub fn mouse_position() -> Vector;
+    pub fn mouse_position() -> *const Vector;
     /// Has the button been pressed? (tracks unpress/read correctly.)
     pub fn mouse_button_pressed(button: MouseButton) -> bool;
     /// Is the button currently down?
@@ -558,7 +608,7 @@ extern "C" {
     /// Create Sfx sound.
     pub fn sfx_sound(params: SfxParams) -> u32;
     /// Create Sfx parameters.
-    pub fn sfx_generate(r#type: SfxPresetType) -> SfxParams;
+    pub fn sfx_generate(r#type: SfxPresetType) -> *const SfxParams;
 
     // Tile functions
     /// Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
@@ -567,24 +617,76 @@ extern "C" {
     pub fn unload_tilemap(tilemap: u32);
     /// Update a tilemap's animation timers (deltaTime is in seconds).
     pub fn tile_update(tilemap: u32, deltaTime: f32);
+    /// Get the size of a tilemap, in tiles.
+    pub fn tile_map_size(tilemap: u32) -> *const Dimensions;
+    /// Get the size of a single tile of a tilemap, in pixels.
+    pub fn tile_tile_size(tilemap: u32) -> *const Dimensions;
+    /// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+    pub fn tile_map_prop(tilemap: u32, name: *const u8) -> *const TilemapProp;
+    /// Get the number of custom properties on a tilemap.
+    pub fn tile_map_prop_count(tilemap: u32) -> i32;
+    /// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+    pub fn tile_map_prop_at(tilemap: u32, index: i32) -> *const TilemapProp;
     /// Draw a tilemap on the screen.
     pub fn tile_draw(tilemap: u32, posX: i32, posY: i32);
     /// Draw a tilemap on the screen, tinted by a color.
     pub fn tile_draw_tint(tilemap: u32, posX: i32, posY: i32, tint: Color);
     /// Draw a tilemap on an image.
     pub fn tile_draw_on_image(dst: u32, tilemap: u32, posX: i32, posY: i32);
-    /// Draw a single tile from a tilemap on the screen.
-    pub fn tile_draw_tile(tilemap: u32, gid: i32, posX: i32, posY: i32);
-    /// Get the number of layers in a tilemap.
-    pub fn tile_layer_count(tilemap: u32) -> i32;
-    /// Get the gid of the tile at a column/row in a tilemap layer.
-    pub fn tile_get_tile(tilemap: u32, layer: i32, column: i32, row: i32) -> i32;
-    /// Set the gid of the tile at a column/row in a tilemap layer.
-    pub fn tile_set_tile(tilemap: u32, layer: i32, column: i32, row: i32, gid: i32);
-    /// Get a copy of the image of a single tile in a tilemap.
-    pub fn tile_image(tilemap: u32, gid: i32) -> u32;
     /// Render a whole tilemap to a new image.
     pub fn tilemap_image(tilemap: u32) -> u32;
+    /// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+    pub fn tile_layer_count(tilemap: u32) -> i32;
+    /// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+    pub fn tile_layer_index(tilemap: u32, name: *const u8) -> i32;
+    /// Get the name of a layer of a tilemap.
+    pub fn tile_layer_name(tilemap: u32, layer: i32) -> *const u8;
+    /// Get the kind of a layer of a tilemap.
+    pub fn tile_layer_type(tilemap: u32, layer: i32);
+    /// Get the size of a layer of a tilemap, in tiles.
+    pub fn tile_layer_size(tilemap: u32, layer: i32) -> *const Dimensions;
+    /// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+    pub fn tile_layer_visible(tilemap: u32, layer: i32) -> bool;
+    /// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+    pub fn tile_layer_prop(tilemap: u32, layer: i32, name: *const u8) -> *const TilemapProp;
+    /// Get the number of custom properties on a layer of a tilemap.
+    pub fn tile_layer_prop_count(tilemap: u32, layer: i32) -> i32;
+    /// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+    pub fn tile_layer_prop_at(tilemap: u32, layer: i32, index: i32) -> *const TilemapProp;
+    /// Draw a single layer of a tilemap on the screen.
+    pub fn tile_draw_layer(tilemap: u32, layer: i32, posX: i32, posY: i32);
+    /// Draw a single layer of a tilemap on the screen, tinted by a color.
+    pub fn tile_draw_layer_tint(tilemap: u32, layer: i32, posX: i32, posY: i32, tint: Color);
+    /// Draw a single layer of a tilemap on an image.
+    pub fn tile_draw_layer_on_image(dst: u32, tilemap: u32, layer: i32, posX: i32, posY: i32);
+    /// Render a single layer of a tilemap to a new image.
+    pub fn tile_layer_image(tilemap: u32, layer: i32) -> u32;
+    /// Get the gid of the tile at a column/row in a tilemap layer.
+    pub fn tile_get_tile(tilemap: u32, layer: i32, column: i32, row: i32) -> i32;
+    /// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+    pub fn tile_set_tile(tilemap: u32, layer: i32, column: i32, row: i32, gid: i32);
+    /// Draw a single tile from a tilemap on the screen.
+    pub fn tile_draw_tile(tilemap: u32, gid: i32, posX: i32, posY: i32);
+    /// Get a copy of the image of a single tile in a tilemap.
+    pub fn tile_image(tilemap: u32, gid: i32) -> u32;
+    /// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+    pub fn tile_gid_prop(tilemap: u32, gid: i32, name: *const u8) -> *const TilemapProp;
+    /// Get the number of custom properties on a tile of a tilemap.
+    pub fn tile_gid_prop_count(tilemap: u32, gid: i32) -> i32;
+    /// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+    pub fn tile_gid_prop_at(tilemap: u32, gid: i32, index: i32) -> *const TilemapProp;
+    /// Get the number of objects on an object-layer of a tilemap.
+    pub fn tile_object_count(tilemap: u32, layer: i32) -> i32;
+    /// Get an object from an object-layer of a tilemap.
+    pub fn tile_object(tilemap: u32, layer: i32, index: i32) -> *const TilemapObject;
+    /// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+    pub fn tile_object_index(tilemap: u32, layer: i32, name: *const u8) -> i32;
+    /// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+    pub fn tile_object_prop(tilemap: u32, layer: i32, index: i32, name: *const u8) -> *const TilemapProp;
+    /// Get the number of custom properties on an object of a tilemap.
+    pub fn tile_object_prop_count(tilemap: u32, layer: i32, index: i32) -> i32;
+    /// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+    pub fn tile_object_prop_at(tilemap: u32, layer: i32, index: i32, propIndex: i32) -> *const TilemapProp;
 
     // Types functions
 

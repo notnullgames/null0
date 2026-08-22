@@ -45,7 +45,7 @@ export async function getApi() {
 
 // check to make sure all my types are accounted for in definition
 export async function checkTypes() {
-  const { enums, structs, scalars, contants, ...a } = await getApi()
+  const { enums, structs, scalars, constants, ...a } = await getApi()
   const types = { ...enums, ...structs, ...scalars }
   let allTypes = []
   let missingTypes = []
@@ -77,4 +77,25 @@ export async function checkTypes() {
   missingTypes = [...new Set(missingTypes)].sort()
   unusedTypes = [...new Set(unusedTypes)].sort()
   return { types: allTypes, missing: missingTypes, unused: unusedTypes }
+}
+
+// Fill a generator's type-map for API types it doesn't name explicitly, so a
+// new enum or struct in api/types.yml doesn't need an edit in all 23 cart
+// generators. Existing entries always win - this only adds what's missing.
+// `enumType` is what an enum crosses the boundary as (an int, in every
+// language); `structType` is what a struct comes back as (a pointer into cart
+// memory), either a string or a function of the type's name.
+export function seedTypes(map, { enums, structs }, { enumType, structType }) {
+  const resolve = (type, name) => (typeof type === 'function' ? type(name) : type)
+  for (const name of Object.keys(enums || {})) {
+    if (enumType !== undefined && !(name in map)) {
+      map[name] = resolve(enumType, name)
+    }
+  }
+  for (const name of Object.keys(structs || {})) {
+    if (structType !== undefined && !(name in map)) {
+      map[name] = resolve(structType, name)
+    }
+  }
+  return map
 }

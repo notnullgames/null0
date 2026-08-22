@@ -70,6 +70,29 @@ type Color struct {
 	A uint8
 }
 
+// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+type TilemapProp struct {
+	Name    uint32
+	Type    int32
+	Integer int32
+	Number  float32
+	Text    uint32
+}
+
+// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+type TilemapObject struct {
+	Id       int32
+	Name     uint32
+	Type     uint32
+	Gid      int32
+	X        float32
+	Y        float32
+	Width    float32
+	Height   float32
+	Rotation float32
+	Visible  int32
+}
+
 // HOST FUNCTIONS
 
 //go:wasmimport null0 color_tint
@@ -414,6 +437,21 @@ func unload_tilemap(tilemap uint32)
 //go:wasmimport null0 tile_update
 func tile_update(tilemap uint32, deltaTime float32)
 
+//go:wasmimport null0 tile_map_size
+func tile_map_size(tilemap uint32) unsafe.Pointer
+
+//go:wasmimport null0 tile_tile_size
+func tile_tile_size(tilemap uint32) unsafe.Pointer
+
+//go:wasmimport null0 tile_map_prop
+func tile_map_prop(tilemap uint32, name unsafe.Pointer) unsafe.Pointer
+
+//go:wasmimport null0 tile_map_prop_count
+func tile_map_prop_count(tilemap uint32) int32
+
+//go:wasmimport null0 tile_map_prop_at
+func tile_map_prop_at(tilemap uint32, index int32) unsafe.Pointer
+
 //go:wasmimport null0 tile_draw
 func tile_draw(tilemap uint32, posX int32, posY int32)
 
@@ -423,11 +461,47 @@ func tile_draw_tint(tilemap uint32, posX int32, posY int32, tint unsafe.Pointer)
 //go:wasmimport null0 tile_draw_on_image
 func tile_draw_on_image(dst uint32, tilemap uint32, posX int32, posY int32)
 
-//go:wasmimport null0 tile_draw_tile
-func tile_draw_tile(tilemap uint32, gid int32, posX int32, posY int32)
+//go:wasmimport null0 tilemap_image
+func tilemap_image(tilemap uint32) uint32
 
 //go:wasmimport null0 tile_layer_count
 func tile_layer_count(tilemap uint32) int32
+
+//go:wasmimport null0 tile_layer_index
+func tile_layer_index(tilemap uint32, name unsafe.Pointer) int32
+
+//go:wasmimport null0 tile_layer_name
+func tile_layer_name(tilemap uint32, layer int32) unsafe.Pointer
+
+//go:wasmimport null0 tile_layer_type
+func tile_layer_type(tilemap uint32, layer int32) int32
+
+//go:wasmimport null0 tile_layer_size
+func tile_layer_size(tilemap uint32, layer int32) unsafe.Pointer
+
+//go:wasmimport null0 tile_layer_visible
+func tile_layer_visible(tilemap uint32, layer int32) int32
+
+//go:wasmimport null0 tile_layer_prop
+func tile_layer_prop(tilemap uint32, layer int32, name unsafe.Pointer) unsafe.Pointer
+
+//go:wasmimport null0 tile_layer_prop_count
+func tile_layer_prop_count(tilemap uint32, layer int32) int32
+
+//go:wasmimport null0 tile_layer_prop_at
+func tile_layer_prop_at(tilemap uint32, layer int32, index int32) unsafe.Pointer
+
+//go:wasmimport null0 tile_draw_layer
+func tile_draw_layer(tilemap uint32, layer int32, posX int32, posY int32)
+
+//go:wasmimport null0 tile_draw_layer_tint
+func tile_draw_layer_tint(tilemap uint32, layer int32, posX int32, posY int32, tint unsafe.Pointer)
+
+//go:wasmimport null0 tile_draw_layer_on_image
+func tile_draw_layer_on_image(dst uint32, tilemap uint32, layer int32, posX int32, posY int32)
+
+//go:wasmimport null0 tile_layer_image
+func tile_layer_image(tilemap uint32, layer int32) uint32
 
 //go:wasmimport null0 tile_get_tile
 func tile_get_tile(tilemap uint32, layer int32, column int32, row int32) int32
@@ -435,11 +509,38 @@ func tile_get_tile(tilemap uint32, layer int32, column int32, row int32) int32
 //go:wasmimport null0 tile_set_tile
 func tile_set_tile(tilemap uint32, layer int32, column int32, row int32, gid int32)
 
+//go:wasmimport null0 tile_draw_tile
+func tile_draw_tile(tilemap uint32, gid int32, posX int32, posY int32)
+
 //go:wasmimport null0 tile_image
 func tile_image(tilemap uint32, gid int32) uint32
 
-//go:wasmimport null0 tilemap_image
-func tilemap_image(tilemap uint32) uint32
+//go:wasmimport null0 tile_gid_prop
+func tile_gid_prop(tilemap uint32, gid int32, name unsafe.Pointer) unsafe.Pointer
+
+//go:wasmimport null0 tile_gid_prop_count
+func tile_gid_prop_count(tilemap uint32, gid int32) int32
+
+//go:wasmimport null0 tile_gid_prop_at
+func tile_gid_prop_at(tilemap uint32, gid int32, index int32) unsafe.Pointer
+
+//go:wasmimport null0 tile_object_count
+func tile_object_count(tilemap uint32, layer int32) int32
+
+//go:wasmimport null0 tile_object
+func tile_object(tilemap uint32, layer int32, index int32) unsafe.Pointer
+
+//go:wasmimport null0 tile_object_index
+func tile_object_index(tilemap uint32, layer int32, name unsafe.Pointer) int32
+
+//go:wasmimport null0 tile_object_prop
+func tile_object_prop(tilemap uint32, layer int32, index int32, name unsafe.Pointer) unsafe.Pointer
+
+//go:wasmimport null0 tile_object_prop_count
+func tile_object_prop_count(tilemap uint32, layer int32, index int32) int32
+
+//go:wasmimport null0 tile_object_prop_at
+func tile_object_prop_at(tilemap uint32, layer int32, index int32, propIndex int32) unsafe.Pointer
 
 //go:wasmimport null0 current_time
 func current_time() uint64
@@ -475,6 +576,22 @@ func malloc(size uint32) uint32 {
 //go:wasmexport free
 func free(ptr uint32) {
 	delete(pinned, ptr)
+}
+
+// a host string (a pointer into our own memory) as a go string
+func ptrToString(p unsafe.Pointer) string {
+	if p == nil {
+		return ""
+	}
+	b := []byte{}
+	for i := uintptr(0); ; i++ {
+		c := *(*byte)(unsafe.Add(p, i))
+		if c == 0 {
+			break
+		}
+		b = append(b, c)
+	}
+	return string(b)
 }
 
 // a null-terminated copy of a lua string, for the host. keep the bytes
@@ -657,6 +774,66 @@ func colorTable(L *lua.LState, v unsafe.Pointer) lua.LValue {
 	t.RawSetString("g", lua.LNumber(s.G))
 	t.RawSetString("b", lua.LNumber(s.B))
 	t.RawSetString("a", lua.LNumber(s.A))
+	return t
+}
+
+// TilemapProp arrives from lua as a table, e.g. {name = 0, type = 0, integer = 0, number = 0, text = 0}
+func tilemapPropArg(L *lua.LState, n int) TilemapProp {
+	t := L.CheckTable(n)
+	return TilemapProp{
+		Type:    int32(fieldNumber(t, "type")),
+		Integer: int32(fieldNumber(t, "integer")),
+		Number:  float32(fieldNumber(t, "number")),
+	}
+}
+
+// TilemapProp goes back to lua as a table
+func tilemapPropTable(L *lua.LState, v unsafe.Pointer) lua.LValue {
+	if v == nil {
+		return lua.LNil
+	}
+	s := (*TilemapProp)(v)
+	t := L.NewTable()
+	t.RawSetString("name", lua.LString(ptrToString(unsafe.Pointer(uintptr(s.Name)))))
+	t.RawSetString("type", lua.LNumber(s.Type))
+	t.RawSetString("integer", lua.LNumber(s.Integer))
+	t.RawSetString("number", lua.LNumber(s.Number))
+	t.RawSetString("text", lua.LString(ptrToString(unsafe.Pointer(uintptr(s.Text)))))
+	return t
+}
+
+// TilemapObject arrives from lua as a table, e.g. {id = 0, name = 0, type = 0, gid = 0, x = 0, y = 0, width = 0, height = 0, rotation = 0, visible = 0}
+func tilemapObjectArg(L *lua.LState, n int) TilemapObject {
+	t := L.CheckTable(n)
+	return TilemapObject{
+		Id:       int32(fieldNumber(t, "id")),
+		Gid:      int32(fieldNumber(t, "gid")),
+		X:        float32(fieldNumber(t, "x")),
+		Y:        float32(fieldNumber(t, "y")),
+		Width:    float32(fieldNumber(t, "width")),
+		Height:   float32(fieldNumber(t, "height")),
+		Rotation: float32(fieldNumber(t, "rotation")),
+		Visible:  int32(fieldNumber(t, "visible")),
+	}
+}
+
+// TilemapObject goes back to lua as a table
+func tilemapObjectTable(L *lua.LState, v unsafe.Pointer) lua.LValue {
+	if v == nil {
+		return lua.LNil
+	}
+	s := (*TilemapObject)(v)
+	t := L.NewTable()
+	t.RawSetString("id", lua.LNumber(s.Id))
+	t.RawSetString("name", lua.LString(ptrToString(unsafe.Pointer(uintptr(s.Name)))))
+	t.RawSetString("type", lua.LString(ptrToString(unsafe.Pointer(uintptr(s.Type)))))
+	t.RawSetString("gid", lua.LNumber(s.Gid))
+	t.RawSetString("x", lua.LNumber(s.X))
+	t.RawSetString("y", lua.LNumber(s.Y))
+	t.RawSetString("width", lua.LNumber(s.Width))
+	t.RawSetString("height", lua.LNumber(s.Height))
+	t.RawSetString("rotation", lua.LNumber(s.Rotation))
+	t.RawSetString("visible", lua.LNumber(s.Visible))
 	return t
 }
 
@@ -1861,6 +2038,49 @@ func lua_tile_update(L *lua.LState) int {
 	return 0
 }
 
+// Get the size of a tilemap, in tiles.
+func lua_tile_map_size(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	ret := tile_map_size(tilemap)
+	L.Push(dimensionsTable(L, ret))
+	return 1
+}
+
+// Get the size of a single tile of a tilemap, in pixels.
+func lua_tile_tile_size(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	ret := tile_tile_size(tilemap)
+	L.Push(dimensionsTable(L, ret))
+	return 1
+}
+
+// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+func lua_tile_map_prop(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	nameBytes, name := cstr(L.CheckString(2))
+	ret := tile_map_prop(tilemap, name)
+	runtime.KeepAlive(nameBytes)
+	L.Push(tilemapPropTable(L, ret))
+	return 1
+}
+
+// Get the number of custom properties on a tilemap.
+func lua_tile_map_prop_count(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	ret := tile_map_prop_count(tilemap)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+func lua_tile_map_prop_at(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	index := int32(L.CheckInt(2))
+	ret := tile_map_prop_at(tilemap, index)
+	L.Push(tilemapPropTable(L, ret))
+	return 1
+}
+
 // Draw a tilemap on the screen.
 func lua_tile_draw(L *lua.LState) int {
 	tilemap := uint32(L.CheckInt(1))
@@ -1890,20 +2110,135 @@ func lua_tile_draw_on_image(L *lua.LState) int {
 	return 0
 }
 
-// Draw a single tile from a tilemap on the screen.
-func lua_tile_draw_tile(L *lua.LState) int {
+// Render a whole tilemap to a new image.
+func lua_tilemap_image(L *lua.LState) int {
 	tilemap := uint32(L.CheckInt(1))
-	gid := int32(L.CheckInt(2))
-	posX := int32(L.CheckInt(3))
-	posY := int32(L.CheckInt(4))
-	tile_draw_tile(tilemap, gid, posX, posY)
-	return 0
+	ret := tilemap_image(tilemap)
+	L.Push(lua.LNumber(ret))
+	return 1
 }
 
-// Get the number of layers in a tilemap.
+// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 func lua_tile_layer_count(L *lua.LState) int {
 	tilemap := uint32(L.CheckInt(1))
 	ret := tile_layer_count(tilemap)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+func lua_tile_layer_index(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	nameBytes, name := cstr(L.CheckString(2))
+	ret := tile_layer_index(tilemap, name)
+	runtime.KeepAlive(nameBytes)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Get the name of a layer of a tilemap.
+func lua_tile_layer_name(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	ret := tile_layer_name(tilemap, layer)
+	L.Push(lua.LString(ptrToString(ret)))
+	return 1
+}
+
+// Get the kind of a layer of a tilemap.
+func lua_tile_layer_type(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	ret := tile_layer_type(tilemap, layer)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Get the size of a layer of a tilemap, in tiles.
+func lua_tile_layer_size(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	ret := tile_layer_size(tilemap, layer)
+	L.Push(dimensionsTable(L, ret))
+	return 1
+}
+
+// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+func lua_tile_layer_visible(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	ret := tile_layer_visible(tilemap, layer)
+	L.Push(luaBool(ret))
+	return 1
+}
+
+// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+func lua_tile_layer_prop(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	nameBytes, name := cstr(L.CheckString(3))
+	ret := tile_layer_prop(tilemap, layer, name)
+	runtime.KeepAlive(nameBytes)
+	L.Push(tilemapPropTable(L, ret))
+	return 1
+}
+
+// Get the number of custom properties on a layer of a tilemap.
+func lua_tile_layer_prop_count(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	ret := tile_layer_prop_count(tilemap, layer)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+func lua_tile_layer_prop_at(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	index := int32(L.CheckInt(3))
+	ret := tile_layer_prop_at(tilemap, layer, index)
+	L.Push(tilemapPropTable(L, ret))
+	return 1
+}
+
+// Draw a single layer of a tilemap on the screen.
+func lua_tile_draw_layer(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	posX := int32(L.CheckInt(3))
+	posY := int32(L.CheckInt(4))
+	tile_draw_layer(tilemap, layer, posX, posY)
+	return 0
+}
+
+// Draw a single layer of a tilemap on the screen, tinted by a color.
+func lua_tile_draw_layer_tint(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	posX := int32(L.CheckInt(3))
+	posY := int32(L.CheckInt(4))
+	tint := colorArg(L, 5)
+	tile_draw_layer_tint(tilemap, layer, posX, posY, unsafe.Pointer(&tint))
+	return 0
+}
+
+// Draw a single layer of a tilemap on an image.
+func lua_tile_draw_layer_on_image(L *lua.LState) int {
+	dst := uint32(L.CheckInt(1))
+	tilemap := uint32(L.CheckInt(2))
+	layer := int32(L.CheckInt(3))
+	posX := int32(L.CheckInt(4))
+	posY := int32(L.CheckInt(5))
+	tile_draw_layer_on_image(dst, tilemap, layer, posX, posY)
+	return 0
+}
+
+// Render a single layer of a tilemap to a new image.
+func lua_tile_layer_image(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	ret := tile_layer_image(tilemap, layer)
 	L.Push(lua.LNumber(ret))
 	return 1
 }
@@ -1919,7 +2254,7 @@ func lua_tile_get_tile(L *lua.LState) int {
 	return 1
 }
 
-// Set the gid of the tile at a column/row in a tilemap layer.
+// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 func lua_tile_set_tile(L *lua.LState) int {
 	tilemap := uint32(L.CheckInt(1))
 	layer := int32(L.CheckInt(2))
@@ -1927,6 +2262,16 @@ func lua_tile_set_tile(L *lua.LState) int {
 	row := int32(L.CheckInt(4))
 	gid := int32(L.CheckInt(5))
 	tile_set_tile(tilemap, layer, column, row, gid)
+	return 0
+}
+
+// Draw a single tile from a tilemap on the screen.
+func lua_tile_draw_tile(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	gid := int32(L.CheckInt(2))
+	posX := int32(L.CheckInt(3))
+	posY := int32(L.CheckInt(4))
+	tile_draw_tile(tilemap, gid, posX, posY)
 	return 0
 }
 
@@ -1939,11 +2284,96 @@ func lua_tile_image(L *lua.LState) int {
 	return 1
 }
 
-// Render a whole tilemap to a new image.
-func lua_tilemap_image(L *lua.LState) int {
+// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+func lua_tile_gid_prop(L *lua.LState) int {
 	tilemap := uint32(L.CheckInt(1))
-	ret := tilemap_image(tilemap)
+	gid := int32(L.CheckInt(2))
+	nameBytes, name := cstr(L.CheckString(3))
+	ret := tile_gid_prop(tilemap, gid, name)
+	runtime.KeepAlive(nameBytes)
+	L.Push(tilemapPropTable(L, ret))
+	return 1
+}
+
+// Get the number of custom properties on a tile of a tilemap.
+func lua_tile_gid_prop_count(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	gid := int32(L.CheckInt(2))
+	ret := tile_gid_prop_count(tilemap, gid)
 	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+func lua_tile_gid_prop_at(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	gid := int32(L.CheckInt(2))
+	index := int32(L.CheckInt(3))
+	ret := tile_gid_prop_at(tilemap, gid, index)
+	L.Push(tilemapPropTable(L, ret))
+	return 1
+}
+
+// Get the number of objects on an object-layer of a tilemap.
+func lua_tile_object_count(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	ret := tile_object_count(tilemap, layer)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Get an object from an object-layer of a tilemap.
+func lua_tile_object(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	index := int32(L.CheckInt(3))
+	ret := tile_object(tilemap, layer, index)
+	L.Push(tilemapObjectTable(L, ret))
+	return 1
+}
+
+// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+func lua_tile_object_index(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	nameBytes, name := cstr(L.CheckString(3))
+	ret := tile_object_index(tilemap, layer, name)
+	runtime.KeepAlive(nameBytes)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+func lua_tile_object_prop(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	index := int32(L.CheckInt(3))
+	nameBytes, name := cstr(L.CheckString(4))
+	ret := tile_object_prop(tilemap, layer, index, name)
+	runtime.KeepAlive(nameBytes)
+	L.Push(tilemapPropTable(L, ret))
+	return 1
+}
+
+// Get the number of custom properties on an object of a tilemap.
+func lua_tile_object_prop_count(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	index := int32(L.CheckInt(3))
+	ret := tile_object_prop_count(tilemap, layer, index)
+	L.Push(lua.LNumber(ret))
+	return 1
+}
+
+// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+func lua_tile_object_prop_at(L *lua.LState) int {
+	tilemap := uint32(L.CheckInt(1))
+	layer := int32(L.CheckInt(2))
+	index := int32(L.CheckInt(3))
+	propIndex := int32(L.CheckInt(4))
+	ret := tile_object_prop_at(tilemap, layer, index, propIndex)
+	L.Push(tilemapPropTable(L, ret))
 	return 1
 }
 
@@ -2176,6 +2606,17 @@ func registerConstants(L *lua.LState) {
 	L.SetGlobal("MOUSE_BUTTON_LEFT", lua.LNumber(1))
 	L.SetGlobal("MOUSE_BUTTON_RIGHT", lua.LNumber(2))
 	L.SetGlobal("MOUSE_BUTTON_MIDDLE", lua.LNumber(3))
+	L.SetGlobal("LAYER_NONE", lua.LNumber(0))
+	L.SetGlobal("LAYER_TILE", lua.LNumber(1))
+	L.SetGlobal("LAYER_OBJECT", lua.LNumber(2))
+	L.SetGlobal("LAYER_IMAGE", lua.LNumber(3))
+	L.SetGlobal("LAYER_GROUP", lua.LNumber(4))
+	L.SetGlobal("PROP_NONE", lua.LNumber(0))
+	L.SetGlobal("PROP_INT", lua.LNumber(1))
+	L.SetGlobal("PROP_BOOL", lua.LNumber(2))
+	L.SetGlobal("PROP_FLOAT", lua.LNumber(3))
+	L.SetGlobal("PROP_STRING", lua.LNumber(4))
+	L.SetGlobal("PROP_COLOR", lua.LNumber(5))
 }
 
 func registerAPI(L *lua.LState) {
@@ -2293,15 +2734,41 @@ func registerAPI(L *lua.LState) {
 	L.SetGlobal("load_tilemap", L.NewFunction(lua_load_tilemap))
 	L.SetGlobal("unload_tilemap", L.NewFunction(lua_unload_tilemap))
 	L.SetGlobal("tile_update", L.NewFunction(lua_tile_update))
+	L.SetGlobal("tile_map_size", L.NewFunction(lua_tile_map_size))
+	L.SetGlobal("tile_tile_size", L.NewFunction(lua_tile_tile_size))
+	L.SetGlobal("tile_map_prop", L.NewFunction(lua_tile_map_prop))
+	L.SetGlobal("tile_map_prop_count", L.NewFunction(lua_tile_map_prop_count))
+	L.SetGlobal("tile_map_prop_at", L.NewFunction(lua_tile_map_prop_at))
 	L.SetGlobal("tile_draw", L.NewFunction(lua_tile_draw))
 	L.SetGlobal("tile_draw_tint", L.NewFunction(lua_tile_draw_tint))
 	L.SetGlobal("tile_draw_on_image", L.NewFunction(lua_tile_draw_on_image))
-	L.SetGlobal("tile_draw_tile", L.NewFunction(lua_tile_draw_tile))
+	L.SetGlobal("tilemap_image", L.NewFunction(lua_tilemap_image))
 	L.SetGlobal("tile_layer_count", L.NewFunction(lua_tile_layer_count))
+	L.SetGlobal("tile_layer_index", L.NewFunction(lua_tile_layer_index))
+	L.SetGlobal("tile_layer_name", L.NewFunction(lua_tile_layer_name))
+	L.SetGlobal("tile_layer_type", L.NewFunction(lua_tile_layer_type))
+	L.SetGlobal("tile_layer_size", L.NewFunction(lua_tile_layer_size))
+	L.SetGlobal("tile_layer_visible", L.NewFunction(lua_tile_layer_visible))
+	L.SetGlobal("tile_layer_prop", L.NewFunction(lua_tile_layer_prop))
+	L.SetGlobal("tile_layer_prop_count", L.NewFunction(lua_tile_layer_prop_count))
+	L.SetGlobal("tile_layer_prop_at", L.NewFunction(lua_tile_layer_prop_at))
+	L.SetGlobal("tile_draw_layer", L.NewFunction(lua_tile_draw_layer))
+	L.SetGlobal("tile_draw_layer_tint", L.NewFunction(lua_tile_draw_layer_tint))
+	L.SetGlobal("tile_draw_layer_on_image", L.NewFunction(lua_tile_draw_layer_on_image))
+	L.SetGlobal("tile_layer_image", L.NewFunction(lua_tile_layer_image))
 	L.SetGlobal("tile_get_tile", L.NewFunction(lua_tile_get_tile))
 	L.SetGlobal("tile_set_tile", L.NewFunction(lua_tile_set_tile))
+	L.SetGlobal("tile_draw_tile", L.NewFunction(lua_tile_draw_tile))
 	L.SetGlobal("tile_image", L.NewFunction(lua_tile_image))
-	L.SetGlobal("tilemap_image", L.NewFunction(lua_tilemap_image))
+	L.SetGlobal("tile_gid_prop", L.NewFunction(lua_tile_gid_prop))
+	L.SetGlobal("tile_gid_prop_count", L.NewFunction(lua_tile_gid_prop_count))
+	L.SetGlobal("tile_gid_prop_at", L.NewFunction(lua_tile_gid_prop_at))
+	L.SetGlobal("tile_object_count", L.NewFunction(lua_tile_object_count))
+	L.SetGlobal("tile_object", L.NewFunction(lua_tile_object))
+	L.SetGlobal("tile_object_index", L.NewFunction(lua_tile_object_index))
+	L.SetGlobal("tile_object_prop", L.NewFunction(lua_tile_object_prop))
+	L.SetGlobal("tile_object_prop_count", L.NewFunction(lua_tile_object_prop_count))
+	L.SetGlobal("tile_object_prop_at", L.NewFunction(lua_tile_object_prop_at))
 	L.SetGlobal("current_time", L.NewFunction(lua_current_time))
 	L.SetGlobal("delta_time", L.NewFunction(lua_delta_time))
 	L.SetGlobal("random_int", L.NewFunction(lua_random_int))

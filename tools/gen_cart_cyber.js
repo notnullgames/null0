@@ -31,7 +31,14 @@ const structNames = Object.keys(structs)
 const listArrayTypes = { 'Vector[]': 'Vector', 'i32[]': 'i32' }
 
 // Cyber type for a struct member
-const memberCyType = { i32: 'i32', f32: 'f32', u32: 'r32', u8: 'byte' }
+const memberCyType = { i32: 'i32', f32: 'f32', u32: 'r32', u8: 'byte', string: 'str' }
+for (const name of Object.keys(enums)) memberCyType[name] = 'i32'
+
+// structs carrying strings can't be copied straight across: cyber holds a str
+// as a CLstr, so they get a cyber-layout mirror the shim fills in member by member
+const cMemberType = { i32: 'int32_t', f32: 'float', u32: 'uint32_t', u8: 'unsigned char', string: 'CLstr' }
+const cMirrorType = (type) => cMemberType[type] || 'int32_t'
+const stringStructs = Object.keys(structs).filter((name) => Object.values(structs[name].members).includes('string'))
 
 // Cyber type for a null0 arg/return type
 const cyType = {
@@ -55,6 +62,7 @@ const cyType = {
   SfxParams: 'SfxParams'
 }
 for (const s of structNames) cyType[s] = s
+for (const name of Object.keys(enums)) cyType[name] = 'i32'
 
 // C type used at the cl_thread_* boundary
 const cScalarType = {
@@ -74,6 +82,7 @@ const cScalarType = {
   MouseButton: 'i32',
   SfxPresetType: 'i32'
 }
+for (const name of Object.keys(enums)) cScalarType[name] = 'i32'
 
 // how to pull a scalar arg out of the CLThread
 const cThreadReader = {
@@ -266,6 +275,17 @@ const c = [
 // Color/Vector/Rectangle/Dimensions/SfxParams are already declared by
 // null0.h (included above) - no need to redeclare them here.
 
+// cyber lays a `str` field out as a CLstr, so a struct carrying one can't be
+// copied straight from the host - these mirrors are filled member by member
+for (const structName of stringStructs) {
+  c.push(`// ${structName} as cyber lays it out`)
+  c.push('typedef struct {')
+  for (const [name, type] of Object.entries(structs[structName].members)) {
+    c.push(`  ${cMirrorType(type)} ${name};`)
+  }
+  c.push(`} Cy${structName};`, '')
+}
+
 c.push('// BINDINGS', '')
 
 const cBinds = []
@@ -281,6 +301,8 @@ for (const [apiName, apiObj] of Object.entries(api)) {
     // corrupts them.
     if (returns === 'void') {
       c.push('  cl_thread_ret(t, 0);')
+    } else if (stringStructs.includes(returns)) {
+      c.push(`  Cy${returns}* out = (Cy${returns}*)cl_thread_ret(t, sizeof(Cy${returns}));`)
     } else if (structNames.includes(returns)) {
       c.push(`  ${returns}* out = (${returns}*)cl_thread_ret(t, sizeof(${returns}));`)
     } else if (returns === 'string') {
@@ -292,6 +314,15 @@ for (const [apiName, apiObj] of Object.entries(api)) {
     const call = `${funcName}(${callArgs.join(', ')})`
     if (returns === 'void') {
       c.push(`  ${call};`)
+    } else if (stringStructs.includes(returns)) {
+      c.push(`  ${returns}* ret = ${call};`)
+      for (const [name, type] of Object.entries(structs[returns].members)) {
+        c.push(
+          type === 'string'
+            ? `  out->${name} = cl_ustr_init(t, CL_BYTES(ret->${name} == NULL ? "" : ret->${name}));`
+            : `  out->${name} = ret->${name};`
+        )
+      }
     } else if (structNames.includes(returns)) {
       c.push(`  ${returns}* ret = ${call};`)
       c.push('  *out = *ret;')

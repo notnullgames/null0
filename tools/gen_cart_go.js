@@ -4,9 +4,10 @@
 // Generates Go code from the API definitions
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 // snake_case -> PascalCase
+const lowerFirst = (name) => name.charAt(0).toLowerCase() + name.slice(1)
 const pascal = (name) => name.split('_').map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
 
 // Go keywords can't be used as parameter names
@@ -176,8 +177,14 @@ const memberTypes = {
   i32: 'int32',
   f32: 'float32',
   u32: 'uint32',
-  u8: 'uint8'
+  u8: 'uint8',
+  string: 'string'
 }
+
+// what a member looks like in the struct the host actually wrote into cart
+// memory: every member 4 bytes, strings as pointers
+const rawMemberTypes = { i32: 'int32', f32: 'float32', u32: 'uint32', u8: 'uint8', string: 'uint32' }
+const rawMemberType = (type) => rawMemberTypes[type] || 'int32'
 
 // convert a nice arg into its raw form for the wasmimport call
 const rawConvert = (name, type) => {
@@ -214,6 +221,10 @@ const rawConvert = (name, type) => {
 
 // convert raw result into nice type
 const niceConvert = (type, expr) => {
+  // a struct with strings in it needs its own reader (see stringStructs)
+  if (stringStructs[type]) {
+    return `${lowerFirst(type)}FromPtr(${expr})`
+  }
   switch (type) {
     case 'string':
       return `ptrToString(${expr})`
@@ -241,6 +252,16 @@ const niceConvert = (type, expr) => {
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
+// a new enum/struct fills its own type-map entries in
+seedTypes(rawArgTypes, { enums, structs }, { enumType: 'int32', structType: 'unsafe.Pointer' })
+seedTypes(niceArgTypes, { enums, structs }, { enumType: (name) => name, structType: (name) => name })
+seedTypes(rawRetTypes, { enums, structs }, { enumType: 'int32', structType: 'unsafe.Pointer' })
+seedTypes(niceRetTypes, { enums, structs }, { enumType: (name) => name, structType: (name) => name })
+
+// structs carrying strings can't be copied straight out of cart memory - a Go
+// string is not a pointer - so they get a cart-layout mirror and a converter
+const stringStructs = Object.fromEntries(Object.entries(structs).filter(([, def]) => Object.values(def.members).includes('string')))
+
 // Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {
   out.push('', `// ${structDef.description}`)
@@ -249,6 +270,36 @@ for (const [structName, structDef] of Object.entries(structs)) {
     const niceMemberName = pascal(memberName)
     out.push(`\t${niceMemberName} ${memberTypes[memberType] || memberType}`)
   }
+  out.push('}')
+}
+
+// cart-layout mirrors + converters for the structs that carry strings
+for (const [structName, structDef] of Object.entries(stringStructs)) {
+  const members = Object.entries(structDef.members)
+  out.push('', `// ${structName} as the host writes it into cart memory`)
+  out.push(`type raw${structName} struct {`)
+  for (const [memberName, memberType] of members) {
+    out.push(`\t${pascal(memberName)} ${rawMemberType(memberType)}`)
+  }
+  out.push('}', '')
+  out.push(`// copy a ${structName} out of cart memory, while it is still ours to read`)
+  out.push(`func ${lowerFirst(structName)}FromPtr(p unsafe.Pointer) ${structName} {`)
+  out.push(`\tif p == nil {`)
+  out.push(`\t\treturn ${structName}{}`)
+  out.push('\t}')
+  out.push(`\tr := (*raw${structName})(p)`)
+  out.push(`\treturn ${structName}{`)
+  for (const [memberName, memberType] of members) {
+    const field = pascal(memberName)
+    if (memberType === 'string') {
+      out.push(`\t\t${field}: ptrToString(unsafe.Pointer(uintptr(r.${field}))),`)
+    } else if (enums[memberType]) {
+      out.push(`\t\t${field}: ${memberType}(r.${field}),`)
+    } else {
+      out.push(`\t\t${field}: r.${field},`)
+    }
+  }
+  out.push('\t}')
   out.push('}')
 }
 
@@ -280,6 +331,18 @@ for (const [colorName, colorDef] of Object.entries(constants)) {
 out.push(')')
 
 out.push('', '// helpers used by wrappers', '', 'func boolToUint32(b bool) uint32 {', '\tif b {', '\t\treturn 1', '\t}', '\treturn 0', '}', '', 'func vectorSliceToPtr(vectors []Vector) unsafe.Pointer {', '\tif len(vectors) == 0 {', '\t\treturn nil', '\t}', '\treturn unsafe.Pointer(&vectors[0])', '}', '', 'func int32SliceToPtr(ints []int32) unsafe.Pointer {', '\tif len(ints) == 0 {', '\t\treturn nil', '\t}', '\treturn unsafe.Pointer(&ints[0])', '}')
+
+// go puts types and funcs in one namespace, so a function whose pascal name
+// matches a type (tile_layer_type vs a TileLayerType enum) will not compile.
+// catch it here rather than in a cart build.
+const goTypeNames = new Set([...Object.keys(structs), ...Object.keys(enums), 'Image', 'Font', 'Sound', 'Tilemap'])
+for (const funcDef of Object.values(api)) {
+  for (const funcName of Object.keys(funcDef)) {
+    if (goTypeNames.has(pascal(funcName))) {
+      throw new Error(`api function "${funcName}" collides with the go type ${pascal(funcName)} - rename one of them`)
+    }
+  }
+}
 
 // Generate raw wasmimport declarations + nice wrappers
 for (const [apiName, funcDef] of Object.entries(api)) {

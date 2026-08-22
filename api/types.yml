@@ -206,6 +206,35 @@ Color:
     b: u8
     a: u8
 
+TilemapProp:
+  description: A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+  c_arg: TilemapProp*
+  c_ret: TilemapProp*
+  host: Null0TilemapProp*
+  members:
+    name: string
+    type: TilePropType
+    integer: i32
+    number: f32
+    text: string
+
+TilemapObject:
+  description: An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+  c_arg: TilemapObject*
+  c_ret: TilemapObject*
+  host: Null0TilemapObject*
+  members:
+    id: i32
+    name: string
+    type: string
+    gid: i32
+    x: f32
+    y: f32
+    width: f32
+    height: f32
+    rotation: f32
+    visible: i32
+
 # enums
 
 ImageFilter:
@@ -396,3 +425,28 @@ MouseButton:
     MOUSE_BUTTON_LEFT: 1
     MOUSE_BUTTON_RIGHT: 2
     MOUSE_BUTTON_MIDDLE: 3
+
+TileLayerKind:
+  description: The kind of a layer in a tilemap.
+  c_arg: TileLayerKind
+  c_ret: TileLayerKind
+  host: TileLayerKind
+  enums:
+    LAYER_NONE: 0
+    LAYER_TILE: 1
+    LAYER_OBJECT: 2
+    LAYER_IMAGE: 3
+    LAYER_GROUP: 4
+
+TilePropType:
+  description: The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+  c_arg: TilePropType
+  c_ret: TilePropType
+  host: TilePropType
+  enums:
+    PROP_NONE: 0
+    PROP_INT: 1
+    PROP_BOOL: 2
+    PROP_FLOAT: 3
+    PROP_STRING: 4
+    PROP_COLOR: 5

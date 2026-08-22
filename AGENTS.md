@@ -57,6 +57,18 @@ implementation). If the pntr call needs something the API doesn't express, add a
 `EMSCRIPTEN_KEEPALIVE host_*` export on web (the web loader maps `_host_x` ->
 import `null0.x`). Adding an API function therefore wires up both hosts for free.
 
+### Adding a *type* (not just a function)
+
+A new function built from types that already exist is free: yml + the
+`functions` map + `npm run gen`. A new **enum or struct** costs more, because
+every generator carries its own type maps (`retTypes`, `memberTypes`, ...).
+`seedTypes()` in `tools/utils.js` fills in whatever a generator hasn't named
+explicitly - enums as that language's int, structs as its pointer-to-struct -
+so most generators need one line, not one entry per type. What still needs
+thought per language: how a struct **member** of a new kind is marshalled, and
+what a new type's default value looks like (zig wants `@enumFromInt(0)` and
+`undefined`, rust needs `r#type` for a member named `type`).
+
 ### The `api/*.yml` schema
 
 ```yml
@@ -96,7 +108,18 @@ garbage or a SIGSEGV in the host:
   bug shipped in the C, JS and python bindings and crashed the host.
 - **`T[]` args are followed by a count arg** in the yml (`points: Vector[]`,
   `numPoints: i32`). High-level bindings hide the count (the list knows its own
-  length) but must still pass it to the host.
+  length) but must still pass it to the host. Arrays are **input-only** - there
+  is no way to return one, so bulk data comes back as a struct or not at all.
+- **Every struct member is 4 bytes.** `members:` takes scalars only (`i32`,
+  `f32`, `u32`, `string`), a bool is an `i32` of 0/1, and an enum member is its
+  int value. That keeps one layout for all 23 languages - no per-language
+  padding rules, and `Color`'s four `u8`s still pack into 4 bytes.
+- **A `string` member is a pointer into cart memory.** `gen_host.js` generates a
+  cart-layout mirror of any struct carrying one (`Null0CartTilemapProp`) plus a
+  converter that copies each string over with `copy_string_to_cart` - the host's
+  own struct keeps `char*`. High-level bindings (lua, wren, js, python, go,
+  cyber, haskell) read those pointers into native strings; the thin ones (C,
+  zig, rust, odin, ...) hand the cart a `char*` to read itself.
 - **Struct returns are freed after the callback.** Everything the host copies
   into cart memory (struct/string returns) is tracked and freed by `cart_gc()`
   when the current cart callback (`load`/`update`/event) returns. A binding

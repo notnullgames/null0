@@ -204,6 +204,21 @@ alias Tilemap = int
 // MOUSE_BUTTON_RIGHT = 2  (use as int)
 // MOUSE_BUTTON_MIDDLE = 3  (use as int)
 
+// The kind of a layer in a tilemap.
+// LAYER_NONE = 0  (use as int)
+// LAYER_TILE = 1  (use as int)
+// LAYER_OBJECT = 2  (use as int)
+// LAYER_IMAGE = 3  (use as int)
+// LAYER_GROUP = 4  (use as int)
+
+// The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+// PROP_NONE = 0  (use as int)
+// PROP_INT = 1  (use as int)
+// PROP_BOOL = 2  (use as int)
+// PROP_FLOAT = 3  (use as int)
+// PROP_STRING = 4  (use as int)
+// PROP_COLOR = 5  (use as int)
+
 // Constants (use these values as int literals)
 // SCREEN = 0
 // SCREEN_WIDTH = 640
@@ -476,24 +491,76 @@ alias Tilemap = int
 // extern func unload_tilemap as unload_tilemap(tilemap: Tilemap) -> void
 // Update a tilemap's animation timers (deltaTime is in seconds).
 // extern func tile_update as tile_update(tilemap: Tilemap, deltaTime: double) -> void
+// Get the size of a tilemap, in tiles.
+// extern func tile_map_size as tile_map_size(tilemap: Tilemap) -> int
+// Get the size of a single tile of a tilemap, in pixels.
+// extern func tile_tile_size as tile_tile_size(tilemap: Tilemap) -> int
+// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+// extern func tile_map_prop as tile_map_prop(tilemap: Tilemap, name: *char) -> int
+// Get the number of custom properties on a tilemap.
+// extern func tile_map_prop_count as tile_map_prop_count(tilemap: Tilemap) -> int
+// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+// extern func tile_map_prop_at as tile_map_prop_at(tilemap: Tilemap, index: int) -> int
 // Draw a tilemap on the screen.
 // extern func tile_draw as tile_draw(tilemap: Tilemap, posX: int, posY: int) -> void
 // Draw a tilemap on the screen, tinted by a color.
 // extern func tile_draw_tint as tile_draw_tint(tilemap: Tilemap, posX: int, posY: int, tint: int) -> void
 // Draw a tilemap on an image.
 // extern func tile_draw_on_image as tile_draw_on_image(dst: Image, tilemap: Tilemap, posX: int, posY: int) -> void
-// Draw a single tile from a tilemap on the screen.
-// extern func tile_draw_tile as tile_draw_tile(tilemap: Tilemap, gid: int, posX: int, posY: int) -> void
-// Get the number of layers in a tilemap.
-// extern func tile_layer_count as tile_layer_count(tilemap: Tilemap) -> int
-// Get the gid of the tile at a column/row in a tilemap layer.
-// extern func tile_get_tile as tile_get_tile(tilemap: Tilemap, layer: int, column: int, row: int) -> int
-// Set the gid of the tile at a column/row in a tilemap layer.
-// extern func tile_set_tile as tile_set_tile(tilemap: Tilemap, layer: int, column: int, row: int, gid: int) -> void
-// Get a copy of the image of a single tile in a tilemap.
-// extern func tile_image as tile_image(tilemap: Tilemap, gid: int) -> Image
 // Render a whole tilemap to a new image.
 // extern func tilemap_image as tilemap_image(tilemap: Tilemap) -> Image
+// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+// extern func tile_layer_count as tile_layer_count(tilemap: Tilemap) -> int
+// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+// extern func tile_layer_index as tile_layer_index(tilemap: Tilemap, name: *char) -> int
+// Get the name of a layer of a tilemap.
+// extern func tile_layer_name as tile_layer_name(tilemap: Tilemap, layer: int) -> *char
+// Get the kind of a layer of a tilemap.
+// extern func tile_layer_type as tile_layer_type(tilemap: Tilemap, layer: int) -> int
+// Get the size of a layer of a tilemap, in tiles.
+// extern func tile_layer_size as tile_layer_size(tilemap: Tilemap, layer: int) -> int
+// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+// extern func tile_layer_visible as tile_layer_visible(tilemap: Tilemap, layer: int) -> bool
+// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+// extern func tile_layer_prop as tile_layer_prop(tilemap: Tilemap, layer: int, name: *char) -> int
+// Get the number of custom properties on a layer of a tilemap.
+// extern func tile_layer_prop_count as tile_layer_prop_count(tilemap: Tilemap, layer: int) -> int
+// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+// extern func tile_layer_prop_at as tile_layer_prop_at(tilemap: Tilemap, layer: int, index: int) -> int
+// Draw a single layer of a tilemap on the screen.
+// extern func tile_draw_layer as tile_draw_layer(tilemap: Tilemap, layer: int, posX: int, posY: int) -> void
+// Draw a single layer of a tilemap on the screen, tinted by a color.
+// extern func tile_draw_layer_tint as tile_draw_layer_tint(tilemap: Tilemap, layer: int, posX: int, posY: int, tint: int) -> void
+// Draw a single layer of a tilemap on an image.
+// extern func tile_draw_layer_on_image as tile_draw_layer_on_image(dst: Image, tilemap: Tilemap, layer: int, posX: int, posY: int) -> void
+// Render a single layer of a tilemap to a new image.
+// extern func tile_layer_image as tile_layer_image(tilemap: Tilemap, layer: int) -> Image
+// Get the gid of the tile at a column/row in a tilemap layer.
+// extern func tile_get_tile as tile_get_tile(tilemap: Tilemap, layer: int, column: int, row: int) -> int
+// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+// extern func tile_set_tile as tile_set_tile(tilemap: Tilemap, layer: int, column: int, row: int, gid: int) -> void
+// Draw a single tile from a tilemap on the screen.
+// extern func tile_draw_tile as tile_draw_tile(tilemap: Tilemap, gid: int, posX: int, posY: int) -> void
+// Get a copy of the image of a single tile in a tilemap.
+// extern func tile_image as tile_image(tilemap: Tilemap, gid: int) -> Image
+// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+// extern func tile_gid_prop as tile_gid_prop(tilemap: Tilemap, gid: int, name: *char) -> int
+// Get the number of custom properties on a tile of a tilemap.
+// extern func tile_gid_prop_count as tile_gid_prop_count(tilemap: Tilemap, gid: int) -> int
+// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+// extern func tile_gid_prop_at as tile_gid_prop_at(tilemap: Tilemap, gid: int, index: int) -> int
+// Get the number of objects on an object-layer of a tilemap.
+// extern func tile_object_count as tile_object_count(tilemap: Tilemap, layer: int) -> int
+// Get an object from an object-layer of a tilemap.
+// extern func tile_object as tile_object(tilemap: Tilemap, layer: int, index: int) -> int
+// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+// extern func tile_object_index as tile_object_index(tilemap: Tilemap, layer: int, name: *char) -> int
+// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+// extern func tile_object_prop as tile_object_prop(tilemap: Tilemap, layer: int, index: int, name: *char) -> int
+// Get the number of custom properties on an object of a tilemap.
+// extern func tile_object_prop_count as tile_object_prop_count(tilemap: Tilemap, layer: int, index: int) -> int
+// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+// extern func tile_object_prop_at as tile_object_prop_at(tilemap: Tilemap, layer: int, index: int, propIndex: int) -> int
 // TYPES
 // UTILITIES
 // Get system-time (ms) since unix epoch.

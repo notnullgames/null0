@@ -4,7 +4,7 @@
 // Generates Zig code from the API definitions
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const out = [
   `//! null0 - Zig bindings for the null0 fantasy console
@@ -93,8 +93,12 @@ const memberTypes = {
   i32: 'i32',
   f32: 'f32',
   u32: 'u32',
-  u8: 'u8'
+  u8: 'u8',
+  string: '[*:0]u8'
 }
+
+// zig wants a valid default for every field, and 0 is only one for the numbers
+const memberDefault = (type) => (type === 'string' ? 'undefined' : enums[type] ? '@enumFromInt(0)' : '0')
 
 const argsMap = (args) =>
   Object.entries(args)
@@ -102,6 +106,11 @@ const argsMap = (args) =>
     .join(', ')
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// a new struct fills itself in: passed by reference, and returned as a
+// pointer into cart memory. enums already carry their own type name through
+seedTypes(argTypes, { structs }, { structType: (name) => name })
+seedTypes(retTypes, { structs }, { structType: (name) => `*${name}` })
 
 out.push('pub const Image = u32;')
 out.push('pub const Font = u32;')
@@ -113,7 +122,7 @@ for (const [structName, structDef] of Object.entries(structs)) {
   out.push('', `/// ${structDef.description}`)
   out.push(`pub const ${structName} = extern struct {`)
   for (const [memberName, memberType] of Object.entries(structDef.members)) {
-    out.push(`    ${memberName}: ${memberTypes[memberType] || memberType} = 0,`)
+    out.push(`    ${memberName}: ${memberTypes[memberType] || memberType} = ${memberDefault(memberType)},`)
   }
   out.push('};')
 }

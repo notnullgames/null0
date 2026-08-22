@@ -9,7 +9,7 @@
 // on the Python side as dicts, e.g. {'r':.., 'g':.., 'b':.., 'a':..}.
 
 import { writeFile } from 'node:fs/promises'
-import { getApi, indent } from './utils.js'
+import { getApi, indent, seedTypes } from './utils.js'
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
@@ -50,7 +50,7 @@ const externRetTypes = {
   SfxParams: 'u32'
 }
 
-const memberTypes = { i32: 'i32', f32: 'f32', u32: 'u32', u8: 'u8' }
+const memberTypes = { i32: 'i32', f32: 'f32', u32: 'u32', u8: 'u8', string: '*const u8' }
 
 // Reserved keywords in Rust that need to be escaped
 const rustReservedKeywords = new Set(['type', 'impl', 'trait', 'struct', 'enum', 'fn', 'let', 'mut', 'const', 'static', 'if', 'else', 'match', 'for', 'while', 'loop', 'break', 'continue', 'return', 'mod', 'pub', 'use', 'extern', 'crate', 'super', 'self', 'Self', 'where', 'unsafe', 'async', 'await', 'move', 'ref', 'in', 'as', 'dyn', 'abstract', 'become', 'box', 'do', 'final', 'macro', 'override', 'priv', 'typeof', 'unsized', 'virtual', 'yield', 'try'])
@@ -58,6 +58,13 @@ const rustName = (name) => (rustReservedKeywords.has(name) ? `r#${name}` : name)
 
 // struct types get converted to/from a python dict via generated helpers
 const structArgTypes = new Set(['Color', 'Vector', 'Rectangle', 'Dimensions', 'SfxParams'])
+const isStruct = (type) => Boolean(structs[type])
+
+// this shim has no enum types of its own (the values reach python as ints),
+// and a struct return is the u32 address the host allocated in cart memory
+seedTypes(externTypes, { enums, structs }, { enumType: 'i32', structType: (name) => name })
+seedTypes(externRetTypes, { enums, structs }, { enumType: 'i32', structType: 'u32' })
+seedTypes(memberTypes, { enums }, { enumType: 'i32' })
 
 const out = [
   '// GENERATED FILE - do not edit by hand. See tools/gen_cart_python.js',
@@ -79,7 +86,7 @@ for (const [structName, structDef] of Object.entries(structs)) {
   out.push('#[derive(Debug, Clone, Copy, PartialEq)]')
   out.push(`pub struct ${structName} {`)
   for (const [memberName, memberType] of Object.entries(structDef.members)) {
-    out.push(`    pub ${memberName}: ${memberTypes[memberType] || memberType},`)
+    out.push(`    pub ${rustName(memberName)}: ${memberTypes[memberType] || memberType},`)
   }
   out.push('}')
   out.push('')
@@ -98,24 +105,47 @@ for (const [apiName, funcDef] of Object.entries(api)) {
 out.push('}')
 out.push('')
 
+// ---- helpers ----
+out.push(`// a host string (bytes in our own memory, valid until this callback returns)
+fn cstr_to_py(p: *const u8, vm: &VirtualMachine) -> PyObjectRef {
+    if p.is_null() {
+        return vm.ctx.new_str("").into();
+    }
+    let mut len = 0usize;
+    unsafe {
+        while *p.add(len) != 0 {
+            len += 1;
+        }
+        let bytes = core::slice::from_raw_parts(p, len);
+        vm.ctx.new_str(String::from_utf8_lossy(bytes).into_owned()).into()
+    }
+}
+`, '')
+
 // ---- dict <-> struct conversion helpers ----
 const convHelper = (structName) => {
   const members = Object.entries(structs[structName].members)
   const lines = []
-  lines.push(`fn ${structName.toLowerCase()}_from_py(obj: &PyObjectRef, vm: &VirtualMachine) -> PyResult<${structName}> {`)
-  lines.push(`    Ok(${structName} {`)
-  for (const [memberName, memberType] of members) {
-    lines.push(`        ${memberName}: obj.get_item("${memberName}", vm)?.try_into_value::<${memberTypes[memberType]}>(vm)?,`)
+  if (structArgTypes.has(structName)) {
+    lines.push(`fn ${structName.toLowerCase()}_from_py(obj: &PyObjectRef, vm: &VirtualMachine) -> PyResult<${structName}> {`)
+    lines.push(`    Ok(${structName} {`)
+    for (const [memberName, memberType] of members) {
+      lines.push(`        ${rustName(memberName)}: obj.get_item("${memberName}", vm)?.try_into_value::<${memberTypes[memberType]}>(vm)?,`)
+    }
+    lines.push('    })')
+    lines.push('}')
+    lines.push('')
   }
-  lines.push('    })')
-  lines.push('}')
-  lines.push('')
   lines.push(`fn ${structName.toLowerCase()}_to_py(v: ${structName}, vm: &VirtualMachine) -> PyObjectRef {`)
   lines.push('    let d = vm.ctx.new_dict();')
   for (const [memberName, memberType] of members) {
+    if (memberType === 'string') {
+      lines.push(`    d.set_item("${memberName}", cstr_to_py(v.${rustName(memberName)}, vm), vm).unwrap();`)
+      continue
+    }
     const ctor = memberType === 'f32' ? 'new_float' : 'new_int'
     const cast = memberType === 'f32' ? ' as f64' : ''
-    lines.push(`    d.set_item("${memberName}", vm.ctx.${ctor}(v.${memberName}${cast}).into(), vm).unwrap();`)
+    lines.push(`    d.set_item("${memberName}", vm.ctx.${ctor}(v.${rustName(memberName)}${cast}).into(), vm).unwrap();`)
   }
   lines.push('    d.into()')
   lines.push('}')
@@ -182,7 +212,7 @@ for (const [apiName, apiObj] of Object.entries(api)) {
     if (returns === 'void') {
       out.push(`    ${call};`)
       out.push('    Ok(vm.ctx.none())')
-    } else if (structArgTypes.has(returns)) {
+    } else if (isStruct(returns)) {
       out.push(`    let ret = ${call} as *const ${returns};`)
       out.push('    if ret.is_null() {')
       out.push('        return Ok(vm.ctx.none());')
@@ -190,7 +220,7 @@ for (const [apiName, apiObj] of Object.entries(api)) {
       out.push(`    Ok(${returns.toLowerCase()}_to_py(unsafe { *ret }, vm))`)
     } else if (returns === 'string') {
       out.push(`    let ret = ${call};`)
-      out.push('    Ok(vm.ctx.none()) // null0 API defines no string-returning functions today')
+      out.push('    Ok(cstr_to_py(ret as *const u8, vm))')
     } else {
       const ctor = returns === 'f32' ? 'new_float' : returns === 'bool' ? 'new_bool' : 'new_int'
       const cast = returns === 'f32' ? ' as f64' : ''

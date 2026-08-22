@@ -108,6 +108,29 @@ struct Color {
   u8 a
 }
 
+// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+struct TilemapProp {
+  string name,
+  TilePropType type,
+  i32 integer,
+  f32 number,
+  string text
+}
+
+// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+struct TilemapObject {
+  i32 id,
+  string name,
+  string type,
+  i32 gid,
+  f32 x,
+  f32 y,
+  f32 width,
+  f32 height,
+  f32 rotation,
+  i32 visible
+}
+
 ```
 
 
@@ -288,6 +311,25 @@ enum MouseButton {
   MOUSE_BUTTON_LEFT = 1,
   MOUSE_BUTTON_RIGHT = 2,
   MOUSE_BUTTON_MIDDLE = 3
+}
+
+// The kind of a layer in a tilemap.
+enum TileLayerKind {
+  LAYER_NONE = 0,
+  LAYER_TILE = 1,
+  LAYER_OBJECT = 2,
+  LAYER_IMAGE = 3,
+  LAYER_GROUP = 4
+}
+
+// The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+enum TilePropType {
+  PROP_NONE = 0,
+  PROP_INT = 1,
+  PROP_BOOL = 2,
+  PROP_FLOAT = 3,
+  PROP_STRING = 4,
+  PROP_COLOR = 5
 }
 
 ```
@@ -1452,6 +1494,51 @@ void tile_update(Tilemap tilemap, f32 deltaTime)
 ```
 
 
+#### tile_map_size
+
+Get the size of a tilemap, in tiles.
+
+```c
+Dimensions tile_map_size(Tilemap tilemap)
+```
+
+
+#### tile_tile_size
+
+Get the size of a single tile of a tilemap, in pixels.
+
+```c
+Dimensions tile_tile_size(Tilemap tilemap)
+```
+
+
+#### tile_map_prop
+
+Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+
+```c
+TilemapProp tile_map_prop(Tilemap tilemap, string name)
+```
+
+
+#### tile_map_prop_count
+
+Get the number of custom properties on a tilemap.
+
+```c
+i32 tile_map_prop_count(Tilemap tilemap)
+```
+
+
+#### tile_map_prop_at
+
+Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+
+```c
+TilemapProp tile_map_prop_at(Tilemap tilemap, i32 index)
+```
+
+
 #### tile_draw
 
 Draw a tilemap on the screen.
@@ -1479,21 +1566,129 @@ void tile_draw_on_image(Image dst, Tilemap tilemap, i32 posX, i32 posY)
 ```
 
 
-#### tile_draw_tile
+#### tilemap_image
 
-Draw a single tile from a tilemap on the screen.
+Render a whole tilemap to a new image.
 
 ```c
-void tile_draw_tile(Tilemap tilemap, i32 gid, i32 posX, i32 posY)
+Image tilemap_image(Tilemap tilemap)
 ```
 
 
 #### tile_layer_count
 
-Get the number of layers in a tilemap.
+Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 
 ```c
 i32 tile_layer_count(Tilemap tilemap)
+```
+
+
+#### tile_layer_index
+
+Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+
+```c
+i32 tile_layer_index(Tilemap tilemap, string name)
+```
+
+
+#### tile_layer_name
+
+Get the name of a layer of a tilemap.
+
+```c
+string tile_layer_name(Tilemap tilemap, i32 layer)
+```
+
+
+#### tile_layer_type
+
+Get the kind of a layer of a tilemap.
+
+```c
+TileLayerKind tile_layer_type(Tilemap tilemap, i32 layer)
+```
+
+
+#### tile_layer_size
+
+Get the size of a layer of a tilemap, in tiles.
+
+```c
+Dimensions tile_layer_size(Tilemap tilemap, i32 layer)
+```
+
+
+#### tile_layer_visible
+
+Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+
+```c
+bool tile_layer_visible(Tilemap tilemap, i32 layer)
+```
+
+
+#### tile_layer_prop
+
+Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+
+```c
+TilemapProp tile_layer_prop(Tilemap tilemap, i32 layer, string name)
+```
+
+
+#### tile_layer_prop_count
+
+Get the number of custom properties on a layer of a tilemap.
+
+```c
+i32 tile_layer_prop_count(Tilemap tilemap, i32 layer)
+```
+
+
+#### tile_layer_prop_at
+
+Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+
+```c
+TilemapProp tile_layer_prop_at(Tilemap tilemap, i32 layer, i32 index)
+```
+
+
+#### tile_draw_layer
+
+Draw a single layer of a tilemap on the screen.
+
+```c
+void tile_draw_layer(Tilemap tilemap, i32 layer, i32 posX, i32 posY)
+```
+
+
+#### tile_draw_layer_tint
+
+Draw a single layer of a tilemap on the screen, tinted by a color.
+
+```c
+void tile_draw_layer_tint(Tilemap tilemap, i32 layer, i32 posX, i32 posY, Color tint)
+```
+
+
+#### tile_draw_layer_on_image
+
+Draw a single layer of a tilemap on an image.
+
+```c
+void tile_draw_layer_on_image(Image dst, Tilemap tilemap, i32 layer, i32 posX, i32 posY)
+```
+
+
+#### tile_layer_image
+
+Render a single layer of a tilemap to a new image.
+
+```c
+Image tile_layer_image(Tilemap tilemap, i32 layer)
 ```
 
 
@@ -1508,10 +1703,19 @@ i32 tile_get_tile(Tilemap tilemap, i32 layer, i32 column, i32 row)
 
 #### tile_set_tile
 
-Set the gid of the tile at a column/row in a tilemap layer.
+Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 
 ```c
 void tile_set_tile(Tilemap tilemap, i32 layer, i32 column, i32 row, i32 gid)
+```
+
+
+#### tile_draw_tile
+
+Draw a single tile from a tilemap on the screen.
+
+```c
+void tile_draw_tile(Tilemap tilemap, i32 gid, i32 posX, i32 posY)
 ```
 
 
@@ -1524,12 +1728,84 @@ Image tile_image(Tilemap tilemap, i32 gid)
 ```
 
 
-#### tilemap_image
+#### tile_gid_prop
 
-Render a whole tilemap to a new image.
+Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
 
 ```c
-Image tilemap_image(Tilemap tilemap)
+TilemapProp tile_gid_prop(Tilemap tilemap, i32 gid, string name)
+```
+
+
+#### tile_gid_prop_count
+
+Get the number of custom properties on a tile of a tilemap.
+
+```c
+i32 tile_gid_prop_count(Tilemap tilemap, i32 gid)
+```
+
+
+#### tile_gid_prop_at
+
+Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+
+```c
+TilemapProp tile_gid_prop_at(Tilemap tilemap, i32 gid, i32 index)
+```
+
+
+#### tile_object_count
+
+Get the number of objects on an object-layer of a tilemap.
+
+```c
+i32 tile_object_count(Tilemap tilemap, i32 layer)
+```
+
+
+#### tile_object
+
+Get an object from an object-layer of a tilemap.
+
+```c
+TilemapObject tile_object(Tilemap tilemap, i32 layer, i32 index)
+```
+
+
+#### tile_object_index
+
+Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+
+```c
+i32 tile_object_index(Tilemap tilemap, i32 layer, string name)
+```
+
+
+#### tile_object_prop
+
+Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+
+```c
+TilemapProp tile_object_prop(Tilemap tilemap, i32 layer, i32 index, string name)
+```
+
+
+#### tile_object_prop_count
+
+Get the number of custom properties on an object of a tilemap.
+
+```c
+i32 tile_object_prop_count(Tilemap tilemap, i32 layer, i32 index)
+```
+
+
+#### tile_object_prop_at
+
+Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+
+```c
+TilemapProp tile_object_prop_at(Tilemap tilemap, i32 layer, i32 index, i32 propIndex)
 ```
 
 ---

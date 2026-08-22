@@ -645,6 +645,26 @@ class Null0 {
   @:hlNative("null0hx", "tile_update")
   public static function tileUpdate(tilemap:Tilemap, deltaTime:Single):Void { }
 
+  /** Get the size of a tilemap, in tiles. */
+  @:hlNative("null0hx", "tile_map_size")
+  public static function tileMapSize(tilemap:Tilemap):Dimensions { return null; }
+
+  /** Get the size of a single tile of a tilemap, in pixels. */
+  @:hlNative("null0hx", "tile_tile_size")
+  public static function tileTileSize(tilemap:Tilemap):Dimensions { return null; }
+
+  /** Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.) */
+  @:hlNative("null0hx", "tile_map_prop")
+  public static function tileMapProp(tilemap:Tilemap, name:String):TilemapProp { return null; }
+
+  /** Get the number of custom properties on a tilemap. */
+  @:hlNative("null0hx", "tile_map_prop_count")
+  public static function tileMapPropCount(tilemap:Tilemap):Int { return 0; }
+
+  /** Get a custom property of a tilemap, by index (PROP_NONE when out of range.) */
+  @:hlNative("null0hx", "tile_map_prop_at")
+  public static function tileMapPropAt(tilemap:Tilemap, index:Int):TilemapProp { return null; }
+
   /** Draw a tilemap on the screen. */
   @:hlNative("null0hx", "tile_draw")
   public static function tileDraw(tilemap:Tilemap, posX:Int, posY:Int):Void { }
@@ -657,29 +677,116 @@ class Null0 {
   @:hlNative("null0hx", "tile_draw_on_image")
   public static function tileDrawOnImage(dst:Image, tilemap:Tilemap, posX:Int, posY:Int):Void { }
 
-  /** Draw a single tile from a tilemap on the screen. */
-  @:hlNative("null0hx", "tile_draw_tile")
-  public static function tileDrawTile(tilemap:Tilemap, gid:Int, posX:Int, posY:Int):Void { }
+  /** Render a whole tilemap to a new image. */
+  @:hlNative("null0hx", "tilemap_image")
+  public static function tilemapImage(tilemap:Tilemap):Image { return 0; }
 
-  /** Get the number of layers in a tilemap. */
+  /** Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too. */
   @:hlNative("null0hx", "tile_layer_count")
   public static function tileLayerCount(tilemap:Tilemap):Int { return 0; }
+
+  /** Get the index of a layer of a tilemap, by name (-1 when there is no such layer.) */
+  @:hlNative("null0hx", "tile_layer_index")
+  public static function tileLayerIndex(tilemap:Tilemap, name:String):Int { return 0; }
+
+  /** Get the name of a layer of a tilemap. */
+  public static function tileLayerName(tilemap:Tilemap, layer:Int):String {
+    return @:privateAccess String.fromUTF8(_tileLayerName(tilemap, layer));
+  }
+  @:hlNative("null0hx", "tile_layer_name")
+  static function _tileLayerName(tilemap:Tilemap, layer:Int):hl.Bytes { return null; }
+
+  /** Get the kind of a layer of a tilemap. */
+  @:hlNative("null0hx", "tile_layer_type")
+  public static function tileLayerType(tilemap:Tilemap, layer:Int):TileLayerKind { return null; }
+
+  /** Get the size of a layer of a tilemap, in tiles. */
+  @:hlNative("null0hx", "tile_layer_size")
+  public static function tileLayerSize(tilemap:Tilemap, layer:Int):Dimensions { return null; }
+
+  /** Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing. */
+  @:hlNative("null0hx", "tile_layer_visible")
+  public static function tileLayerVisible(tilemap:Tilemap, layer:Int):Bool { return false; }
+
+  /** Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.) */
+  @:hlNative("null0hx", "tile_layer_prop")
+  public static function tileLayerProp(tilemap:Tilemap, layer:Int, name:String):TilemapProp { return null; }
+
+  /** Get the number of custom properties on a layer of a tilemap. */
+  @:hlNative("null0hx", "tile_layer_prop_count")
+  public static function tileLayerPropCount(tilemap:Tilemap, layer:Int):Int { return 0; }
+
+  /** Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.) */
+  @:hlNative("null0hx", "tile_layer_prop_at")
+  public static function tileLayerPropAt(tilemap:Tilemap, layer:Int, index:Int):TilemapProp { return null; }
+
+  /** Draw a single layer of a tilemap on the screen. */
+  @:hlNative("null0hx", "tile_draw_layer")
+  public static function tileDrawLayer(tilemap:Tilemap, layer:Int, posX:Int, posY:Int):Void { }
+
+  /** Draw a single layer of a tilemap on the screen, tinted by a color. */
+  @:hlNative("null0hx", "tile_draw_layer_tint")
+  public static function tileDrawLayerTint(tilemap:Tilemap, layer:Int, posX:Int, posY:Int, tint:Color):Void { }
+
+  /** Draw a single layer of a tilemap on an image. */
+  @:hlNative("null0hx", "tile_draw_layer_on_image")
+  public static function tileDrawLayerOnImage(dst:Image, tilemap:Tilemap, layer:Int, posX:Int, posY:Int):Void { }
+
+  /** Render a single layer of a tilemap to a new image. */
+  @:hlNative("null0hx", "tile_layer_image")
+  public static function tileLayerImage(tilemap:Tilemap, layer:Int):Image { return 0; }
 
   /** Get the gid of the tile at a column/row in a tilemap layer. */
   @:hlNative("null0hx", "tile_get_tile")
   public static function tileGetTile(tilemap:Tilemap, layer:Int, column:Int, row:Int):Int { return 0; }
 
-  /** Set the gid of the tile at a column/row in a tilemap layer. */
+  /** Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself. */
   @:hlNative("null0hx", "tile_set_tile")
   public static function tileSetTile(tilemap:Tilemap, layer:Int, column:Int, row:Int, gid:Int):Void { }
+
+  /** Draw a single tile from a tilemap on the screen. */
+  @:hlNative("null0hx", "tile_draw_tile")
+  public static function tileDrawTile(tilemap:Tilemap, gid:Int, posX:Int, posY:Int):Void { }
 
   /** Get a copy of the image of a single tile in a tilemap. */
   @:hlNative("null0hx", "tile_image")
   public static function tileImage(tilemap:Tilemap, gid:Int):Image { return 0; }
 
-  /** Render a whole tilemap to a new image. */
-  @:hlNative("null0hx", "tilemap_image")
-  public static function tilemapImage(tilemap:Tilemap):Image { return 0; }
+  /** Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them. */
+  @:hlNative("null0hx", "tile_gid_prop")
+  public static function tileGidProp(tilemap:Tilemap, gid:Int, name:String):TilemapProp { return null; }
+
+  /** Get the number of custom properties on a tile of a tilemap. */
+  @:hlNative("null0hx", "tile_gid_prop_count")
+  public static function tileGidPropCount(tilemap:Tilemap, gid:Int):Int { return 0; }
+
+  /** Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.) */
+  @:hlNative("null0hx", "tile_gid_prop_at")
+  public static function tileGidPropAt(tilemap:Tilemap, gid:Int, index:Int):TilemapProp { return null; }
+
+  /** Get the number of objects on an object-layer of a tilemap. */
+  @:hlNative("null0hx", "tile_object_count")
+  public static function tileObjectCount(tilemap:Tilemap, layer:Int):Int { return 0; }
+
+  /** Get an object from an object-layer of a tilemap. */
+  @:hlNative("null0hx", "tile_object")
+  public static function tileObject(tilemap:Tilemap, layer:Int, index:Int):TilemapObject { return null; }
+
+  /** Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.) */
+  @:hlNative("null0hx", "tile_object_index")
+  public static function tileObjectIndex(tilemap:Tilemap, layer:Int, name:String):Int { return 0; }
+
+  /** Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.) */
+  @:hlNative("null0hx", "tile_object_prop")
+  public static function tileObjectProp(tilemap:Tilemap, layer:Int, index:Int, name:String):TilemapProp { return null; }
+
+  /** Get the number of custom properties on an object of a tilemap. */
+  @:hlNative("null0hx", "tile_object_prop_count")
+  public static function tileObjectPropCount(tilemap:Tilemap, layer:Int, index:Int):Int { return 0; }
+
+  /** Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.) */
+  @:hlNative("null0hx", "tile_object_prop_at")
+  public static function tileObjectPropAt(tilemap:Tilemap, layer:Int, index:Int, propIndex:Int):TilemapProp { return null; }
 
   // TYPES
 
@@ -811,6 +918,50 @@ class Color {
     this.g = g;
     this.b = b;
     this.a = a;
+  }
+}
+
+/** A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`. */
+@:struct
+class TilemapProp {
+  public var name:hl.Bytes;
+  public var type:TilePropType;
+  public var integer:Int;
+  public var number:Single;
+  public var text:hl.Bytes;
+  public function new(name:hl.Bytes = 0, type:TilePropType = 0, integer:Int = 0, number:Single = 0, text:hl.Bytes = 0) {
+    this.name = name;
+    this.type = type;
+    this.integer = integer;
+    this.number = number;
+    this.text = text;
+  }
+}
+
+/** An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it. */
+@:struct
+class TilemapObject {
+  public var id:Int;
+  public var name:hl.Bytes;
+  public var type:hl.Bytes;
+  public var gid:Int;
+  public var x:Single;
+  public var y:Single;
+  public var width:Single;
+  public var height:Single;
+  public var rotation:Single;
+  public var visible:Int;
+  public function new(id:Int = 0, name:hl.Bytes = 0, type:hl.Bytes = 0, gid:Int = 0, x:Single = 0, y:Single = 0, width:Single = 0, height:Single = 0, rotation:Single = 0, visible:Int = 0) {
+    this.id = id;
+    this.name = name;
+    this.type = type;
+    this.gid = gid;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.rotation = rotation;
+    this.visible = visible;
   }
 }
 
@@ -986,6 +1137,25 @@ enum abstract MouseButton(Int) from Int to Int {
   var MOUSE_BUTTON_LEFT = 1;
   var MOUSE_BUTTON_RIGHT = 2;
   var MOUSE_BUTTON_MIDDLE = 3;
+}
+
+/** The kind of a layer in a tilemap. */
+enum abstract TileLayerKind(Int) from Int to Int {
+  var LAYER_NONE = 0;
+  var LAYER_TILE = 1;
+  var LAYER_OBJECT = 2;
+  var LAYER_IMAGE = 3;
+  var LAYER_GROUP = 4;
+}
+
+/** The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING. */
+enum abstract TilePropType(Int) from Int to Int {
+  var PROP_NONE = 0;
+  var PROP_INT = 1;
+  var PROP_BOOL = 2;
+  var PROP_FLOAT = 3;
+  var PROP_STRING = 4;
+  var PROP_COLOR = 5;
 }
 
 /** An image. 0 is "the screen". */

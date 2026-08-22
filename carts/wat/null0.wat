@@ -250,6 +250,21 @@
 (global $mouse_button_right i32 (i32.const 2))
 (global $mouse_button_middle i32 (i32.const 3))
 
+;; TileLayerKind: The kind of a layer in a tilemap.
+(global $layer_none i32 (i32.const 0))
+(global $layer_tile i32 (i32.const 1))
+(global $layer_object i32 (i32.const 2))
+(global $layer_image i32 (i32.const 3))
+(global $layer_group i32 (i32.const 4))
+
+;; TilePropType: The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+(global $prop_none i32 (i32.const 0))
+(global $prop_int i32 (i32.const 1))
+(global $prop_bool i32 (i32.const 2))
+(global $prop_float i32 (i32.const 3))
+(global $prop_string i32 (i32.const 4))
+(global $prop_color i32 (i32.const 5))
+
 
 ;; struct SfxParams: Sfx parameters.
 ;;   offset 0: randSeed (u32, read with i32.load)
@@ -296,6 +311,25 @@
 ;;   offset 1: g (u8, read with i32.load8_u)
 ;;   offset 2: b (u8, read with i32.load8_u)
 ;;   offset 3: a (u8, read with i32.load8_u)
+
+;; struct TilemapProp: A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+;;   offset 0: name (string, read with i32.load (a pointer to utf8 bytes))
+;;   offset 4: type (TilePropType, read with i32.load)
+;;   offset 8: integer (i32, read with i32.load)
+;;   offset 12: number (f32, read with f32.load)
+;;   offset 16: text (string, read with i32.load (a pointer to utf8 bytes))
+
+;; struct TilemapObject: An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+;;   offset 0: id (i32, read with i32.load)
+;;   offset 4: name (string, read with i32.load (a pointer to utf8 bytes))
+;;   offset 8: type (string, read with i32.load (a pointer to utf8 bytes))
+;;   offset 12: gid (i32, read with i32.load)
+;;   offset 16: x (f32, read with f32.load)
+;;   offset 20: y (f32, read with f32.load)
+;;   offset 24: width (f32, read with f32.load)
+;;   offset 28: height (f32, read with f32.load)
+;;   offset 32: rotation (f32, read with f32.load)
+;;   offset 36: visible (i32, read with i32.load)
 
 
 ;; -- COLORS --
@@ -543,24 +577,76 @@
 (import "null0" "unload_tilemap" (func $unload_tilemap (param i32)))
 ;; Update a tilemap's animation timers (deltaTime is in seconds).
 (import "null0" "tile_update" (func $tile_update (param i32 f32)))
+;; Get the size of a tilemap, in tiles.
+(import "null0" "tile_map_size" (func $tile_map_size (param i32) (result i32)))
+;; Get the size of a single tile of a tilemap, in pixels.
+(import "null0" "tile_tile_size" (func $tile_tile_size (param i32) (result i32)))
+;; Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+(import "null0" "tile_map_prop" (func $tile_map_prop (param i32 i32) (result i32)))
+;; Get the number of custom properties on a tilemap.
+(import "null0" "tile_map_prop_count" (func $tile_map_prop_count (param i32) (result i32)))
+;; Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+(import "null0" "tile_map_prop_at" (func $tile_map_prop_at (param i32 i32) (result i32)))
 ;; Draw a tilemap on the screen.
 (import "null0" "tile_draw" (func $tile_draw (param i32 i32 i32)))
 ;; Draw a tilemap on the screen, tinted by a color.
 (import "null0" "tile_draw_tint" (func $tile_draw_tint (param i32 i32 i32 i32)))
 ;; Draw a tilemap on an image.
 (import "null0" "tile_draw_on_image" (func $tile_draw_on_image (param i32 i32 i32 i32)))
-;; Draw a single tile from a tilemap on the screen.
-(import "null0" "tile_draw_tile" (func $tile_draw_tile (param i32 i32 i32 i32)))
-;; Get the number of layers in a tilemap.
-(import "null0" "tile_layer_count" (func $tile_layer_count (param i32) (result i32)))
-;; Get the gid of the tile at a column/row in a tilemap layer.
-(import "null0" "tile_get_tile" (func $tile_get_tile (param i32 i32 i32 i32) (result i32)))
-;; Set the gid of the tile at a column/row in a tilemap layer.
-(import "null0" "tile_set_tile" (func $tile_set_tile (param i32 i32 i32 i32 i32)))
-;; Get a copy of the image of a single tile in a tilemap.
-(import "null0" "tile_image" (func $tile_image (param i32 i32) (result i32)))
 ;; Render a whole tilemap to a new image.
 (import "null0" "tilemap_image" (func $tilemap_image (param i32) (result i32)))
+;; Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+(import "null0" "tile_layer_count" (func $tile_layer_count (param i32) (result i32)))
+;; Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+(import "null0" "tile_layer_index" (func $tile_layer_index (param i32 i32) (result i32)))
+;; Get the name of a layer of a tilemap.
+(import "null0" "tile_layer_name" (func $tile_layer_name (param i32 i32) (result i32)))
+;; Get the kind of a layer of a tilemap.
+(import "null0" "tile_layer_type" (func $tile_layer_type (param i32 i32) (result i32)))
+;; Get the size of a layer of a tilemap, in tiles.
+(import "null0" "tile_layer_size" (func $tile_layer_size (param i32 i32) (result i32)))
+;; Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+(import "null0" "tile_layer_visible" (func $tile_layer_visible (param i32 i32) (result i32)))
+;; Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+(import "null0" "tile_layer_prop" (func $tile_layer_prop (param i32 i32 i32) (result i32)))
+;; Get the number of custom properties on a layer of a tilemap.
+(import "null0" "tile_layer_prop_count" (func $tile_layer_prop_count (param i32 i32) (result i32)))
+;; Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+(import "null0" "tile_layer_prop_at" (func $tile_layer_prop_at (param i32 i32 i32) (result i32)))
+;; Draw a single layer of a tilemap on the screen.
+(import "null0" "tile_draw_layer" (func $tile_draw_layer (param i32 i32 i32 i32)))
+;; Draw a single layer of a tilemap on the screen, tinted by a color.
+(import "null0" "tile_draw_layer_tint" (func $tile_draw_layer_tint (param i32 i32 i32 i32 i32)))
+;; Draw a single layer of a tilemap on an image.
+(import "null0" "tile_draw_layer_on_image" (func $tile_draw_layer_on_image (param i32 i32 i32 i32 i32)))
+;; Render a single layer of a tilemap to a new image.
+(import "null0" "tile_layer_image" (func $tile_layer_image (param i32 i32) (result i32)))
+;; Get the gid of the tile at a column/row in a tilemap layer.
+(import "null0" "tile_get_tile" (func $tile_get_tile (param i32 i32 i32 i32) (result i32)))
+;; Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+(import "null0" "tile_set_tile" (func $tile_set_tile (param i32 i32 i32 i32 i32)))
+;; Draw a single tile from a tilemap on the screen.
+(import "null0" "tile_draw_tile" (func $tile_draw_tile (param i32 i32 i32 i32)))
+;; Get a copy of the image of a single tile in a tilemap.
+(import "null0" "tile_image" (func $tile_image (param i32 i32) (result i32)))
+;; Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+(import "null0" "tile_gid_prop" (func $tile_gid_prop (param i32 i32 i32) (result i32)))
+;; Get the number of custom properties on a tile of a tilemap.
+(import "null0" "tile_gid_prop_count" (func $tile_gid_prop_count (param i32 i32) (result i32)))
+;; Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+(import "null0" "tile_gid_prop_at" (func $tile_gid_prop_at (param i32 i32 i32) (result i32)))
+;; Get the number of objects on an object-layer of a tilemap.
+(import "null0" "tile_object_count" (func $tile_object_count (param i32 i32) (result i32)))
+;; Get an object from an object-layer of a tilemap.
+(import "null0" "tile_object" (func $tile_object (param i32 i32 i32) (result i32)))
+;; Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+(import "null0" "tile_object_index" (func $tile_object_index (param i32 i32 i32) (result i32)))
+;; Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+(import "null0" "tile_object_prop" (func $tile_object_prop (param i32 i32 i32 i32) (result i32)))
+;; Get the number of custom properties on an object of a tilemap.
+(import "null0" "tile_object_prop_count" (func $tile_object_prop_count (param i32 i32 i32) (result i32)))
+;; Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+(import "null0" "tile_object_prop_at" (func $tile_object_prop_at (param i32 i32 i32 i32) (result i32)))
 
 ;; -- TYPES --
 

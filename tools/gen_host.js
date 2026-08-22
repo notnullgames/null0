@@ -18,6 +18,10 @@ const types = {
   Sound: 'uint32_t',
   Tilemap: 'uint32_t',
   Color: 'uint32_t',
+  TilemapProp: 'uint32_t',
+  TilemapObject: 'uint32_t',
+  TileLayerKind: 'int32_t',
+  TilePropType: 'int32_t',
   ImageFilter: 'pntr_filter',
   Key: 'pntr_app_key',
   GamepadButton: 'pntr_app_gamepad_button',
@@ -148,11 +152,37 @@ const functions = {
   tile_draw_tint: 'pntr_draw_tiled(images[0], ',
   tile_draw_on_image: 'pntr_draw_tiled(',
   tile_draw_tile: 'null0_tile_draw_tile(images[0], ',
-  tile_layer_count: 'pntr_tiled_layer_count(',
+  tile_layer_count: 'null0_tile_layer_count(',
   tile_get_tile: 'null0_tile_get_tile(',
   tile_set_tile: 'null0_tile_set_tile(',
   tile_image: 'null0_tile_image(',
   tilemap_image: 'null0_gen_image_tiled(',
+  tile_map_size: 'null0_tile_map_size(',
+  tile_tile_size: 'null0_tile_tile_size(',
+  tile_map_prop: 'null0_tile_map_prop(',
+  tile_map_prop_count: 'null0_tile_map_prop_count(',
+  tile_map_prop_at: 'null0_tile_map_prop_at(',
+  tile_layer_index: 'null0_tile_layer_index(',
+  tile_layer_name: 'null0_tile_layer_name(',
+  tile_layer_type: 'null0_tile_layer_type(',
+  tile_layer_size: 'null0_tile_layer_size(',
+  tile_layer_visible: 'null0_tile_layer_visible(',
+  tile_layer_prop: 'null0_tile_layer_prop(',
+  tile_layer_prop_count: 'null0_tile_layer_prop_count(',
+  tile_layer_prop_at: 'null0_tile_layer_prop_at(',
+  tile_draw_layer: 'null0_tile_draw_layer(images[0], ',
+  tile_draw_layer_tint: 'null0_tile_draw_layer(images[0], ',
+  tile_draw_layer_on_image: 'null0_tile_draw_layer(',
+  tile_layer_image: 'null0_tile_layer_image(',
+  tile_gid_prop: 'null0_tile_gid_prop(',
+  tile_gid_prop_count: 'null0_tile_gid_prop_count(',
+  tile_gid_prop_at: 'null0_tile_gid_prop_at(',
+  tile_object_count: 'null0_tile_object_count(',
+  tile_object: 'null0_tile_object(',
+  tile_object_index: 'null0_tile_object_index(',
+  tile_object_prop: 'null0_tile_object_prop(',
+  tile_object_prop_count: 'null0_tile_object_prop_count(',
+  tile_object_prop_at: 'null0_tile_object_prop_at(',
   gui_begin_window: 'null0_gui_begin_window(',
   gui_end_window: 'mu_end_window(gui_ctx',
   gui_button: 'mu_button(gui_ctx, ',
@@ -164,6 +194,9 @@ const functions = {
   gui_end: 'null0_gui_end(',
   gui_draw: 'null0_gui_draw('
 }
+
+const cartStructName = (name) => `Null0Cart${name}`
+const toCartName = (name) => `${name.charAt(0).toLowerCase() + name.slice(1)}_to_cart`
 
 // map args to host-types
 const argsMap = (args) =>
@@ -177,7 +210,9 @@ const extraCallArgs = {
   draw_image_scaled_on_image: ', PNTR_WHITE',
   tile_draw: ', PNTR_WHITE',
   tile_draw_on_image: ', PNTR_WHITE',
-  tile_draw_tile: ', PNTR_WHITE'
+  tile_draw_tile: ', PNTR_WHITE',
+  tile_draw_layer: ', PNTR_WHITE',
+  tile_draw_layer_on_image: ', PNTR_WHITE'
 }
 
 // generate input/output mappers for args/return
@@ -246,7 +281,13 @@ function buildBody(name, args, returns) {
     if (['i32', 'u32', 'f32'].includes(returns)) {
       body.push(`${types[returns]} retHost = ${functions[name]}${callArgs.join(', ')});`)
     } else {
-      if (returns === 'Font') {
+      if (returns === 'string') {
+        // host-side strings (interned by cute_tiled, string literals) get copied
+        // into cart memory, and freed with everything else after this callback
+        body.push(`uint32_t retHost = copy_string_to_cart(${functions[name]}${callArgs.join(', ')}));`)
+      } else if (stringStructs[returns]) {
+        body.push(`uint32_t retHost = ${toCartName(returns)}(${functions[name]}${callArgs.join(', ')}));`)
+      } else if (returns === 'Font') {
         body.push(`uint32_t retHost = add_font(${functions[name]}${callArgs.join(', ')}));`)
       } else if (returns === 'Image') {
         body.push(`uint32_t retHost = add_image(${functions[name]}${callArgs.join(', ')}));`)
@@ -285,6 +326,32 @@ function buildBody(name, args, returns) {
 // TODO: I could build all of the above code with constants/enums/structs/scalars/callbacks
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// a struct whose members are all numbers goes to the cart as a straight memcpy.
+// these ones carry strings, so they need a cart-layout mirror (every member 4
+// bytes, strings as pointers into cart memory) and a converter that allocates
+// each string there - the cart frees the lot when the callback returns
+const cartMemberTypes = { i32: 'int32_t', u32: 'uint32_t', f32: 'float', u8: 'unsigned char', bool: 'int32_t', string: 'uint32_t' }
+const cartMemberType = (type) => cartMemberTypes[type] || 'int32_t'
+const stringStructs = Object.fromEntries(Object.entries(structs).filter(([, def]) => Object.values(def.members).includes('string')))
+
+for (const [structName, structDef] of Object.entries(stringStructs)) {
+  const members = Object.entries(structDef.members)
+  out.push('', `// cart-layout ${structName}`)
+  out.push('typedef struct {')
+  for (const [member, type] of members) {
+    out.push(`  ${cartMemberType(type)} ${member};`)
+  }
+  out.push(`} ${cartStructName(structName)};`, '')
+  out.push(`// copy a ${structName} (and its strings) into cart memory`)
+  out.push(`static uint32_t ${toCartName(structName)}(${structDef.host.replace('*', '')} v) {`)
+  out.push(`  ${cartStructName(structName)} c;`)
+  for (const [member, type] of members) {
+    out.push(type === 'string' ? `  c.${member} = copy_string_to_cart(v.${member});` : `  c.${member} = (${cartMemberType(type)})v.${member};`)
+  }
+  out.push('  return copy_memory_to_cart(&c, sizeof(c));')
+  out.push('}')
+}
 
 for (const [apiName, funcDef] of Object.entries(api)) {
   out.push('', `// ${apiName.toUpperCase()}`, '')

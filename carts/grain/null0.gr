@@ -533,6 +533,32 @@ provide let mouseButtonRight = 2n
 @unsafe
 provide let mouseButtonMiddle = 3n
 
+// TileLayerKind: The kind of a layer in a tilemap.
+@unsafe
+provide let layerNone = 0n
+@unsafe
+provide let layerTile = 1n
+@unsafe
+provide let layerObject = 2n
+@unsafe
+provide let layerImage = 3n
+@unsafe
+provide let layerGroup = 4n
+
+// TilePropType: The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+@unsafe
+provide let propNone = 0n
+@unsafe
+provide let propInt = 1n
+@unsafe
+provide let propBool = 2n
+@unsafe
+provide let propFloat = 3n
+@unsafe
+provide let propString = 4n
+@unsafe
+provide let propColor = 5n
+
 
 // struct SfxParams: Sfx parameters.
 //   offset 0: randSeed (u32)
@@ -579,6 +605,25 @@ provide let mouseButtonMiddle = 3n
 //   offset 1: g (u8)
 //   offset 2: b (u8)
 //   offset 3: a (u8)
+
+// struct TilemapProp: A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+//   offset 0: name (string)
+//   offset 4: type (TilePropType)
+//   offset 8: integer (i32)
+//   offset 12: number (f32)
+//   offset 16: text (string)
+
+// struct TilemapObject: An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+//   offset 0: id (i32)
+//   offset 4: name (string)
+//   offset 8: type (string)
+//   offset 12: gid (i32)
+//   offset 16: x (f32)
+//   offset 20: y (f32)
+//   offset 24: width (f32)
+//   offset 28: height (f32)
+//   offset 32: rotation (f32)
+//   offset 36: visible (i32)
 
 
 // -- COLORS --
@@ -940,6 +985,21 @@ provide foreign wasm unload_tilemap: (WasmI32) => Void from "null0"
 // Update a tilemap's animation timers (deltaTime is in seconds).
 @unsafe
 provide foreign wasm tile_update: (WasmI32, WasmF32) => Void from "null0"
+// Get the size of a tilemap, in tiles.
+@unsafe
+provide foreign wasm tile_map_size: (WasmI32) => WasmI32 from "null0"
+// Get the size of a single tile of a tilemap, in pixels.
+@unsafe
+provide foreign wasm tile_tile_size: (WasmI32) => WasmI32 from "null0"
+// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+@unsafe
+provide foreign wasm tile_map_prop: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the number of custom properties on a tilemap.
+@unsafe
+provide foreign wasm tile_map_prop_count: (WasmI32) => WasmI32 from "null0"
+// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+@unsafe
+provide foreign wasm tile_map_prop_at: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Draw a tilemap on the screen.
 @unsafe
 provide foreign wasm tile_draw: (WasmI32, WasmI32, WasmI32) => Void from "null0"
@@ -949,24 +1009,87 @@ provide foreign wasm tile_draw_tint: (WasmI32, WasmI32, WasmI32, WasmI32) => Voi
 // Draw a tilemap on an image.
 @unsafe
 provide foreign wasm tile_draw_on_image: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
-// Draw a single tile from a tilemap on the screen.
-@unsafe
-provide foreign wasm tile_draw_tile: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
-// Get the number of layers in a tilemap.
-@unsafe
-provide foreign wasm tile_layer_count: (WasmI32) => WasmI32 from "null0"
-// Get the gid of the tile at a column/row in a tilemap layer.
-@unsafe
-provide foreign wasm tile_get_tile: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
-// Set the gid of the tile at a column/row in a tilemap layer.
-@unsafe
-provide foreign wasm tile_set_tile: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
-// Get a copy of the image of a single tile in a tilemap.
-@unsafe
-provide foreign wasm tile_image: (WasmI32, WasmI32) => WasmI32 from "null0"
 // Render a whole tilemap to a new image.
 @unsafe
 provide foreign wasm tilemap_image: (WasmI32) => WasmI32 from "null0"
+// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+@unsafe
+provide foreign wasm tile_layer_count: (WasmI32) => WasmI32 from "null0"
+// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+@unsafe
+provide foreign wasm tile_layer_index: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the name of a layer of a tilemap.
+@unsafe
+provide foreign wasm tile_layer_name: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the kind of a layer of a tilemap.
+@unsafe
+provide foreign wasm tile_layer_type: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the size of a layer of a tilemap, in tiles.
+@unsafe
+provide foreign wasm tile_layer_size: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+@unsafe
+provide foreign wasm tile_layer_visible: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+@unsafe
+provide foreign wasm tile_layer_prop: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the number of custom properties on a layer of a tilemap.
+@unsafe
+provide foreign wasm tile_layer_prop_count: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+@unsafe
+provide foreign wasm tile_layer_prop_at: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Draw a single layer of a tilemap on the screen.
+@unsafe
+provide foreign wasm tile_draw_layer: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a single layer of a tilemap on the screen, tinted by a color.
+@unsafe
+provide foreign wasm tile_draw_layer_tint: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a single layer of a tilemap on an image.
+@unsafe
+provide foreign wasm tile_draw_layer_on_image: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Render a single layer of a tilemap to a new image.
+@unsafe
+provide foreign wasm tile_layer_image: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the gid of the tile at a column/row in a tilemap layer.
+@unsafe
+provide foreign wasm tile_get_tile: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+@unsafe
+provide foreign wasm tile_set_tile: (WasmI32, WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Draw a single tile from a tilemap on the screen.
+@unsafe
+provide foreign wasm tile_draw_tile: (WasmI32, WasmI32, WasmI32, WasmI32) => Void from "null0"
+// Get a copy of the image of a single tile in a tilemap.
+@unsafe
+provide foreign wasm tile_image: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+@unsafe
+provide foreign wasm tile_gid_prop: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the number of custom properties on a tile of a tilemap.
+@unsafe
+provide foreign wasm tile_gid_prop_count: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+@unsafe
+provide foreign wasm tile_gid_prop_at: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the number of objects on an object-layer of a tilemap.
+@unsafe
+provide foreign wasm tile_object_count: (WasmI32, WasmI32) => WasmI32 from "null0"
+// Get an object from an object-layer of a tilemap.
+@unsafe
+provide foreign wasm tile_object: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+@unsafe
+provide foreign wasm tile_object_index: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+@unsafe
+provide foreign wasm tile_object_prop: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Get the number of custom properties on an object of a tilemap.
+@unsafe
+provide foreign wasm tile_object_prop_count: (WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
+// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+@unsafe
+provide foreign wasm tile_object_prop_at: (WasmI32, WasmI32, WasmI32, WasmI32) => WasmI32 from "null0"
 
 // -- TYPES --
 

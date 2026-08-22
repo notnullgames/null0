@@ -4,7 +4,7 @@
 // Generates Nim code from the API definitions
 
 import { writeFile } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const out = [
   `import macros
@@ -115,29 +115,33 @@ const memberTypes = {
   i32: 'cint',
   f32: 'cfloat',
   u32: 'uint32',
-  u8: 'uint8'
+  u8: 'uint8',
+  string: 'cstring'
 }
 
 // Reserved keywords in Nim that need to be escaped
 const nimReservedKeywords = new Set(['type', 'var', 'let', 'const', 'proc', 'func', 'method', 'template', 'macro', 'if', 'elif', 'else', 'when', 'case', 'of', 'for', 'while', 'break', 'continue', 'return', 'yield', 'try', 'except', 'finally', 'raise', 'defer', 'import', 'include', 'from', 'export', 'as', 'object', 'tuple', 'enum', 'concept', 'distinct', 'array', 'seq', 'set', 'string', 'cstring', 'char', 'bool', 'int', 'int8', 'int16', 'int32', 'int64', 'uint', 'uint8', 'uint16', 'uint32', 'uint64', 'float', 'float32', 'float64', 'range', 'ptr', 'ref', 'nil', 'true', 'false'])
 
 // Generate parameter list for function signature
+// escape reserved keywords (an arg or a struct member named `type`) with backticks
+const nimName = (name) => (nimReservedKeywords.has(name) ? `\`${name}\`` : name)
+
 const argsMap = (args) => {
-  const params = Object.entries(args).map(([name, type]) => {
-    // Escape reserved keywords by adding backticks
-    const paramName = nimReservedKeywords.has(name) ? `\`${name}\`` : name
-    return `${paramName}: ${argTypes[type] || type}`
-  })
+  const params = Object.entries(args).map(([name, type]) => `${nimName(name)}: ${argTypes[type] || type}`)
   return params.join(', ')
 }
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
+// a new struct fills itself in: {.byref.} objects cross as pointers either way
+seedTypes(argTypes, { structs }, { structType: (name) => name })
+seedTypes(retTypes, { structs }, { structType: (name) => name })
+
 // Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {
   out.push(`  ${structName}* {.byref, packed.} = object`)
   for (const [memberName, memberType] of Object.entries(structDef.members)) {
-    out.push(`    ${memberName}*: ${memberTypes[memberType] || memberType}`)
+    out.push(`    ${nimName(memberName)}*: ${memberTypes[memberType] || memberType}`)
   }
   out.push('')
 }

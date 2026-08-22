@@ -66,6 +66,27 @@
 ---@field b integer
 ---@field a integer
 
+---A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+---@class TilemapProp
+---@field name string
+---@field type TilePropType
+---@field integer integer
+---@field number number
+---@field text string
+
+---An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+---@class TilemapObject
+---@field id integer
+---@field name string
+---@field type string
+---@field gid integer
+---@field x number
+---@field y number
+---@field width number
+---@field height number
+---@field rotation number
+---@field visible integer
+
 -- COLORS
 
 ---Tint a color with another color.
@@ -858,6 +879,33 @@ function unload_tilemap(tilemap) end
 ---@param deltaTime number
 function tile_update(tilemap, deltaTime) end
 
+---Get the size of a tilemap, in tiles.
+---@param tilemap integer
+---@return Dimensions
+function tile_map_size(tilemap) end
+
+---Get the size of a single tile of a tilemap, in pixels.
+---@param tilemap integer
+---@return Dimensions
+function tile_tile_size(tilemap) end
+
+---Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+---@param tilemap integer
+---@param name string
+---@return TilemapProp
+function tile_map_prop(tilemap, name) end
+
+---Get the number of custom properties on a tilemap.
+---@param tilemap integer
+---@return integer
+function tile_map_prop_count(tilemap) end
+
+---Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+---@param tilemap integer
+---@param index integer
+---@return TilemapProp
+function tile_map_prop_at(tilemap, index) end
+
 ---Draw a tilemap on the screen.
 ---@param tilemap integer
 ---@param posX integer
@@ -878,17 +926,94 @@ function tile_draw_tint(tilemap, posX, posY, tint) end
 ---@param posY integer
 function tile_draw_on_image(dst, tilemap, posX, posY) end
 
----Draw a single tile from a tilemap on the screen.
+---Render a whole tilemap to a new image.
 ---@param tilemap integer
----@param gid integer
----@param posX integer
----@param posY integer
-function tile_draw_tile(tilemap, gid, posX, posY) end
+---@return integer
+function tilemap_image(tilemap) end
 
----Get the number of layers in a tilemap.
+---Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 ---@param tilemap integer
 ---@return integer
 function tile_layer_count(tilemap) end
+
+---Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+---@param tilemap integer
+---@param name string
+---@return integer
+function tile_layer_index(tilemap, name) end
+
+---Get the name of a layer of a tilemap.
+---@param tilemap integer
+---@param layer integer
+---@return string
+function tile_layer_name(tilemap, layer) end
+
+---Get the kind of a layer of a tilemap.
+---@param tilemap integer
+---@param layer integer
+---@return integer
+function tile_layer_type(tilemap, layer) end
+
+---Get the size of a layer of a tilemap, in tiles.
+---@param tilemap integer
+---@param layer integer
+---@return Dimensions
+function tile_layer_size(tilemap, layer) end
+
+---Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+---@param tilemap integer
+---@param layer integer
+---@return boolean
+function tile_layer_visible(tilemap, layer) end
+
+---Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+---@param tilemap integer
+---@param layer integer
+---@param name string
+---@return TilemapProp
+function tile_layer_prop(tilemap, layer, name) end
+
+---Get the number of custom properties on a layer of a tilemap.
+---@param tilemap integer
+---@param layer integer
+---@return integer
+function tile_layer_prop_count(tilemap, layer) end
+
+---Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+---@param tilemap integer
+---@param layer integer
+---@param index integer
+---@return TilemapProp
+function tile_layer_prop_at(tilemap, layer, index) end
+
+---Draw a single layer of a tilemap on the screen.
+---@param tilemap integer
+---@param layer integer
+---@param posX integer
+---@param posY integer
+function tile_draw_layer(tilemap, layer, posX, posY) end
+
+---Draw a single layer of a tilemap on the screen, tinted by a color.
+---@param tilemap integer
+---@param layer integer
+---@param posX integer
+---@param posY integer
+---@param tint Color
+function tile_draw_layer_tint(tilemap, layer, posX, posY, tint) end
+
+---Draw a single layer of a tilemap on an image.
+---@param dst integer
+---@param tilemap integer
+---@param layer integer
+---@param posX integer
+---@param posY integer
+function tile_draw_layer_on_image(dst, tilemap, layer, posX, posY) end
+
+---Render a single layer of a tilemap to a new image.
+---@param tilemap integer
+---@param layer integer
+---@return integer
+function tile_layer_image(tilemap, layer) end
 
 ---Get the gid of the tile at a column/row in a tilemap layer.
 ---@param tilemap integer
@@ -898,7 +1023,7 @@ function tile_layer_count(tilemap) end
 ---@return integer
 function tile_get_tile(tilemap, layer, column, row) end
 
----Set the gid of the tile at a column/row in a tilemap layer.
+---Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 ---@param tilemap integer
 ---@param layer integer
 ---@param column integer
@@ -906,16 +1031,81 @@ function tile_get_tile(tilemap, layer, column, row) end
 ---@param gid integer
 function tile_set_tile(tilemap, layer, column, row, gid) end
 
+---Draw a single tile from a tilemap on the screen.
+---@param tilemap integer
+---@param gid integer
+---@param posX integer
+---@param posY integer
+function tile_draw_tile(tilemap, gid, posX, posY) end
+
 ---Get a copy of the image of a single tile in a tilemap.
 ---@param tilemap integer
 ---@param gid integer
 ---@return integer
 function tile_image(tilemap, gid) end
 
----Render a whole tilemap to a new image.
+---Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
 ---@param tilemap integer
+---@param gid integer
+---@param name string
+---@return TilemapProp
+function tile_gid_prop(tilemap, gid, name) end
+
+---Get the number of custom properties on a tile of a tilemap.
+---@param tilemap integer
+---@param gid integer
 ---@return integer
-function tilemap_image(tilemap) end
+function tile_gid_prop_count(tilemap, gid) end
+
+---Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+---@param tilemap integer
+---@param gid integer
+---@param index integer
+---@return TilemapProp
+function tile_gid_prop_at(tilemap, gid, index) end
+
+---Get the number of objects on an object-layer of a tilemap.
+---@param tilemap integer
+---@param layer integer
+---@return integer
+function tile_object_count(tilemap, layer) end
+
+---Get an object from an object-layer of a tilemap.
+---@param tilemap integer
+---@param layer integer
+---@param index integer
+---@return TilemapObject
+function tile_object(tilemap, layer, index) end
+
+---Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+---@param tilemap integer
+---@param layer integer
+---@param name string
+---@return integer
+function tile_object_index(tilemap, layer, name) end
+
+---Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+---@param tilemap integer
+---@param layer integer
+---@param index integer
+---@param name string
+---@return TilemapProp
+function tile_object_prop(tilemap, layer, index, name) end
+
+---Get the number of custom properties on an object of a tilemap.
+---@param tilemap integer
+---@param layer integer
+---@param index integer
+---@return integer
+function tile_object_prop_count(tilemap, layer, index) end
+
+---Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+---@param tilemap integer
+---@param layer integer
+---@param index integer
+---@param propIndex integer
+---@return TilemapProp
+function tile_object_prop_at(tilemap, layer, index, propIndex) end
 
 -- TYPES
 
@@ -1170,6 +1360,21 @@ MOUSE_BUTTON_UNKNOWN = 0
 MOUSE_BUTTON_LEFT = 1
 MOUSE_BUTTON_RIGHT = 2
 MOUSE_BUTTON_MIDDLE = 3
+
+-- The kind of a layer in a tilemap.
+LAYER_NONE = 0
+LAYER_TILE = 1
+LAYER_OBJECT = 2
+LAYER_IMAGE = 3
+LAYER_GROUP = 4
+
+-- The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+PROP_NONE = 0
+PROP_INT = 1
+PROP_BOOL = 2
+PROP_FLOAT = 3
+PROP_STRING = 4
+PROP_COLOR = 5
 
 -- CALLBACKS (implement the ones you need, in main.lua)
 

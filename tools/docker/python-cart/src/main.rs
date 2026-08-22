@@ -74,6 +74,33 @@ pub struct Color {
     pub a: u8,
 }
 
+/// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TilemapProp {
+    pub name: *const u8,
+    pub r#type: i32,
+    pub integer: i32,
+    pub number: f32,
+    pub text: *const u8,
+}
+
+/// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TilemapObject {
+    pub id: i32,
+    pub name: *const u8,
+    pub r#type: *const u8,
+    pub gid: i32,
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+    pub rotation: f32,
+    pub visible: i32,
+}
+
 #[link(wasm_import_module = "null0")]
 extern "C" {
     pub fn color_tint(color: Color, tint: Color) -> u32;
@@ -190,21 +217,63 @@ extern "C" {
     pub fn load_tilemap(filename: *const u8) -> u32;
     pub fn unload_tilemap(tilemap: u32);
     pub fn tile_update(tilemap: u32, deltaTime: f32);
+    pub fn tile_map_size(tilemap: u32) -> u32;
+    pub fn tile_tile_size(tilemap: u32) -> u32;
+    pub fn tile_map_prop(tilemap: u32, name: *const u8) -> u32;
+    pub fn tile_map_prop_count(tilemap: u32) -> i32;
+    pub fn tile_map_prop_at(tilemap: u32, index: i32) -> u32;
     pub fn tile_draw(tilemap: u32, posX: i32, posY: i32);
     pub fn tile_draw_tint(tilemap: u32, posX: i32, posY: i32, tint: Color);
     pub fn tile_draw_on_image(dst: u32, tilemap: u32, posX: i32, posY: i32);
-    pub fn tile_draw_tile(tilemap: u32, gid: i32, posX: i32, posY: i32);
+    pub fn tilemap_image(tilemap: u32) -> u32;
     pub fn tile_layer_count(tilemap: u32) -> i32;
+    pub fn tile_layer_index(tilemap: u32, name: *const u8) -> i32;
+    pub fn tile_layer_name(tilemap: u32, layer: i32) -> *const u8;
+    pub fn tile_layer_type(tilemap: u32, layer: i32) -> i32;
+    pub fn tile_layer_size(tilemap: u32, layer: i32) -> u32;
+    pub fn tile_layer_visible(tilemap: u32, layer: i32) -> bool;
+    pub fn tile_layer_prop(tilemap: u32, layer: i32, name: *const u8) -> u32;
+    pub fn tile_layer_prop_count(tilemap: u32, layer: i32) -> i32;
+    pub fn tile_layer_prop_at(tilemap: u32, layer: i32, index: i32) -> u32;
+    pub fn tile_draw_layer(tilemap: u32, layer: i32, posX: i32, posY: i32);
+    pub fn tile_draw_layer_tint(tilemap: u32, layer: i32, posX: i32, posY: i32, tint: Color);
+    pub fn tile_draw_layer_on_image(dst: u32, tilemap: u32, layer: i32, posX: i32, posY: i32);
+    pub fn tile_layer_image(tilemap: u32, layer: i32) -> u32;
     pub fn tile_get_tile(tilemap: u32, layer: i32, column: i32, row: i32) -> i32;
     pub fn tile_set_tile(tilemap: u32, layer: i32, column: i32, row: i32, gid: i32);
+    pub fn tile_draw_tile(tilemap: u32, gid: i32, posX: i32, posY: i32);
     pub fn tile_image(tilemap: u32, gid: i32) -> u32;
-    pub fn tilemap_image(tilemap: u32) -> u32;
+    pub fn tile_gid_prop(tilemap: u32, gid: i32, name: *const u8) -> u32;
+    pub fn tile_gid_prop_count(tilemap: u32, gid: i32) -> i32;
+    pub fn tile_gid_prop_at(tilemap: u32, gid: i32, index: i32) -> u32;
+    pub fn tile_object_count(tilemap: u32, layer: i32) -> i32;
+    pub fn tile_object(tilemap: u32, layer: i32, index: i32) -> u32;
+    pub fn tile_object_index(tilemap: u32, layer: i32, name: *const u8) -> i32;
+    pub fn tile_object_prop(tilemap: u32, layer: i32, index: i32, name: *const u8) -> u32;
+    pub fn tile_object_prop_count(tilemap: u32, layer: i32, index: i32) -> i32;
+    pub fn tile_object_prop_at(tilemap: u32, layer: i32, index: i32, propIndex: i32) -> u32;
     pub fn current_time() -> u64;
     pub fn delta_time() -> f32;
     pub fn random_int(min: i32, max: i32) -> i32;
     pub fn random_seed_get() -> u64;
     pub fn random_seed_set(seed: u64);
 }
+
+// a host string (bytes in our own memory, valid until this callback returns)
+fn cstr_to_py(p: *const u8, vm: &VirtualMachine) -> PyObjectRef {
+    if p.is_null() {
+        return vm.ctx.new_str("").into();
+    }
+    let mut len = 0usize;
+    unsafe {
+        while *p.add(len) != 0 {
+            len += 1;
+        }
+        let bytes = core::slice::from_raw_parts(p, len);
+        vm.ctx.new_str(String::from_utf8_lossy(bytes).into_owned()).into()
+    }
+}
+
 
 fn sfxparams_from_py(obj: &PyObjectRef, vm: &VirtualMachine) -> PyResult<SfxParams> {
     Ok(SfxParams {
@@ -325,6 +394,31 @@ fn color_to_py(v: Color, vm: &VirtualMachine) -> PyObjectRef {
     d.set_item("g", vm.ctx.new_int(v.g).into(), vm).unwrap();
     d.set_item("b", vm.ctx.new_int(v.b).into(), vm).unwrap();
     d.set_item("a", vm.ctx.new_int(v.a).into(), vm).unwrap();
+    d.into()
+}
+
+fn tilemapprop_to_py(v: TilemapProp, vm: &VirtualMachine) -> PyObjectRef {
+    let d = vm.ctx.new_dict();
+    d.set_item("name", cstr_to_py(v.name, vm), vm).unwrap();
+    d.set_item("type", vm.ctx.new_int(v.r#type).into(), vm).unwrap();
+    d.set_item("integer", vm.ctx.new_int(v.integer).into(), vm).unwrap();
+    d.set_item("number", vm.ctx.new_float(v.number as f64).into(), vm).unwrap();
+    d.set_item("text", cstr_to_py(v.text, vm), vm).unwrap();
+    d.into()
+}
+
+fn tilemapobject_to_py(v: TilemapObject, vm: &VirtualMachine) -> PyObjectRef {
+    let d = vm.ctx.new_dict();
+    d.set_item("id", vm.ctx.new_int(v.id).into(), vm).unwrap();
+    d.set_item("name", cstr_to_py(v.name, vm), vm).unwrap();
+    d.set_item("type", cstr_to_py(v.r#type, vm), vm).unwrap();
+    d.set_item("gid", vm.ctx.new_int(v.gid).into(), vm).unwrap();
+    d.set_item("x", vm.ctx.new_float(v.x as f64).into(), vm).unwrap();
+    d.set_item("y", vm.ctx.new_float(v.y as f64).into(), vm).unwrap();
+    d.set_item("width", vm.ctx.new_float(v.width as f64).into(), vm).unwrap();
+    d.set_item("height", vm.ctx.new_float(v.height as f64).into(), vm).unwrap();
+    d.set_item("rotation", vm.ctx.new_float(v.rotation as f64).into(), vm).unwrap();
+    d.set_item("visible", vm.ctx.new_int(v.visible).into(), vm).unwrap();
     d.into()
 }
 
@@ -1482,6 +1576,56 @@ fn nf_tile_update(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> 
     Ok(vm.ctx.none())
 }
 
+/// Get the size of a tilemap, in tiles.
+fn nf_tile_map_size(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let ret = unsafe { tile_map_size(tilemap) } as *const Dimensions;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(dimensions_to_py(unsafe { *ret }, vm))
+}
+
+/// Get the size of a single tile of a tilemap, in pixels.
+fn nf_tile_tile_size(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let ret = unsafe { tile_tile_size(tilemap) } as *const Dimensions;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(dimensions_to_py(unsafe { *ret }, vm))
+}
+
+/// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+fn nf_tile_map_prop(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let name_cs = CString::new(args.args[1].clone().try_into_value::<String>(vm)?).unwrap();
+    let name = name_cs.as_ptr() as *const u8;
+    let ret = unsafe { tile_map_prop(tilemap, name) } as *const TilemapProp;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(tilemapprop_to_py(unsafe { *ret }, vm))
+}
+
+/// Get the number of custom properties on a tilemap.
+fn nf_tile_map_prop_count(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let ret = unsafe { tile_map_prop_count(tilemap) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+fn nf_tile_map_prop_at(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let index = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_map_prop_at(tilemap, index) } as *const TilemapProp;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(tilemapprop_to_py(unsafe { *ret }, vm))
+}
+
 /// Draw a tilemap on the screen.
 fn nf_tile_draw(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
@@ -1511,20 +1655,134 @@ fn nf_tile_draw_on_image(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObje
     Ok(vm.ctx.none())
 }
 
-/// Draw a single tile from a tilemap on the screen.
-fn nf_tile_draw_tile(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+/// Render a whole tilemap to a new image.
+fn nf_tilemap_image(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
-    let gid = args.args[1].clone().try_into_value::<i32>(vm)?;
-    let posX = args.args[2].clone().try_into_value::<i32>(vm)?;
-    let posY = args.args[3].clone().try_into_value::<i32>(vm)?;
-    unsafe { tile_draw_tile(tilemap, gid, posX, posY) };
-    Ok(vm.ctx.none())
+    let ret = unsafe { tilemap_image(tilemap) };
+    Ok(vm.ctx.new_int(ret).into())
 }
 
-/// Get the number of layers in a tilemap.
+/// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 fn nf_tile_layer_count(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
     let ret = unsafe { tile_layer_count(tilemap) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+fn nf_tile_layer_index(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let name_cs = CString::new(args.args[1].clone().try_into_value::<String>(vm)?).unwrap();
+    let name = name_cs.as_ptr() as *const u8;
+    let ret = unsafe { tile_layer_index(tilemap, name) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Get the name of a layer of a tilemap.
+fn nf_tile_layer_name(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_layer_name(tilemap, layer) };
+    Ok(cstr_to_py(ret as *const u8, vm))
+}
+
+/// Get the kind of a layer of a tilemap.
+fn nf_tile_layer_type(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_layer_type(tilemap, layer) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Get the size of a layer of a tilemap, in tiles.
+fn nf_tile_layer_size(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_layer_size(tilemap, layer) } as *const Dimensions;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(dimensions_to_py(unsafe { *ret }, vm))
+}
+
+/// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+fn nf_tile_layer_visible(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_layer_visible(tilemap, layer) };
+    Ok(vm.ctx.new_bool(ret).into())
+}
+
+/// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+fn nf_tile_layer_prop(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let name_cs = CString::new(args.args[2].clone().try_into_value::<String>(vm)?).unwrap();
+    let name = name_cs.as_ptr() as *const u8;
+    let ret = unsafe { tile_layer_prop(tilemap, layer, name) } as *const TilemapProp;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(tilemapprop_to_py(unsafe { *ret }, vm))
+}
+
+/// Get the number of custom properties on a layer of a tilemap.
+fn nf_tile_layer_prop_count(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_layer_prop_count(tilemap, layer) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+fn nf_tile_layer_prop_at(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let index = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_layer_prop_at(tilemap, layer, index) } as *const TilemapProp;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(tilemapprop_to_py(unsafe { *ret }, vm))
+}
+
+/// Draw a single layer of a tilemap on the screen.
+fn nf_tile_draw_layer(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let posX = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let posY = args.args[3].clone().try_into_value::<i32>(vm)?;
+    unsafe { tile_draw_layer(tilemap, layer, posX, posY) };
+    Ok(vm.ctx.none())
+}
+
+/// Draw a single layer of a tilemap on the screen, tinted by a color.
+fn nf_tile_draw_layer_tint(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let posX = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let posY = args.args[3].clone().try_into_value::<i32>(vm)?;
+    let tint = color_from_py(&args.args[4], vm)?;
+    unsafe { tile_draw_layer_tint(tilemap, layer, posX, posY, tint) };
+    Ok(vm.ctx.none())
+}
+
+/// Draw a single layer of a tilemap on an image.
+fn nf_tile_draw_layer_on_image(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let dst = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let tilemap = args.args[1].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let posX = args.args[3].clone().try_into_value::<i32>(vm)?;
+    let posY = args.args[4].clone().try_into_value::<i32>(vm)?;
+    unsafe { tile_draw_layer_on_image(dst, tilemap, layer, posX, posY) };
+    Ok(vm.ctx.none())
+}
+
+/// Render a single layer of a tilemap to a new image.
+fn nf_tile_layer_image(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_layer_image(tilemap, layer) };
     Ok(vm.ctx.new_int(ret).into())
 }
 
@@ -1538,7 +1796,7 @@ fn nf_tile_get_tile(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef
     Ok(vm.ctx.new_int(ret).into())
 }
 
-/// Set the gid of the tile at a column/row in a tilemap layer.
+/// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 fn nf_tile_set_tile(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
     let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
@@ -1546,6 +1804,16 @@ fn nf_tile_set_tile(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef
     let row = args.args[3].clone().try_into_value::<i32>(vm)?;
     let gid = args.args[4].clone().try_into_value::<i32>(vm)?;
     unsafe { tile_set_tile(tilemap, layer, column, row, gid) };
+    Ok(vm.ctx.none())
+}
+
+/// Draw a single tile from a tilemap on the screen.
+fn nf_tile_draw_tile(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let gid = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let posX = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let posY = args.args[3].clone().try_into_value::<i32>(vm)?;
+    unsafe { tile_draw_tile(tilemap, gid, posX, posY) };
     Ok(vm.ctx.none())
 }
 
@@ -1557,11 +1825,103 @@ fn nf_tile_image(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     Ok(vm.ctx.new_int(ret).into())
 }
 
-/// Render a whole tilemap to a new image.
-fn nf_tilemap_image(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+/// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+fn nf_tile_gid_prop(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
     let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
-    let ret = unsafe { tilemap_image(tilemap) };
+    let gid = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let name_cs = CString::new(args.args[2].clone().try_into_value::<String>(vm)?).unwrap();
+    let name = name_cs.as_ptr() as *const u8;
+    let ret = unsafe { tile_gid_prop(tilemap, gid, name) } as *const TilemapProp;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(tilemapprop_to_py(unsafe { *ret }, vm))
+}
+
+/// Get the number of custom properties on a tile of a tilemap.
+fn nf_tile_gid_prop_count(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let gid = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_gid_prop_count(tilemap, gid) };
     Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+fn nf_tile_gid_prop_at(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let gid = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let index = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_gid_prop_at(tilemap, gid, index) } as *const TilemapProp;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(tilemapprop_to_py(unsafe { *ret }, vm))
+}
+
+/// Get the number of objects on an object-layer of a tilemap.
+fn nf_tile_object_count(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_object_count(tilemap, layer) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Get an object from an object-layer of a tilemap.
+fn nf_tile_object(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let index = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_object(tilemap, layer, index) } as *const TilemapObject;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(tilemapobject_to_py(unsafe { *ret }, vm))
+}
+
+/// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+fn nf_tile_object_index(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let name_cs = CString::new(args.args[2].clone().try_into_value::<String>(vm)?).unwrap();
+    let name = name_cs.as_ptr() as *const u8;
+    let ret = unsafe { tile_object_index(tilemap, layer, name) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+fn nf_tile_object_prop(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let index = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let name_cs = CString::new(args.args[3].clone().try_into_value::<String>(vm)?).unwrap();
+    let name = name_cs.as_ptr() as *const u8;
+    let ret = unsafe { tile_object_prop(tilemap, layer, index, name) } as *const TilemapProp;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(tilemapprop_to_py(unsafe { *ret }, vm))
+}
+
+/// Get the number of custom properties on an object of a tilemap.
+fn nf_tile_object_prop_count(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let index = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_object_prop_count(tilemap, layer, index) };
+    Ok(vm.ctx.new_int(ret).into())
+}
+
+/// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+fn nf_tile_object_prop_at(args: FuncArgs, vm: &VirtualMachine) -> PyResult<PyObjectRef> {
+    let tilemap = args.args[0].clone().try_into_value::<u32>(vm)?;
+    let layer = args.args[1].clone().try_into_value::<i32>(vm)?;
+    let index = args.args[2].clone().try_into_value::<i32>(vm)?;
+    let propIndex = args.args[3].clone().try_into_value::<i32>(vm)?;
+    let ret = unsafe { tile_object_prop_at(tilemap, layer, index, propIndex) } as *const TilemapProp;
+    if ret.is_null() {
+        return Ok(vm.ctx.none());
+    }
+    Ok(tilemapprop_to_py(unsafe { *ret }, vm))
 }
 
 // TYPES
@@ -1789,6 +2149,17 @@ fn register_constants(scope: &Scope, vm: &VirtualMachine) {
     scope.globals.set_item("MOUSE_BUTTON_LEFT", vm.ctx.new_int(1).into(), vm).unwrap();
     scope.globals.set_item("MOUSE_BUTTON_RIGHT", vm.ctx.new_int(2).into(), vm).unwrap();
     scope.globals.set_item("MOUSE_BUTTON_MIDDLE", vm.ctx.new_int(3).into(), vm).unwrap();
+    scope.globals.set_item("LAYER_NONE", vm.ctx.new_int(0).into(), vm).unwrap();
+    scope.globals.set_item("LAYER_TILE", vm.ctx.new_int(1).into(), vm).unwrap();
+    scope.globals.set_item("LAYER_OBJECT", vm.ctx.new_int(2).into(), vm).unwrap();
+    scope.globals.set_item("LAYER_IMAGE", vm.ctx.new_int(3).into(), vm).unwrap();
+    scope.globals.set_item("LAYER_GROUP", vm.ctx.new_int(4).into(), vm).unwrap();
+    scope.globals.set_item("PROP_NONE", vm.ctx.new_int(0).into(), vm).unwrap();
+    scope.globals.set_item("PROP_INT", vm.ctx.new_int(1).into(), vm).unwrap();
+    scope.globals.set_item("PROP_BOOL", vm.ctx.new_int(2).into(), vm).unwrap();
+    scope.globals.set_item("PROP_FLOAT", vm.ctx.new_int(3).into(), vm).unwrap();
+    scope.globals.set_item("PROP_STRING", vm.ctx.new_int(4).into(), vm).unwrap();
+    scope.globals.set_item("PROP_COLOR", vm.ctx.new_int(5).into(), vm).unwrap();
 }
 
 fn register_all(scope: &Scope, vm: &VirtualMachine) {
@@ -1906,15 +2277,41 @@ fn register_all(scope: &Scope, vm: &VirtualMachine) {
     scope.globals.set_item("load_tilemap", vm.new_function("load_tilemap", nf_load_tilemap).into(), vm).unwrap();
     scope.globals.set_item("unload_tilemap", vm.new_function("unload_tilemap", nf_unload_tilemap).into(), vm).unwrap();
     scope.globals.set_item("tile_update", vm.new_function("tile_update", nf_tile_update).into(), vm).unwrap();
+    scope.globals.set_item("tile_map_size", vm.new_function("tile_map_size", nf_tile_map_size).into(), vm).unwrap();
+    scope.globals.set_item("tile_tile_size", vm.new_function("tile_tile_size", nf_tile_tile_size).into(), vm).unwrap();
+    scope.globals.set_item("tile_map_prop", vm.new_function("tile_map_prop", nf_tile_map_prop).into(), vm).unwrap();
+    scope.globals.set_item("tile_map_prop_count", vm.new_function("tile_map_prop_count", nf_tile_map_prop_count).into(), vm).unwrap();
+    scope.globals.set_item("tile_map_prop_at", vm.new_function("tile_map_prop_at", nf_tile_map_prop_at).into(), vm).unwrap();
     scope.globals.set_item("tile_draw", vm.new_function("tile_draw", nf_tile_draw).into(), vm).unwrap();
     scope.globals.set_item("tile_draw_tint", vm.new_function("tile_draw_tint", nf_tile_draw_tint).into(), vm).unwrap();
     scope.globals.set_item("tile_draw_on_image", vm.new_function("tile_draw_on_image", nf_tile_draw_on_image).into(), vm).unwrap();
-    scope.globals.set_item("tile_draw_tile", vm.new_function("tile_draw_tile", nf_tile_draw_tile).into(), vm).unwrap();
+    scope.globals.set_item("tilemap_image", vm.new_function("tilemap_image", nf_tilemap_image).into(), vm).unwrap();
     scope.globals.set_item("tile_layer_count", vm.new_function("tile_layer_count", nf_tile_layer_count).into(), vm).unwrap();
+    scope.globals.set_item("tile_layer_index", vm.new_function("tile_layer_index", nf_tile_layer_index).into(), vm).unwrap();
+    scope.globals.set_item("tile_layer_name", vm.new_function("tile_layer_name", nf_tile_layer_name).into(), vm).unwrap();
+    scope.globals.set_item("tile_layer_type", vm.new_function("tile_layer_type", nf_tile_layer_type).into(), vm).unwrap();
+    scope.globals.set_item("tile_layer_size", vm.new_function("tile_layer_size", nf_tile_layer_size).into(), vm).unwrap();
+    scope.globals.set_item("tile_layer_visible", vm.new_function("tile_layer_visible", nf_tile_layer_visible).into(), vm).unwrap();
+    scope.globals.set_item("tile_layer_prop", vm.new_function("tile_layer_prop", nf_tile_layer_prop).into(), vm).unwrap();
+    scope.globals.set_item("tile_layer_prop_count", vm.new_function("tile_layer_prop_count", nf_tile_layer_prop_count).into(), vm).unwrap();
+    scope.globals.set_item("tile_layer_prop_at", vm.new_function("tile_layer_prop_at", nf_tile_layer_prop_at).into(), vm).unwrap();
+    scope.globals.set_item("tile_draw_layer", vm.new_function("tile_draw_layer", nf_tile_draw_layer).into(), vm).unwrap();
+    scope.globals.set_item("tile_draw_layer_tint", vm.new_function("tile_draw_layer_tint", nf_tile_draw_layer_tint).into(), vm).unwrap();
+    scope.globals.set_item("tile_draw_layer_on_image", vm.new_function("tile_draw_layer_on_image", nf_tile_draw_layer_on_image).into(), vm).unwrap();
+    scope.globals.set_item("tile_layer_image", vm.new_function("tile_layer_image", nf_tile_layer_image).into(), vm).unwrap();
     scope.globals.set_item("tile_get_tile", vm.new_function("tile_get_tile", nf_tile_get_tile).into(), vm).unwrap();
     scope.globals.set_item("tile_set_tile", vm.new_function("tile_set_tile", nf_tile_set_tile).into(), vm).unwrap();
+    scope.globals.set_item("tile_draw_tile", vm.new_function("tile_draw_tile", nf_tile_draw_tile).into(), vm).unwrap();
     scope.globals.set_item("tile_image", vm.new_function("tile_image", nf_tile_image).into(), vm).unwrap();
-    scope.globals.set_item("tilemap_image", vm.new_function("tilemap_image", nf_tilemap_image).into(), vm).unwrap();
+    scope.globals.set_item("tile_gid_prop", vm.new_function("tile_gid_prop", nf_tile_gid_prop).into(), vm).unwrap();
+    scope.globals.set_item("tile_gid_prop_count", vm.new_function("tile_gid_prop_count", nf_tile_gid_prop_count).into(), vm).unwrap();
+    scope.globals.set_item("tile_gid_prop_at", vm.new_function("tile_gid_prop_at", nf_tile_gid_prop_at).into(), vm).unwrap();
+    scope.globals.set_item("tile_object_count", vm.new_function("tile_object_count", nf_tile_object_count).into(), vm).unwrap();
+    scope.globals.set_item("tile_object", vm.new_function("tile_object", nf_tile_object).into(), vm).unwrap();
+    scope.globals.set_item("tile_object_index", vm.new_function("tile_object_index", nf_tile_object_index).into(), vm).unwrap();
+    scope.globals.set_item("tile_object_prop", vm.new_function("tile_object_prop", nf_tile_object_prop).into(), vm).unwrap();
+    scope.globals.set_item("tile_object_prop_count", vm.new_function("tile_object_prop_count", nf_tile_object_prop_count).into(), vm).unwrap();
+    scope.globals.set_item("tile_object_prop_at", vm.new_function("tile_object_prop_at", nf_tile_object_prop_at).into(), vm).unwrap();
     scope.globals.set_item("current_time", vm.new_function("current_time", nf_current_time).into(), vm).unwrap();
     scope.globals.set_item("delta_time", vm.new_function("delta_time", nf_delta_time).into(), vm).unwrap();
     scope.globals.set_item("random_int", vm.new_function("random_int", nf_random_int).into(), vm).unwrap();

@@ -18,7 +18,7 @@
 //   - haxe Strings are UTF-16; the shim converts with hl_to_utf8 (GC-owned).
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
@@ -73,7 +73,8 @@ const hxMemberTypes = {
   u8: 'hl.UI8',
   i32: 'Int',
   u32: 'Int',
-  f32: 'Single'
+  f32: 'Single',
+  string: 'hl.Bytes' // read it with @:privateAccess String.fromUTF8(bytes)
 }
 
 // C types used in the shim (haxe-side calling convention)
@@ -116,8 +117,20 @@ const cMemberTypes = {
   u8: 'unsigned char',
   i32: 'int',
   u32: 'unsigned int',
-  f32: 'float'
+  f32: 'float',
+  string: 'vbyte *'
 }
+
+// a new enum/struct fills its own entries in ('@:struct' classes are laid out
+// like the C structs the host writes, so they cross as plain pointers)
+seedTypes(hxTypes, { enums, structs }, { enumType: (name) => name, structType: (name) => name })
+seedTypes(cTypes, { enums, structs }, { enumType: 'int', structType: (name) => `Hx${name} *` })
+seedTypes(hxMemberTypes, { enums }, { enumType: (name) => name })
+seedTypes(cMemberTypes, { enums }, { enumType: 'int' })
+
+// a host string arrives as raw utf8 bytes, wrapped into a haxe String below
+hxTypes.string = 'String'
+cTypes.string = 'HxString'
 
 // is this arg the hidden count of the array arg before it?
 const isCountArg = (argList, i) => i > 0 && argList[i - 1][1].endsWith('[]')
@@ -127,7 +140,7 @@ const publicArgs = (funcName, argList) => argList.filter((_, i) => !isCountArg(a
 
 // native declaration for a function (public or private)
 const hxNative = (funcName, pubName, argList, returns, isPublic) => {
-  const ret = hxTypes[returns] || returns
+  const ret = returns === 'string' ? 'hl.Bytes' : hxTypes[returns] || returns
   const params = argList.map(([n, t]) => `${n}:${hxTypes[t] || t}`).join(', ')
   const dummy = returns === 'void' ? '' : `return ${hxDummy[ret] || 'null'}; `
   return [
@@ -230,7 +243,14 @@ for (const [apiName, apiObj] of Object.entries(api)) {
     const hasArrayArg = argList.some(([, t]) => t.endsWith('[]'))
     const hasOptionalLength = funcName === 'measure_text'
     hx.push(`  /** ${description} */`)
-    if (!hasArrayArg && !hasOptionalLength) {
+    if (returns === 'string') {
+      // the host hands back utf8 bytes it owns until this callback returns
+      hx.push(`  public static function ${pubName}(${argList.map(([n, t]) => `${n}:${hxTypes[t] || t}`).join(', ')}):String {`)
+      hx.push(`    return @:privateAccess String.fromUTF8(_${pubName}(${argList.map(([n]) => n).join(', ')}));`)
+      hx.push('  }')
+      hx.push(...hxNative(funcName, `_${pubName}`, argList, returns, false))
+      hx.push('')
+    } else if (!hasArrayArg && !hasOptionalLength) {
       // direct native binding
       hx.push(...hxNative(funcName, pubName, argList, returns, true))
       hx.push('')
@@ -359,14 +379,14 @@ for (const [apiName, apiObj] of Object.entries(api)) {
   for (const [funcName, { args, returns }] of Object.entries(apiObj)) {
     const argList = Object.entries(args)
     const hostParams = argList.map(([n, t]) => `${cHostTypes[t] || t} ${n}`).join(', ')
-    const hostRet = cHostTypes[returns] || returns
+    const hostRet = returns === 'string' ? 'vbyte *' : cHostTypes[returns] || returns
     c.push(`NULL0_IMPORT("${funcName}")`)
     c.push(`static ${hostRet} host_${funcName}(${hostParams || 'void'});`)
 
     // shim signature: array args lose their following count arg
     const shimArgs = argList.filter((_, i) => !isCountArg(argList, i))
     const shimParams = shimArgs.map(([n, t]) => `${cTypes[t] || t} ${n}`).join(', ')
-    const shimRet = cTypes[returns] || returns
+    const shimRet = returns === 'string' ? 'vbyte *' : cTypes[returns] || returns
     c.push(`${shimRet} null0hx_${funcName}(${shimParams || 'void'}) {`)
 
     const callArgs = []

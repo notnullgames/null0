@@ -27,12 +27,15 @@
 // number, and the other structs as a list of their members.
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
-// structs that travel as a list of members
-const listStructs = ['Vector', 'Rectangle', 'Dimensions', 'SfxParams']
+// structs that travel as a list of members (a Color is a packed number instead)
+const listStructs = Object.keys(structs).filter((name) => name !== 'Color')
+
+// structs carrying strings can't go through list_ret, which only knows doubles
+const hasStrings = (structName) => Object.values(structs[structName].members).includes('string')
 
 // C type for every arg-type
 const cTypes = {
@@ -58,6 +61,7 @@ const cTypes = {
 
 // C type of the value the host hands back (structs come back as pointers into cart-memory)
 const cRetTypes = {
+  string: 'char*',
   bool: 'bool',
   i32: 'i32',
   f32: 'f32',
@@ -73,6 +77,9 @@ const cRetTypes = {
   Rectangle: 'Rectangle*',
   SfxParams: 'SfxParams*'
 }
+
+seedTypes(cTypes, { enums, structs }, { enumType: (name) => name, structType: (name) => name })
+seedTypes(cRetTypes, { enums, structs }, { enumType: (name) => name, structType: (name) => `${name}*` })
 
 // how to pull an arg out of a wren slot
 const cReaders = {
@@ -111,7 +118,15 @@ const cWriters = {
   Vector: (v) => `vector_ret(vm, ${v});`,
   Dimensions: (v) => `dimensions_ret(vm, ${v});`,
   Rectangle: (v) => `rectangle_ret(vm, ${v});`,
-  SfxParams: (v) => `sfxparams_ret(vm, ${v});`
+  SfxParams: (v) => `sfxparams_ret(vm, ${v});`,
+  string: (v) => `string_ret(vm, ${v});`
+}
+
+for (const name of Object.keys(enums)) {
+  cWriters[name] = (v) => `wrenSetSlotDouble(vm, 0, (double)${v});`
+}
+for (const name of listStructs) {
+  cWriters[name] = (v) => `${name.toLowerCase()}_ret(vm, ${v});`
 }
 
 // how a wren value is flattened for the foreign call
@@ -128,6 +143,10 @@ const wrenUnflatten = {
   Dimensions: (expr) => `Dimensions.fromList(${expr})`,
   Rectangle: (expr) => `Rectangle.fromList(${expr})`,
   SfxParams: (expr) => `SfxParams.fromList(${expr})`
+}
+
+for (const name of listStructs) {
+  wrenUnflatten[name] = (expr) => `${name}.fromList(${expr})`
 }
 
 // wren numbers are all doubles, so every member is read the same way
@@ -527,6 +546,11 @@ const c = [
   ''
 ]
 
+c.push('// a host string goes back as a wren string (NULL becomes "")')
+c.push('static void string_ret(WrenVM* vm, char* value) {')
+c.push('  wrenSetSlotString(vm, 0, value == NULL ? "" : value);')
+c.push('}', '')
+
 for (const structName of listStructs) {
   const members = Object.entries(structs[structName].members)
   c.push(`static void ${structName.toLowerCase()}_ret(WrenVM* vm, ${structName}* value) {`)
@@ -534,8 +558,22 @@ for (const structName of listStructs) {
   c.push('    wrenSetSlotNull(vm, 0);')
   c.push('    return;')
   c.push('  }')
-  c.push(`  double values[] = {${members.map(([name]) => `(double)value->${name}`).join(', ')}};`)
-  c.push(`  list_ret(vm, values, ${members.length});`)
+  if (hasStrings(structName)) {
+    // strings and numbers in one list, so push a member at a time
+    c.push('  int scratch = scratch_slot(vm);')
+    c.push('  wrenSetSlotNewList(vm, 0);')
+    for (const [name, type] of members) {
+      c.push(
+        type === 'string'
+          ? `  wrenSetSlotString(vm, scratch, value->${name} == NULL ? "" : value->${name});`
+          : `  wrenSetSlotDouble(vm, scratch, (double)value->${name});`
+      )
+      c.push('  wrenInsertInList(vm, 0, -1, scratch);')
+    }
+  } else {
+    c.push(`  double values[] = {${members.map(([name]) => `(double)value->${name}`).join(', ')}};`)
+    c.push(`  list_ret(vm, values, ${members.length});`)
+  }
   c.push('}', '')
 }
 

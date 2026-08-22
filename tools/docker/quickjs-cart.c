@@ -207,6 +207,36 @@ static JSValue vector_to_js(Vector vec) {
   return obj;
 }
 
+static JSValue string_to_js(char* str) {
+  return JS_NewString(ctx, str == NULL ? "" : str);
+}
+
+// only the member named by type is meaningful, but hand js the lot
+static JSValue tilemap_prop_to_js(TilemapProp prop) {
+  JSValue obj = JS_NewObject(ctx);
+  JS_SetPropertyStr(ctx, obj, "name", JS_NewString(ctx, prop.name == NULL ? "" : prop.name));
+  JS_SetPropertyStr(ctx, obj, "type", JS_NewInt32(ctx, (int32_t)prop.type));
+  JS_SetPropertyStr(ctx, obj, "integer", JS_NewInt32(ctx, prop.integer));
+  JS_SetPropertyStr(ctx, obj, "number", JS_NewFloat64(ctx, prop.number));
+  JS_SetPropertyStr(ctx, obj, "text", JS_NewString(ctx, prop.text == NULL ? "" : prop.text));
+  return obj;
+}
+
+static JSValue tilemap_object_to_js(TilemapObject object) {
+  JSValue obj = JS_NewObject(ctx);
+  JS_SetPropertyStr(ctx, obj, "id", JS_NewInt32(ctx, object.id));
+  JS_SetPropertyStr(ctx, obj, "name", JS_NewString(ctx, object.name == NULL ? "" : object.name));
+  JS_SetPropertyStr(ctx, obj, "type", JS_NewString(ctx, object.type == NULL ? "" : object.type));
+  JS_SetPropertyStr(ctx, obj, "gid", JS_NewInt32(ctx, object.gid));
+  JS_SetPropertyStr(ctx, obj, "x", JS_NewFloat64(ctx, object.x));
+  JS_SetPropertyStr(ctx, obj, "y", JS_NewFloat64(ctx, object.y));
+  JS_SetPropertyStr(ctx, obj, "width", JS_NewFloat64(ctx, object.width));
+  JS_SetPropertyStr(ctx, obj, "height", JS_NewFloat64(ctx, object.height));
+  JS_SetPropertyStr(ctx, obj, "rotation", JS_NewFloat64(ctx, object.rotation));
+  JS_SetPropertyStr(ctx, obj, "visible", JS_NewBool(ctx, object.visible != 0));
+  return obj;
+}
+
 static JSValue rectangle_to_js(Rectangle rect) {
   JSValue obj = JS_NewObject(ctx);
   JS_SetPropertyStr(ctx, obj, "x", JS_NewInt32(ctx, rect.x));
@@ -1026,6 +1056,30 @@ static JSValue js_tile_update(JSContext *ctx, JSValueConst this_val, int argc, J
  tile_update(u32_from_js(argv[0]), f32_from_js(argv[1]));
  return JS_UNDEFINED;
 }
+// Get the size of a tilemap, in tiles.
+static JSValue js_tile_map_size(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Dimensions* ret = tile_map_size(u32_from_js(argv[0]));
+ return dimensions_to_js(*ret);
+}
+// Get the size of a single tile of a tilemap, in pixels.
+static JSValue js_tile_tile_size(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Dimensions* ret = tile_tile_size(u32_from_js(argv[0]));
+ return dimensions_to_js(*ret);
+}
+// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+static JSValue js_tile_map_prop(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ TilemapProp* ret = tile_map_prop(u32_from_js(argv[0]), string_from_js(argv[1]));
+ return tilemap_prop_to_js(*ret);
+}
+// Get the number of custom properties on a tilemap.
+static JSValue js_tile_map_prop_count(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(tile_map_prop_count(u32_from_js(argv[0])));
+}
+// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+static JSValue js_tile_map_prop_at(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ TilemapProp* ret = tile_map_prop_at(u32_from_js(argv[0]), i32_from_js(argv[1]));
+ return tilemap_prop_to_js(*ret);
+}
 // Draw a tilemap on the screen.
 static JSValue js_tile_draw(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  tile_draw(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]));
@@ -1041,31 +1095,126 @@ static JSValue js_tile_draw_on_image(JSContext *ctx, JSValueConst this_val, int 
  tile_draw_on_image(u32_from_js(argv[0]), u32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]));
  return JS_UNDEFINED;
 }
-// Draw a single tile from a tilemap on the screen.
-static JSValue js_tile_draw_tile(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- tile_draw_tile(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]));
- return JS_UNDEFINED;
+// Render a whole tilemap to a new image.
+static JSValue js_tilemap_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u32_to_js(tilemap_image(u32_from_js(argv[0])));
 }
-// Get the number of layers in a tilemap.
+// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 static JSValue js_tile_layer_count(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return i32_to_js(tile_layer_count(u32_from_js(argv[0])));
+}
+// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+static JSValue js_tile_layer_index(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(tile_layer_index(u32_from_js(argv[0]), string_from_js(argv[1])));
+}
+// Get the name of a layer of a tilemap.
+static JSValue js_tile_layer_name(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return string_to_js(tile_layer_name(u32_from_js(argv[0]), i32_from_js(argv[1])));
+}
+// Get the kind of a layer of a tilemap.
+static JSValue js_tile_layer_type(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(tile_layer_type(u32_from_js(argv[0]), i32_from_js(argv[1])));
+}
+// Get the size of a layer of a tilemap, in tiles.
+static JSValue js_tile_layer_size(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ Dimensions* ret = tile_layer_size(u32_from_js(argv[0]), i32_from_js(argv[1]));
+ return dimensions_to_js(*ret);
+}
+// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+static JSValue js_tile_layer_visible(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return bool_to_js(tile_layer_visible(u32_from_js(argv[0]), i32_from_js(argv[1])));
+}
+// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+static JSValue js_tile_layer_prop(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ TilemapProp* ret = tile_layer_prop(u32_from_js(argv[0]), i32_from_js(argv[1]), string_from_js(argv[2]));
+ return tilemap_prop_to_js(*ret);
+}
+// Get the number of custom properties on a layer of a tilemap.
+static JSValue js_tile_layer_prop_count(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(tile_layer_prop_count(u32_from_js(argv[0]), i32_from_js(argv[1])));
+}
+// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+static JSValue js_tile_layer_prop_at(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ TilemapProp* ret = tile_layer_prop_at(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]));
+ return tilemap_prop_to_js(*ret);
+}
+// Draw a single layer of a tilemap on the screen.
+static JSValue js_tile_draw_layer(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ tile_draw_layer(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]));
+ return JS_UNDEFINED;
+}
+// Draw a single layer of a tilemap on the screen, tinted by a color.
+static JSValue js_tile_draw_layer_tint(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ tile_draw_layer_tint(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), color_from_js(argv[4]));
+ return JS_UNDEFINED;
+}
+// Draw a single layer of a tilemap on an image.
+static JSValue js_tile_draw_layer_on_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ tile_draw_layer_on_image(u32_from_js(argv[0]), u32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]));
+ return JS_UNDEFINED;
+}
+// Render a single layer of a tilemap to a new image.
+static JSValue js_tile_layer_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return u32_to_js(tile_layer_image(u32_from_js(argv[0]), i32_from_js(argv[1])));
 }
 // Get the gid of the tile at a column/row in a tilemap layer.
 static JSValue js_tile_get_tile(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return i32_to_js(tile_get_tile(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3])));
 }
-// Set the gid of the tile at a column/row in a tilemap layer.
+// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 static JSValue js_tile_set_tile(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  tile_set_tile(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]), i32_from_js(argv[4]));
+ return JS_UNDEFINED;
+}
+// Draw a single tile from a tilemap on the screen.
+static JSValue js_tile_draw_tile(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ tile_draw_tile(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]));
  return JS_UNDEFINED;
 }
 // Get a copy of the image of a single tile in a tilemap.
 static JSValue js_tile_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
  return u32_to_js(tile_image(u32_from_js(argv[0]), i32_from_js(argv[1])));
 }
-// Render a whole tilemap to a new image.
-static JSValue js_tilemap_image(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
- return u32_to_js(tilemap_image(u32_from_js(argv[0])));
+// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+static JSValue js_tile_gid_prop(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ TilemapProp* ret = tile_gid_prop(u32_from_js(argv[0]), i32_from_js(argv[1]), string_from_js(argv[2]));
+ return tilemap_prop_to_js(*ret);
+}
+// Get the number of custom properties on a tile of a tilemap.
+static JSValue js_tile_gid_prop_count(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(tile_gid_prop_count(u32_from_js(argv[0]), i32_from_js(argv[1])));
+}
+// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+static JSValue js_tile_gid_prop_at(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ TilemapProp* ret = tile_gid_prop_at(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]));
+ return tilemap_prop_to_js(*ret);
+}
+// Get the number of objects on an object-layer of a tilemap.
+static JSValue js_tile_object_count(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(tile_object_count(u32_from_js(argv[0]), i32_from_js(argv[1])));
+}
+// Get an object from an object-layer of a tilemap.
+static JSValue js_tile_object(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ TilemapObject* ret = tile_object(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]));
+ return tilemap_object_to_js(*ret);
+}
+// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+static JSValue js_tile_object_index(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(tile_object_index(u32_from_js(argv[0]), i32_from_js(argv[1]), string_from_js(argv[2])));
+}
+// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+static JSValue js_tile_object_prop(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ TilemapProp* ret = tile_object_prop(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), string_from_js(argv[3]));
+ return tilemap_prop_to_js(*ret);
+}
+// Get the number of custom properties on an object of a tilemap.
+static JSValue js_tile_object_prop_count(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ return i32_to_js(tile_object_prop_count(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2])));
+}
+// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+static JSValue js_tile_object_prop_at(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+ TilemapProp* ret = tile_object_prop_at(u32_from_js(argv[0]), i32_from_js(argv[1]), i32_from_js(argv[2]), i32_from_js(argv[3]));
+ return tilemap_prop_to_js(*ret);
 }
 
 // TYPES
@@ -1395,15 +1544,41 @@ void expose_things_to_js() {
   JS_SetPropertyStr(ctx, global, "load_tilemap", JS_NewCFunction(ctx, js_load_tilemap, "load_tilemap", 1));
   JS_SetPropertyStr(ctx, global, "unload_tilemap", JS_NewCFunction(ctx, js_unload_tilemap, "unload_tilemap", 1));
   JS_SetPropertyStr(ctx, global, "tile_update", JS_NewCFunction(ctx, js_tile_update, "tile_update", 2));
+  JS_SetPropertyStr(ctx, global, "tile_map_size", JS_NewCFunction(ctx, js_tile_map_size, "tile_map_size", 1));
+  JS_SetPropertyStr(ctx, global, "tile_tile_size", JS_NewCFunction(ctx, js_tile_tile_size, "tile_tile_size", 1));
+  JS_SetPropertyStr(ctx, global, "tile_map_prop", JS_NewCFunction(ctx, js_tile_map_prop, "tile_map_prop", 2));
+  JS_SetPropertyStr(ctx, global, "tile_map_prop_count", JS_NewCFunction(ctx, js_tile_map_prop_count, "tile_map_prop_count", 1));
+  JS_SetPropertyStr(ctx, global, "tile_map_prop_at", JS_NewCFunction(ctx, js_tile_map_prop_at, "tile_map_prop_at", 2));
   JS_SetPropertyStr(ctx, global, "tile_draw", JS_NewCFunction(ctx, js_tile_draw, "tile_draw", 3));
   JS_SetPropertyStr(ctx, global, "tile_draw_tint", JS_NewCFunction(ctx, js_tile_draw_tint, "tile_draw_tint", 4));
   JS_SetPropertyStr(ctx, global, "tile_draw_on_image", JS_NewCFunction(ctx, js_tile_draw_on_image, "tile_draw_on_image", 4));
-  JS_SetPropertyStr(ctx, global, "tile_draw_tile", JS_NewCFunction(ctx, js_tile_draw_tile, "tile_draw_tile", 4));
+  JS_SetPropertyStr(ctx, global, "tilemap_image", JS_NewCFunction(ctx, js_tilemap_image, "tilemap_image", 1));
   JS_SetPropertyStr(ctx, global, "tile_layer_count", JS_NewCFunction(ctx, js_tile_layer_count, "tile_layer_count", 1));
+  JS_SetPropertyStr(ctx, global, "tile_layer_index", JS_NewCFunction(ctx, js_tile_layer_index, "tile_layer_index", 2));
+  JS_SetPropertyStr(ctx, global, "tile_layer_name", JS_NewCFunction(ctx, js_tile_layer_name, "tile_layer_name", 2));
+  JS_SetPropertyStr(ctx, global, "tile_layer_type", JS_NewCFunction(ctx, js_tile_layer_type, "tile_layer_type", 2));
+  JS_SetPropertyStr(ctx, global, "tile_layer_size", JS_NewCFunction(ctx, js_tile_layer_size, "tile_layer_size", 2));
+  JS_SetPropertyStr(ctx, global, "tile_layer_visible", JS_NewCFunction(ctx, js_tile_layer_visible, "tile_layer_visible", 2));
+  JS_SetPropertyStr(ctx, global, "tile_layer_prop", JS_NewCFunction(ctx, js_tile_layer_prop, "tile_layer_prop", 3));
+  JS_SetPropertyStr(ctx, global, "tile_layer_prop_count", JS_NewCFunction(ctx, js_tile_layer_prop_count, "tile_layer_prop_count", 2));
+  JS_SetPropertyStr(ctx, global, "tile_layer_prop_at", JS_NewCFunction(ctx, js_tile_layer_prop_at, "tile_layer_prop_at", 3));
+  JS_SetPropertyStr(ctx, global, "tile_draw_layer", JS_NewCFunction(ctx, js_tile_draw_layer, "tile_draw_layer", 4));
+  JS_SetPropertyStr(ctx, global, "tile_draw_layer_tint", JS_NewCFunction(ctx, js_tile_draw_layer_tint, "tile_draw_layer_tint", 5));
+  JS_SetPropertyStr(ctx, global, "tile_draw_layer_on_image", JS_NewCFunction(ctx, js_tile_draw_layer_on_image, "tile_draw_layer_on_image", 5));
+  JS_SetPropertyStr(ctx, global, "tile_layer_image", JS_NewCFunction(ctx, js_tile_layer_image, "tile_layer_image", 2));
   JS_SetPropertyStr(ctx, global, "tile_get_tile", JS_NewCFunction(ctx, js_tile_get_tile, "tile_get_tile", 4));
   JS_SetPropertyStr(ctx, global, "tile_set_tile", JS_NewCFunction(ctx, js_tile_set_tile, "tile_set_tile", 5));
+  JS_SetPropertyStr(ctx, global, "tile_draw_tile", JS_NewCFunction(ctx, js_tile_draw_tile, "tile_draw_tile", 4));
   JS_SetPropertyStr(ctx, global, "tile_image", JS_NewCFunction(ctx, js_tile_image, "tile_image", 2));
-  JS_SetPropertyStr(ctx, global, "tilemap_image", JS_NewCFunction(ctx, js_tilemap_image, "tilemap_image", 1));
+  JS_SetPropertyStr(ctx, global, "tile_gid_prop", JS_NewCFunction(ctx, js_tile_gid_prop, "tile_gid_prop", 3));
+  JS_SetPropertyStr(ctx, global, "tile_gid_prop_count", JS_NewCFunction(ctx, js_tile_gid_prop_count, "tile_gid_prop_count", 2));
+  JS_SetPropertyStr(ctx, global, "tile_gid_prop_at", JS_NewCFunction(ctx, js_tile_gid_prop_at, "tile_gid_prop_at", 3));
+  JS_SetPropertyStr(ctx, global, "tile_object_count", JS_NewCFunction(ctx, js_tile_object_count, "tile_object_count", 2));
+  JS_SetPropertyStr(ctx, global, "tile_object", JS_NewCFunction(ctx, js_tile_object, "tile_object", 3));
+  JS_SetPropertyStr(ctx, global, "tile_object_index", JS_NewCFunction(ctx, js_tile_object_index, "tile_object_index", 3));
+  JS_SetPropertyStr(ctx, global, "tile_object_prop", JS_NewCFunction(ctx, js_tile_object_prop, "tile_object_prop", 4));
+  JS_SetPropertyStr(ctx, global, "tile_object_prop_count", JS_NewCFunction(ctx, js_tile_object_prop_count, "tile_object_prop_count", 3));
+  JS_SetPropertyStr(ctx, global, "tile_object_prop_at", JS_NewCFunction(ctx, js_tile_object_prop_at, "tile_object_prop_at", 4));
   JS_SetPropertyStr(ctx, global, "current_time", JS_NewCFunction(ctx, js_current_time, "current_time", 0));
   JS_SetPropertyStr(ctx, global, "delta_time", JS_NewCFunction(ctx, js_delta_time, "delta_time", 0));
   JS_SetPropertyStr(ctx, global, "random_int", JS_NewCFunction(ctx, js_random_int, "random_int", 2));

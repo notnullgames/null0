@@ -4,7 +4,7 @@
 // Generates Rust code from the API definitions
 
 import { writeFile } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const out = [
   `//! # null0 - Rust bindings for the null0 fantasy console
@@ -90,11 +90,11 @@ const retTypes = {
   Font: 'u32',
   Sound: 'u32',
   Tilemap: 'u32',
-  Vector: 'Vector',
-  Dimensions: 'Dimensions',
-  Color: 'Color',
-  Rectangle: 'Rectangle',
-  SfxParams: 'SfxParams'
+  Vector: '*const Vector',
+  Dimensions: '*const Dimensions',
+  Color: '*const Color',
+  Rectangle: '*const Rectangle',
+  SfxParams: '*const SfxParams'
 }
 
 // Type mapping for struct member types
@@ -102,23 +102,28 @@ const memberTypes = {
   i32: 'i32',
   f32: 'f32',
   u32: 'u32',
-  u8: 'u8'
+  u8: 'u8',
+  string: '*const u8'
 }
 
 // Reserved keywords in Rust that need to be escaped
 const rustReservedKeywords = new Set(['type', 'impl', 'trait', 'struct', 'enum', 'fn', 'let', 'mut', 'const', 'static', 'if', 'else', 'match', 'for', 'while', 'loop', 'break', 'continue', 'return', 'mod', 'pub', 'use', 'extern', 'crate', 'super', 'self', 'Self', 'where', 'unsafe', 'async', 'await', 'move', 'ref', 'in', 'as', 'dyn', 'abstract', 'become', 'box', 'do', 'final', 'macro', 'override', 'priv', 'typeof', 'unsized', 'virtual', 'yield', 'try'])
 
+// escape reserved keywords (an arg or a struct member named `type`) with r#
+const rustName = (name) => (rustReservedKeywords.has(name) ? `r#${name}` : name)
+
 // Generate parameter list for function signature
 const argsMap = (args) => {
-  const params = Object.entries(args).map(([name, type]) => {
-    // Escape reserved keywords by adding r# prefix
-    const paramName = rustReservedKeywords.has(name) ? `r#${name}` : name
-    return `${paramName}: ${argTypes[type] || type}`
-  })
+  const params = Object.entries(args).map(([name, type]) => `${rustName(name)}: ${argTypes[type] || type}`)
   return params.join(', ')
 }
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// a new struct fills itself in - the host hands structs back as pointers into
+// cart memory, and takes them as pointers too
+seedTypes(argTypes, { structs }, { structType: (name) => name })
+seedTypes(retTypes, { structs }, { structType: (name) => `*const ${name}` })
 
 // Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {
@@ -127,7 +132,7 @@ for (const [structName, structDef] of Object.entries(structs)) {
   out.push(`#[derive(Debug, Clone, Copy, PartialEq)]`)
   out.push(`pub struct ${structName} {`)
   for (const [memberName, memberType] of Object.entries(structDef.members)) {
-    out.push(`    pub ${memberName}: ${memberTypes[memberType] || memberType},`)
+    out.push(`    pub ${rustName(memberName)}: ${memberTypes[memberType] || memberType},`)
   }
   out.push(`}`)
 }

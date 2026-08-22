@@ -228,6 +228,36 @@ static JSValue vector_to_js(Vector vec) {
   return obj;
 }
 
+static JSValue string_to_js(char* str) {
+  return JS_NewString(ctx, str == NULL ? "" : str);
+}
+
+// only the member named by type is meaningful, but hand js the lot
+static JSValue tilemap_prop_to_js(TilemapProp prop) {
+  JSValue obj = JS_NewObject(ctx);
+  JS_SetPropertyStr(ctx, obj, "name", JS_NewString(ctx, prop.name == NULL ? "" : prop.name));
+  JS_SetPropertyStr(ctx, obj, "type", JS_NewInt32(ctx, (int32_t)prop.type));
+  JS_SetPropertyStr(ctx, obj, "integer", JS_NewInt32(ctx, prop.integer));
+  JS_SetPropertyStr(ctx, obj, "number", JS_NewFloat64(ctx, prop.number));
+  JS_SetPropertyStr(ctx, obj, "text", JS_NewString(ctx, prop.text == NULL ? "" : prop.text));
+  return obj;
+}
+
+static JSValue tilemap_object_to_js(TilemapObject object) {
+  JSValue obj = JS_NewObject(ctx);
+  JS_SetPropertyStr(ctx, obj, "id", JS_NewInt32(ctx, object.id));
+  JS_SetPropertyStr(ctx, obj, "name", JS_NewString(ctx, object.name == NULL ? "" : object.name));
+  JS_SetPropertyStr(ctx, obj, "type", JS_NewString(ctx, object.type == NULL ? "" : object.type));
+  JS_SetPropertyStr(ctx, obj, "gid", JS_NewInt32(ctx, object.gid));
+  JS_SetPropertyStr(ctx, obj, "x", JS_NewFloat64(ctx, object.x));
+  JS_SetPropertyStr(ctx, obj, "y", JS_NewFloat64(ctx, object.y));
+  JS_SetPropertyStr(ctx, obj, "width", JS_NewFloat64(ctx, object.width));
+  JS_SetPropertyStr(ctx, obj, "height", JS_NewFloat64(ctx, object.height));
+  JS_SetPropertyStr(ctx, obj, "rotation", JS_NewFloat64(ctx, object.rotation));
+  JS_SetPropertyStr(ctx, obj, "visible", JS_NewBool(ctx, object.visible != 0));
+  return obj;
+}
+
 static JSValue rectangle_to_js(Rectangle rect) {
   JSValue obj = JS_NewObject(ctx);
   JS_SetPropertyStr(ctx, obj, "x", JS_NewInt32(ctx, rect.x));
@@ -508,11 +538,18 @@ const returnMap = {
   Dimensions: 'dimensions_to_js',
   Rectangle: 'rectangle_to_js',
   Color: 'color_to_js',
-  SfxParams: 'sfx_params_to_js'
+  SfxParams: 'sfx_params_to_js',
+  TilemapProp: 'tilemap_prop_to_js',
+  TilemapObject: 'tilemap_object_to_js',
+
+  // strings and enums
+  string: 'string_to_js',
+  TileLayerKind: 'i32_to_js',
+  TilePropType: 'i32_to_js'
 }
 
 // these types are pointers when returned from C
-const returnRef = ['Vector', 'Dimensions', 'Rectangle', 'Color', 'SfxParams']
+const returnRef = ['Vector', 'Dimensions', 'Rectangle', 'Color', 'SfxParams', 'TilemapProp', 'TilemapObject']
 
 // functions to map args from js into something C can handle
 const argTypes = {

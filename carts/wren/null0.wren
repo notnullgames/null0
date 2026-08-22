@@ -52,75 +52,6 @@ class Color {
   toString { "Color(%(_r), %(_g), %(_b), %(_a))" }
 }
 
-// The 2D position of something (x/y.)
-class Vector {
-  construct new(x, y) {
-    _x = x
-    _y = y
-  }
-
-  // Create a Vector from a list of its members
-  static fromList(l) { Vector.new(l[0], l[1]) }
-
-  x { _x }
-  x=(v) { _x = v }
-  y { _y }
-  y=(v) { _y = v }
-
-  // The members, in the order the null0 API wants them
-  toList { [_x, _y] }
-
-  toString { "Vector(%(_x), %(_y))" }
-}
-
-// The 2D position + size of something (x/y/w/h.)
-class Rectangle {
-  construct new(x, y, width, height) {
-    _x = x
-    _y = y
-    _width = width
-    _height = height
-  }
-
-  // Create a Rectangle from a list of its members
-  static fromList(l) { Rectangle.new(l[0], l[1], l[2], l[3]) }
-
-  x { _x }
-  x=(v) { _x = v }
-  y { _y }
-  y=(v) { _y = v }
-  width { _width }
-  width=(v) { _width = v }
-  height { _height }
-  height=(v) { _height = v }
-
-  // The members, in the order the null0 API wants them
-  toList { [_x, _y, _width, _height] }
-
-  toString { "Rectangle(%(_x), %(_y), %(_width), %(_height))" }
-}
-
-// The 2D size of something (width/height.)
-class Dimensions {
-  construct new(width, height) {
-    _width = width
-    _height = height
-  }
-
-  // Create a Dimensions from a list of its members
-  static fromList(l) { Dimensions.new(l[0], l[1]) }
-
-  width { _width }
-  width=(v) { _width = v }
-  height { _height }
-  height=(v) { _height = v }
-
-  // The members, in the order the null0 API wants them
-  toList { [_width, _height] }
-
-  toString { "Dimensions(%(_width), %(_height))" }
-}
-
 // Sfx parameters.
 class SfxParams {
   // Every member starts at 0 - fill them in with the setters, or
@@ -235,6 +166,150 @@ class SfxParams {
   toList { [_randSeed, _waveType, _attackTime, _sustainTime, _sustainPunch, _decayTime, _startFrequency, _minFrequency, _slide, _deltaSlide, _vibratoDepth, _vibratoSpeed, _changeAmount, _changeSpeed, _squareDuty, _dutySweep, _repeatSpeed, _phaserOffset, _phaserSweep, _lpfCutoff, _lpfCutoffSweep, _lpfResonance, _hpfCutoff, _hpfCutoffSweep] }
 
   toString { "SfxParams(%(_randSeed), %(_waveType), %(_attackTime), %(_sustainTime), %(_sustainPunch), %(_decayTime), %(_startFrequency), %(_minFrequency), %(_slide), %(_deltaSlide), %(_vibratoDepth), %(_vibratoSpeed), %(_changeAmount), %(_changeSpeed), %(_squareDuty), %(_dutySweep), %(_repeatSpeed), %(_phaserOffset), %(_phaserSweep), %(_lpfCutoff), %(_lpfCutoffSweep), %(_lpfResonance), %(_hpfCutoff), %(_hpfCutoffSweep))" }
+}
+
+// The 2D size of something (width/height.)
+class Dimensions {
+  construct new(width, height) {
+    _width = width
+    _height = height
+  }
+
+  // Create a Dimensions from a list of its members
+  static fromList(l) { Dimensions.new(l[0], l[1]) }
+
+  width { _width }
+  width=(v) { _width = v }
+  height { _height }
+  height=(v) { _height = v }
+
+  // The members, in the order the null0 API wants them
+  toList { [_width, _height] }
+
+  toString { "Dimensions(%(_width), %(_height))" }
+}
+
+// The 2D position of something (x/y.)
+class Vector {
+  construct new(x, y) {
+    _x = x
+    _y = y
+  }
+
+  // Create a Vector from a list of its members
+  static fromList(l) { Vector.new(l[0], l[1]) }
+
+  x { _x }
+  x=(v) { _x = v }
+  y { _y }
+  y=(v) { _y = v }
+
+  // The members, in the order the null0 API wants them
+  toList { [_x, _y] }
+
+  toString { "Vector(%(_x), %(_y))" }
+}
+
+// The 2D position + size of something (x/y/w/h.)
+class Rectangle {
+  construct new(x, y, width, height) {
+    _x = x
+    _y = y
+    _width = width
+    _height = height
+  }
+
+  // Create a Rectangle from a list of its members
+  static fromList(l) { Rectangle.new(l[0], l[1], l[2], l[3]) }
+
+  x { _x }
+  x=(v) { _x = v }
+  y { _y }
+  y=(v) { _y = v }
+  width { _width }
+  width=(v) { _width = v }
+  height { _height }
+  height=(v) { _height = v }
+
+  // The members, in the order the null0 API wants them
+  toList { [_x, _y, _width, _height] }
+
+  toString { "Rectangle(%(_x), %(_y), %(_width), %(_height))" }
+}
+
+// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+class TilemapProp {
+  construct new(name, type, integer, number, text) {
+    _name = name
+    _type = type
+    _integer = integer
+    _number = number
+    _text = text
+  }
+
+  // Create a TilemapProp from a list of its members
+  static fromList(l) { TilemapProp.new(l[0], l[1], l[2], l[3], l[4]) }
+
+  name { _name }
+  name=(v) { _name = v }
+  type { _type }
+  type=(v) { _type = v }
+  integer { _integer }
+  integer=(v) { _integer = v }
+  number { _number }
+  number=(v) { _number = v }
+  text { _text }
+  text=(v) { _text = v }
+
+  // The members, in the order the null0 API wants them
+  toList { [_name, _type, _integer, _number, _text] }
+
+  toString { "TilemapProp(%(_name), %(_type), %(_integer), %(_number), %(_text))" }
+}
+
+// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+class TilemapObject {
+  construct new(id, name, type, gid, x, y, width, height, rotation, visible) {
+    _id = id
+    _name = name
+    _type = type
+    _gid = gid
+    _x = x
+    _y = y
+    _width = width
+    _height = height
+    _rotation = rotation
+    _visible = visible
+  }
+
+  // Create a TilemapObject from a list of its members
+  static fromList(l) { TilemapObject.new(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9]) }
+
+  id { _id }
+  id=(v) { _id = v }
+  name { _name }
+  name=(v) { _name = v }
+  type { _type }
+  type=(v) { _type = v }
+  gid { _gid }
+  gid=(v) { _gid = v }
+  x { _x }
+  x=(v) { _x = v }
+  y { _y }
+  y=(v) { _y = v }
+  width { _width }
+  width=(v) { _width = v }
+  height { _height }
+  height=(v) { _height = v }
+  rotation { _rotation }
+  rotation=(v) { _rotation = v }
+  visible { _visible }
+  visible=(v) { _visible = v }
+
+  // The members, in the order the null0 API wants them
+  toList { [_id, _name, _type, _gid, _x, _y, _width, _height, _rotation, _visible] }
+
+  toString { "TilemapObject(%(_id), %(_name), %(_type), %(_gid), %(_x), %(_y), %(_width), %(_height), %(_rotation), %(_visible))" }
 }
 
 // The null0 API
@@ -736,6 +811,26 @@ class Null0 {
   foreign static tile_update_(a0, a1)
   static tile_update(tilemap, deltaTime) { tile_update_(tilemap, deltaTime) }
 
+  // Get the size of a tilemap, in tiles.
+  foreign static tile_map_size_(a0)
+  static tile_map_size(tilemap) { Dimensions.fromList(tile_map_size_(tilemap)) }
+
+  // Get the size of a single tile of a tilemap, in pixels.
+  foreign static tile_tile_size_(a0)
+  static tile_tile_size(tilemap) { Dimensions.fromList(tile_tile_size_(tilemap)) }
+
+  // Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+  foreign static tile_map_prop_(a0, a1)
+  static tile_map_prop(tilemap, name) { TilemapProp.fromList(tile_map_prop_(tilemap, name)) }
+
+  // Get the number of custom properties on a tilemap.
+  foreign static tile_map_prop_count_(a0)
+  static tile_map_prop_count(tilemap) { tile_map_prop_count_(tilemap) }
+
+  // Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+  foreign static tile_map_prop_at_(a0, a1)
+  static tile_map_prop_at(tilemap, index) { TilemapProp.fromList(tile_map_prop_at_(tilemap, index)) }
+
   // Draw a tilemap on the screen.
   foreign static tile_draw_(a0, a1, a2)
   static tile_draw(tilemap, posX, posY) { tile_draw_(tilemap, posX, posY) }
@@ -748,29 +843,113 @@ class Null0 {
   foreign static tile_draw_on_image_(a0, a1, a2, a3)
   static tile_draw_on_image(dst, tilemap, posX, posY) { tile_draw_on_image_(dst, tilemap, posX, posY) }
 
-  // Draw a single tile from a tilemap on the screen.
-  foreign static tile_draw_tile_(a0, a1, a2, a3)
-  static tile_draw_tile(tilemap, gid, posX, posY) { tile_draw_tile_(tilemap, gid, posX, posY) }
+  // Render a whole tilemap to a new image.
+  foreign static tilemap_image_(a0)
+  static tilemap_image(tilemap) { tilemap_image_(tilemap) }
 
-  // Get the number of layers in a tilemap.
+  // Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
   foreign static tile_layer_count_(a0)
   static tile_layer_count(tilemap) { tile_layer_count_(tilemap) }
+
+  // Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+  foreign static tile_layer_index_(a0, a1)
+  static tile_layer_index(tilemap, name) { tile_layer_index_(tilemap, name) }
+
+  // Get the name of a layer of a tilemap.
+  foreign static tile_layer_name_(a0, a1)
+  static tile_layer_name(tilemap, layer) { tile_layer_name_(tilemap, layer) }
+
+  // Get the kind of a layer of a tilemap.
+  foreign static tile_layer_type_(a0, a1)
+  static tile_layer_type(tilemap, layer) { tile_layer_type_(tilemap, layer) }
+
+  // Get the size of a layer of a tilemap, in tiles.
+  foreign static tile_layer_size_(a0, a1)
+  static tile_layer_size(tilemap, layer) { Dimensions.fromList(tile_layer_size_(tilemap, layer)) }
+
+  // Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+  foreign static tile_layer_visible_(a0, a1)
+  static tile_layer_visible(tilemap, layer) { tile_layer_visible_(tilemap, layer) }
+
+  // Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+  foreign static tile_layer_prop_(a0, a1, a2)
+  static tile_layer_prop(tilemap, layer, name) { TilemapProp.fromList(tile_layer_prop_(tilemap, layer, name)) }
+
+  // Get the number of custom properties on a layer of a tilemap.
+  foreign static tile_layer_prop_count_(a0, a1)
+  static tile_layer_prop_count(tilemap, layer) { tile_layer_prop_count_(tilemap, layer) }
+
+  // Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+  foreign static tile_layer_prop_at_(a0, a1, a2)
+  static tile_layer_prop_at(tilemap, layer, index) { TilemapProp.fromList(tile_layer_prop_at_(tilemap, layer, index)) }
+
+  // Draw a single layer of a tilemap on the screen.
+  foreign static tile_draw_layer_(a0, a1, a2, a3)
+  static tile_draw_layer(tilemap, layer, posX, posY) { tile_draw_layer_(tilemap, layer, posX, posY) }
+
+  // Draw a single layer of a tilemap on the screen, tinted by a color.
+  foreign static tile_draw_layer_tint_(a0, a1, a2, a3, a4)
+  static tile_draw_layer_tint(tilemap, layer, posX, posY, tint) { tile_draw_layer_tint_(tilemap, layer, posX, posY, tint.value) }
+
+  // Draw a single layer of a tilemap on an image.
+  foreign static tile_draw_layer_on_image_(a0, a1, a2, a3, a4)
+  static tile_draw_layer_on_image(dst, tilemap, layer, posX, posY) { tile_draw_layer_on_image_(dst, tilemap, layer, posX, posY) }
+
+  // Render a single layer of a tilemap to a new image.
+  foreign static tile_layer_image_(a0, a1)
+  static tile_layer_image(tilemap, layer) { tile_layer_image_(tilemap, layer) }
 
   // Get the gid of the tile at a column/row in a tilemap layer.
   foreign static tile_get_tile_(a0, a1, a2, a3)
   static tile_get_tile(tilemap, layer, column, row) { tile_get_tile_(tilemap, layer, column, row) }
 
-  // Set the gid of the tile at a column/row in a tilemap layer.
+  // Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
   foreign static tile_set_tile_(a0, a1, a2, a3, a4)
   static tile_set_tile(tilemap, layer, column, row, gid) { tile_set_tile_(tilemap, layer, column, row, gid) }
+
+  // Draw a single tile from a tilemap on the screen.
+  foreign static tile_draw_tile_(a0, a1, a2, a3)
+  static tile_draw_tile(tilemap, gid, posX, posY) { tile_draw_tile_(tilemap, gid, posX, posY) }
 
   // Get a copy of the image of a single tile in a tilemap.
   foreign static tile_image_(a0, a1)
   static tile_image(tilemap, gid) { tile_image_(tilemap, gid) }
 
-  // Render a whole tilemap to a new image.
-  foreign static tilemap_image_(a0)
-  static tilemap_image(tilemap) { tilemap_image_(tilemap) }
+  // Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+  foreign static tile_gid_prop_(a0, a1, a2)
+  static tile_gid_prop(tilemap, gid, name) { TilemapProp.fromList(tile_gid_prop_(tilemap, gid, name)) }
+
+  // Get the number of custom properties on a tile of a tilemap.
+  foreign static tile_gid_prop_count_(a0, a1)
+  static tile_gid_prop_count(tilemap, gid) { tile_gid_prop_count_(tilemap, gid) }
+
+  // Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+  foreign static tile_gid_prop_at_(a0, a1, a2)
+  static tile_gid_prop_at(tilemap, gid, index) { TilemapProp.fromList(tile_gid_prop_at_(tilemap, gid, index)) }
+
+  // Get the number of objects on an object-layer of a tilemap.
+  foreign static tile_object_count_(a0, a1)
+  static tile_object_count(tilemap, layer) { tile_object_count_(tilemap, layer) }
+
+  // Get an object from an object-layer of a tilemap.
+  foreign static tile_object_(a0, a1, a2)
+  static tile_object(tilemap, layer, index) { TilemapObject.fromList(tile_object_(tilemap, layer, index)) }
+
+  // Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+  foreign static tile_object_index_(a0, a1, a2)
+  static tile_object_index(tilemap, layer, name) { tile_object_index_(tilemap, layer, name) }
+
+  // Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+  foreign static tile_object_prop_(a0, a1, a2, a3)
+  static tile_object_prop(tilemap, layer, index, name) { TilemapProp.fromList(tile_object_prop_(tilemap, layer, index, name)) }
+
+  // Get the number of custom properties on an object of a tilemap.
+  foreign static tile_object_prop_count_(a0, a1, a2)
+  static tile_object_prop_count(tilemap, layer, index) { tile_object_prop_count_(tilemap, layer, index) }
+
+  // Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+  foreign static tile_object_prop_at_(a0, a1, a2, a3)
+  static tile_object_prop_at(tilemap, layer, index, propIndex) { TilemapProp.fromList(tile_object_prop_at_(tilemap, layer, index, propIndex)) }
 
   // TYPES
 
@@ -999,3 +1178,18 @@ var MOUSE_BUTTON_UNKNOWN = 0
 var MOUSE_BUTTON_LEFT = 1
 var MOUSE_BUTTON_RIGHT = 2
 var MOUSE_BUTTON_MIDDLE = 3
+
+// The kind of a layer in a tilemap.
+var LAYER_NONE = 0
+var LAYER_TILE = 1
+var LAYER_OBJECT = 2
+var LAYER_IMAGE = 3
+var LAYER_GROUP = 4
+
+// The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+var PROP_NONE = 0
+var PROP_INT = 1
+var PROP_BOOL = 2
+var PROP_FLOAT = 3
+var PROP_STRING = 4
+var PROP_COLOR = 5

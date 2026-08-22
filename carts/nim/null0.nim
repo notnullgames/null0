@@ -100,6 +100,25 @@ type
     b*: uint8
     a*: uint8
 
+  TilemapProp* {.byref, packed.} = object
+    name*: cstring
+    `type`*: TilePropType
+    integer*: cint
+    number*: cfloat
+    text*: cstring
+
+  TilemapObject* {.byref, packed.} = object
+    id*: cint
+    name*: cstring
+    `type`*: cstring
+    gid*: cint
+    x*: cfloat
+    y*: cfloat
+    width*: cfloat
+    height*: cfloat
+    rotation*: cfloat
+    visible*: cint
+
   ImageFilter* = enum
     FILTER_NEARESTNEIGHBOR = 0,
     FILTER_BILINEAR = 1,
@@ -264,6 +283,21 @@ type
     MOUSE_BUTTON_RIGHT = 2,
     MOUSE_BUTTON_MIDDLE = 3
 
+  TileLayerKind* = enum
+    LAYER_NONE = 0,
+    LAYER_TILE = 1,
+    LAYER_OBJECT = 2,
+    LAYER_IMAGE = 3,
+    LAYER_GROUP = 4
+
+  TilePropType* = enum
+    PROP_NONE = 0,
+    PROP_INT = 1,
+    PROP_BOOL = 2,
+    PROP_FLOAT = 3,
+    PROP_STRING = 4,
+    PROP_COLOR = 5
+
 # Import functions from null0 module with proper C attributes
 
 # Colors functions
@@ -391,15 +425,41 @@ proc sfx_generate*(`type`: SfxPresetType): SfxParams {.null0_import.}
 proc load_tilemap*(filename: cstring): uint32 {.null0_import.}
 proc unload_tilemap*(tilemap: uint32) {.null0_import.}
 proc tile_update*(tilemap: uint32, deltaTime: cfloat) {.null0_import.}
+proc tile_map_size*(tilemap: uint32): Dimensions {.null0_import.}
+proc tile_tile_size*(tilemap: uint32): Dimensions {.null0_import.}
+proc tile_map_prop*(tilemap: uint32, name: cstring): TilemapProp {.null0_import.}
+proc tile_map_prop_count*(tilemap: uint32): cint {.null0_import.}
+proc tile_map_prop_at*(tilemap: uint32, index: cint): TilemapProp {.null0_import.}
 proc tile_draw*(tilemap: uint32, posX: cint, posY: cint) {.null0_import.}
 proc tile_draw_tint*(tilemap: uint32, posX: cint, posY: cint, tint: Color) {.null0_import.}
 proc tile_draw_on_image*(dst: uint32, tilemap: uint32, posX: cint, posY: cint) {.null0_import.}
-proc tile_draw_tile*(tilemap: uint32, gid: cint, posX: cint, posY: cint) {.null0_import.}
+proc tilemap_image*(tilemap: uint32): uint32 {.null0_import.}
 proc tile_layer_count*(tilemap: uint32): cint {.null0_import.}
+proc tile_layer_index*(tilemap: uint32, name: cstring): cint {.null0_import.}
+proc tile_layer_name*(tilemap: uint32, layer: cint): cstring {.null0_import.}
+proc tile_layer_type*(tilemap: uint32, layer: cint) {.null0_import.}
+proc tile_layer_size*(tilemap: uint32, layer: cint): Dimensions {.null0_import.}
+proc tile_layer_visible*(tilemap: uint32, layer: cint): bool {.null0_import.}
+proc tile_layer_prop*(tilemap: uint32, layer: cint, name: cstring): TilemapProp {.null0_import.}
+proc tile_layer_prop_count*(tilemap: uint32, layer: cint): cint {.null0_import.}
+proc tile_layer_prop_at*(tilemap: uint32, layer: cint, index: cint): TilemapProp {.null0_import.}
+proc tile_draw_layer*(tilemap: uint32, layer: cint, posX: cint, posY: cint) {.null0_import.}
+proc tile_draw_layer_tint*(tilemap: uint32, layer: cint, posX: cint, posY: cint, tint: Color) {.null0_import.}
+proc tile_draw_layer_on_image*(dst: uint32, tilemap: uint32, layer: cint, posX: cint, posY: cint) {.null0_import.}
+proc tile_layer_image*(tilemap: uint32, layer: cint): uint32 {.null0_import.}
 proc tile_get_tile*(tilemap: uint32, layer: cint, column: cint, row: cint): cint {.null0_import.}
 proc tile_set_tile*(tilemap: uint32, layer: cint, column: cint, row: cint, gid: cint) {.null0_import.}
+proc tile_draw_tile*(tilemap: uint32, gid: cint, posX: cint, posY: cint) {.null0_import.}
 proc tile_image*(tilemap: uint32, gid: cint): uint32 {.null0_import.}
-proc tilemap_image*(tilemap: uint32): uint32 {.null0_import.}
+proc tile_gid_prop*(tilemap: uint32, gid: cint, name: cstring): TilemapProp {.null0_import.}
+proc tile_gid_prop_count*(tilemap: uint32, gid: cint): cint {.null0_import.}
+proc tile_gid_prop_at*(tilemap: uint32, gid: cint, index: cint): TilemapProp {.null0_import.}
+proc tile_object_count*(tilemap: uint32, layer: cint): cint {.null0_import.}
+proc tile_object*(tilemap: uint32, layer: cint, index: cint): TilemapObject {.null0_import.}
+proc tile_object_index*(tilemap: uint32, layer: cint, name: cstring): cint {.null0_import.}
+proc tile_object_prop*(tilemap: uint32, layer: cint, index: cint, name: cstring): TilemapProp {.null0_import.}
+proc tile_object_prop_count*(tilemap: uint32, layer: cint, index: cint): cint {.null0_import.}
+proc tile_object_prop_at*(tilemap: uint32, layer: cint, index: cint, propIndex: cint): TilemapProp {.null0_import.}
 
 # Types functions
 

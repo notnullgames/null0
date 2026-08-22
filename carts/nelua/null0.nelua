@@ -55,6 +55,44 @@ global SfxParams <cimport'SfxParams', nodecl> = @record{
   hpfCutoffSweep: float32
 }
 
+global TilemapProp <cimport'TilemapProp', nodecl> = @record{
+  name: cstring,
+  type: int32,
+  integer: int32,
+  number: float32,
+  text: cstring
+}
+
+global TilemapObject <cimport'TilemapObject', nodecl> = @record{
+  id: int32,
+  name: cstring,
+  type: cstring,
+  gid: int32,
+  x: float32,
+  y: float32,
+  width: float32,
+  height: float32,
+  rotation: float32,
+  visible: int32
+}
+
+global TileLayerKind <cimport'TileLayerKind', nodecl> = @enum(int32){
+  LAYER_NONE = 0,
+  LAYER_TILE = 1,
+  LAYER_OBJECT = 2,
+  LAYER_IMAGE = 3,
+  LAYER_GROUP = 4
+}
+
+global TilePropType <cimport'TilePropType', nodecl> = @enum(int32){
+  PROP_NONE = 0,
+  PROP_INT = 1,
+  PROP_BOOL = 2,
+  PROP_FLOAT = 3,
+  PROP_STRING = 4,
+  PROP_COLOR = 5
+}
+
 global ImageFilter <cimport'ImageFilter', nodecl> = @enum(int32){
   FILTER_NEARESTNEIGHBOR = 0,
   FILTER_BILINEAR = 1,
@@ -260,25 +298,25 @@ global RAYWHITE: Color <cimport, nodecl>
 -- COLORS
 
 -- Tint a color with another color.
-global function color_tint(color: Color, tint: Color): Color <cimport,nodecl> end
+global function color_tint(color: Color, tint: Color): *Color <cimport,nodecl> end
 
 -- Fade a color.
-global function color_fade(color: Color, alpha: float32): Color <cimport,nodecl> end
+global function color_fade(color: Color, alpha: float32): *Color <cimport,nodecl> end
 
 -- Change the brightness of a color.
-global function color_brightness(color: Color, factor: float32): Color <cimport,nodecl> end
+global function color_brightness(color: Color, factor: float32): *Color <cimport,nodecl> end
 
 -- Invert a color.
-global function color_invert(color: Color): Color <cimport,nodecl> end
+global function color_invert(color: Color): *Color <cimport,nodecl> end
 
 -- Blend 2 colors together.
-global function color_alpha_blend(dst: Color, src: Color): Color <cimport,nodecl> end
+global function color_alpha_blend(dst: Color, src: Color): *Color <cimport,nodecl> end
 
 -- Change contrast of a color.
-global function color_contrast(color: Color, contrast: float32): Color <cimport,nodecl> end
+global function color_contrast(color: Color, contrast: float32): *Color <cimport,nodecl> end
 
 -- Interpolate colors.
-global function color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: float32, coordinateY: float32): Color <cimport,nodecl> end
+global function color_bilinear_interpolate(color00: Color, color01: Color, color10: Color, color11: Color, coordinateX: float32, coordinateY: float32): *Color <cimport,nodecl> end
 
 
 -- GRAPHICS
@@ -392,7 +430,7 @@ global function load_font_ttf(filename: cstring, fontSize: int32): uint32 <cimpo
 global function image_color_invert(image: uint32): void <cimport,nodecl> end
 
 -- Calculate a rectangle representing the available alpha border in an image.
-global function image_alpha_border(image: uint32, threshold: float32): Rectangle <cimport,nodecl> end
+global function image_alpha_border(image: uint32, threshold: float32): *Rectangle <cimport,nodecl> end
 
 -- Crop an image, in-place.
 global function image_crop(image: uint32, x: int32, y: int32, width: int32, height: int32): void <cimport,nodecl> end
@@ -602,7 +640,7 @@ global function tts_sound(text: cstring, phonetic: boolean, pitch: int32, speed:
 global function sfx_sound(params: SfxParams): uint32 <cimport,nodecl> end
 
 -- Create Sfx parameters.
-global function sfx_generate(type: SfxPresetType): SfxParams <cimport,nodecl> end
+global function sfx_generate(type: SfxPresetType): *SfxParams <cimport,nodecl> end
 
 
 -- TILE
@@ -616,6 +654,21 @@ global function unload_tilemap(tilemap: uint32): void <cimport,nodecl> end
 -- Update a tilemap's animation timers (deltaTime is in seconds).
 global function tile_update(tilemap: uint32, deltaTime: float32): void <cimport,nodecl> end
 
+-- Get the size of a tilemap, in tiles.
+global function tile_map_size(tilemap: uint32): *Dimensions <cimport,nodecl> end
+
+-- Get the size of a single tile of a tilemap, in pixels.
+global function tile_tile_size(tilemap: uint32): *Dimensions <cimport,nodecl> end
+
+-- Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+global function tile_map_prop(tilemap: uint32, name: cstring): *TilemapProp <cimport,nodecl> end
+
+-- Get the number of custom properties on a tilemap.
+global function tile_map_prop_count(tilemap: uint32): int32 <cimport,nodecl> end
+
+-- Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+global function tile_map_prop_at(tilemap: uint32, index: int32): *TilemapProp <cimport,nodecl> end
+
 -- Draw a tilemap on the screen.
 global function tile_draw(tilemap: uint32, posX: int32, posY: int32): void <cimport,nodecl> end
 
@@ -625,23 +678,86 @@ global function tile_draw_tint(tilemap: uint32, posX: int32, posY: int32, tint: 
 -- Draw a tilemap on an image.
 global function tile_draw_on_image(dst: uint32, tilemap: uint32, posX: int32, posY: int32): void <cimport,nodecl> end
 
--- Draw a single tile from a tilemap on the screen.
-global function tile_draw_tile(tilemap: uint32, gid: int32, posX: int32, posY: int32): void <cimport,nodecl> end
+-- Render a whole tilemap to a new image.
+global function tilemap_image(tilemap: uint32): uint32 <cimport,nodecl> end
 
--- Get the number of layers in a tilemap.
+-- Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 global function tile_layer_count(tilemap: uint32): int32 <cimport,nodecl> end
+
+-- Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+global function tile_layer_index(tilemap: uint32, name: cstring): int32 <cimport,nodecl> end
+
+-- Get the name of a layer of a tilemap.
+global function tile_layer_name(tilemap: uint32, layer: int32): cstring <cimport,nodecl> end
+
+-- Get the kind of a layer of a tilemap.
+global function tile_layer_type(tilemap: uint32, layer: int32): TileLayerKind <cimport,nodecl> end
+
+-- Get the size of a layer of a tilemap, in tiles.
+global function tile_layer_size(tilemap: uint32, layer: int32): *Dimensions <cimport,nodecl> end
+
+-- Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+global function tile_layer_visible(tilemap: uint32, layer: int32): boolean <cimport,nodecl> end
+
+-- Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+global function tile_layer_prop(tilemap: uint32, layer: int32, name: cstring): *TilemapProp <cimport,nodecl> end
+
+-- Get the number of custom properties on a layer of a tilemap.
+global function tile_layer_prop_count(tilemap: uint32, layer: int32): int32 <cimport,nodecl> end
+
+-- Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+global function tile_layer_prop_at(tilemap: uint32, layer: int32, index: int32): *TilemapProp <cimport,nodecl> end
+
+-- Draw a single layer of a tilemap on the screen.
+global function tile_draw_layer(tilemap: uint32, layer: int32, posX: int32, posY: int32): void <cimport,nodecl> end
+
+-- Draw a single layer of a tilemap on the screen, tinted by a color.
+global function tile_draw_layer_tint(tilemap: uint32, layer: int32, posX: int32, posY: int32, tint: Color): void <cimport,nodecl> end
+
+-- Draw a single layer of a tilemap on an image.
+global function tile_draw_layer_on_image(dst: uint32, tilemap: uint32, layer: int32, posX: int32, posY: int32): void <cimport,nodecl> end
+
+-- Render a single layer of a tilemap to a new image.
+global function tile_layer_image(tilemap: uint32, layer: int32): uint32 <cimport,nodecl> end
 
 -- Get the gid of the tile at a column/row in a tilemap layer.
 global function tile_get_tile(tilemap: uint32, layer: int32, column: int32, row: int32): int32 <cimport,nodecl> end
 
--- Set the gid of the tile at a column/row in a tilemap layer.
+-- Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 global function tile_set_tile(tilemap: uint32, layer: int32, column: int32, row: int32, gid: int32): void <cimport,nodecl> end
+
+-- Draw a single tile from a tilemap on the screen.
+global function tile_draw_tile(tilemap: uint32, gid: int32, posX: int32, posY: int32): void <cimport,nodecl> end
 
 -- Get a copy of the image of a single tile in a tilemap.
 global function tile_image(tilemap: uint32, gid: int32): uint32 <cimport,nodecl> end
 
--- Render a whole tilemap to a new image.
-global function tilemap_image(tilemap: uint32): uint32 <cimport,nodecl> end
+-- Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+global function tile_gid_prop(tilemap: uint32, gid: int32, name: cstring): *TilemapProp <cimport,nodecl> end
+
+-- Get the number of custom properties on a tile of a tilemap.
+global function tile_gid_prop_count(tilemap: uint32, gid: int32): int32 <cimport,nodecl> end
+
+-- Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+global function tile_gid_prop_at(tilemap: uint32, gid: int32, index: int32): *TilemapProp <cimport,nodecl> end
+
+-- Get the number of objects on an object-layer of a tilemap.
+global function tile_object_count(tilemap: uint32, layer: int32): int32 <cimport,nodecl> end
+
+-- Get an object from an object-layer of a tilemap.
+global function tile_object(tilemap: uint32, layer: int32, index: int32): *TilemapObject <cimport,nodecl> end
+
+-- Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+global function tile_object_index(tilemap: uint32, layer: int32, name: cstring): int32 <cimport,nodecl> end
+
+-- Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+global function tile_object_prop(tilemap: uint32, layer: int32, index: int32, name: cstring): *TilemapProp <cimport,nodecl> end
+
+-- Get the number of custom properties on an object of a tilemap.
+global function tile_object_prop_count(tilemap: uint32, layer: int32, index: int32): int32 <cimport,nodecl> end
+
+-- Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+global function tile_object_prop_at(tilemap: uint32, layer: int32, index: int32, propIndex: int32): *TilemapProp <cimport,nodecl> end
 
 
 -- TYPES

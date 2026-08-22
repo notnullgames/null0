@@ -73,9 +73,10 @@ for (const [structName, structDef] of Object.entries(structs)) {
   out.push('', `;; struct ${structName}: ${structDef.description}`)
   let offset = 0
   const sizes = { i32: 4, f32: 4, u32: 4, u8: 1 }
-  const loads = { i32: 'i32.load', f32: 'f32.load', u32: 'i32.load', u8: 'i32.load8_u' }
+  // a string member is a pointer to the host's bytes, and an enum is its value
+  const loads = { i32: 'i32.load', f32: 'f32.load', u32: 'i32.load', u8: 'i32.load8_u', string: 'i32.load (a pointer to utf8 bytes)' }
   for (const [memberName, memberType] of Object.entries(structDef.members)) {
-    out.push(`;;   offset ${offset}: ${memberName} (${memberType}, read with ${loads[memberType]})`)
+    out.push(`;;   offset ${offset}: ${memberName} (${memberType}, read with ${loads[memberType] || 'i32.load'})`)
     offset += sizes[memberType] || 4
   }
 }

@@ -88,6 +88,29 @@ Color :: struct {
     a: u8,
 }
 
+// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+TilemapProp :: struct {
+    name: cstring,
+    type: TilePropType,
+    integer: i32,
+    number: f32,
+    text: cstring,
+}
+
+// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+TilemapObject :: struct {
+    id: i32,
+    name: cstring,
+    type: cstring,
+    gid: i32,
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+    rotation: f32,
+    visible: i32,
+}
+
 // Potential image-filtering techniques for scale/etc.
 ImageFilter :: enum i32 {
     FILTER_NEARESTNEIGHBOR = 0,
@@ -260,6 +283,25 @@ MouseButton :: enum i32 {
     MOUSE_BUTTON_LEFT = 1,
     MOUSE_BUTTON_RIGHT = 2,
     MOUSE_BUTTON_MIDDLE = 3,
+}
+
+// The kind of a layer in a tilemap.
+TileLayerKind :: enum i32 {
+    LAYER_NONE = 0,
+    LAYER_TILE = 1,
+    LAYER_OBJECT = 2,
+    LAYER_IMAGE = 3,
+    LAYER_GROUP = 4,
+}
+
+// The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+TilePropType :: enum i32 {
+    PROP_NONE = 0,
+    PROP_INT = 1,
+    PROP_BOOL = 2,
+    PROP_FLOAT = 3,
+    PROP_STRING = 4,
+    PROP_COLOR = 5,
 }
 
 // Constants
@@ -540,24 +582,76 @@ foreign null0_api {
     unload_tilemap :: proc(tilemap: Tilemap) ---
     // Update a tilemap's animation timers (deltaTime is in seconds).
     tile_update :: proc(tilemap: Tilemap, deltaTime: f32) ---
+    // Get the size of a tilemap, in tiles.
+    tile_map_size :: proc(tilemap: Tilemap) -> ^Dimensions ---
+    // Get the size of a single tile of a tilemap, in pixels.
+    tile_tile_size :: proc(tilemap: Tilemap) -> ^Dimensions ---
+    // Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+    tile_map_prop :: proc(tilemap: Tilemap, name: cstring) -> ^TilemapProp ---
+    // Get the number of custom properties on a tilemap.
+    tile_map_prop_count :: proc(tilemap: Tilemap) -> i32 ---
+    // Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+    tile_map_prop_at :: proc(tilemap: Tilemap, index: i32) -> ^TilemapProp ---
     // Draw a tilemap on the screen.
     tile_draw :: proc(tilemap: Tilemap, posX: i32, posY: i32) ---
     // Draw a tilemap on the screen, tinted by a color.
     tile_draw_tint :: proc(tilemap: Tilemap, posX: i32, posY: i32, tint: Color) ---
     // Draw a tilemap on an image.
     tile_draw_on_image :: proc(dst: Image, tilemap: Tilemap, posX: i32, posY: i32) ---
-    // Draw a single tile from a tilemap on the screen.
-    tile_draw_tile :: proc(tilemap: Tilemap, gid: i32, posX: i32, posY: i32) ---
-    // Get the number of layers in a tilemap.
-    tile_layer_count :: proc(tilemap: Tilemap) -> i32 ---
-    // Get the gid of the tile at a column/row in a tilemap layer.
-    tile_get_tile :: proc(tilemap: Tilemap, layer: i32, column: i32, row: i32) -> i32 ---
-    // Set the gid of the tile at a column/row in a tilemap layer.
-    tile_set_tile :: proc(tilemap: Tilemap, layer: i32, column: i32, row: i32, gid: i32) ---
-    // Get a copy of the image of a single tile in a tilemap.
-    tile_image :: proc(tilemap: Tilemap, gid: i32) -> Image ---
     // Render a whole tilemap to a new image.
     tilemap_image :: proc(tilemap: Tilemap) -> Image ---
+    // Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+    tile_layer_count :: proc(tilemap: Tilemap) -> i32 ---
+    // Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+    tile_layer_index :: proc(tilemap: Tilemap, name: cstring) -> i32 ---
+    // Get the name of a layer of a tilemap.
+    tile_layer_name :: proc(tilemap: Tilemap, layer: i32) -> cstring ---
+    // Get the kind of a layer of a tilemap.
+    tile_layer_type :: proc(tilemap: Tilemap, layer: i32) ---
+    // Get the size of a layer of a tilemap, in tiles.
+    tile_layer_size :: proc(tilemap: Tilemap, layer: i32) -> ^Dimensions ---
+    // Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+    tile_layer_visible :: proc(tilemap: Tilemap, layer: i32) -> bool ---
+    // Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+    tile_layer_prop :: proc(tilemap: Tilemap, layer: i32, name: cstring) -> ^TilemapProp ---
+    // Get the number of custom properties on a layer of a tilemap.
+    tile_layer_prop_count :: proc(tilemap: Tilemap, layer: i32) -> i32 ---
+    // Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+    tile_layer_prop_at :: proc(tilemap: Tilemap, layer: i32, index: i32) -> ^TilemapProp ---
+    // Draw a single layer of a tilemap on the screen.
+    tile_draw_layer :: proc(tilemap: Tilemap, layer: i32, posX: i32, posY: i32) ---
+    // Draw a single layer of a tilemap on the screen, tinted by a color.
+    tile_draw_layer_tint :: proc(tilemap: Tilemap, layer: i32, posX: i32, posY: i32, tint: Color) ---
+    // Draw a single layer of a tilemap on an image.
+    tile_draw_layer_on_image :: proc(dst: Image, tilemap: Tilemap, layer: i32, posX: i32, posY: i32) ---
+    // Render a single layer of a tilemap to a new image.
+    tile_layer_image :: proc(tilemap: Tilemap, layer: i32) -> Image ---
+    // Get the gid of the tile at a column/row in a tilemap layer.
+    tile_get_tile :: proc(tilemap: Tilemap, layer: i32, column: i32, row: i32) -> i32 ---
+    // Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+    tile_set_tile :: proc(tilemap: Tilemap, layer: i32, column: i32, row: i32, gid: i32) ---
+    // Draw a single tile from a tilemap on the screen.
+    tile_draw_tile :: proc(tilemap: Tilemap, gid: i32, posX: i32, posY: i32) ---
+    // Get a copy of the image of a single tile in a tilemap.
+    tile_image :: proc(tilemap: Tilemap, gid: i32) -> Image ---
+    // Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+    tile_gid_prop :: proc(tilemap: Tilemap, gid: i32, name: cstring) -> ^TilemapProp ---
+    // Get the number of custom properties on a tile of a tilemap.
+    tile_gid_prop_count :: proc(tilemap: Tilemap, gid: i32) -> i32 ---
+    // Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+    tile_gid_prop_at :: proc(tilemap: Tilemap, gid: i32, index: i32) -> ^TilemapProp ---
+    // Get the number of objects on an object-layer of a tilemap.
+    tile_object_count :: proc(tilemap: Tilemap, layer: i32) -> i32 ---
+    // Get an object from an object-layer of a tilemap.
+    tile_object :: proc(tilemap: Tilemap, layer: i32, index: i32) -> ^TilemapObject ---
+    // Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+    tile_object_index :: proc(tilemap: Tilemap, layer: i32, name: cstring) -> i32 ---
+    // Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+    tile_object_prop :: proc(tilemap: Tilemap, layer: i32, index: i32, name: cstring) -> ^TilemapProp ---
+    // Get the number of custom properties on an object of a tilemap.
+    tile_object_prop_count :: proc(tilemap: Tilemap, layer: i32, index: i32) -> i32 ---
+    // Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+    tile_object_prop_at :: proc(tilemap: Tilemap, layer: i32, index: i32, propIndex: i32) -> ^TilemapProp ---
 
     // TYPES
 

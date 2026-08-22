@@ -4,7 +4,7 @@
 // Generates Odin code from the API definitions
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const out = [
   `// null0 - Odin bindings for the null0 fantasy console
@@ -93,10 +93,15 @@ const memberTypes = {
   i32: 'i32',
   f32: 'f32',
   u32: 'u32',
-  u8: 'u8'
+  u8: 'u8',
+  string: 'cstring'
 }
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// a new struct fills itself in, following this language's convention
+seedTypes(argTypes, { structs }, { structType: (name) => name })
+seedTypes(retTypes, { structs }, { structType: (name) => `^${name}` })
 
 // Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {

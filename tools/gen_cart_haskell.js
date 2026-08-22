@@ -20,7 +20,7 @@
 // "Custom imports" section of https://github.com/haskell-wasm/ghc-wasm-meta.
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
 
@@ -152,11 +152,25 @@ const hsIdiomaticArgType = {
 // idiomatic return type (unwrapped, without IO)
 const hsIdiomaticRetType = { ...hsIdiomaticArgType, void: '()', Vector: 'Vector', Dimensions: 'Dimensions' }
 
+// a new enum/struct fills its own entries in: enums are ints, struct returns
+// are pointers into cart memory
+seedTypes(cRawArgType, { enums, structs }, { enumType: 'int32_t', structType: (name) => `${name}*` })
+seedTypes(cRetType, { enums, structs }, { enumType: 'int32_t', structType: (name) => `${name}*` })
+seedTypes(hsFfiArgType, { enums, structs }, { enumType: 'Int32', structType: (name) => `Ptr ${name}` })
+seedTypes(hsFfiRetType, { enums, structs }, { enumType: 'IO Int32', structType: (name) => `IO (Ptr ${name})` })
+seedTypes(hsIdiomaticArgType, { enums, structs }, { enumType: 'Int32', structType: (name) => name })
+seedTypes(hsIdiomaticRetType, { enums, structs }, { enumType: 'Int32', structType: (name) => name })
+
+
 // C type for a struct member
-const memberCType = { i32: 'int32_t', f32: 'float', u32: 'uint32_t', u8: 'uint8_t' }
+const memberCType = { i32: 'int32_t', f32: 'float', u32: 'uint32_t', u8: 'uint8_t', string: 'char*' }
+for (const name of Object.keys(enums)) memberCType[name] = 'int32_t'
 
 // Haskell Storable type + peek/poke accessor for a struct member
-const memberHsType = { i32: 'Int32', f32: 'CFloat', u32: 'Word32', u8: 'Word8' }
+// a string member stays a CString - use peekCString on it while the struct
+// is still alive (the host frees it when the callback returns)
+const memberHsType = { i32: 'Int32', f32: 'CFloat', u32: 'Word32', u8: 'Word8', string: 'CString' }
+for (const name of Object.keys(enums)) memberHsType[name] = 'Int32'
 
 // work out how a function's args look on both sides of the boundary
 // Haskell reserved words that show up as null0 arg names
@@ -368,7 +382,7 @@ for (const [apiName, apiObj] of Object.entries(api)) {
   for (const [funcName, { args, returns, description }] of Object.entries(apiObj)) {
     const { idiomaticParams, marshal, rawArgVars, rawFfiTypes, cRawParams, cWrapParams, cCallArgs } = plan(args)
 
-    const isStructRet = ['Color', 'Vector', 'Dimensions', 'Rectangle', 'SfxParams'].includes(returns)
+    const isStructRet = Boolean(structs[returns])
 
     // -- C side --
     const rawRetC = cRetType[returns]

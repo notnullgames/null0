@@ -4,7 +4,7 @@
 // Generates TypeScript code from the API definitions
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const out = [
   `// null0 - AssemblyScript bindings for the null0 fantasy console
@@ -83,7 +83,8 @@ const memberTypes = {
   i32: 'i32',
   f32: 'f32',
   u32: 'u32',
-  u8: 'u8'
+  u8: 'u8',
+  string: 'usize' // a pointer to the host's utf8 bytes, not an AS string
 }
 
 // Generate parameter list for function signature
@@ -95,6 +96,10 @@ const argsMap = (args) => {
 }
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// a new struct fills itself in (an @unmanaged class is already a pointer)
+seedTypes(argTypes, { structs }, { structType: (name) => name })
+seedTypes(retTypes, { structs }, { structType: (name) => name })
 
 // Generate structs
 for (const [structName, structDef] of Object.entries(structs)) {

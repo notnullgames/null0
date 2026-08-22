@@ -135,6 +135,52 @@ export class Color {
   }
 }
 
+/** A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`. */
+@unmanaged
+export class TilemapProp {
+  name: usize;
+  type: TilePropType;
+  integer: i32;
+  number: f32;
+  text: usize;
+
+  constructor(name: usize, type: TilePropType, integer: i32, number: f32, text: usize) {
+    this.name = name;
+    this.type = type;
+    this.integer = integer;
+    this.number = number;
+    this.text = text;
+  }
+}
+
+/** An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it. */
+@unmanaged
+export class TilemapObject {
+  id: i32;
+  name: usize;
+  type: usize;
+  gid: i32;
+  x: f32;
+  y: f32;
+  width: f32;
+  height: f32;
+  rotation: f32;
+  visible: i32;
+
+  constructor(id: i32, name: usize, type: usize, gid: i32, x: f32, y: f32, width: f32, height: f32, rotation: f32, visible: i32) {
+    this.id = id;
+    this.name = name;
+    this.type = type;
+    this.gid = gid;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.rotation = rotation;
+    this.visible = visible;
+  }
+}
+
 /** Potential image-filtering techniques for scale/etc. */
 export enum ImageFilter {
   FILTER_NEARESTNEIGHBOR = 0,
@@ -307,6 +353,25 @@ export enum MouseButton {
   MOUSE_BUTTON_LEFT = 1,
   MOUSE_BUTTON_RIGHT = 2,
   MOUSE_BUTTON_MIDDLE = 3,
+}
+
+/** The kind of a layer in a tilemap. */
+export enum TileLayerKind {
+  LAYER_NONE = 0,
+  LAYER_TILE = 1,
+  LAYER_OBJECT = 2,
+  LAYER_IMAGE = 3,
+  LAYER_GROUP = 4,
+}
+
+/** The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING. */
+export enum TilePropType {
+  PROP_NONE = 0,
+  PROP_INT = 1,
+  PROP_BOOL = 2,
+  PROP_FLOAT = 3,
+  PROP_STRING = 4,
+  PROP_COLOR = 5,
 }
 
 // Constants
@@ -697,6 +762,21 @@ export declare function unload_tilemap(tilemap: u32): void;
 /** Update a tilemap's animation timers (deltaTime is in seconds). */
 @external("null0", "tile_update")
 export declare function tile_update(tilemap: u32, deltaTime: f32): void;
+/** Get the size of a tilemap, in tiles. */
+@external("null0", "tile_map_size")
+export declare function tile_map_size(tilemap: u32): Dimensions;
+/** Get the size of a single tile of a tilemap, in pixels. */
+@external("null0", "tile_tile_size")
+export declare function tile_tile_size(tilemap: u32): Dimensions;
+/** Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.) */
+@external("null0", "tile_map_prop")
+export declare function tile_map_prop(tilemap: u32, name: usize): TilemapProp;
+/** Get the number of custom properties on a tilemap. */
+@external("null0", "tile_map_prop_count")
+export declare function tile_map_prop_count(tilemap: u32): i32;
+/** Get a custom property of a tilemap, by index (PROP_NONE when out of range.) */
+@external("null0", "tile_map_prop_at")
+export declare function tile_map_prop_at(tilemap: u32, index: i32): TilemapProp;
 /** Draw a tilemap on the screen. */
 @external("null0", "tile_draw")
 export declare function tile_draw(tilemap: u32, posX: i32, posY: i32): void;
@@ -706,24 +786,87 @@ export declare function tile_draw_tint(tilemap: u32, posX: i32, posY: i32, tint:
 /** Draw a tilemap on an image. */
 @external("null0", "tile_draw_on_image")
 export declare function tile_draw_on_image(dst: u32, tilemap: u32, posX: i32, posY: i32): void;
-/** Draw a single tile from a tilemap on the screen. */
-@external("null0", "tile_draw_tile")
-export declare function tile_draw_tile(tilemap: u32, gid: i32, posX: i32, posY: i32): void;
-/** Get the number of layers in a tilemap. */
-@external("null0", "tile_layer_count")
-export declare function tile_layer_count(tilemap: u32): i32;
-/** Get the gid of the tile at a column/row in a tilemap layer. */
-@external("null0", "tile_get_tile")
-export declare function tile_get_tile(tilemap: u32, layer: i32, column: i32, row: i32): i32;
-/** Set the gid of the tile at a column/row in a tilemap layer. */
-@external("null0", "tile_set_tile")
-export declare function tile_set_tile(tilemap: u32, layer: i32, column: i32, row: i32, gid: i32): void;
-/** Get a copy of the image of a single tile in a tilemap. */
-@external("null0", "tile_image")
-export declare function tile_image(tilemap: u32, gid: i32): u32;
 /** Render a whole tilemap to a new image. */
 @external("null0", "tilemap_image")
 export declare function tilemap_image(tilemap: u32): u32;
+/** Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too. */
+@external("null0", "tile_layer_count")
+export declare function tile_layer_count(tilemap: u32): i32;
+/** Get the index of a layer of a tilemap, by name (-1 when there is no such layer.) */
+@external("null0", "tile_layer_index")
+export declare function tile_layer_index(tilemap: u32, name: usize): i32;
+/** Get the name of a layer of a tilemap. */
+@external("null0", "tile_layer_name")
+export declare function tile_layer_name(tilemap: u32, layer: i32): usize;
+/** Get the kind of a layer of a tilemap. */
+@external("null0", "tile_layer_type")
+export declare function tile_layer_type(tilemap: u32, layer: i32): TileLayerKind;
+/** Get the size of a layer of a tilemap, in tiles. */
+@external("null0", "tile_layer_size")
+export declare function tile_layer_size(tilemap: u32, layer: i32): Dimensions;
+/** Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing. */
+@external("null0", "tile_layer_visible")
+export declare function tile_layer_visible(tilemap: u32, layer: i32): bool;
+/** Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.) */
+@external("null0", "tile_layer_prop")
+export declare function tile_layer_prop(tilemap: u32, layer: i32, name: usize): TilemapProp;
+/** Get the number of custom properties on a layer of a tilemap. */
+@external("null0", "tile_layer_prop_count")
+export declare function tile_layer_prop_count(tilemap: u32, layer: i32): i32;
+/** Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.) */
+@external("null0", "tile_layer_prop_at")
+export declare function tile_layer_prop_at(tilemap: u32, layer: i32, index: i32): TilemapProp;
+/** Draw a single layer of a tilemap on the screen. */
+@external("null0", "tile_draw_layer")
+export declare function tile_draw_layer(tilemap: u32, layer: i32, posX: i32, posY: i32): void;
+/** Draw a single layer of a tilemap on the screen, tinted by a color. */
+@external("null0", "tile_draw_layer_tint")
+export declare function tile_draw_layer_tint(tilemap: u32, layer: i32, posX: i32, posY: i32, tint: Color): void;
+/** Draw a single layer of a tilemap on an image. */
+@external("null0", "tile_draw_layer_on_image")
+export declare function tile_draw_layer_on_image(dst: u32, tilemap: u32, layer: i32, posX: i32, posY: i32): void;
+/** Render a single layer of a tilemap to a new image. */
+@external("null0", "tile_layer_image")
+export declare function tile_layer_image(tilemap: u32, layer: i32): u32;
+/** Get the gid of the tile at a column/row in a tilemap layer. */
+@external("null0", "tile_get_tile")
+export declare function tile_get_tile(tilemap: u32, layer: i32, column: i32, row: i32): i32;
+/** Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself. */
+@external("null0", "tile_set_tile")
+export declare function tile_set_tile(tilemap: u32, layer: i32, column: i32, row: i32, gid: i32): void;
+/** Draw a single tile from a tilemap on the screen. */
+@external("null0", "tile_draw_tile")
+export declare function tile_draw_tile(tilemap: u32, gid: i32, posX: i32, posY: i32): void;
+/** Get a copy of the image of a single tile in a tilemap. */
+@external("null0", "tile_image")
+export declare function tile_image(tilemap: u32, gid: i32): u32;
+/** Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them. */
+@external("null0", "tile_gid_prop")
+export declare function tile_gid_prop(tilemap: u32, gid: i32, name: usize): TilemapProp;
+/** Get the number of custom properties on a tile of a tilemap. */
+@external("null0", "tile_gid_prop_count")
+export declare function tile_gid_prop_count(tilemap: u32, gid: i32): i32;
+/** Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.) */
+@external("null0", "tile_gid_prop_at")
+export declare function tile_gid_prop_at(tilemap: u32, gid: i32, index: i32): TilemapProp;
+/** Get the number of objects on an object-layer of a tilemap. */
+@external("null0", "tile_object_count")
+export declare function tile_object_count(tilemap: u32, layer: i32): i32;
+/** Get an object from an object-layer of a tilemap. */
+@external("null0", "tile_object")
+export declare function tile_object(tilemap: u32, layer: i32, index: i32): TilemapObject;
+/** Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.) */
+@external("null0", "tile_object_index")
+export declare function tile_object_index(tilemap: u32, layer: i32, name: usize): i32;
+/** Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.) */
+@external("null0", "tile_object_prop")
+export declare function tile_object_prop(tilemap: u32, layer: i32, index: i32, name: usize): TilemapProp;
+/** Get the number of custom properties on an object of a tilemap. */
+@external("null0", "tile_object_prop_count")
+export declare function tile_object_prop_count(tilemap: u32, layer: i32, index: i32): i32;
+/** Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.) */
+@external("null0", "tile_object_prop_at")
+export declare function tile_object_prop_at(tilemap: u32, layer: i32, index: i32, propIndex: i32): TilemapProp;
 
 // Types functions
 

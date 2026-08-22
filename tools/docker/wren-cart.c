@@ -64,75 +64,6 @@ static const char* NULL0_WREN =
   "  toString { \"Color(%(_r), %(_g), %(_b), %(_a))\" }\n"
   "}\n"
   "\n"
-  "// The 2D position of something (x/y.)\n"
-  "class Vector {\n"
-  "  construct new(x, y) {\n"
-  "    _x = x\n"
-  "    _y = y\n"
-  "  }\n"
-  "\n"
-  "  // Create a Vector from a list of its members\n"
-  "  static fromList(l) { Vector.new(l[0], l[1]) }\n"
-  "\n"
-  "  x { _x }\n"
-  "  x=(v) { _x = v }\n"
-  "  y { _y }\n"
-  "  y=(v) { _y = v }\n"
-  "\n"
-  "  // The members, in the order the null0 API wants them\n"
-  "  toList { [_x, _y] }\n"
-  "\n"
-  "  toString { \"Vector(%(_x), %(_y))\" }\n"
-  "}\n"
-  "\n"
-  "// The 2D position + size of something (x/y/w/h.)\n"
-  "class Rectangle {\n"
-  "  construct new(x, y, width, height) {\n"
-  "    _x = x\n"
-  "    _y = y\n"
-  "    _width = width\n"
-  "    _height = height\n"
-  "  }\n"
-  "\n"
-  "  // Create a Rectangle from a list of its members\n"
-  "  static fromList(l) { Rectangle.new(l[0], l[1], l[2], l[3]) }\n"
-  "\n"
-  "  x { _x }\n"
-  "  x=(v) { _x = v }\n"
-  "  y { _y }\n"
-  "  y=(v) { _y = v }\n"
-  "  width { _width }\n"
-  "  width=(v) { _width = v }\n"
-  "  height { _height }\n"
-  "  height=(v) { _height = v }\n"
-  "\n"
-  "  // The members, in the order the null0 API wants them\n"
-  "  toList { [_x, _y, _width, _height] }\n"
-  "\n"
-  "  toString { \"Rectangle(%(_x), %(_y), %(_width), %(_height))\" }\n"
-  "}\n"
-  "\n"
-  "// The 2D size of something (width/height.)\n"
-  "class Dimensions {\n"
-  "  construct new(width, height) {\n"
-  "    _width = width\n"
-  "    _height = height\n"
-  "  }\n"
-  "\n"
-  "  // Create a Dimensions from a list of its members\n"
-  "  static fromList(l) { Dimensions.new(l[0], l[1]) }\n"
-  "\n"
-  "  width { _width }\n"
-  "  width=(v) { _width = v }\n"
-  "  height { _height }\n"
-  "  height=(v) { _height = v }\n"
-  "\n"
-  "  // The members, in the order the null0 API wants them\n"
-  "  toList { [_width, _height] }\n"
-  "\n"
-  "  toString { \"Dimensions(%(_width), %(_height))\" }\n"
-  "}\n"
-  "\n"
   "// Sfx parameters.\n"
   "class SfxParams {\n"
   "  // Every member starts at 0 - fill them in with the setters, or\n"
@@ -247,6 +178,150 @@ static const char* NULL0_WREN =
   "  toList { [_randSeed, _waveType, _attackTime, _sustainTime, _sustainPunch, _decayTime, _startFrequency, _minFrequency, _slide, _deltaSlide, _vibratoDepth, _vibratoSpeed, _changeAmount, _changeSpeed, _squareDuty, _dutySweep, _repeatSpeed, _phaserOffset, _phaserSweep, _lpfCutoff, _lpfCutoffSweep, _lpfResonance, _hpfCutoff, _hpfCutoffSweep] }\n"
   "\n"
   "  toString { \"SfxParams(%(_randSeed), %(_waveType), %(_attackTime), %(_sustainTime), %(_sustainPunch), %(_decayTime), %(_startFrequency), %(_minFrequency), %(_slide), %(_deltaSlide), %(_vibratoDepth), %(_vibratoSpeed), %(_changeAmount), %(_changeSpeed), %(_squareDuty), %(_dutySweep), %(_repeatSpeed), %(_phaserOffset), %(_phaserSweep), %(_lpfCutoff), %(_lpfCutoffSweep), %(_lpfResonance), %(_hpfCutoff), %(_hpfCutoffSweep))\" }\n"
+  "}\n"
+  "\n"
+  "// The 2D size of something (width/height.)\n"
+  "class Dimensions {\n"
+  "  construct new(width, height) {\n"
+  "    _width = width\n"
+  "    _height = height\n"
+  "  }\n"
+  "\n"
+  "  // Create a Dimensions from a list of its members\n"
+  "  static fromList(l) { Dimensions.new(l[0], l[1]) }\n"
+  "\n"
+  "  width { _width }\n"
+  "  width=(v) { _width = v }\n"
+  "  height { _height }\n"
+  "  height=(v) { _height = v }\n"
+  "\n"
+  "  // The members, in the order the null0 API wants them\n"
+  "  toList { [_width, _height] }\n"
+  "\n"
+  "  toString { \"Dimensions(%(_width), %(_height))\" }\n"
+  "}\n"
+  "\n"
+  "// The 2D position of something (x/y.)\n"
+  "class Vector {\n"
+  "  construct new(x, y) {\n"
+  "    _x = x\n"
+  "    _y = y\n"
+  "  }\n"
+  "\n"
+  "  // Create a Vector from a list of its members\n"
+  "  static fromList(l) { Vector.new(l[0], l[1]) }\n"
+  "\n"
+  "  x { _x }\n"
+  "  x=(v) { _x = v }\n"
+  "  y { _y }\n"
+  "  y=(v) { _y = v }\n"
+  "\n"
+  "  // The members, in the order the null0 API wants them\n"
+  "  toList { [_x, _y] }\n"
+  "\n"
+  "  toString { \"Vector(%(_x), %(_y))\" }\n"
+  "}\n"
+  "\n"
+  "// The 2D position + size of something (x/y/w/h.)\n"
+  "class Rectangle {\n"
+  "  construct new(x, y, width, height) {\n"
+  "    _x = x\n"
+  "    _y = y\n"
+  "    _width = width\n"
+  "    _height = height\n"
+  "  }\n"
+  "\n"
+  "  // Create a Rectangle from a list of its members\n"
+  "  static fromList(l) { Rectangle.new(l[0], l[1], l[2], l[3]) }\n"
+  "\n"
+  "  x { _x }\n"
+  "  x=(v) { _x = v }\n"
+  "  y { _y }\n"
+  "  y=(v) { _y = v }\n"
+  "  width { _width }\n"
+  "  width=(v) { _width = v }\n"
+  "  height { _height }\n"
+  "  height=(v) { _height = v }\n"
+  "\n"
+  "  // The members, in the order the null0 API wants them\n"
+  "  toList { [_x, _y, _width, _height] }\n"
+  "\n"
+  "  toString { \"Rectangle(%(_x), %(_y), %(_width), %(_height))\" }\n"
+  "}\n"
+  "\n"
+  "// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.\n"
+  "class TilemapProp {\n"
+  "  construct new(name, type, integer, number, text) {\n"
+  "    _name = name\n"
+  "    _type = type\n"
+  "    _integer = integer\n"
+  "    _number = number\n"
+  "    _text = text\n"
+  "  }\n"
+  "\n"
+  "  // Create a TilemapProp from a list of its members\n"
+  "  static fromList(l) { TilemapProp.new(l[0], l[1], l[2], l[3], l[4]) }\n"
+  "\n"
+  "  name { _name }\n"
+  "  name=(v) { _name = v }\n"
+  "  type { _type }\n"
+  "  type=(v) { _type = v }\n"
+  "  integer { _integer }\n"
+  "  integer=(v) { _integer = v }\n"
+  "  number { _number }\n"
+  "  number=(v) { _number = v }\n"
+  "  text { _text }\n"
+  "  text=(v) { _text = v }\n"
+  "\n"
+  "  // The members, in the order the null0 API wants them\n"
+  "  toList { [_name, _type, _integer, _number, _text] }\n"
+  "\n"
+  "  toString { \"TilemapProp(%(_name), %(_type), %(_integer), %(_number), %(_text))\" }\n"
+  "}\n"
+  "\n"
+  "// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.\n"
+  "class TilemapObject {\n"
+  "  construct new(id, name, type, gid, x, y, width, height, rotation, visible) {\n"
+  "    _id = id\n"
+  "    _name = name\n"
+  "    _type = type\n"
+  "    _gid = gid\n"
+  "    _x = x\n"
+  "    _y = y\n"
+  "    _width = width\n"
+  "    _height = height\n"
+  "    _rotation = rotation\n"
+  "    _visible = visible\n"
+  "  }\n"
+  "\n"
+  "  // Create a TilemapObject from a list of its members\n"
+  "  static fromList(l) { TilemapObject.new(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9]) }\n"
+  "\n"
+  "  id { _id }\n"
+  "  id=(v) { _id = v }\n"
+  "  name { _name }\n"
+  "  name=(v) { _name = v }\n"
+  "  type { _type }\n"
+  "  type=(v) { _type = v }\n"
+  "  gid { _gid }\n"
+  "  gid=(v) { _gid = v }\n"
+  "  x { _x }\n"
+  "  x=(v) { _x = v }\n"
+  "  y { _y }\n"
+  "  y=(v) { _y = v }\n"
+  "  width { _width }\n"
+  "  width=(v) { _width = v }\n"
+  "  height { _height }\n"
+  "  height=(v) { _height = v }\n"
+  "  rotation { _rotation }\n"
+  "  rotation=(v) { _rotation = v }\n"
+  "  visible { _visible }\n"
+  "  visible=(v) { _visible = v }\n"
+  "\n"
+  "  // The members, in the order the null0 API wants them\n"
+  "  toList { [_id, _name, _type, _gid, _x, _y, _width, _height, _rotation, _visible] }\n"
+  "\n"
+  "  toString { \"TilemapObject(%(_id), %(_name), %(_type), %(_gid), %(_x), %(_y), %(_width), %(_height), %(_rotation), %(_visible))\" }\n"
   "}\n"
   "\n"
   "// The null0 API\n"
@@ -748,6 +823,26 @@ static const char* NULL0_WREN =
   "  foreign static tile_update_(a0, a1)\n"
   "  static tile_update(tilemap, deltaTime) { tile_update_(tilemap, deltaTime) }\n"
   "\n"
+  "  // Get the size of a tilemap, in tiles.\n"
+  "  foreign static tile_map_size_(a0)\n"
+  "  static tile_map_size(tilemap) { Dimensions.fromList(tile_map_size_(tilemap)) }\n"
+  "\n"
+  "  // Get the size of a single tile of a tilemap, in pixels.\n"
+  "  foreign static tile_tile_size_(a0)\n"
+  "  static tile_tile_size(tilemap) { Dimensions.fromList(tile_tile_size_(tilemap)) }\n"
+  "\n"
+  "  // Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)\n"
+  "  foreign static tile_map_prop_(a0, a1)\n"
+  "  static tile_map_prop(tilemap, name) { TilemapProp.fromList(tile_map_prop_(tilemap, name)) }\n"
+  "\n"
+  "  // Get the number of custom properties on a tilemap.\n"
+  "  foreign static tile_map_prop_count_(a0)\n"
+  "  static tile_map_prop_count(tilemap) { tile_map_prop_count_(tilemap) }\n"
+  "\n"
+  "  // Get a custom property of a tilemap, by index (PROP_NONE when out of range.)\n"
+  "  foreign static tile_map_prop_at_(a0, a1)\n"
+  "  static tile_map_prop_at(tilemap, index) { TilemapProp.fromList(tile_map_prop_at_(tilemap, index)) }\n"
+  "\n"
   "  // Draw a tilemap on the screen.\n"
   "  foreign static tile_draw_(a0, a1, a2)\n"
   "  static tile_draw(tilemap, posX, posY) { tile_draw_(tilemap, posX, posY) }\n"
@@ -760,29 +855,113 @@ static const char* NULL0_WREN =
   "  foreign static tile_draw_on_image_(a0, a1, a2, a3)\n"
   "  static tile_draw_on_image(dst, tilemap, posX, posY) { tile_draw_on_image_(dst, tilemap, posX, posY) }\n"
   "\n"
-  "  // Draw a single tile from a tilemap on the screen.\n"
-  "  foreign static tile_draw_tile_(a0, a1, a2, a3)\n"
-  "  static tile_draw_tile(tilemap, gid, posX, posY) { tile_draw_tile_(tilemap, gid, posX, posY) }\n"
+  "  // Render a whole tilemap to a new image.\n"
+  "  foreign static tilemap_image_(a0)\n"
+  "  static tilemap_image(tilemap) { tilemap_image_(tilemap) }\n"
   "\n"
-  "  // Get the number of layers in a tilemap.\n"
+  "  // Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.\n"
   "  foreign static tile_layer_count_(a0)\n"
   "  static tile_layer_count(tilemap) { tile_layer_count_(tilemap) }\n"
+  "\n"
+  "  // Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)\n"
+  "  foreign static tile_layer_index_(a0, a1)\n"
+  "  static tile_layer_index(tilemap, name) { tile_layer_index_(tilemap, name) }\n"
+  "\n"
+  "  // Get the name of a layer of a tilemap.\n"
+  "  foreign static tile_layer_name_(a0, a1)\n"
+  "  static tile_layer_name(tilemap, layer) { tile_layer_name_(tilemap, layer) }\n"
+  "\n"
+  "  // Get the kind of a layer of a tilemap.\n"
+  "  foreign static tile_layer_type_(a0, a1)\n"
+  "  static tile_layer_type(tilemap, layer) { tile_layer_type_(tilemap, layer) }\n"
+  "\n"
+  "  // Get the size of a layer of a tilemap, in tiles.\n"
+  "  foreign static tile_layer_size_(a0, a1)\n"
+  "  static tile_layer_size(tilemap, layer) { Dimensions.fromList(tile_layer_size_(tilemap, layer)) }\n"
+  "\n"
+  "  // Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.\n"
+  "  foreign static tile_layer_visible_(a0, a1)\n"
+  "  static tile_layer_visible(tilemap, layer) { tile_layer_visible_(tilemap, layer) }\n"
+  "\n"
+  "  // Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)\n"
+  "  foreign static tile_layer_prop_(a0, a1, a2)\n"
+  "  static tile_layer_prop(tilemap, layer, name) { TilemapProp.fromList(tile_layer_prop_(tilemap, layer, name)) }\n"
+  "\n"
+  "  // Get the number of custom properties on a layer of a tilemap.\n"
+  "  foreign static tile_layer_prop_count_(a0, a1)\n"
+  "  static tile_layer_prop_count(tilemap, layer) { tile_layer_prop_count_(tilemap, layer) }\n"
+  "\n"
+  "  // Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)\n"
+  "  foreign static tile_layer_prop_at_(a0, a1, a2)\n"
+  "  static tile_layer_prop_at(tilemap, layer, index) { TilemapProp.fromList(tile_layer_prop_at_(tilemap, layer, index)) }\n"
+  "\n"
+  "  // Draw a single layer of a tilemap on the screen.\n"
+  "  foreign static tile_draw_layer_(a0, a1, a2, a3)\n"
+  "  static tile_draw_layer(tilemap, layer, posX, posY) { tile_draw_layer_(tilemap, layer, posX, posY) }\n"
+  "\n"
+  "  // Draw a single layer of a tilemap on the screen, tinted by a color.\n"
+  "  foreign static tile_draw_layer_tint_(a0, a1, a2, a3, a4)\n"
+  "  static tile_draw_layer_tint(tilemap, layer, posX, posY, tint) { tile_draw_layer_tint_(tilemap, layer, posX, posY, tint.value) }\n"
+  "\n"
+  "  // Draw a single layer of a tilemap on an image.\n"
+  "  foreign static tile_draw_layer_on_image_(a0, a1, a2, a3, a4)\n"
+  "  static tile_draw_layer_on_image(dst, tilemap, layer, posX, posY) { tile_draw_layer_on_image_(dst, tilemap, layer, posX, posY) }\n"
+  "\n"
+  "  // Render a single layer of a tilemap to a new image.\n"
+  "  foreign static tile_layer_image_(a0, a1)\n"
+  "  static tile_layer_image(tilemap, layer) { tile_layer_image_(tilemap, layer) }\n"
   "\n"
   "  // Get the gid of the tile at a column/row in a tilemap layer.\n"
   "  foreign static tile_get_tile_(a0, a1, a2, a3)\n"
   "  static tile_get_tile(tilemap, layer, column, row) { tile_get_tile_(tilemap, layer, column, row) }\n"
   "\n"
-  "  // Set the gid of the tile at a column/row in a tilemap layer.\n"
+  "  // Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.\n"
   "  foreign static tile_set_tile_(a0, a1, a2, a3, a4)\n"
   "  static tile_set_tile(tilemap, layer, column, row, gid) { tile_set_tile_(tilemap, layer, column, row, gid) }\n"
+  "\n"
+  "  // Draw a single tile from a tilemap on the screen.\n"
+  "  foreign static tile_draw_tile_(a0, a1, a2, a3)\n"
+  "  static tile_draw_tile(tilemap, gid, posX, posY) { tile_draw_tile_(tilemap, gid, posX, posY) }\n"
   "\n"
   "  // Get a copy of the image of a single tile in a tilemap.\n"
   "  foreign static tile_image_(a0, a1)\n"
   "  static tile_image(tilemap, gid) { tile_image_(tilemap, gid) }\n"
   "\n"
-  "  // Render a whole tilemap to a new image.\n"
-  "  foreign static tilemap_image_(a0)\n"
-  "  static tilemap_image(tilemap) { tilemap_image_(tilemap) }\n"
+  "  // Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.\n"
+  "  foreign static tile_gid_prop_(a0, a1, a2)\n"
+  "  static tile_gid_prop(tilemap, gid, name) { TilemapProp.fromList(tile_gid_prop_(tilemap, gid, name)) }\n"
+  "\n"
+  "  // Get the number of custom properties on a tile of a tilemap.\n"
+  "  foreign static tile_gid_prop_count_(a0, a1)\n"
+  "  static tile_gid_prop_count(tilemap, gid) { tile_gid_prop_count_(tilemap, gid) }\n"
+  "\n"
+  "  // Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)\n"
+  "  foreign static tile_gid_prop_at_(a0, a1, a2)\n"
+  "  static tile_gid_prop_at(tilemap, gid, index) { TilemapProp.fromList(tile_gid_prop_at_(tilemap, gid, index)) }\n"
+  "\n"
+  "  // Get the number of objects on an object-layer of a tilemap.\n"
+  "  foreign static tile_object_count_(a0, a1)\n"
+  "  static tile_object_count(tilemap, layer) { tile_object_count_(tilemap, layer) }\n"
+  "\n"
+  "  // Get an object from an object-layer of a tilemap.\n"
+  "  foreign static tile_object_(a0, a1, a2)\n"
+  "  static tile_object(tilemap, layer, index) { TilemapObject.fromList(tile_object_(tilemap, layer, index)) }\n"
+  "\n"
+  "  // Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)\n"
+  "  foreign static tile_object_index_(a0, a1, a2)\n"
+  "  static tile_object_index(tilemap, layer, name) { tile_object_index_(tilemap, layer, name) }\n"
+  "\n"
+  "  // Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)\n"
+  "  foreign static tile_object_prop_(a0, a1, a2, a3)\n"
+  "  static tile_object_prop(tilemap, layer, index, name) { TilemapProp.fromList(tile_object_prop_(tilemap, layer, index, name)) }\n"
+  "\n"
+  "  // Get the number of custom properties on an object of a tilemap.\n"
+  "  foreign static tile_object_prop_count_(a0, a1, a2)\n"
+  "  static tile_object_prop_count(tilemap, layer, index) { tile_object_prop_count_(tilemap, layer, index) }\n"
+  "\n"
+  "  // Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)\n"
+  "  foreign static tile_object_prop_at_(a0, a1, a2, a3)\n"
+  "  static tile_object_prop_at(tilemap, layer, index, propIndex) { TilemapProp.fromList(tile_object_prop_at_(tilemap, layer, index, propIndex)) }\n"
   "\n"
   "  // TYPES\n"
   "\n"
@@ -1012,6 +1191,21 @@ static const char* NULL0_WREN =
   "var MOUSE_BUTTON_RIGHT = 2\n"
   "var MOUSE_BUTTON_MIDDLE = 3\n"
   "\n"
+  "// The kind of a layer in a tilemap.\n"
+  "var LAYER_NONE = 0\n"
+  "var LAYER_TILE = 1\n"
+  "var LAYER_OBJECT = 2\n"
+  "var LAYER_IMAGE = 3\n"
+  "var LAYER_GROUP = 4\n"
+  "\n"
+  "// The type of a tilemap property's value. Tiled's \"file\" properties arrive as PROP_STRING.\n"
+  "var PROP_NONE = 0\n"
+  "var PROP_INT = 1\n"
+  "var PROP_BOOL = 2\n"
+  "var PROP_FLOAT = 3\n"
+  "var PROP_STRING = 4\n"
+  "var PROP_COLOR = 5\n"
+  "\n"
 ;
 
 // ARG/RETURN HELPERS
@@ -1165,6 +1359,29 @@ static void color_ret(WrenVM* vm, Color* color) {
   wrenSetSlotDouble(vm, 0, (double)(((u32)color->r << 24) | ((u32)color->g << 16) | ((u32)color->b << 8) | (u32)color->a));
 }
 
+// a host string goes back as a wren string (NULL becomes "")
+static void string_ret(WrenVM* vm, char* value) {
+  wrenSetSlotString(vm, 0, value == NULL ? "" : value);
+}
+
+static void sfxparams_ret(WrenVM* vm, SfxParams* value) {
+  if (value == NULL) {
+    wrenSetSlotNull(vm, 0);
+    return;
+  }
+  double values[] = {(double)value->randSeed, (double)value->waveType, (double)value->attackTime, (double)value->sustainTime, (double)value->sustainPunch, (double)value->decayTime, (double)value->startFrequency, (double)value->minFrequency, (double)value->slide, (double)value->deltaSlide, (double)value->vibratoDepth, (double)value->vibratoSpeed, (double)value->changeAmount, (double)value->changeSpeed, (double)value->squareDuty, (double)value->dutySweep, (double)value->repeatSpeed, (double)value->phaserOffset, (double)value->phaserSweep, (double)value->lpfCutoff, (double)value->lpfCutoffSweep, (double)value->lpfResonance, (double)value->hpfCutoff, (double)value->hpfCutoffSweep};
+  list_ret(vm, values, 24);
+}
+
+static void dimensions_ret(WrenVM* vm, Dimensions* value) {
+  if (value == NULL) {
+    wrenSetSlotNull(vm, 0);
+    return;
+  }
+  double values[] = {(double)value->width, (double)value->height};
+  list_ret(vm, values, 2);
+}
+
 static void vector_ret(WrenVM* vm, Vector* value) {
   if (value == NULL) {
     wrenSetSlotNull(vm, 0);
@@ -1183,22 +1400,52 @@ static void rectangle_ret(WrenVM* vm, Rectangle* value) {
   list_ret(vm, values, 4);
 }
 
-static void dimensions_ret(WrenVM* vm, Dimensions* value) {
+static void tilemapprop_ret(WrenVM* vm, TilemapProp* value) {
   if (value == NULL) {
     wrenSetSlotNull(vm, 0);
     return;
   }
-  double values[] = {(double)value->width, (double)value->height};
-  list_ret(vm, values, 2);
+  int scratch = scratch_slot(vm);
+  wrenSetSlotNewList(vm, 0);
+  wrenSetSlotString(vm, scratch, value->name == NULL ? "" : value->name);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotDouble(vm, scratch, (double)value->type);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotDouble(vm, scratch, (double)value->integer);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotDouble(vm, scratch, (double)value->number);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotString(vm, scratch, value->text == NULL ? "" : value->text);
+  wrenInsertInList(vm, 0, -1, scratch);
 }
 
-static void sfxparams_ret(WrenVM* vm, SfxParams* value) {
+static void tilemapobject_ret(WrenVM* vm, TilemapObject* value) {
   if (value == NULL) {
     wrenSetSlotNull(vm, 0);
     return;
   }
-  double values[] = {(double)value->randSeed, (double)value->waveType, (double)value->attackTime, (double)value->sustainTime, (double)value->sustainPunch, (double)value->decayTime, (double)value->startFrequency, (double)value->minFrequency, (double)value->slide, (double)value->deltaSlide, (double)value->vibratoDepth, (double)value->vibratoSpeed, (double)value->changeAmount, (double)value->changeSpeed, (double)value->squareDuty, (double)value->dutySweep, (double)value->repeatSpeed, (double)value->phaserOffset, (double)value->phaserSweep, (double)value->lpfCutoff, (double)value->lpfCutoffSweep, (double)value->lpfResonance, (double)value->hpfCutoff, (double)value->hpfCutoffSweep};
-  list_ret(vm, values, 24);
+  int scratch = scratch_slot(vm);
+  wrenSetSlotNewList(vm, 0);
+  wrenSetSlotDouble(vm, scratch, (double)value->id);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotString(vm, scratch, value->name == NULL ? "" : value->name);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotString(vm, scratch, value->type == NULL ? "" : value->type);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotDouble(vm, scratch, (double)value->gid);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotDouble(vm, scratch, (double)value->x);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotDouble(vm, scratch, (double)value->y);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotDouble(vm, scratch, (double)value->width);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotDouble(vm, scratch, (double)value->height);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotDouble(vm, scratch, (double)value->rotation);
+  wrenInsertInList(vm, 0, -1, scratch);
+  wrenSetSlotDouble(vm, scratch, (double)value->visible);
+  wrenInsertInList(vm, 0, -1, scratch);
 }
 
 // BINDINGS
@@ -2306,6 +2553,43 @@ static void wren_tile_update(WrenVM* vm) {
   wrenSetSlotNull(vm, 0);
 }
 
+// Get the size of a tilemap, in tiles.
+static void wren_tile_map_size(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  Dimensions* ret = tile_map_size(tilemap);
+  dimensions_ret(vm, ret);
+}
+
+// Get the size of a single tile of a tilemap, in pixels.
+static void wren_tile_tile_size(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  Dimensions* ret = tile_tile_size(tilemap);
+  dimensions_ret(vm, ret);
+}
+
+// Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+static void wren_tile_map_prop(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  char* name = (char*)string_arg(vm, 2);
+  TilemapProp* ret = tile_map_prop(tilemap, name);
+  tilemapprop_ret(vm, ret);
+}
+
+// Get the number of custom properties on a tilemap.
+static void wren_tile_map_prop_count(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 ret = tile_map_prop_count(tilemap);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+static void wren_tile_map_prop_at(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 index = (i32)number_arg(vm, 2);
+  TilemapProp* ret = tile_map_prop_at(tilemap, index);
+  tilemapprop_ret(vm, ret);
+}
+
 // Draw a tilemap on the screen.
 static void wren_tile_draw(WrenVM* vm) {
   u32 tilemap = (u32)number_arg(vm, 1);
@@ -2335,20 +2619,123 @@ static void wren_tile_draw_on_image(WrenVM* vm) {
   wrenSetSlotNull(vm, 0);
 }
 
-// Draw a single tile from a tilemap on the screen.
-static void wren_tile_draw_tile(WrenVM* vm) {
+// Render a whole tilemap to a new image.
+static void wren_tilemap_image(WrenVM* vm) {
   u32 tilemap = (u32)number_arg(vm, 1);
-  i32 gid = (i32)number_arg(vm, 2);
-  i32 posX = (i32)number_arg(vm, 3);
-  i32 posY = (i32)number_arg(vm, 4);
-  tile_draw_tile(tilemap, gid, posX, posY);
-  wrenSetSlotNull(vm, 0);
+  u32 ret = tilemap_image(tilemap);
+  wrenSetSlotDouble(vm, 0, (double)ret);
 }
 
-// Get the number of layers in a tilemap.
+// Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 static void wren_tile_layer_count(WrenVM* vm) {
   u32 tilemap = (u32)number_arg(vm, 1);
   i32 ret = tile_layer_count(tilemap);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+static void wren_tile_layer_index(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  char* name = (char*)string_arg(vm, 2);
+  i32 ret = tile_layer_index(tilemap, name);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Get the name of a layer of a tilemap.
+static void wren_tile_layer_name(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  char* ret = tile_layer_name(tilemap, layer);
+  string_ret(vm, ret);
+}
+
+// Get the kind of a layer of a tilemap.
+static void wren_tile_layer_type(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  TileLayerKind ret = tile_layer_type(tilemap, layer);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Get the size of a layer of a tilemap, in tiles.
+static void wren_tile_layer_size(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  Dimensions* ret = tile_layer_size(tilemap, layer);
+  dimensions_ret(vm, ret);
+}
+
+// Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+static void wren_tile_layer_visible(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  bool ret = tile_layer_visible(tilemap, layer);
+  wrenSetSlotBool(vm, 0, ret);
+}
+
+// Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+static void wren_tile_layer_prop(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  char* name = (char*)string_arg(vm, 3);
+  TilemapProp* ret = tile_layer_prop(tilemap, layer, name);
+  tilemapprop_ret(vm, ret);
+}
+
+// Get the number of custom properties on a layer of a tilemap.
+static void wren_tile_layer_prop_count(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 ret = tile_layer_prop_count(tilemap, layer);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+static void wren_tile_layer_prop_at(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 index = (i32)number_arg(vm, 3);
+  TilemapProp* ret = tile_layer_prop_at(tilemap, layer, index);
+  tilemapprop_ret(vm, ret);
+}
+
+// Draw a single layer of a tilemap on the screen.
+static void wren_tile_draw_layer(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 posX = (i32)number_arg(vm, 3);
+  i32 posY = (i32)number_arg(vm, 4);
+  tile_draw_layer(tilemap, layer, posX, posY);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Draw a single layer of a tilemap on the screen, tinted by a color.
+static void wren_tile_draw_layer_tint(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 posX = (i32)number_arg(vm, 3);
+  i32 posY = (i32)number_arg(vm, 4);
+  Color tint = color_arg(vm, 5);
+  tile_draw_layer_tint(tilemap, layer, posX, posY, tint);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Draw a single layer of a tilemap on an image.
+static void wren_tile_draw_layer_on_image(WrenVM* vm) {
+  u32 dst = (u32)number_arg(vm, 1);
+  u32 tilemap = (u32)number_arg(vm, 2);
+  i32 layer = (i32)number_arg(vm, 3);
+  i32 posX = (i32)number_arg(vm, 4);
+  i32 posY = (i32)number_arg(vm, 5);
+  tile_draw_layer_on_image(dst, tilemap, layer, posX, posY);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Render a single layer of a tilemap to a new image.
+static void wren_tile_layer_image(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  u32 ret = tile_layer_image(tilemap, layer);
   wrenSetSlotDouble(vm, 0, (double)ret);
 }
 
@@ -2362,7 +2749,7 @@ static void wren_tile_get_tile(WrenVM* vm) {
   wrenSetSlotDouble(vm, 0, (double)ret);
 }
 
-// Set the gid of the tile at a column/row in a tilemap layer.
+// Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 static void wren_tile_set_tile(WrenVM* vm) {
   u32 tilemap = (u32)number_arg(vm, 1);
   i32 layer = (i32)number_arg(vm, 2);
@@ -2370,6 +2757,16 @@ static void wren_tile_set_tile(WrenVM* vm) {
   i32 row = (i32)number_arg(vm, 4);
   i32 gid = (i32)number_arg(vm, 5);
   tile_set_tile(tilemap, layer, column, row, gid);
+  wrenSetSlotNull(vm, 0);
+}
+
+// Draw a single tile from a tilemap on the screen.
+static void wren_tile_draw_tile(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 gid = (i32)number_arg(vm, 2);
+  i32 posX = (i32)number_arg(vm, 3);
+  i32 posY = (i32)number_arg(vm, 4);
+  tile_draw_tile(tilemap, gid, posX, posY);
   wrenSetSlotNull(vm, 0);
 }
 
@@ -2381,11 +2778,85 @@ static void wren_tile_image(WrenVM* vm) {
   wrenSetSlotDouble(vm, 0, (double)ret);
 }
 
-// Render a whole tilemap to a new image.
-static void wren_tilemap_image(WrenVM* vm) {
+// Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+static void wren_tile_gid_prop(WrenVM* vm) {
   u32 tilemap = (u32)number_arg(vm, 1);
-  u32 ret = tilemap_image(tilemap);
+  i32 gid = (i32)number_arg(vm, 2);
+  char* name = (char*)string_arg(vm, 3);
+  TilemapProp* ret = tile_gid_prop(tilemap, gid, name);
+  tilemapprop_ret(vm, ret);
+}
+
+// Get the number of custom properties on a tile of a tilemap.
+static void wren_tile_gid_prop_count(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 gid = (i32)number_arg(vm, 2);
+  i32 ret = tile_gid_prop_count(tilemap, gid);
   wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+static void wren_tile_gid_prop_at(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 gid = (i32)number_arg(vm, 2);
+  i32 index = (i32)number_arg(vm, 3);
+  TilemapProp* ret = tile_gid_prop_at(tilemap, gid, index);
+  tilemapprop_ret(vm, ret);
+}
+
+// Get the number of objects on an object-layer of a tilemap.
+static void wren_tile_object_count(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 ret = tile_object_count(tilemap, layer);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Get an object from an object-layer of a tilemap.
+static void wren_tile_object(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 index = (i32)number_arg(vm, 3);
+  TilemapObject* ret = tile_object(tilemap, layer, index);
+  tilemapobject_ret(vm, ret);
+}
+
+// Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+static void wren_tile_object_index(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  char* name = (char*)string_arg(vm, 3);
+  i32 ret = tile_object_index(tilemap, layer, name);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+static void wren_tile_object_prop(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 index = (i32)number_arg(vm, 3);
+  char* name = (char*)string_arg(vm, 4);
+  TilemapProp* ret = tile_object_prop(tilemap, layer, index, name);
+  tilemapprop_ret(vm, ret);
+}
+
+// Get the number of custom properties on an object of a tilemap.
+static void wren_tile_object_prop_count(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 index = (i32)number_arg(vm, 3);
+  i32 ret = tile_object_prop_count(tilemap, layer, index);
+  wrenSetSlotDouble(vm, 0, (double)ret);
+}
+
+// Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+static void wren_tile_object_prop_at(WrenVM* vm) {
+  u32 tilemap = (u32)number_arg(vm, 1);
+  i32 layer = (i32)number_arg(vm, 2);
+  i32 index = (i32)number_arg(vm, 3);
+  i32 propIndex = (i32)number_arg(vm, 4);
+  TilemapProp* ret = tile_object_prop_at(tilemap, layer, index, propIndex);
+  tilemapprop_ret(vm, ret);
 }
 
 
@@ -2545,15 +3016,41 @@ static WrenForeignMethodFn bind_foreign_method(WrenVM* vm, const char* module, c
   if (strcmp(signature, "load_tilemap_(_)") == 0) return wren_load_tilemap;
   if (strcmp(signature, "unload_tilemap_(_)") == 0) return wren_unload_tilemap;
   if (strcmp(signature, "tile_update_(_,_)") == 0) return wren_tile_update;
+  if (strcmp(signature, "tile_map_size_(_)") == 0) return wren_tile_map_size;
+  if (strcmp(signature, "tile_tile_size_(_)") == 0) return wren_tile_tile_size;
+  if (strcmp(signature, "tile_map_prop_(_,_)") == 0) return wren_tile_map_prop;
+  if (strcmp(signature, "tile_map_prop_count_(_)") == 0) return wren_tile_map_prop_count;
+  if (strcmp(signature, "tile_map_prop_at_(_,_)") == 0) return wren_tile_map_prop_at;
   if (strcmp(signature, "tile_draw_(_,_,_)") == 0) return wren_tile_draw;
   if (strcmp(signature, "tile_draw_tint_(_,_,_,_)") == 0) return wren_tile_draw_tint;
   if (strcmp(signature, "tile_draw_on_image_(_,_,_,_)") == 0) return wren_tile_draw_on_image;
-  if (strcmp(signature, "tile_draw_tile_(_,_,_,_)") == 0) return wren_tile_draw_tile;
+  if (strcmp(signature, "tilemap_image_(_)") == 0) return wren_tilemap_image;
   if (strcmp(signature, "tile_layer_count_(_)") == 0) return wren_tile_layer_count;
+  if (strcmp(signature, "tile_layer_index_(_,_)") == 0) return wren_tile_layer_index;
+  if (strcmp(signature, "tile_layer_name_(_,_)") == 0) return wren_tile_layer_name;
+  if (strcmp(signature, "tile_layer_type_(_,_)") == 0) return wren_tile_layer_type;
+  if (strcmp(signature, "tile_layer_size_(_,_)") == 0) return wren_tile_layer_size;
+  if (strcmp(signature, "tile_layer_visible_(_,_)") == 0) return wren_tile_layer_visible;
+  if (strcmp(signature, "tile_layer_prop_(_,_,_)") == 0) return wren_tile_layer_prop;
+  if (strcmp(signature, "tile_layer_prop_count_(_,_)") == 0) return wren_tile_layer_prop_count;
+  if (strcmp(signature, "tile_layer_prop_at_(_,_,_)") == 0) return wren_tile_layer_prop_at;
+  if (strcmp(signature, "tile_draw_layer_(_,_,_,_)") == 0) return wren_tile_draw_layer;
+  if (strcmp(signature, "tile_draw_layer_tint_(_,_,_,_,_)") == 0) return wren_tile_draw_layer_tint;
+  if (strcmp(signature, "tile_draw_layer_on_image_(_,_,_,_,_)") == 0) return wren_tile_draw_layer_on_image;
+  if (strcmp(signature, "tile_layer_image_(_,_)") == 0) return wren_tile_layer_image;
   if (strcmp(signature, "tile_get_tile_(_,_,_,_)") == 0) return wren_tile_get_tile;
   if (strcmp(signature, "tile_set_tile_(_,_,_,_,_)") == 0) return wren_tile_set_tile;
+  if (strcmp(signature, "tile_draw_tile_(_,_,_,_)") == 0) return wren_tile_draw_tile;
   if (strcmp(signature, "tile_image_(_,_)") == 0) return wren_tile_image;
-  if (strcmp(signature, "tilemap_image_(_)") == 0) return wren_tilemap_image;
+  if (strcmp(signature, "tile_gid_prop_(_,_,_)") == 0) return wren_tile_gid_prop;
+  if (strcmp(signature, "tile_gid_prop_count_(_,_)") == 0) return wren_tile_gid_prop_count;
+  if (strcmp(signature, "tile_gid_prop_at_(_,_,_)") == 0) return wren_tile_gid_prop_at;
+  if (strcmp(signature, "tile_object_count_(_,_)") == 0) return wren_tile_object_count;
+  if (strcmp(signature, "tile_object_(_,_,_)") == 0) return wren_tile_object;
+  if (strcmp(signature, "tile_object_index_(_,_,_)") == 0) return wren_tile_object_index;
+  if (strcmp(signature, "tile_object_prop_(_,_,_,_)") == 0) return wren_tile_object_prop;
+  if (strcmp(signature, "tile_object_prop_count_(_,_,_)") == 0) return wren_tile_object_prop_count;
+  if (strcmp(signature, "tile_object_prop_at_(_,_,_,_)") == 0) return wren_tile_object_prop_at;
   if (strcmp(signature, "current_time_") == 0) return wren_current_time;
   if (strcmp(signature, "delta_time_") == 0) return wren_delta_time;
   if (strcmp(signature, "random_int_(_,_)") == 0) return wren_random_int;

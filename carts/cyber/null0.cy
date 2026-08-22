@@ -67,6 +67,27 @@ type Color struct:
   b byte
   a byte
 
+-- A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+type TilemapProp struct:
+  name str
+  type i32
+  integer i32
+  number f32
+  text str
+
+-- An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+type TilemapObject struct:
+  id i32
+  name str
+  type str
+  gid i32
+  x f32
+  y f32
+  width f32
+  height f32
+  rotation f32
+  visible i32
+
 -- COLORS
 -- Tint a color with another color.
 #[bind] fn color_tint(color Color, tint Color) -> Color
@@ -306,24 +327,76 @@ type Color struct:
 #[bind] fn unload_tilemap(tilemap r32)
 -- Update a tilemap's animation timers (deltaTime is in seconds).
 #[bind] fn tile_update(tilemap r32, deltaTime f32)
+-- Get the size of a tilemap, in tiles.
+#[bind] fn tile_map_size(tilemap r32) -> Dimensions
+-- Get the size of a single tile of a tilemap, in pixels.
+#[bind] fn tile_tile_size(tilemap r32) -> Dimensions
+-- Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+#[bind] fn tile_map_prop(tilemap r32, name str) -> TilemapProp
+-- Get the number of custom properties on a tilemap.
+#[bind] fn tile_map_prop_count(tilemap r32) -> i32
+-- Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+#[bind] fn tile_map_prop_at(tilemap r32, index i32) -> TilemapProp
 -- Draw a tilemap on the screen.
 #[bind] fn tile_draw(tilemap r32, posX i32, posY i32)
 -- Draw a tilemap on the screen, tinted by a color.
 #[bind] fn tile_draw_tint(tilemap r32, posX i32, posY i32, tint Color)
 -- Draw a tilemap on an image.
 #[bind] fn tile_draw_on_image(dst r32, tilemap r32, posX i32, posY i32)
--- Draw a single tile from a tilemap on the screen.
-#[bind] fn tile_draw_tile(tilemap r32, gid i32, posX i32, posY i32)
--- Get the number of layers in a tilemap.
-#[bind] fn tile_layer_count(tilemap r32) -> i32
--- Get the gid of the tile at a column/row in a tilemap layer.
-#[bind] fn tile_get_tile(tilemap r32, layer i32, column i32, row i32) -> i32
--- Set the gid of the tile at a column/row in a tilemap layer.
-#[bind] fn tile_set_tile(tilemap r32, layer i32, column i32, row i32, gid i32)
--- Get a copy of the image of a single tile in a tilemap.
-#[bind] fn tile_image(tilemap r32, gid i32) -> r32
 -- Render a whole tilemap to a new image.
 #[bind] fn tilemap_image(tilemap r32) -> r32
+-- Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+#[bind] fn tile_layer_count(tilemap r32) -> i32
+-- Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+#[bind] fn tile_layer_index(tilemap r32, name str) -> i32
+-- Get the name of a layer of a tilemap.
+#[bind] fn tile_layer_name(tilemap r32, layer i32) -> str
+-- Get the kind of a layer of a tilemap.
+#[bind] fn tile_layer_type(tilemap r32, layer i32) -> i32
+-- Get the size of a layer of a tilemap, in tiles.
+#[bind] fn tile_layer_size(tilemap r32, layer i32) -> Dimensions
+-- Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+#[bind] fn tile_layer_visible(tilemap r32, layer i32) -> bool
+-- Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+#[bind] fn tile_layer_prop(tilemap r32, layer i32, name str) -> TilemapProp
+-- Get the number of custom properties on a layer of a tilemap.
+#[bind] fn tile_layer_prop_count(tilemap r32, layer i32) -> i32
+-- Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+#[bind] fn tile_layer_prop_at(tilemap r32, layer i32, index i32) -> TilemapProp
+-- Draw a single layer of a tilemap on the screen.
+#[bind] fn tile_draw_layer(tilemap r32, layer i32, posX i32, posY i32)
+-- Draw a single layer of a tilemap on the screen, tinted by a color.
+#[bind] fn tile_draw_layer_tint(tilemap r32, layer i32, posX i32, posY i32, tint Color)
+-- Draw a single layer of a tilemap on an image.
+#[bind] fn tile_draw_layer_on_image(dst r32, tilemap r32, layer i32, posX i32, posY i32)
+-- Render a single layer of a tilemap to a new image.
+#[bind] fn tile_layer_image(tilemap r32, layer i32) -> r32
+-- Get the gid of the tile at a column/row in a tilemap layer.
+#[bind] fn tile_get_tile(tilemap r32, layer i32, column i32, row i32) -> i32
+-- Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+#[bind] fn tile_set_tile(tilemap r32, layer i32, column i32, row i32, gid i32)
+-- Draw a single tile from a tilemap on the screen.
+#[bind] fn tile_draw_tile(tilemap r32, gid i32, posX i32, posY i32)
+-- Get a copy of the image of a single tile in a tilemap.
+#[bind] fn tile_image(tilemap r32, gid i32) -> r32
+-- Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+#[bind] fn tile_gid_prop(tilemap r32, gid i32, name str) -> TilemapProp
+-- Get the number of custom properties on a tile of a tilemap.
+#[bind] fn tile_gid_prop_count(tilemap r32, gid i32) -> i32
+-- Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+#[bind] fn tile_gid_prop_at(tilemap r32, gid i32, index i32) -> TilemapProp
+-- Get the number of objects on an object-layer of a tilemap.
+#[bind] fn tile_object_count(tilemap r32, layer i32) -> i32
+-- Get an object from an object-layer of a tilemap.
+#[bind] fn tile_object(tilemap r32, layer i32, index i32) -> TilemapObject
+-- Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+#[bind] fn tile_object_index(tilemap r32, layer i32, name str) -> i32
+-- Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+#[bind] fn tile_object_prop(tilemap r32, layer i32, index i32, name str) -> TilemapProp
+-- Get the number of custom properties on an object of a tilemap.
+#[bind] fn tile_object_prop_count(tilemap r32, layer i32, index i32) -> i32
+-- Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+#[bind] fn tile_object_prop_at(tilemap r32, layer i32, index i32, propIndex i32) -> TilemapProp
 
 -- TYPES
 
@@ -534,3 +607,16 @@ global MOUSE_BUTTON_UNKNOWN i32 = 0
 global MOUSE_BUTTON_LEFT i32 = 1
 global MOUSE_BUTTON_RIGHT i32 = 2
 global MOUSE_BUTTON_MIDDLE i32 = 3
+-- The kind of a layer in a tilemap.
+global LAYER_NONE i32 = 0
+global LAYER_TILE i32 = 1
+global LAYER_OBJECT i32 = 2
+global LAYER_IMAGE i32 = 3
+global LAYER_GROUP i32 = 4
+-- The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+global PROP_NONE i32 = 0
+global PROP_INT i32 = 1
+global PROP_BOOL i32 = 2
+global PROP_FLOAT i32 = 3
+global PROP_STRING i32 = 4
+global PROP_COLOR i32 = 5

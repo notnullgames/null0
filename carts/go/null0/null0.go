@@ -119,6 +119,87 @@ type Color struct {
 	A uint8
 }
 
+// A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+type TilemapProp struct {
+	Name string
+	Type TilePropType
+	Integer int32
+	Number float32
+	Text string
+}
+
+// An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+type TilemapObject struct {
+	Id int32
+	Name string
+	Type string
+	Gid int32
+	X float32
+	Y float32
+	Width float32
+	Height float32
+	Rotation float32
+	Visible int32
+}
+
+// TilemapProp as the host writes it into cart memory
+type rawTilemapProp struct {
+	Name uint32
+	Type int32
+	Integer int32
+	Number float32
+	Text uint32
+}
+
+// copy a TilemapProp out of cart memory, while it is still ours to read
+func tilemapPropFromPtr(p unsafe.Pointer) TilemapProp {
+	if p == nil {
+		return TilemapProp{}
+	}
+	r := (*rawTilemapProp)(p)
+	return TilemapProp{
+		Name: ptrToString(unsafe.Pointer(uintptr(r.Name))),
+		Type: TilePropType(r.Type),
+		Integer: r.Integer,
+		Number: r.Number,
+		Text: ptrToString(unsafe.Pointer(uintptr(r.Text))),
+	}
+}
+
+// TilemapObject as the host writes it into cart memory
+type rawTilemapObject struct {
+	Id int32
+	Name uint32
+	Type uint32
+	Gid int32
+	X float32
+	Y float32
+	Width float32
+	Height float32
+	Rotation float32
+	Visible int32
+}
+
+// copy a TilemapObject out of cart memory, while it is still ours to read
+func tilemapObjectFromPtr(p unsafe.Pointer) TilemapObject {
+	if p == nil {
+		return TilemapObject{}
+	}
+	r := (*rawTilemapObject)(p)
+	return TilemapObject{
+		Id: r.Id,
+		Name: ptrToString(unsafe.Pointer(uintptr(r.Name))),
+		Type: ptrToString(unsafe.Pointer(uintptr(r.Type))),
+		Gid: r.Gid,
+		X: r.X,
+		Y: r.Y,
+		Width: r.Width,
+		Height: r.Height,
+		Rotation: r.Rotation,
+		Visible: r.Visible,
+	}
+}
+
 // Potential image-filtering techniques for scale/etc.
 type ImageFilter int32
 
@@ -301,6 +382,29 @@ const (
 	MOUSE_BUTTON_LEFT MouseButton = 1
 	MOUSE_BUTTON_RIGHT MouseButton = 2
 	MOUSE_BUTTON_MIDDLE MouseButton = 3
+)
+
+// The kind of a layer in a tilemap.
+type TileLayerKind int32
+
+const (
+	LAYER_NONE TileLayerKind = 0
+	LAYER_TILE TileLayerKind = 1
+	LAYER_OBJECT TileLayerKind = 2
+	LAYER_IMAGE TileLayerKind = 3
+	LAYER_GROUP TileLayerKind = 4
+)
+
+// The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+type TilePropType int32
+
+const (
+	PROP_NONE TilePropType = 0
+	PROP_INT TilePropType = 1
+	PROP_BOOL TilePropType = 2
+	PROP_FLOAT TilePropType = 3
+	PROP_STRING TilePropType = 4
+	PROP_COLOR TilePropType = 5
 )
 
 // Constants
@@ -1288,6 +1392,46 @@ func TileUpdate(tilemap Tilemap, deltaTime float32) {
 	tile_update(tilemap, deltaTime)
 }
 
+//go:wasmimport null0 tile_map_size
+func tile_map_size(tilemap uint32) unsafe.Pointer
+
+// TileMapSize: Get the size of a tilemap, in tiles.
+func TileMapSize(tilemap Tilemap) Dimensions {
+	return *(*Dimensions)(tile_map_size(tilemap))
+}
+
+//go:wasmimport null0 tile_tile_size
+func tile_tile_size(tilemap uint32) unsafe.Pointer
+
+// TileTileSize: Get the size of a single tile of a tilemap, in pixels.
+func TileTileSize(tilemap Tilemap) Dimensions {
+	return *(*Dimensions)(tile_tile_size(tilemap))
+}
+
+//go:wasmimport null0 tile_map_prop
+func tile_map_prop(tilemap uint32, name unsafe.Pointer) unsafe.Pointer
+
+// TileMapProp: Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+func TileMapProp(tilemap Tilemap, name string) TilemapProp {
+	return tilemapPropFromPtr(tile_map_prop(tilemap, cstr(name)))
+}
+
+//go:wasmimport null0 tile_map_prop_count
+func tile_map_prop_count(tilemap uint32) int32
+
+// TileMapPropCount: Get the number of custom properties on a tilemap.
+func TileMapPropCount(tilemap Tilemap) int32 {
+	return tile_map_prop_count(tilemap)
+}
+
+//go:wasmimport null0 tile_map_prop_at
+func tile_map_prop_at(tilemap uint32, index int32) unsafe.Pointer
+
+// TileMapPropAt: Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+func TileMapPropAt(tilemap Tilemap, index int32) TilemapProp {
+	return tilemapPropFromPtr(tile_map_prop_at(tilemap, index))
+}
+
 //go:wasmimport null0 tile_draw
 func tile_draw(tilemap uint32, posX int32, posY int32)
 
@@ -1312,20 +1456,116 @@ func TileDrawOnImage(dst Image, tilemap Tilemap, posX int32, posY int32) {
 	tile_draw_on_image(dst, tilemap, posX, posY)
 }
 
-//go:wasmimport null0 tile_draw_tile
-func tile_draw_tile(tilemap uint32, gid int32, posX int32, posY int32)
+//go:wasmimport null0 tilemap_image
+func tilemap_image(tilemap uint32) uint32
 
-// TileDrawTile: Draw a single tile from a tilemap on the screen.
-func TileDrawTile(tilemap Tilemap, gid int32, posX int32, posY int32) {
-	tile_draw_tile(tilemap, gid, posX, posY)
+// TilemapImage: Render a whole tilemap to a new image.
+func TilemapImage(tilemap Tilemap) Image {
+	return tilemap_image(tilemap)
 }
 
 //go:wasmimport null0 tile_layer_count
 func tile_layer_count(tilemap uint32) int32
 
-// TileLayerCount: Get the number of layers in a tilemap.
+// TileLayerCount: Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 func TileLayerCount(tilemap Tilemap) int32 {
 	return tile_layer_count(tilemap)
+}
+
+//go:wasmimport null0 tile_layer_index
+func tile_layer_index(tilemap uint32, name unsafe.Pointer) int32
+
+// TileLayerIndex: Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+func TileLayerIndex(tilemap Tilemap, name string) int32 {
+	return tile_layer_index(tilemap, cstr(name))
+}
+
+//go:wasmimport null0 tile_layer_name
+func tile_layer_name(tilemap uint32, layer int32) unsafe.Pointer
+
+// TileLayerName: Get the name of a layer of a tilemap.
+func TileLayerName(tilemap Tilemap, layer int32) string {
+	return ptrToString(tile_layer_name(tilemap, layer))
+}
+
+//go:wasmimport null0 tile_layer_type
+func tile_layer_type(tilemap uint32, layer int32) int32
+
+// TileLayerType: Get the kind of a layer of a tilemap.
+func TileLayerType(tilemap Tilemap, layer int32) TileLayerKind {
+	return TileLayerKind(tile_layer_type(tilemap, layer))
+}
+
+//go:wasmimport null0 tile_layer_size
+func tile_layer_size(tilemap uint32, layer int32) unsafe.Pointer
+
+// TileLayerSize: Get the size of a layer of a tilemap, in tiles.
+func TileLayerSize(tilemap Tilemap, layer int32) Dimensions {
+	return *(*Dimensions)(tile_layer_size(tilemap, layer))
+}
+
+//go:wasmimport null0 tile_layer_visible
+func tile_layer_visible(tilemap uint32, layer int32) uint32
+
+// TileLayerVisible: Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+func TileLayerVisible(tilemap Tilemap, layer int32) bool {
+	return tile_layer_visible(tilemap, layer) != 0
+}
+
+//go:wasmimport null0 tile_layer_prop
+func tile_layer_prop(tilemap uint32, layer int32, name unsafe.Pointer) unsafe.Pointer
+
+// TileLayerProp: Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+func TileLayerProp(tilemap Tilemap, layer int32, name string) TilemapProp {
+	return tilemapPropFromPtr(tile_layer_prop(tilemap, layer, cstr(name)))
+}
+
+//go:wasmimport null0 tile_layer_prop_count
+func tile_layer_prop_count(tilemap uint32, layer int32) int32
+
+// TileLayerPropCount: Get the number of custom properties on a layer of a tilemap.
+func TileLayerPropCount(tilemap Tilemap, layer int32) int32 {
+	return tile_layer_prop_count(tilemap, layer)
+}
+
+//go:wasmimport null0 tile_layer_prop_at
+func tile_layer_prop_at(tilemap uint32, layer int32, index int32) unsafe.Pointer
+
+// TileLayerPropAt: Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+func TileLayerPropAt(tilemap Tilemap, layer int32, index int32) TilemapProp {
+	return tilemapPropFromPtr(tile_layer_prop_at(tilemap, layer, index))
+}
+
+//go:wasmimport null0 tile_draw_layer
+func tile_draw_layer(tilemap uint32, layer int32, posX int32, posY int32)
+
+// TileDrawLayer: Draw a single layer of a tilemap on the screen.
+func TileDrawLayer(tilemap Tilemap, layer int32, posX int32, posY int32) {
+	tile_draw_layer(tilemap, layer, posX, posY)
+}
+
+//go:wasmimport null0 tile_draw_layer_tint
+func tile_draw_layer_tint(tilemap uint32, layer int32, posX int32, posY int32, tint unsafe.Pointer)
+
+// TileDrawLayerTint: Draw a single layer of a tilemap on the screen, tinted by a color.
+func TileDrawLayerTint(tilemap Tilemap, layer int32, posX int32, posY int32, tint Color) {
+	tile_draw_layer_tint(tilemap, layer, posX, posY, unsafe.Pointer(&tint))
+}
+
+//go:wasmimport null0 tile_draw_layer_on_image
+func tile_draw_layer_on_image(dst uint32, tilemap uint32, layer int32, posX int32, posY int32)
+
+// TileDrawLayerOnImage: Draw a single layer of a tilemap on an image.
+func TileDrawLayerOnImage(dst Image, tilemap Tilemap, layer int32, posX int32, posY int32) {
+	tile_draw_layer_on_image(dst, tilemap, layer, posX, posY)
+}
+
+//go:wasmimport null0 tile_layer_image
+func tile_layer_image(tilemap uint32, layer int32) uint32
+
+// TileLayerImage: Render a single layer of a tilemap to a new image.
+func TileLayerImage(tilemap Tilemap, layer int32) Image {
+	return tile_layer_image(tilemap, layer)
 }
 
 //go:wasmimport null0 tile_get_tile
@@ -1339,9 +1579,17 @@ func TileGetTile(tilemap Tilemap, layer int32, column int32, row int32) int32 {
 //go:wasmimport null0 tile_set_tile
 func tile_set_tile(tilemap uint32, layer int32, column int32, row int32, gid int32)
 
-// TileSetTile: Set the gid of the tile at a column/row in a tilemap layer.
+// TileSetTile: Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 func TileSetTile(tilemap Tilemap, layer int32, column int32, row int32, gid int32) {
 	tile_set_tile(tilemap, layer, column, row, gid)
+}
+
+//go:wasmimport null0 tile_draw_tile
+func tile_draw_tile(tilemap uint32, gid int32, posX int32, posY int32)
+
+// TileDrawTile: Draw a single tile from a tilemap on the screen.
+func TileDrawTile(tilemap Tilemap, gid int32, posX int32, posY int32) {
+	tile_draw_tile(tilemap, gid, posX, posY)
 }
 
 //go:wasmimport null0 tile_image
@@ -1352,12 +1600,76 @@ func TileImage(tilemap Tilemap, gid int32) Image {
 	return tile_image(tilemap, gid)
 }
 
-//go:wasmimport null0 tilemap_image
-func tilemap_image(tilemap uint32) uint32
+//go:wasmimport null0 tile_gid_prop
+func tile_gid_prop(tilemap uint32, gid int32, name unsafe.Pointer) unsafe.Pointer
 
-// TilemapImage: Render a whole tilemap to a new image.
-func TilemapImage(tilemap Tilemap) Image {
-	return tilemap_image(tilemap)
+// TileGidProp: Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+func TileGidProp(tilemap Tilemap, gid int32, name string) TilemapProp {
+	return tilemapPropFromPtr(tile_gid_prop(tilemap, gid, cstr(name)))
+}
+
+//go:wasmimport null0 tile_gid_prop_count
+func tile_gid_prop_count(tilemap uint32, gid int32) int32
+
+// TileGidPropCount: Get the number of custom properties on a tile of a tilemap.
+func TileGidPropCount(tilemap Tilemap, gid int32) int32 {
+	return tile_gid_prop_count(tilemap, gid)
+}
+
+//go:wasmimport null0 tile_gid_prop_at
+func tile_gid_prop_at(tilemap uint32, gid int32, index int32) unsafe.Pointer
+
+// TileGidPropAt: Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+func TileGidPropAt(tilemap Tilemap, gid int32, index int32) TilemapProp {
+	return tilemapPropFromPtr(tile_gid_prop_at(tilemap, gid, index))
+}
+
+//go:wasmimport null0 tile_object_count
+func tile_object_count(tilemap uint32, layer int32) int32
+
+// TileObjectCount: Get the number of objects on an object-layer of a tilemap.
+func TileObjectCount(tilemap Tilemap, layer int32) int32 {
+	return tile_object_count(tilemap, layer)
+}
+
+//go:wasmimport null0 tile_object
+func tile_object(tilemap uint32, layer int32, index int32) unsafe.Pointer
+
+// TileObject: Get an object from an object-layer of a tilemap.
+func TileObject(tilemap Tilemap, layer int32, index int32) TilemapObject {
+	return tilemapObjectFromPtr(tile_object(tilemap, layer, index))
+}
+
+//go:wasmimport null0 tile_object_index
+func tile_object_index(tilemap uint32, layer int32, name unsafe.Pointer) int32
+
+// TileObjectIndex: Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+func TileObjectIndex(tilemap Tilemap, layer int32, name string) int32 {
+	return tile_object_index(tilemap, layer, cstr(name))
+}
+
+//go:wasmimport null0 tile_object_prop
+func tile_object_prop(tilemap uint32, layer int32, index int32, name unsafe.Pointer) unsafe.Pointer
+
+// TileObjectProp: Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+func TileObjectProp(tilemap Tilemap, layer int32, index int32, name string) TilemapProp {
+	return tilemapPropFromPtr(tile_object_prop(tilemap, layer, index, cstr(name)))
+}
+
+//go:wasmimport null0 tile_object_prop_count
+func tile_object_prop_count(tilemap uint32, layer int32, index int32) int32
+
+// TileObjectPropCount: Get the number of custom properties on an object of a tilemap.
+func TileObjectPropCount(tilemap Tilemap, layer int32, index int32) int32 {
+	return tile_object_prop_count(tilemap, layer, index)
+}
+
+//go:wasmimport null0 tile_object_prop_at
+func tile_object_prop_at(tilemap uint32, layer int32, index int32, propIndex int32) unsafe.Pointer
+
+// TileObjectPropAt: Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+func TileObjectPropAt(tilemap Tilemap, layer int32, index int32, propIndex int32) TilemapProp {
+	return tilemapPropFromPtr(tile_object_prop_at(tilemap, layer, index, propIndex))
 }
 
 // TYPES

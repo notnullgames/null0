@@ -232,9 +232,409 @@ cute_tiled_map_t *null0_load_tiled(const char *filename) {
   return map;
 }
 
+// TILEMAP LAYERS, OBJECTS AND PROPERTIES
+//
+// a tilemap is the cart's initial state: layers, objects and properties are
+// read-only, and the one thing a cart changes is a tile's gid (tile_set_tile),
+// which is how a map keeps its own changing state - an opened chest is just a
+// different gid, with its own tileset properties
+
+typedef enum {
+  LAYER_NONE = 0,
+  LAYER_TILE = 1,
+  LAYER_OBJECT = 2,
+  LAYER_IMAGE = 3,
+  LAYER_GROUP = 4
+} TileLayerKind;
+
+typedef enum {
+  PROP_NONE = 0,
+  PROP_INT = 1,
+  PROP_BOOL = 2,
+  PROP_FLOAT = 3,
+  PROP_STRING = 4,
+  PROP_COLOR = 5
+} TilePropType;
+
+// a custom property. only the member named by type is meaningful - gen_host
+// copies this into cart memory, strings and all
+typedef struct {
+  char *name;
+  TilePropType type;
+  int32_t integer;
+  float number;
+  char *text;
+} Null0TilemapProp;
+
+// an object from an object-layer, as Tiled authored it
+typedef struct {
+  int32_t id;
+  char *name;
+  char *type;
+  int32_t gid;
+  float x;
+  float y;
+  float width;
+  float height;
+  float rotation;
+  int32_t visible;
+} Null0TilemapObject;
+
+// pntr_tiled defines this but forgets to declare it in its header
+PNTR_TILED_API void pntr_draw_tiled_layer(pntr_image *dst, cute_tiled_map_t *map, cute_tiled_layer_t *layer, int posX, int posY, pntr_color tint);
+
+// layers are numbered depth-first, so the children of a group layer get their
+// own indexes and a cart can address everything it sees in Tiled
+static cute_tiled_layer_t *null0_tiled_layer_walk(cute_tiled_layer_t *layer, int *index, int wanted) {
+  while (layer != NULL) {
+    if ((*index)++ == wanted) {
+      return layer;
+    }
+    cute_tiled_layer_t *found = null0_tiled_layer_walk(layer->layers, index, wanted);
+    if (found != NULL) {
+      return found;
+    }
+    layer = layer->next;
+  }
+  return NULL;
+}
+
+// get a layer by index, NULL (with a warning) if there is no such layer
+static cute_tiled_layer_t *null0_tiled_layer_at(cute_tiled_map_t *map, int layer) {
+  int index = 0;
+  cute_tiled_layer_t *found = layer < 0 ? NULL : null0_tiled_layer_walk(map->layers, &index, layer);
+  if (found == NULL) {
+    pntr_app_log_ex(PNTR_APP_LOG_ERROR, "null0: invalid tilemap layer: %d", layer);
+  }
+  return found;
+}
+
+static int null0_tiled_layer_count_walk(cute_tiled_layer_t *layer) {
+  int count = 0;
+  while (layer != NULL) {
+    count += 1 + null0_tiled_layer_count_walk(layer->layers);
+    layer = layer->next;
+  }
+  return count;
+}
+
+// the number of layers in a tilemap (group layers count, and so do their children)
+int null0_tile_layer_count(cute_tiled_map_t *map) {
+  return null0_tiled_layer_count_walk(map->layers);
+}
+
+static int null0_tiled_layer_index_walk(cute_tiled_layer_t *layer, const char *name, int *index) {
+  while (layer != NULL) {
+    if (layer->name.ptr != NULL && strcmp(layer->name.ptr, name) == 0) {
+      return *index;
+    }
+    (*index)++;
+    int found = null0_tiled_layer_index_walk(layer->layers, name, index);
+    if (found != -1) {
+      return found;
+    }
+    layer = layer->next;
+  }
+  return -1;
+}
+
+// find a layer by name, -1 when there is none
+int null0_tile_layer_index(cute_tiled_map_t *map, char *name) {
+  int index = 0;
+  return null0_tiled_layer_index_walk(map->layers, name, &index);
+}
+
+char *null0_tile_layer_name(cute_tiled_map_t *map, int layer) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  return (l != NULL && l->name.ptr != NULL) ? (char *)l->name.ptr : "";
+}
+
+TileLayerKind null0_tile_layer_type(cute_tiled_map_t *map, int layer) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  if (l == NULL || l->type.ptr == NULL) {
+    return LAYER_NONE;
+  }
+  // "tilelayer" / "objectgroup" / "imagelayer" / "group" - same first-letter
+  // test pntr_tiled uses when it draws
+  switch (l->type.ptr[0]) {
+    case 't': return LAYER_TILE;
+    case 'o': return LAYER_OBJECT;
+    case 'i': return LAYER_IMAGE;
+    case 'g': return LAYER_GROUP;
+    default: return LAYER_NONE;
+  }
+}
+
+pntr_vector null0_tile_layer_size(cute_tiled_map_t *map, int layer) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  pntr_vector size = {0, 0};
+  if (l != NULL) {
+    size.x = l->width;
+    size.y = l->height;
+  }
+  return size;
+}
+
+bool null0_tile_layer_visible(cute_tiled_map_t *map, int layer) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  return l != NULL && l->visible != 0;
+}
+
+pntr_vector null0_tile_map_size(cute_tiled_map_t *map) {
+  pntr_vector size = {map->width, map->height};
+  return size;
+}
+
+pntr_vector null0_tile_tile_size(cute_tiled_map_t *map) {
+  pntr_vector size = {map->tilewidth, map->tileheight};
+  return size;
+}
+
+// draw a single layer. pntr_draw_tiled_layer walks the layer's `next` siblings
+// too, so unlink it for the duration - a group layer still draws its children
+void null0_tile_draw_layer(pntr_image *dst, cute_tiled_map_t *map, int layer, int posX, int posY, pntr_color tint) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  if (dst == NULL || l == NULL) {
+    return;
+  }
+  cute_tiled_layer_t *next = l->next;
+  l->next = NULL;
+  pntr_draw_tiled_layer(dst, map, l, posX, posY, tint);
+  l->next = next;
+}
+
+// render one layer to a new image (map-sized, like tilemap_image)
+pntr_image *null0_tile_layer_image(cute_tiled_map_t *map, int layer) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  if (l == NULL) {
+    return NULL;
+  }
+  cute_tiled_layer_t *next = l->next;
+  l->next = NULL;
+  pntr_image *out = pntr_gen_image_tiled_layer(map, l, PNTR_WHITE);
+  l->next = next;
+  return out;
+}
+
+// get an object by index on an object-layer, NULL (with a warning) if there is none
+static cute_tiled_object_t *null0_tiled_object_at(cute_tiled_map_t *map, int layer, int index) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  if (l != NULL && index >= 0) {
+    int i = 0;
+    for (cute_tiled_object_t *object = l->objects; object != NULL; object = object->next) {
+      if (i++ == index) {
+        return object;
+      }
+    }
+  }
+  if (l != NULL) {
+    pntr_app_log_ex(PNTR_APP_LOG_ERROR, "null0: invalid tilemap object: %d", index);
+  }
+  return NULL;
+}
+
+int null0_tile_object_count(cute_tiled_map_t *map, int layer) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  int count = 0;
+  if (l != NULL) {
+    for (cute_tiled_object_t *object = l->objects; object != NULL; object = object->next) {
+      count++;
+    }
+  }
+  return count;
+}
+
+Null0TilemapObject null0_tile_object(cute_tiled_map_t *map, int layer, int index) {
+  Null0TilemapObject out = {0, "", "", 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0};
+  cute_tiled_object_t *object = null0_tiled_object_at(map, layer, index);
+  if (object == NULL) {
+    return out;
+  }
+  out.id = object->id;
+  out.name = object->name.ptr != NULL ? (char *)object->name.ptr : "";
+  out.type = object->type.ptr != NULL ? (char *)object->type.ptr : "";
+  out.gid = object->gid;
+  out.x = object->x;
+  out.y = object->y;
+  out.width = object->width;
+  out.height = object->height;
+  out.rotation = object->rotation;
+  out.visible = object->visible ? 1 : 0;
+  return out;
+}
+
+// find an object by name on an object-layer, -1 when there is none
+int null0_tile_object_index(cute_tiled_map_t *map, int layer, char *name) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  if (l != NULL) {
+    int index = 0;
+    for (cute_tiled_object_t *object = l->objects; object != NULL; object = object->next) {
+      if (object->name.ptr != NULL && strcmp(object->name.ptr, name) == 0) {
+        return index;
+      }
+      index++;
+    }
+  }
+  return -1;
+}
+
+// PROPERTIES: map, layer, object and tile (by gid) all carry the same kind of
+// list, so they all go through these
+
+static Null0TilemapProp null0_tiled_prop(cute_tiled_property_t *prop) {
+  Null0TilemapProp out = {"", PROP_NONE, 0, 0.0f, ""};
+  if (prop == NULL) {
+    return out;
+  }
+  if (prop->name.ptr != NULL) {
+    out.name = (char *)prop->name.ptr;
+  }
+  switch (prop->type) {
+    case CUTE_TILED_PROPERTY_INT:
+      out.type = PROP_INT;
+      out.integer = prop->data.integer;
+      break;
+    case CUTE_TILED_PROPERTY_BOOL:
+      out.type = PROP_BOOL;
+      out.integer = prop->data.boolean ? 1 : 0;
+      break;
+    case CUTE_TILED_PROPERTY_FLOAT:
+      out.type = PROP_FLOAT;
+      out.number = prop->data.floating;
+      break;
+    case CUTE_TILED_PROPERTY_STRING:
+      out.type = PROP_STRING;
+      if (prop->data.string.ptr != NULL) {
+        out.text = (char *)prop->data.string.ptr;
+      }
+      break;
+    // cute_tiled hands file properties back as strings, so carts see them that way
+    case CUTE_TILED_PROPERTY_FILE:
+      out.type = PROP_STRING;
+      if (prop->data.file.ptr != NULL) {
+        out.text = (char *)prop->data.file.ptr;
+      }
+      break;
+    case CUTE_TILED_PROPERTY_COLOR:
+      out.type = PROP_COLOR;
+      out.integer = (int32_t)prop->data.color;
+      break;
+    default:
+      break;
+  }
+  return out;
+}
+
+static Null0TilemapProp null0_tiled_prop_named(cute_tiled_property_t *props, int count, const char *name) {
+  for (int i = 0; i < count; i++) {
+    if (props[i].name.ptr != NULL && strcmp(props[i].name.ptr, name) == 0) {
+      return null0_tiled_prop(&props[i]);
+    }
+  }
+  return null0_tiled_prop(NULL);
+}
+
+static Null0TilemapProp null0_tiled_prop_indexed(cute_tiled_property_t *props, int count, int index) {
+  if (index < 0 || index >= count) {
+    return null0_tiled_prop(NULL);
+  }
+  return null0_tiled_prop(&props[index]);
+}
+
+// the tileset entry describing a gid, NULL when the tile has no entry (which
+// is normal - Tiled only writes one for tiles that carry something)
+static cute_tiled_tile_descriptor_t *null0_tiled_tile_descriptor(cute_tiled_map_t *map, int gid) {
+  for (cute_tiled_tileset_t *tileset = map->tilesets; tileset != NULL; tileset = tileset->next) {
+    if (gid >= tileset->firstgid && gid < tileset->firstgid + tileset->tilecount) {
+      for (cute_tiled_tile_descriptor_t *tile = tileset->tiles; tile != NULL; tile = tile->next) {
+        if (tile->tile_index == gid - tileset->firstgid) {
+          return tile;
+        }
+      }
+      return NULL;
+    }
+  }
+  return NULL;
+}
+
+Null0TilemapProp null0_tile_map_prop(cute_tiled_map_t *map, char *name) {
+  return null0_tiled_prop_named(map->properties, map->property_count, name);
+}
+
+int null0_tile_map_prop_count(cute_tiled_map_t *map) {
+  return map->property_count;
+}
+
+Null0TilemapProp null0_tile_map_prop_at(cute_tiled_map_t *map, int index) {
+  return null0_tiled_prop_indexed(map->properties, map->property_count, index);
+}
+
+Null0TilemapProp null0_tile_layer_prop(cute_tiled_map_t *map, int layer, char *name) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  if (l == NULL) {
+    return null0_tiled_prop(NULL);
+  }
+  return null0_tiled_prop_named(l->properties, l->property_count, name);
+}
+
+int null0_tile_layer_prop_count(cute_tiled_map_t *map, int layer) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  return l == NULL ? 0 : l->property_count;
+}
+
+Null0TilemapProp null0_tile_layer_prop_at(cute_tiled_map_t *map, int layer, int index) {
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
+  if (l == NULL) {
+    return null0_tiled_prop(NULL);
+  }
+  return null0_tiled_prop_indexed(l->properties, l->property_count, index);
+}
+
+Null0TilemapProp null0_tile_object_prop(cute_tiled_map_t *map, int layer, int index, char *name) {
+  cute_tiled_object_t *object = null0_tiled_object_at(map, layer, index);
+  if (object == NULL) {
+    return null0_tiled_prop(NULL);
+  }
+  return null0_tiled_prop_named(object->properties, object->property_count, name);
+}
+
+int null0_tile_object_prop_count(cute_tiled_map_t *map, int layer, int index) {
+  cute_tiled_object_t *object = null0_tiled_object_at(map, layer, index);
+  return object == NULL ? 0 : object->property_count;
+}
+
+Null0TilemapProp null0_tile_object_prop_at(cute_tiled_map_t *map, int layer, int index, int propIndex) {
+  cute_tiled_object_t *object = null0_tiled_object_at(map, layer, index);
+  if (object == NULL) {
+    return null0_tiled_prop(NULL);
+  }
+  return null0_tiled_prop_indexed(object->properties, object->property_count, propIndex);
+}
+
+Null0TilemapProp null0_tile_gid_prop(cute_tiled_map_t *map, int gid, char *name) {
+  cute_tiled_tile_descriptor_t *tile = null0_tiled_tile_descriptor(map, gid);
+  if (tile == NULL) {
+    return null0_tiled_prop(NULL);
+  }
+  return null0_tiled_prop_named(tile->properties, tile->property_count, name);
+}
+
+int null0_tile_gid_prop_count(cute_tiled_map_t *map, int gid) {
+  cute_tiled_tile_descriptor_t *tile = null0_tiled_tile_descriptor(map, gid);
+  return tile == NULL ? 0 : tile->property_count;
+}
+
+Null0TilemapProp null0_tile_gid_prop_at(cute_tiled_map_t *map, int gid, int index) {
+  cute_tiled_tile_descriptor_t *tile = null0_tiled_tile_descriptor(map, gid);
+  if (tile == NULL) {
+    return null0_tiled_prop(NULL);
+  }
+  return null0_tiled_prop_indexed(tile->properties, tile->property_count, index);
+}
+
 // get the gid of a tile in a layer (by index) of a tilemap
 int null0_tile_get_tile(cute_tiled_map_t *map, int layer, int column, int row) {
-  cute_tiled_layer_t *l = pntr_tiled_layer_from_index(map, layer);
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
   if (l == NULL) {
     return 0;
   }
@@ -243,7 +643,7 @@ int null0_tile_get_tile(cute_tiled_map_t *map, int layer, int column, int row) {
 
 // set the gid of a tile in a layer (by index) of a tilemap
 void null0_tile_set_tile(cute_tiled_map_t *map, int layer, int column, int row, int gid) {
-  cute_tiled_layer_t *l = pntr_tiled_layer_from_index(map, layer);
+  cute_tiled_layer_t *l = null0_tiled_layer_at(map, layer);
   if (l == NULL) {
     return;
   }
@@ -494,6 +894,9 @@ char *copy_string_from_cart(uint32_t cart_pointer) {
 
 // copy a string from host to cart
 uint32_t copy_string_to_cart(char *host_pointer) {
+  if (host_pointer == NULL) {
+    host_pointer = "";
+  }
   uint32_t size = strlen(host_pointer) + 1;
   uint32_t ret = cart_alloc_tracked(size);
   mem_to_cart(ret, (void *)host_pointer, size);

@@ -10,7 +10,7 @@
 // For a full cart, include this file or copy the @embed wrappers you need.
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 
 const out = [
   `// null0 - Jik bindings for the null0 fantasy console
@@ -99,6 +99,10 @@ const retTypes = {
 }
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// struct returns are an address in cart memory, like the other struct types here
+seedTypes(argTypes, { enums, structs }, { enumType: 'int', structType: 'int' })
+seedTypes(retTypes, { enums, structs }, { enumType: 'int', structType: 'int' })
 
 out.push('', '// NOTE: Jik does not have u8, f32, u32, or u64 types.')
 out.push('// Struct returns use C wrappers. See the generated @embed blocks.')

@@ -35,12 +35,15 @@
 // "Color" or "Vector" themselves.
 
 import { writeFile, mkdir } from 'node:fs/promises'
-import { getApi } from './utils.js'
+import { getApi, seedTypes } from './utils.js'
 import { cPreamble, cArgTypes, cRetTypes, cArgsMap } from './c_header_common.js'
 
 const out = [cPreamble]
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+
+// enums cross as ints, structs come back as pointers into cart memory
+seedTypes(cRetTypes, { enums, structs }, { structType: (name) => `${name}*` })
 
 // zc-unsafe arg types -> the primitive pointer type they lower to at the
 // real wasm ABI level (same underlying import, just a compatible C type)

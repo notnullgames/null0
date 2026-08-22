@@ -17,6 +17,38 @@ tile_update:
   returns: void
   description: Update a tilemap's animation timers (deltaTime is in seconds).
 
+tile_map_size:
+  args:
+    tilemap: Tilemap
+  returns: Dimensions
+  description: Get the size of a tilemap, in tiles.
+
+tile_tile_size:
+  args:
+    tilemap: Tilemap
+  returns: Dimensions
+  description: Get the size of a single tile of a tilemap, in pixels.
+
+tile_map_prop:
+  args:
+    tilemap: Tilemap
+    name: string
+  returns: TilemapProp
+  description: Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+
+tile_map_prop_count:
+  args:
+    tilemap: Tilemap
+  returns: i32
+  description: Get the number of custom properties on a tilemap.
+
+tile_map_prop_at:
+  args:
+    tilemap: Tilemap
+    index: i32
+  returns: TilemapProp
+  description: Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+
 tile_draw:
   args:
     tilemap: Tilemap
@@ -43,20 +75,111 @@ tile_draw_on_image:
   returns: void
   description: Draw a tilemap on an image.
 
-tile_draw_tile:
+tilemap_image:
   args:
     tilemap: Tilemap
-    gid: i32
-    posX: i32
-    posY: i32
-  returns: void
-  description: Draw a single tile from a tilemap on the screen.
+  returns: Image
+  description: Render a whole tilemap to a new image.
 
 tile_layer_count:
   args:
     tilemap: Tilemap
   returns: i32
-  description: Get the number of layers in a tilemap.
+  description: Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
+
+tile_layer_index:
+  args:
+    tilemap: Tilemap
+    name: string
+  returns: i32
+  description: Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+
+tile_layer_name:
+  args:
+    tilemap: Tilemap
+    layer: i32
+  returns: string
+  description: Get the name of a layer of a tilemap.
+
+tile_layer_type:
+  args:
+    tilemap: Tilemap
+    layer: i32
+  returns: TileLayerKind
+  description: Get the kind of a layer of a tilemap.
+
+tile_layer_size:
+  args:
+    tilemap: Tilemap
+    layer: i32
+  returns: Dimensions
+  description: Get the size of a layer of a tilemap, in tiles.
+
+tile_layer_visible:
+  args:
+    tilemap: Tilemap
+    layer: i32
+  returns: bool
+  description: Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+
+tile_layer_prop:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    name: string
+  returns: TilemapProp
+  description: Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+
+tile_layer_prop_count:
+  args:
+    tilemap: Tilemap
+    layer: i32
+  returns: i32
+  description: Get the number of custom properties on a layer of a tilemap.
+
+tile_layer_prop_at:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    index: i32
+  returns: TilemapProp
+  description: Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+
+tile_draw_layer:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    posX: i32
+    posY: i32
+  returns: void
+  description: Draw a single layer of a tilemap on the screen.
+
+tile_draw_layer_tint:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    posX: i32
+    posY: i32
+    tint: Color
+  returns: void
+  description: Draw a single layer of a tilemap on the screen, tinted by a color.
+
+tile_draw_layer_on_image:
+  args:
+    dst: Image
+    tilemap: Tilemap
+    layer: i32
+    posX: i32
+    posY: i32
+  returns: void
+  description: Draw a single layer of a tilemap on an image.
+
+tile_layer_image:
+  args:
+    tilemap: Tilemap
+    layer: i32
+  returns: Image
+  description: Render a single layer of a tilemap to a new image.
 
 tile_get_tile:
   args:
@@ -75,7 +198,16 @@ tile_set_tile:
     row: i32
     gid: i32
   returns: void
-  description: Set the gid of the tile at a column/row in a tilemap layer.
+  description: Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
+
+tile_draw_tile:
+  args:
+    tilemap: Tilemap
+    gid: i32
+    posX: i32
+    posY: i32
+  returns: void
+  description: Draw a single tile from a tilemap on the screen.
 
 tile_image:
   args:
@@ -84,8 +216,74 @@ tile_image:
   returns: Image
   description: Get a copy of the image of a single tile in a tilemap.
 
-tilemap_image:
+tile_gid_prop:
   args:
     tilemap: Tilemap
-  returns: Image
-  description: Render a whole tilemap to a new image.
+    gid: i32
+    name: string
+  returns: TilemapProp
+  description: Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+
+tile_gid_prop_count:
+  args:
+    tilemap: Tilemap
+    gid: i32
+  returns: i32
+  description: Get the number of custom properties on a tile of a tilemap.
+
+tile_gid_prop_at:
+  args:
+    tilemap: Tilemap
+    gid: i32
+    index: i32
+  returns: TilemapProp
+  description: Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+
+tile_object_count:
+  args:
+    tilemap: Tilemap
+    layer: i32
+  returns: i32
+  description: Get the number of objects on an object-layer of a tilemap.
+
+tile_object:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    index: i32
+  returns: TilemapObject
+  description: Get an object from an object-layer of a tilemap.
+
+tile_object_index:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    name: string
+  returns: i32
+  description: Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+
+tile_object_prop:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    index: i32
+    name: string
+  returns: TilemapProp
+  description: Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+
+tile_object_prop_count:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    index: i32
+  returns: i32
+  description: Get the number of custom properties on an object of a tilemap.
+
+tile_object_prop_at:
+  args:
+    tilemap: Tilemap
+    layer: i32
+    index: i32
+    propIndex: i32
+  returns: TilemapProp
+  description: Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)

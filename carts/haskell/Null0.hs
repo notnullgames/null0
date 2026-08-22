@@ -104,6 +104,41 @@ instance Storable Color where
   peek p = Color <$> (peekByteOff p 0 :: IO Word8) <*> (peekByteOff p 1 :: IO Word8) <*> (peekByteOff p 2 :: IO Word8) <*> (peekByteOff p 3 :: IO Word8)
   poke p (Color f_r f_g f_b f_a) = pokeByteOff p 0 f_r >> pokeByteOff p 1 f_g >> pokeByteOff p 2 f_b >> pokeByteOff p 3 f_a
 
+-- | A custom property on a tilemap, layer, object, or tile. Only the member named by `type` is meaningful - a PROP_BOOL is 0/1 in `integer`, and a PROP_COLOR is RGBA bytes in `integer`.
+data TilemapProp = TilemapProp
+  { tilemapprop_name :: CString
+  , tilemapprop_type :: Int32
+  , tilemapprop_integer :: Int32
+  , tilemapprop_number :: CFloat
+  , tilemapprop_text :: CString
+  } deriving (Show, Eq)
+
+instance Storable TilemapProp where
+  sizeOf _ = 20
+  alignment _ = 4
+  peek p = TilemapProp <$> (peekByteOff p 0 :: IO CString) <*> (peekByteOff p 4 :: IO Int32) <*> (peekByteOff p 8 :: IO Int32) <*> (peekByteOff p 12 :: IO CFloat) <*> (peekByteOff p 16 :: IO CString)
+  poke p (TilemapProp f_name f_type f_integer f_number f_text) = pokeByteOff p 0 f_name >> pokeByteOff p 4 f_type >> pokeByteOff p 8 f_integer >> pokeByteOff p 12 f_number >> pokeByteOff p 16 f_text
+
+-- | An object from an object-layer of a tilemap. This is the map's initial state - carts own whatever they spawn from it.
+data TilemapObject = TilemapObject
+  { tilemapobject_id :: Int32
+  , tilemapobject_name :: CString
+  , tilemapobject_type :: CString
+  , tilemapobject_gid :: Int32
+  , tilemapobject_x :: CFloat
+  , tilemapobject_y :: CFloat
+  , tilemapobject_width :: CFloat
+  , tilemapobject_height :: CFloat
+  , tilemapobject_rotation :: CFloat
+  , tilemapobject_visible :: Int32
+  } deriving (Show, Eq)
+
+instance Storable TilemapObject where
+  sizeOf _ = 40
+  alignment _ = 4
+  peek p = TilemapObject <$> (peekByteOff p 0 :: IO Int32) <*> (peekByteOff p 4 :: IO CString) <*> (peekByteOff p 8 :: IO CString) <*> (peekByteOff p 12 :: IO Int32) <*> (peekByteOff p 16 :: IO CFloat) <*> (peekByteOff p 20 :: IO CFloat) <*> (peekByteOff p 24 :: IO CFloat) <*> (peekByteOff p 28 :: IO CFloat) <*> (peekByteOff p 32 :: IO CFloat) <*> (peekByteOff p 36 :: IO Int32)
+  poke p (TilemapObject f_id f_name f_type f_gid f_x f_y f_width f_height f_rotation f_visible) = pokeByteOff p 0 f_id >> pokeByteOff p 4 f_name >> pokeByteOff p 8 f_type >> pokeByteOff p 12 f_gid >> pokeByteOff p 16 f_x >> pokeByteOff p 20 f_y >> pokeByteOff p 24 f_width >> pokeByteOff p 28 f_height >> pokeByteOff p 32 f_rotation >> pokeByteOff p 36 f_visible
+
 -- | The screen is image 0
 screen :: Word32
 screen = 0
@@ -666,6 +701,41 @@ mouseButtonRight = 2
 
 mouseButtonMiddle :: Int32
 mouseButtonMiddle = 3
+
+-- The kind of a layer in a tilemap.
+layerNone :: Int32
+layerNone = 0
+
+layerTile :: Int32
+layerTile = 1
+
+layerObject :: Int32
+layerObject = 2
+
+layerImage :: Int32
+layerImage = 3
+
+layerGroup :: Int32
+layerGroup = 4
+
+-- The type of a tilemap property's value. Tiled's "file" properties arrive as PROP_STRING.
+propNone :: Int32
+propNone = 0
+
+propInt :: Int32
+propInt = 1
+
+propBool :: Int32
+propBool = 2
+
+propFloat :: Int32
+propFloat = 3
+
+propString :: Int32
+propString = 4
+
+propColor :: Int32
+propColor = 5
 
 -- COLORS
 
@@ -1397,6 +1467,33 @@ foreign import ccall unsafe "tile_update" c_tileUpdate :: Word32 -> CFloat -> IO
 tileUpdate :: Word32 -> CFloat -> IO ()
 tileUpdate tilemap deltaTime = c_tileUpdate tilemap deltaTime
 
+foreign import ccall unsafe "tile_map_size" c_tileMapSize :: Word32 -> IO (Ptr Dimensions)
+-- | Get the size of a tilemap, in tiles.
+tileMapSize :: Word32 -> IO Dimensions
+tileMapSize tilemap = c_tileMapSize tilemap >>= peek
+
+foreign import ccall unsafe "tile_tile_size" c_tileTileSize :: Word32 -> IO (Ptr Dimensions)
+-- | Get the size of a single tile of a tilemap, in pixels.
+tileTileSize :: Word32 -> IO Dimensions
+tileTileSize tilemap = c_tileTileSize tilemap >>= peek
+
+foreign import ccall unsafe "tile_map_prop" c_tileMapProp :: Word32 -> CString -> IO (Ptr TilemapProp)
+-- | Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
+tileMapProp :: Word32 -> String -> IO TilemapProp
+tileMapProp tilemap name =
+  withCString name $ \name_c ->
+    c_tileMapProp tilemap name_c >>= peek
+
+foreign import ccall unsafe "tile_map_prop_count" c_tileMapPropCount :: Word32 -> IO Int32
+-- | Get the number of custom properties on a tilemap.
+tileMapPropCount :: Word32 -> IO Int32
+tileMapPropCount tilemap = c_tileMapPropCount tilemap
+
+foreign import ccall unsafe "tile_map_prop_at" c_tileMapPropAt :: Word32 -> Int32 -> IO (Ptr TilemapProp)
+-- | Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
+tileMapPropAt :: Word32 -> Int32 -> IO TilemapProp
+tileMapPropAt tilemap index = c_tileMapPropAt tilemap index >>= peek
+
 foreign import ccall unsafe "tile_draw" c_tileDraw :: Word32 -> Int32 -> Int32 -> IO ()
 -- | Draw a tilemap on the screen.
 tileDraw :: Word32 -> Int32 -> Int32 -> IO ()
@@ -1414,15 +1511,81 @@ foreign import ccall unsafe "tile_draw_on_image" c_tileDrawOnImage :: Word32 -> 
 tileDrawOnImage :: Word32 -> Word32 -> Int32 -> Int32 -> IO ()
 tileDrawOnImage dst tilemap posX posY = c_tileDrawOnImage dst tilemap posX posY
 
-foreign import ccall unsafe "tile_draw_tile" c_tileDrawTile :: Word32 -> Int32 -> Int32 -> Int32 -> IO ()
--- | Draw a single tile from a tilemap on the screen.
-tileDrawTile :: Word32 -> Int32 -> Int32 -> Int32 -> IO ()
-tileDrawTile tilemap gid posX posY = c_tileDrawTile tilemap gid posX posY
+foreign import ccall unsafe "tilemap_image" c_tilemapImage :: Word32 -> IO Word32
+-- | Render a whole tilemap to a new image.
+tilemapImage :: Word32 -> IO Word32
+tilemapImage tilemap = c_tilemapImage tilemap
 
 foreign import ccall unsafe "tile_layer_count" c_tileLayerCount :: Word32 -> IO Int32
--- | Get the number of layers in a tilemap.
+-- | Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 tileLayerCount :: Word32 -> IO Int32
 tileLayerCount tilemap = c_tileLayerCount tilemap
+
+foreign import ccall unsafe "tile_layer_index" c_tileLayerIndex :: Word32 -> CString -> IO Int32
+-- | Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
+tileLayerIndex :: Word32 -> String -> IO Int32
+tileLayerIndex tilemap name =
+  withCString name $ \name_c ->
+    c_tileLayerIndex tilemap name_c
+
+foreign import ccall unsafe "tile_layer_name" c_tileLayerName :: Word32 -> Int32 -> IO CString
+-- | Get the name of a layer of a tilemap.
+tileLayerName :: Word32 -> Int32 -> IO String
+tileLayerName tilemap layer = c_tileLayerName tilemap layer >>= peekCString
+
+foreign import ccall unsafe "tile_layer_type" c_tileLayerType :: Word32 -> Int32 -> IO Int32
+-- | Get the kind of a layer of a tilemap.
+tileLayerType :: Word32 -> Int32 -> IO Int32
+tileLayerType tilemap layer = c_tileLayerType tilemap layer
+
+foreign import ccall unsafe "tile_layer_size" c_tileLayerSize :: Word32 -> Int32 -> IO (Ptr Dimensions)
+-- | Get the size of a layer of a tilemap, in tiles.
+tileLayerSize :: Word32 -> Int32 -> IO Dimensions
+tileLayerSize tilemap layer = c_tileLayerSize tilemap layer >>= peek
+
+foreign import ccall unsafe "tile_layer_visible" c_tileLayerVisible :: Word32 -> Int32 -> IO CBool
+-- | Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
+tileLayerVisible :: Word32 -> Int32 -> IO Bool
+tileLayerVisible tilemap layer = toBool <$> c_tileLayerVisible tilemap layer
+
+foreign import ccall unsafe "tile_layer_prop" c_tileLayerProp :: Word32 -> Int32 -> CString -> IO (Ptr TilemapProp)
+-- | Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
+tileLayerProp :: Word32 -> Int32 -> String -> IO TilemapProp
+tileLayerProp tilemap layer name =
+  withCString name $ \name_c ->
+    c_tileLayerProp tilemap layer name_c >>= peek
+
+foreign import ccall unsafe "tile_layer_prop_count" c_tileLayerPropCount :: Word32 -> Int32 -> IO Int32
+-- | Get the number of custom properties on a layer of a tilemap.
+tileLayerPropCount :: Word32 -> Int32 -> IO Int32
+tileLayerPropCount tilemap layer = c_tileLayerPropCount tilemap layer
+
+foreign import ccall unsafe "tile_layer_prop_at" c_tileLayerPropAt :: Word32 -> Int32 -> Int32 -> IO (Ptr TilemapProp)
+-- | Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
+tileLayerPropAt :: Word32 -> Int32 -> Int32 -> IO TilemapProp
+tileLayerPropAt tilemap layer index = c_tileLayerPropAt tilemap layer index >>= peek
+
+foreign import ccall unsafe "tile_draw_layer" c_tileDrawLayer :: Word32 -> Int32 -> Int32 -> Int32 -> IO ()
+-- | Draw a single layer of a tilemap on the screen.
+tileDrawLayer :: Word32 -> Int32 -> Int32 -> Int32 -> IO ()
+tileDrawLayer tilemap layer posX posY = c_tileDrawLayer tilemap layer posX posY
+
+foreign import ccall unsafe "tile_draw_layer_tint" c_tileDrawLayerTint :: Word32 -> Int32 -> Int32 -> Int32 -> Ptr Color -> IO ()
+-- | Draw a single layer of a tilemap on the screen, tinted by a color.
+tileDrawLayerTint :: Word32 -> Int32 -> Int32 -> Int32 -> Color -> IO ()
+tileDrawLayerTint tilemap layer posX posY tint =
+  with tint $ \tint_p ->
+    c_tileDrawLayerTint tilemap layer posX posY tint_p
+
+foreign import ccall unsafe "tile_draw_layer_on_image" c_tileDrawLayerOnImage :: Word32 -> Word32 -> Int32 -> Int32 -> Int32 -> IO ()
+-- | Draw a single layer of a tilemap on an image.
+tileDrawLayerOnImage :: Word32 -> Word32 -> Int32 -> Int32 -> Int32 -> IO ()
+tileDrawLayerOnImage dst tilemap layer posX posY = c_tileDrawLayerOnImage dst tilemap layer posX posY
+
+foreign import ccall unsafe "tile_layer_image" c_tileLayerImage :: Word32 -> Int32 -> IO Word32
+-- | Render a single layer of a tilemap to a new image.
+tileLayerImage :: Word32 -> Int32 -> IO Word32
+tileLayerImage tilemap layer = c_tileLayerImage tilemap layer
 
 foreign import ccall unsafe "tile_get_tile" c_tileGetTile :: Word32 -> Int32 -> Int32 -> Int32 -> IO Int32
 -- | Get the gid of the tile at a column/row in a tilemap layer.
@@ -1430,19 +1593,70 @@ tileGetTile :: Word32 -> Int32 -> Int32 -> Int32 -> IO Int32
 tileGetTile tilemap layer column row = c_tileGetTile tilemap layer column row
 
 foreign import ccall unsafe "tile_set_tile" c_tileSetTile :: Word32 -> Int32 -> Int32 -> Int32 -> Int32 -> IO ()
--- | Set the gid of the tile at a column/row in a tilemap layer.
+-- | Set the gid of the tile at a column/row in a tilemap layer. Swapping a gid is how a cart keeps changing state in the map itself.
 tileSetTile :: Word32 -> Int32 -> Int32 -> Int32 -> Int32 -> IO ()
 tileSetTile tilemap layer column row gid = c_tileSetTile tilemap layer column row gid
+
+foreign import ccall unsafe "tile_draw_tile" c_tileDrawTile :: Word32 -> Int32 -> Int32 -> Int32 -> IO ()
+-- | Draw a single tile from a tilemap on the screen.
+tileDrawTile :: Word32 -> Int32 -> Int32 -> Int32 -> IO ()
+tileDrawTile tilemap gid posX posY = c_tileDrawTile tilemap gid posX posY
 
 foreign import ccall unsafe "tile_image" c_tileImage :: Word32 -> Int32 -> IO Word32
 -- | Get a copy of the image of a single tile in a tilemap.
 tileImage :: Word32 -> Int32 -> IO Word32
 tileImage tilemap gid = c_tileImage tilemap gid
 
-foreign import ccall unsafe "tilemap_image" c_tilemapImage :: Word32 -> IO Word32
--- | Render a whole tilemap to a new image.
-tilemapImage :: Word32 -> IO Word32
-tilemapImage tilemap = c_tilemapImage tilemap
+foreign import ccall unsafe "tile_gid_prop" c_tileGidProp :: Word32 -> Int32 -> CString -> IO (Ptr TilemapProp)
+-- | Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
+tileGidProp :: Word32 -> Int32 -> String -> IO TilemapProp
+tileGidProp tilemap gid name =
+  withCString name $ \name_c ->
+    c_tileGidProp tilemap gid name_c >>= peek
+
+foreign import ccall unsafe "tile_gid_prop_count" c_tileGidPropCount :: Word32 -> Int32 -> IO Int32
+-- | Get the number of custom properties on a tile of a tilemap.
+tileGidPropCount :: Word32 -> Int32 -> IO Int32
+tileGidPropCount tilemap gid = c_tileGidPropCount tilemap gid
+
+foreign import ccall unsafe "tile_gid_prop_at" c_tileGidPropAt :: Word32 -> Int32 -> Int32 -> IO (Ptr TilemapProp)
+-- | Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
+tileGidPropAt :: Word32 -> Int32 -> Int32 -> IO TilemapProp
+tileGidPropAt tilemap gid index = c_tileGidPropAt tilemap gid index >>= peek
+
+foreign import ccall unsafe "tile_object_count" c_tileObjectCount :: Word32 -> Int32 -> IO Int32
+-- | Get the number of objects on an object-layer of a tilemap.
+tileObjectCount :: Word32 -> Int32 -> IO Int32
+tileObjectCount tilemap layer = c_tileObjectCount tilemap layer
+
+foreign import ccall unsafe "tile_object" c_tileObject :: Word32 -> Int32 -> Int32 -> IO (Ptr TilemapObject)
+-- | Get an object from an object-layer of a tilemap.
+tileObject :: Word32 -> Int32 -> Int32 -> IO TilemapObject
+tileObject tilemap layer index = c_tileObject tilemap layer index >>= peek
+
+foreign import ccall unsafe "tile_object_index" c_tileObjectIndex :: Word32 -> Int32 -> CString -> IO Int32
+-- | Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
+tileObjectIndex :: Word32 -> Int32 -> String -> IO Int32
+tileObjectIndex tilemap layer name =
+  withCString name $ \name_c ->
+    c_tileObjectIndex tilemap layer name_c
+
+foreign import ccall unsafe "tile_object_prop" c_tileObjectProp :: Word32 -> Int32 -> Int32 -> CString -> IO (Ptr TilemapProp)
+-- | Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
+tileObjectProp :: Word32 -> Int32 -> Int32 -> String -> IO TilemapProp
+tileObjectProp tilemap layer index name =
+  withCString name $ \name_c ->
+    c_tileObjectProp tilemap layer index name_c >>= peek
+
+foreign import ccall unsafe "tile_object_prop_count" c_tileObjectPropCount :: Word32 -> Int32 -> Int32 -> IO Int32
+-- | Get the number of custom properties on an object of a tilemap.
+tileObjectPropCount :: Word32 -> Int32 -> Int32 -> IO Int32
+tileObjectPropCount tilemap layer index = c_tileObjectPropCount tilemap layer index
+
+foreign import ccall unsafe "tile_object_prop_at" c_tileObjectPropAt :: Word32 -> Int32 -> Int32 -> Int32 -> IO (Ptr TilemapProp)
+-- | Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)
+tileObjectPropAt :: Word32 -> Int32 -> Int32 -> Int32 -> IO TilemapProp
+tileObjectPropAt tilemap layer index propIndex = c_tileObjectPropAt tilemap layer index propIndex >>= peek
 
 -- TYPES
 
