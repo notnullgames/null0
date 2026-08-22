@@ -121,6 +121,85 @@ cute_tiled_map_t *get_tilemap(uint32_t id) {
   return tilemaps[id];
 }
 
+// pntr_tiled builds one tile-array for a whole map and indexes it by gid with
+// no bounds-check, so a gid past the end of the map's tilesets reads a garbage
+// pntr_image and then draws from its pointer - garbage pixels or a segfault
+// natively, "memory access out of bounds" on web. these keep every gid the
+// host hands to pntr_tiled inside that array
+
+// the number of tiles pntr_tiled allocates for a map (also its highest gid)
+static int null0_tiled_tile_count(cute_tiled_map_t *map) {
+  int count = 0;
+  for (cute_tiled_tileset_t *tileset = map->tilesets; tileset != NULL;
+    tileset = tileset->next) {
+    count += tileset->tilecount;
+  }
+  return count;
+}
+
+// does this gid have a real tile behind it?
+static bool null0_tiled_gid_valid(cute_tiled_map_t *map, int gid) {
+  if (gid <= 0 || gid > null0_tiled_tile_count(map)) {
+    return false;
+  }
+  for (cute_tiled_tileset_t *tileset = map->tilesets; tileset != NULL;
+    tileset = tileset->next) {
+    if (gid >= tileset->firstgid && gid < tileset->firstgid + tileset->tilecount) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// drop tiles/objects that name a gid with no tile, returning how many
+static int null0_tiled_fix_layer_gids(cute_tiled_map_t *map,
+  cute_tiled_layer_t *layer) {
+  int dropped = 0;
+  while (layer != NULL) {
+    for (int i = 0; i < layer->data_count; i++) {
+      if (layer->data[i] != 0 &&
+        !null0_tiled_gid_valid(map, cute_tiled_unset_flags(layer->data[i]))) {
+        layer->data[i] = 0;
+        dropped++;
+      }
+    }
+    for (cute_tiled_object_t *object = layer->objects; object != NULL;
+      object = object->next) {
+      // gid 0 means "not a tile object" - pntr_tiled would draw the object's
+      // box instead, so hide the object rather than clear its gid
+      if (object->gid != 0 &&
+        !null0_tiled_gid_valid(map, cute_tiled_unset_flags(object->gid))) {
+        object->visible = 0;
+        dropped++;
+      }
+    }
+    dropped += null0_tiled_fix_layer_gids(map, layer->layers);
+    layer = layer->next;
+  }
+  return dropped;
+}
+
+// an animated tile is drawn as another tile in its own tileset, so a frame
+// pointing outside that tileset is the same bad index - drop those animations
+static int null0_tiled_fix_animations(cute_tiled_map_t *map) {
+  int dropped = 0;
+  for (cute_tiled_tileset_t *tileset = map->tilesets; tileset != NULL;
+    tileset = tileset->next) {
+    for (cute_tiled_tile_descriptor_t *tile = tileset->tiles; tile != NULL;
+      tile = tile->next) {
+      for (int i = 0; i < tile->frame_count; i++) {
+        if (tile->animation[i].tileid < 0 ||
+          tile->animation[i].tileid >= tileset->tilecount) {
+          tile->frame_count = 0;
+          dropped++;
+          break;
+        }
+      }
+    }
+  }
+  return dropped;
+}
+
 // pntr_tiled blends layer->tintcolor into the tint when drawing object
 // layers, but cute_tiled leaves tintcolor 0 when the layer has no tint, and
 // pntr_tiled_color(0) is opaque black - default missing tints to white
@@ -134,11 +213,21 @@ static void null0_tiled_fix_layer_tints(cute_tiled_layer_t *layer) {
   }
 }
 
-// load a Tiled map, fixing up missing layer tints (see above)
+// load a Tiled map, fixing up missing layer tints and unusable gids (see above)
 cute_tiled_map_t *null0_load_tiled(const char *filename) {
   cute_tiled_map_t *map = pntr_load_tiled(filename);
   if (map != NULL) {
     null0_tiled_fix_layer_tints(map->layers);
+    int dropped =
+      null0_tiled_fix_layer_gids(map, map->layers) + null0_tiled_fix_animations(map);
+    if (dropped > 0) {
+      pntr_app_log_ex(PNTR_APP_LOG_WARNING,
+        "null0: %s has %d tile(s) with a gid outside its tilesets "
+        "(highest gid is %d) - they will not be drawn",
+        filename,
+        dropped,
+        null0_tiled_tile_count(map));
+    }
   }
   return map;
 }
@@ -158,11 +247,28 @@ void null0_tile_set_tile(cute_tiled_map_t *map, int layer, int column, int row, 
   if (l == NULL) {
     return;
   }
+  if (gid != 0 && !null0_tiled_gid_valid(map, cute_tiled_unset_flags(gid))) {
+    pntr_app_log_ex(PNTR_APP_LOG_ERROR, "null0: gid %d is not in this tilemap", gid);
+    return;
+  }
   pntr_set_layer_tile(l, column, row, gid);
+}
+
+// draw one tile of a tilemap, ignoring gids that have no tile
+void null0_tile_draw_tile(pntr_image *dst, cute_tiled_map_t *map, int gid, int posX, int posY, pntr_color tint) {
+  if (!null0_tiled_gid_valid(map, cute_tiled_unset_flags(gid))) {
+    pntr_app_log_ex(PNTR_APP_LOG_ERROR, "null0: gid %d is not in this tilemap", gid);
+    return;
+  }
+  pntr_draw_tiled_tile(dst, map, gid, posX, posY, tint);
 }
 
 // get a copy of a tile's image, so the cart can unload it like any other image
 pntr_image *null0_tile_image(cute_tiled_map_t *map, int gid) {
+  if (!null0_tiled_gid_valid(map, cute_tiled_unset_flags(gid))) {
+    pntr_app_log_ex(PNTR_APP_LOG_ERROR, "null0: gid %d is not in this tilemap", gid);
+    return NULL;
+  }
   pntr_image *tileImage = pntr_tiled_tile_image(map, gid);
   if (tileImage == NULL) {
     return NULL;

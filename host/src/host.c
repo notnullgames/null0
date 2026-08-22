@@ -1029,7 +1029,7 @@ HOST_FUNCTION(void, tile_draw_tile, (uint32_t tilemap, int32_t gid, int32_t posX
  if (tilemapHost == NULL) {
   return;
  }
- pntr_draw_tiled_tile(images[0], tilemapHost, gid, posX, posY, PNTR_WHITE);
+ null0_tile_draw_tile(images[0], tilemapHost, gid, posX, posY, PNTR_WHITE);
 })
 
 // Get the number of layers in a tilemap.

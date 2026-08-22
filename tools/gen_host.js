@@ -147,7 +147,7 @@ const functions = {
   tile_draw: 'pntr_draw_tiled(images[0], ',
   tile_draw_tint: 'pntr_draw_tiled(images[0], ',
   tile_draw_on_image: 'pntr_draw_tiled(',
-  tile_draw_tile: 'pntr_draw_tiled_tile(images[0], ',
+  tile_draw_tile: 'null0_tile_draw_tile(images[0], ',
   tile_layer_count: 'pntr_tiled_layer_count(',
   tile_get_tile: 'null0_tile_get_tile(',
   tile_set_tile: 'null0_tile_set_tile(',
