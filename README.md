@@ -15,6 +15,10 @@ go stale against the engine.
 npm start                     # build cart/, serve webroot/, rebuild on change
 ```
 
+They are generated (`npm run gen:templates`) and pushed to their repos by the
+`Sync cart templates` workflow, so adding a language here gives it a template
+for free.
+
 ### languages
 
 I'd like to support a lot of cart-languages. For these to be considered "complete", they should have a header that exposes all the functions/types in an ergonomic format, at least 1 example, a docker for building carts, and maybe a template-project. If there are any other languages you would like to see, [make an issue](https://github.com/notnullgames/null0/issues/new?labels=language&title=Add%20New%20Language%3A%20), and I will see if I can add it.
