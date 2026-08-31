@@ -1,0 +1,133 @@
+# Pushes templates/<lang>/ out to the notnullgames/cart_<lang> template repos.
+#
+# The templates are generated (tools/gen_templates.js) from the same lang_docs
+# registry that drives the website, so this is how a change to the engine - a
+# new language, a changed docker flag - reaches the starter projects without
+# anyone hand-editing 23 repos.
+#
+# Manual only, and dry-run by default: it prints what it would do and changes
+# nothing until you set dry_run to false.
+#
+# Needs a TEMPLATES_TOKEN secret (a PAT with repo scope on the org). The
+# built-in GITHUB_TOKEN cannot create repos or push to other repositories.
+
+name: Sync cart templates
+
+on:
+  workflow_dispatch:
+    inputs:
+      language:
+        description: 'Which template to sync ("all", or a language id like c / lua / zig)'
+        default: all
+        type: string
+      dry_run:
+        description: 'Only report what would change'
+        default: true
+        type: boolean
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Regenerate templates
+        run: |
+          npm i
+          npm run gen
+
+      - name: Fail if templates are stale
+        run: |
+          # the committed templates should already match the generators - if
+          # they don't, someone hand-edited one, and syncing would quietly
+          # discard their change
+          if ! git diff --quiet -- templates; then
+            echo "::error::templates/ is out of date with tools/gen_templates.js - run 'npm run gen' and commit"
+            git --no-pager diff --stat -- templates
+            exit 1
+          fi
+
+      - name: Sync
+        env:
+          GH_TOKEN: ${{ secrets.TEMPLATES_TOKEN }}
+          LANGUAGE: ${{ inputs.language }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::error::TEMPLATES_TOKEN is not set - add a PAT with repo scope to the repository secrets"
+            exit 1
+          fi
+
+          git config --global user.name 'null0 templates'
+          git config --global user.email 'templates@notnull.games'
+
+          if [ "${LANGUAGE}" = "all" ]; then
+            langs=$(ls templates)
+          else
+            langs="${LANGUAGE}"
+            if [ ! -d "templates/${LANGUAGE}" ]; then
+              echo "::error::no templates/${LANGUAGE}"
+              exit 1
+            fi
+          fi
+
+          version=$(node -p "require('./package.json').version")
+
+          for lang in $langs; do
+            repo="notnullgames/cart_${lang}"
+            title=$(node -p "JSON.parse(require('fs').readFileSync('webroot/api.json')).languages['${lang}'].title")
+            desc="A null0 cart template for ${title} - press 'Use this template' to start a game"
+
+            echo "::group::${repo}"
+
+            if gh repo view "${repo}" >/dev/null 2>&1; then
+              exists=yes
+            else
+              exists=no
+            fi
+
+            if [ "${DRY_RUN}" = "true" ]; then
+              if [ "${exists}" = "yes" ]; then
+                echo "would update ${repo}"
+              else
+                echo "would CREATE ${repo}"
+              fi
+              (cd "templates/${lang}" && find . -type f | sort | sed 's/^/  /')
+              echo '::endgroup::'
+              continue
+            fi
+
+            work=$(mktemp -d)
+
+            if [ "${exists}" = "no" ]; then
+              gh repo create "${repo}" --public --description "${desc}"
+              git init -q -b main "${work}"
+              git -C "${work}" remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${repo}.git"
+            else
+              git clone -q --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${repo}.git" "${work}"
+              # replace the contents rather than force-pushing, so the repo
+              # keeps its history and anyone's fork still merges
+              git -C "${work}" rm -rq --ignore-unmatch -- . ':!.git'
+            fi
+
+            cp -R "templates/${lang}/." "${work}/"
+            git -C "${work}" add -A
+
+            if git -C "${work}" diff --cached --quiet; then
+              echo "no changes"
+            else
+              git -C "${work}" commit -qm "sync from null0 ${version}"
+              git -C "${work}" push -q origin HEAD:main
+              echo "pushed"
+            fi
+
+            gh repo edit "${repo}" --description "${desc}" --homepage "https://notnull.games/null0/languages/${lang}" --add-topic cart --add-topic null0 --add-topic "null0-${lang}" --enable-issues --template
+            rm -rf "${work}"
+            echo '::endgroup::'
+          done

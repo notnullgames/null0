@@ -167,4 +167,12 @@ docker run -it --platform linux/amd64 -v ./carts/haxe/simple:/src -v ./build/car
 
 docker run -it --platform linux/amd64 -v ./carts/zenc/simple:/src -v ./build/carts:/out konsumer/null0-cart-zenc simple_zenc
 docker run -it --platform linux/amd64 -v ./carts/jik/simple:/src -v ./build/carts:/out konsumer/null0-cart-jik simple_jik
+
+docker run -it -v ./carts/haskell/simple:/src -v ./build/carts:/out konsumer/null0-cart-haskell simple_haskell
+docker run -it -v ./carts/cyber/simple:/src -v ./build/carts:/out konsumer/null0-cart-cyber simple_cyber
 ```
+
+CI builds a cart for every language on each push, using these published
+images, so an image that is stale against the current `npm run gen` output
+fails there rather than at release time. Republish after any API change:
+`npm run docker_publish` (or `docker_publish:cart_<lang>` for one).

@@ -83,7 +83,7 @@ class Null0 {
   static inline function get_MAGENTA():Color return new Color(255, 0, 255, 255);
   public static var RAYWHITE(get, never):Color;
   static inline function get_RAYWHITE():Color return new Color(245, 245, 245, 255);
-  public static inline var NULL0_VERSION = "0.0.12";
+  public static inline var NULL0_VERSION = "0.0.13";
 
   // callbacks - assign these in main(), eg: Null0.onUpdate = () -> { ... }
 
@@ -698,7 +698,7 @@ class Null0 {
 
   /** Get the kind of a layer of a tilemap. */
   @:hlNative("null0hx", "tile_layer_type")
-  public static function tileLayerType(tilemap:Tilemap, layer:Int):TileLayerKind { return null; }
+  public static function tileLayerType(tilemap:Tilemap, layer:Int):TileLayerKind { return 0; }
 
   /** Get the size of a layer of a tilemap, in tiles. */
   @:hlNative("null0hx", "tile_layer_size")
@@ -929,7 +929,7 @@ class TilemapProp {
   public var integer:Int;
   public var number:Single;
   public var text:hl.Bytes;
-  public function new(name:hl.Bytes = 0, type:TilePropType = 0, integer:Int = 0, number:Single = 0, text:hl.Bytes = 0) {
+  public function new(name:hl.Bytes = null, type:TilePropType = 0, integer:Int = 0, number:Single = 0, text:hl.Bytes = null) {
     this.name = name;
     this.type = type;
     this.integer = integer;
@@ -951,7 +951,7 @@ class TilemapObject {
   public var height:Single;
   public var rotation:Single;
   public var visible:Int;
-  public function new(id:Int = 0, name:hl.Bytes = 0, type:hl.Bytes = 0, gid:Int = 0, x:Single = 0, y:Single = 0, width:Single = 0, height:Single = 0, rotation:Single = 0, visible:Int = 0) {
+  public function new(id:Int = 0, name:hl.Bytes = null, type:hl.Bytes = null, gid:Int = 0, x:Single = 0, y:Single = 0, width:Single = 0, height:Single = 0, rotation:Single = 0, visible:Int = 0) {
     this.id = id;
     this.name = name;
     this.type = type;

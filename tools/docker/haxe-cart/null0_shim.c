@@ -912,7 +912,7 @@ HxDimensions * null0hx_tile_tile_size(unsigned int tilemap) {
 }
 
 NULL0_IMPORT("tile_map_prop")
-static TilemapProp host_tile_map_prop(unsigned int tilemap, char * name);
+static HxTilemapProp * host_tile_map_prop(unsigned int tilemap, char * name);
 HxTilemapProp * null0hx_tile_map_prop(unsigned int tilemap, HxString name) {
   HxTilemapProp * ret = host_tile_map_prop(tilemap, hl_to_utf8((uchar *)name->bytes));
   return ret;
@@ -926,7 +926,7 @@ int null0hx_tile_map_prop_count(unsigned int tilemap) {
 }
 
 NULL0_IMPORT("tile_map_prop_at")
-static TilemapProp host_tile_map_prop_at(unsigned int tilemap, int index);
+static HxTilemapProp * host_tile_map_prop_at(unsigned int tilemap, int index);
 HxTilemapProp * null0hx_tile_map_prop_at(unsigned int tilemap, int index) {
   HxTilemapProp * ret = host_tile_map_prop_at(tilemap, index);
   return ret;
@@ -979,7 +979,7 @@ vbyte * null0hx_tile_layer_name(unsigned int tilemap, int layer) {
 }
 
 NULL0_IMPORT("tile_layer_type")
-static TileLayerKind host_tile_layer_type(unsigned int tilemap, int layer);
+static int host_tile_layer_type(unsigned int tilemap, int layer);
 int null0hx_tile_layer_type(unsigned int tilemap, int layer) {
   int ret = host_tile_layer_type(tilemap, layer);
   return ret;
@@ -1000,7 +1000,7 @@ bool null0hx_tile_layer_visible(unsigned int tilemap, int layer) {
 }
 
 NULL0_IMPORT("tile_layer_prop")
-static TilemapProp host_tile_layer_prop(unsigned int tilemap, int layer, char * name);
+static HxTilemapProp * host_tile_layer_prop(unsigned int tilemap, int layer, char * name);
 HxTilemapProp * null0hx_tile_layer_prop(unsigned int tilemap, int layer, HxString name) {
   HxTilemapProp * ret = host_tile_layer_prop(tilemap, layer, hl_to_utf8((uchar *)name->bytes));
   return ret;
@@ -1014,7 +1014,7 @@ int null0hx_tile_layer_prop_count(unsigned int tilemap, int layer) {
 }
 
 NULL0_IMPORT("tile_layer_prop_at")
-static TilemapProp host_tile_layer_prop_at(unsigned int tilemap, int layer, int index);
+static HxTilemapProp * host_tile_layer_prop_at(unsigned int tilemap, int layer, int index);
 HxTilemapProp * null0hx_tile_layer_prop_at(unsigned int tilemap, int layer, int index) {
   HxTilemapProp * ret = host_tile_layer_prop_at(tilemap, layer, index);
   return ret;
@@ -1072,7 +1072,7 @@ unsigned int null0hx_tile_image(unsigned int tilemap, int gid) {
 }
 
 NULL0_IMPORT("tile_gid_prop")
-static TilemapProp host_tile_gid_prop(unsigned int tilemap, int gid, char * name);
+static HxTilemapProp * host_tile_gid_prop(unsigned int tilemap, int gid, char * name);
 HxTilemapProp * null0hx_tile_gid_prop(unsigned int tilemap, int gid, HxString name) {
   HxTilemapProp * ret = host_tile_gid_prop(tilemap, gid, hl_to_utf8((uchar *)name->bytes));
   return ret;
@@ -1086,7 +1086,7 @@ int null0hx_tile_gid_prop_count(unsigned int tilemap, int gid) {
 }
 
 NULL0_IMPORT("tile_gid_prop_at")
-static TilemapProp host_tile_gid_prop_at(unsigned int tilemap, int gid, int index);
+static HxTilemapProp * host_tile_gid_prop_at(unsigned int tilemap, int gid, int index);
 HxTilemapProp * null0hx_tile_gid_prop_at(unsigned int tilemap, int gid, int index) {
   HxTilemapProp * ret = host_tile_gid_prop_at(tilemap, gid, index);
   return ret;
@@ -1100,7 +1100,7 @@ int null0hx_tile_object_count(unsigned int tilemap, int layer) {
 }
 
 NULL0_IMPORT("tile_object")
-static TilemapObject host_tile_object(unsigned int tilemap, int layer, int index);
+static HxTilemapObject * host_tile_object(unsigned int tilemap, int layer, int index);
 HxTilemapObject * null0hx_tile_object(unsigned int tilemap, int layer, int index) {
   HxTilemapObject * ret = host_tile_object(tilemap, layer, index);
   return ret;
@@ -1114,7 +1114,7 @@ int null0hx_tile_object_index(unsigned int tilemap, int layer, HxString name) {
 }
 
 NULL0_IMPORT("tile_object_prop")
-static TilemapProp host_tile_object_prop(unsigned int tilemap, int layer, int index, char * name);
+static HxTilemapProp * host_tile_object_prop(unsigned int tilemap, int layer, int index, char * name);
 HxTilemapProp * null0hx_tile_object_prop(unsigned int tilemap, int layer, int index, HxString name) {
   HxTilemapProp * ret = host_tile_object_prop(tilemap, layer, index, hl_to_utf8((uchar *)name->bytes));
   return ret;
@@ -1128,7 +1128,7 @@ int null0hx_tile_object_prop_count(unsigned int tilemap, int layer, int index) {
 }
 
 NULL0_IMPORT("tile_object_prop_at")
-static TilemapProp host_tile_object_prop_at(unsigned int tilemap, int layer, int index, int propIndex);
+static HxTilemapProp * host_tile_object_prop_at(unsigned int tilemap, int layer, int index, int propIndex);
 HxTilemapProp * null0hx_tile_object_prop_at(unsigned int tilemap, int layer, int index, int propIndex) {
   HxTilemapProp * ret = host_tile_object_prop_at(tilemap, layer, index, propIndex);
   return ret;

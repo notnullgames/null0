@@ -43,7 +43,10 @@ change will vanish, and reviewers will assume the generator produced it:
   `carts/lua/null0.lua` does for LuaLS. Not shipped inside a cart (the
   `build_*.sh` scripts delete them).
 - `templates/<lang>/` - the starter project published as each `cart_<lang>`
-  template repo (from `tools/gen_templates.js`)
+  template repo (from `tools/gen_templates.js`). The
+  `Sync cart templates` workflow pushes these out; it is manual, dry-run by
+  default, and refuses to run if `templates/` doesn't match the generator, so
+  never hand-edit one - fix `gen_templates.js` and regenerate.
 - `tools/docker/quickjs-cart.c`, `tools/docker/wren-cart.c`, `tools/docker/lua-cart/main.go`, `tools/docker/python-cart/src/main.rs`, `tools/docker/haxe-cart/null0_shim.c`
 
 `gen` runs in two phases, and it has to: `gen_api_docs.js` and
