@@ -9,7 +9,9 @@ const NULL0_VERSION = JSON.parse(await readFile('package.json')).version
 export const indent = (str, count = 1, istr = ' ') => str.replace(/^/gm, istr.repeat(count))
 
 export async function getApi() {
-  const out = { enums: [], structs: [], scalars: [] }
+  // objects, not arrays: these are keyed by type name, and an array with
+  // string properties serialises to `[]` (which silently emptied api.json)
+  const out = { enums: {}, structs: {}, scalars: {} }
   for await (const f of glob('api/**/*.yml')) {
     const apiName = basename(f, '.yml')
     out[apiName] = {}
