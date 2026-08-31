@@ -21,4 +21,7 @@ mkdir -p "/tmp/${CART_NAME}"
 cp -R /src/. "/tmp/${CART_NAME}/"
 cp /usr/local/lib/main.wasm "/tmp/${CART_NAME}/"
 
+# null0.d.ts/jsconfig.json are editor-only (typechecking), no need to ship them
+rm -f "/tmp/${CART_NAME}/null0.d.ts" "/tmp/${CART_NAME}/jsconfig.json"
+
 /usr/local/bin/zipcart.sh "${CART_NAME}" "/tmp/${CART_NAME}/" /out

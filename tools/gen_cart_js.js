@@ -1,6 +1,6 @@
 // This will generate the QuickJS cart for making
 import { writeFile } from 'node:fs/promises'
-import { indent, getApi } from './utils.js'
+import { indent, getApi, seedTypes } from './utils.js'
 
 const out = []
 
@@ -631,3 +631,152 @@ add_consts()
 out.push('', ...funcs, '}')
 
 await writeFile('tools/docker/quickjs-cart.c', out.join('\n'))
+
+// TYPESCRIPT DEFINITIONS
+//
+// js carts get their API as globals from the quickjs runtime above, so there
+// is nothing to import at runtime. carts/js/null0.d.ts exists purely so an
+// editor can complete & check a cart, the same job carts/lua/null0.lua does
+// for LuaLS.
+
+// how an API type is spelled in typescript
+const tsTypes = {
+  void: 'void',
+  bool: 'boolean',
+  i32: 'number',
+  u32: 'number',
+  u64: 'bigint',
+  f32: 'number',
+  string: 'string',
+  Image: 'Image',
+  Font: 'Font',
+  Sound: 'Sound',
+  Tilemap: 'Tilemap',
+  'Vector[]': 'Vector[]',
+  'i32[]': 'number[]'
+}
+
+// enums cross the boundary as their int value, structs as plain objects
+seedTypes(tsTypes, { enums, structs }, { enumType: (name) => name, structType: (name) => name })
+
+// struct members are always one of these
+const tsMemberTypes = { i32: 'number', u32: 'number', u8: 'number', f32: 'number', string: 'string' }
+
+const ts = (type) => tsTypes[type] || type
+
+// a `T[]` arg is followed by a count arg in the yml - the js binding reads the
+// length off the array itself, so the cart never passes it
+function tsParams(args) {
+  const entries = Object.entries(args)
+  const params = []
+  for (let i = 0; i < entries.length; i++) {
+    const [name, type] = entries[i]
+    params.push(`${name}: ${ts(type)}`)
+    if (type.endsWith('[]')) {
+      i++
+    }
+  }
+  return params.join(', ')
+}
+
+const dts = ['// null0 - typescript definitions for the null0 fantasy console', '//', '// GENERATED FILE - do not edit by hand. See tools/gen_cart_js.js', '//', '// The null0 API is available as plain globals in your cart - nothing to', '// import, same as the lua/python carts. This file is only here so editors', '// can complete & check your cart:', '//', '// ```js', '// export function load () {', '//   clear(BLUE)', '//   draw_circle(100, 100, 50, RED)', '// }', '// ```', '//', '// Put null0.d.ts next to main.js and your editor will pick it up. If it', "// doesn't, add this line to the top of main.js:", '//', '//     /// <reference path="./null0.d.ts" />', '', 'export {}', '']
+
+dts.push('declare global {')
+
+const g = []
+
+g.push('// TYPES', '')
+for (const [name, { description }] of Object.entries(scalars)) {
+  // the handle types are the only scalars that get their own alias - the rest
+  // are just numbers, and aliasing them would only make errors harder to read
+  if (!['Image', 'Font', 'Sound', 'Tilemap'].includes(name)) {
+    continue
+  }
+  g.push(`/** ${description} */`, `type ${name} = number`, '')
+}
+
+for (const [name, { description, members }] of Object.entries(structs)) {
+  g.push(`/** ${description} */`, `interface ${name} {`)
+  for (const [memberName, memberType] of Object.entries(members)) {
+    g.push(`  ${memberName}: ${tsMemberTypes[memberType] || memberType}`)
+  }
+  g.push('}', '')
+}
+
+for (const [name, { description, enums: entries }] of Object.entries(enums)) {
+  g.push(`/** ${description} */`, `type ${name} = ${Object.values(entries).join(' | ')}`, '')
+}
+
+for (const [apiName, apiObj] of Object.entries(api)) {
+  if (!Object.keys(apiObj).length) {
+    continue
+  }
+  g.push(`// ${apiName.toUpperCase()}`, '')
+  for (const [funcName, { args, returns, description }] of Object.entries(apiObj)) {
+    g.push(`/** ${description} */`, `function ${funcName}(${tsParams(args)}): ${ts(returns)}`, '')
+  }
+}
+
+g.push('// CONSTANTS', '')
+for (const [name, def] of Object.entries(constants)) {
+  if (def.description) {
+    g.push(`/** ${def.description} */`)
+  }
+  g.push(`const ${name}: ${ts(def.type)}`, '')
+}
+
+for (const [enumName, enumDef] of Object.entries(enums)) {
+  g.push(`// ${enumDef.description}`)
+  for (const [entryName, entryValue] of Object.entries(enumDef.enums)) {
+    g.push(`const ${entryName}: ${entryValue}`)
+  }
+  g.push('')
+}
+
+dts.push(indent(g.join('\n'), 2))
+dts.push('}', '')
+
+dts.push('/**')
+dts.push(' * The callbacks a cart can export from main.js. Implement the ones you need -')
+dts.push(' * the host skips any you leave out.')
+dts.push(' *')
+dts.push(' * This interface is documentation: your main.js just exports the functions.')
+dts.push(' */')
+dts.push('export interface Null0Cart {')
+const cb = []
+for (const [name, { args, description }] of Object.entries({
+  load: { args: {}, description: 'Called once when the cart is loaded.' },
+  update: { args: {}, description: 'Called on every frame.' },
+  unload: { args: {}, description: 'Called when the cart is unloaded.' },
+  ...callbacks
+})) {
+  cb.push(`/** ${description} */`, `${name}?(${tsParams(args)}): void`, '')
+}
+dts.push(indent(cb.join('\n').trimEnd(), 2))
+dts.push('}', '')
+
+await writeFile('carts/js/null0.d.ts', dts.join('\n').replace(/[ \t]+$/gm, ''))
+
+// A jsconfig so editors typecheck a cart against null0.d.ts without pulling in
+// lib.dom - a cart is not a web page, and DOM's own `GamepadButton` collides
+// with null0's.
+await writeFile(
+  'carts/js/jsconfig.json',
+  JSON.stringify(
+    {
+      compilerOptions: {
+        target: 'es2022',
+        module: 'esnext',
+        moduleResolution: 'bundler',
+        lib: ['es2022'],
+        types: [],
+        checkJs: true,
+        strict: true,
+        noEmit: true
+      },
+      include: ['*.js', 'null0.d.ts']
+    },
+    null,
+    2
+  ) + '\n'
+)
