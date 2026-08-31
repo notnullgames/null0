@@ -55,7 +55,7 @@ pub extern "C" fn unload() {
 
 ```bash
 # from your cart directory (containing Cargo.toml)
-docker run -it -v .:/src -v .:/out konsumer/null0-cart-rust mycart
+docker run -it -v .:/src -v .:/out ghcr.io/notnullgames/null0-cart-rust mycart
 ```
 
 This produces `mycart.null0`. Your `Cargo.toml` should depend on the bindings with a path (it will be rewritten to the bundled bindings inside the container):

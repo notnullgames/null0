@@ -1,7 +1,9 @@
 on: push
 
 concurrency:
-  group: global-ci # any run will cancel the others
+  # per-ref, not global: a tag's run builds and publishes the release, and a
+  # push to main landing right after it must not cancel that
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -171,24 +173,39 @@ jobs:
   # the cart languages, straight from the registry that also generates the
   # bindings, API docs and templates (tools/lang_docs.js -> webroot/api.json).
   # A hand-written list here silently fell five languages behind; this cannot.
+  #
+  # Emits two matrices: one entry per language (for carts), and one per
+  # language *and* architecture (for publishing), skipping arm64 for the
+  # images whose toolchain is amd64-only.
   languages:
     name: Languages
     runs-on: ubuntu-latest
     outputs:
       langs: ${{ steps.list.outputs.langs }}
+      builds: ${{ steps.list.outputs.builds }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Collect cart languages
         id: list
         run: |
-          langs=$(node -p "JSON.stringify(Object.keys(require('./webroot/api.json').languages))")
-          echo "building carts for: ${langs}"
-          echo "langs=${langs}" >> "$GITHUB_OUTPUT"
+          node -e '
+            const { languages } = require("./webroot/api.json")
+            const langs = Object.values(languages)
+            const builds = langs.flatMap((l) => [
+              { lang: l.id, image: l.image, arch: "amd64", runner: "ubuntu-latest" },
+              ...(l.amd64Only ? [] : [{ lang: l.id, image: l.image, arch: "arm64", runner: "ubuntu-24.04-arm" }])
+            ])
+            const out = require("fs").createWriteStream(process.env.GITHUB_OUTPUT, { flags: "a" })
+            out.write("langs=" + JSON.stringify(langs.map((l) => l.id)) + "\n")
+            out.write("builds=" + JSON.stringify(builds) + "\n")
+            console.log(`${langs.length} languages, ${builds.length} image builds`)
+          '
 
-  # builds every example cart, one job per language. the cart:*_<lang> npm
-  # scripts say which carts each language has (see package.json), and the
-  # published konsumer/null0-cart-<lang> images do the building
+  # Builds each language's image and then its carts *with that image*, in the
+  # same job. Carts are never built against a previously-published image, so
+  # a binding change and the image that bakes it can't drift apart - which is
+  # exactly how every haxe cart came to be broken without CI noticing.
   carts:
     name: Carts (${{ matrix.lang }})
     needs: languages
@@ -200,6 +217,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Image name
+        id: img
+        run: |
+          node -e '
+            const l = require("./webroot/api.json").languages["${{ matrix.lang }}"]
+            const out = require("fs").createWriteStream(process.env.GITHUB_OUTPUT, { flags: "a" })
+            out.write("image=" + l.image + "\n")
+            out.write("base=" + (l.base || "") + "\n")
+          '
+      - name: Build base image
+        if: steps.img.outputs.base != ''
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: tools/docker/null0-cart-${{ steps.img.outputs.base }}.Dockerfile
+          load: true
+          tags: ghcr.io/notnullgames/null0-cart-${{ steps.img.outputs.base }}:latest
+          cache-from: type=gha,scope=${{ steps.img.outputs.base }}-amd64
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: tools/docker/null0-cart-${{ steps.img.outputs.image }}.Dockerfile
+          load: true
+          tags: ghcr.io/notnullgames/null0-cart-${{ steps.img.outputs.image }}:latest
+          labels: org.opencontainers.image.source=https://github.com/notnullgames/null0
+          # only meaningful for the images that declare a BASE arg; empty
+          # otherwise, so the rest don't get an unused build-arg warning
+          build-args: ${{ steps.img.outputs.base != '' && format('BASE=ghcr.io/notnullgames/null0-cart-{0}:latest', steps.img.outputs.base) || '' }}
+          cache-from: type=gha,scope=${{ steps.img.outputs.image }}-amd64
+          cache-to: type=gha,mode=max,scope=${{ steps.img.outputs.image }}-amd64
       - name: Build ${{ matrix.lang }} carts
         run: npx -y npm-run-all --parallel 'cart:*_${{ matrix.lang }}'
       - name: Upload ${{ matrix.lang }} cart artifacts
@@ -208,6 +258,114 @@ jobs:
           name: carts_${{ matrix.lang }}
           path: build/carts/*_${{ matrix.lang }}.null0
 
+  # Tags only: push every image to this repo's package registry, one native
+  # runner per architecture (QEMU would take hours on GHC). Each build pushes
+  # by digest; the manifest job below stitches them into one multi-arch tag.
+  images:
+    name: Image (${{ matrix.image }}/${{ matrix.arch }})
+    if: github.ref_type == 'tag'
+    needs: languages
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.languages.outputs.builds) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Base image name
+        id: base
+        run: echo "base=$(node -p "require('./webroot/api.json').languages['${{ matrix.lang }}'].base || ''")" >> "$GITHUB_OUTPUT"
+      - name: Build base image
+        if: steps.base.outputs.base != ''
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: tools/docker/null0-cart-${{ steps.base.outputs.base }}.Dockerfile
+          platforms: linux/${{ matrix.arch }}
+          load: true
+          tags: ghcr.io/notnullgames/null0-cart-${{ steps.base.outputs.base }}:latest
+          cache-from: type=gha,scope=${{ steps.base.outputs.base }}-${{ matrix.arch }}
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: tools/docker/null0-cart-${{ matrix.image }}.Dockerfile
+          platforms: linux/${{ matrix.arch }}
+          labels: org.opencontainers.image.source=https://github.com/notnullgames/null0
+          build-args: ${{ steps.base.outputs.base != '' && format('BASE=ghcr.io/notnullgames/null0-cart-{0}:latest', steps.base.outputs.base) || '' }}
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}-${{ matrix.arch }}
+          outputs: type=image,name=ghcr.io/notnullgames/null0-cart-${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
+      - name: Save digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${DIGEST#sha256:}"
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.image }}-${{ matrix.arch }}
+          path: /tmp/digests/*
+          retention-days: 1
+
+  # Stitches each language's per-arch pushes into one multi-arch tag, so
+  # `docker run ghcr.io/notnullgames/null0-cart-c` resolves to the right
+  # architecture. Tagged with the release version and with latest.
+  manifests:
+    name: Manifest (${{ matrix.image }})
+    if: github.ref_type == 'tag'
+    needs: [languages, images]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: ${{ fromJSON(needs.languages.outputs.langs) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Image name
+        id: img
+        run: echo "image=$(node -p "require('./webroot/api.json').languages['${{ matrix.lang }}'].image")" >> "$GITHUB_OUTPUT"
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digest-${{ steps.img.outputs.image }}-*
+          path: /tmp/digests
+          merge-multiple: true
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create manifest list
+        env:
+          IMAGE: ghcr.io/notnullgames/null0-cart-${{ steps.img.outputs.image }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          cd /tmp/digests
+          refs=$(printf "${IMAGE}@sha256:%s " *)
+          # the tag is v0.0.14; the image tag is 0.0.14
+          docker buildx imagetools create -t "${IMAGE}:${VERSION#v}" -t "${IMAGE}:latest" ${refs}
+          docker buildx imagetools inspect "${IMAGE}:latest"
+
   # this creates a release on any tag, and attaches all the artifacts to it, then uploads demo page
   release:
     name: Release Tag
@@ -215,6 +373,7 @@ jobs:
     if: github.ref_type == 'tag'
     needs:
       - carts
+      - manifests
       - host_linux
       - host_mac
       - host_windows
@@ -226,6 +385,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+      - name: Drop the image digests
+        # bookkeeping for the manifest job, not release assets
+        run: rm -rf artifacts/digest-*
       - run: ls -al artifacts
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
@@ -248,3 +410,26 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # A tag should update everything, and the docs site builds against null0's
+  # published api.json and cart list - so it has to rebuild *after* pages went
+  # out, or it would fetch the previous release's data.
+  docs:
+    name: Rebuild docs site
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    needs: release
+    steps:
+      - name: Trigger notnullgames build
+        env:
+          GH_TOKEN: ${{ secrets.NULL0_BOT_TOKEN }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::warning::NULL0_BOT_TOKEN not set - rebuild the docs site by hand (Actions -> Publish Site -> Run workflow)"
+            exit 0
+          fi
+          # github-pages can serve a stale api.json for a few minutes; the docs
+          # build fetches it, so give the CDN a moment before kicking it off
+          sleep 60
+          gh workflow run 'Publish Site' --repo notnullgames/notnullgames --ref main
+          echo "triggered a docs rebuild for ${{ github.ref_name }}"

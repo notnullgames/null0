@@ -22,7 +22,7 @@ Or call docker yourself:
 
 ```sh
 rm -f webroot/mygame.null0
-docker run --rm --user $(id -u):$(id -g) -v ./cart:/src -v ./webroot:/out konsumer/null0-cart-c mygame
+docker run --rm --user $(id -u):$(id -g) -v ./cart:/src -v ./webroot:/out ghcr.io/notnullgames/null0-cart-c:latest mygame
 ```
 
 ## writing your game

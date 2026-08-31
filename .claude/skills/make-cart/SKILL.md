@@ -61,7 +61,7 @@ the cart zip, so it works the same on native and web. Add a `.cartignore`
 mkdir -p ~/mygame/out
 docker run --rm --user $(id -u):$(id -g) \
   -v ~/mygame:/src -v ~/mygame/out:/out \
-  konsumer/null0-cart-lua mygame
+  ghcr.io/notnullgames/null0-cart-lua mygame
 
 # run it (opens a window)
 ./build/host/null0 ~/mygame/out/mygame.null0

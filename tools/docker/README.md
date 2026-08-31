@@ -2,29 +2,29 @@ This directory is docker-builders of different carts.
 
 ### available containers
 
-- `konsumer/null0-cart-c`
-- `konsumer/null0-cart-quickjs`
-- `konsumer/null0-cart-nelua`
-- `konsumer/null0-cart-assemblyscript`
-- `konsumer/null0-cart-nim`
-- `konsumer/null0-cart-zig`
-- `konsumer/null0-cart-go` (tinygo)
-- `konsumer/null0-cart-wat`
-- `konsumer/null0-cart-walt`
-- `konsumer/null0-cart-d` (ldc)
-- `konsumer/null0-cart-odin`
-- `konsumer/null0-cart-c3`
-- `konsumer/null0-cart-onyx`
-- `konsumer/null0-cart-grain`
-- `konsumer/null0-cart-rust`
-- `konsumer/null0-cart-wren` (interpreted)
-- `konsumer/null0-cart-lua` (interpreted, via GopherLua)
-- `konsumer/null0-cart-python` (interpreted, via RustPython)
-- `konsumer/null0-cart-haxe` (via HL/C + wasi-sdk, linux/amd64 only)
-- `konsumer/null0-cart-zenc` (Zen-C transpiles to C + wasi-sdk, linux/amd64 only)
-- `konsumer/null0-cart-jik` (Jik transpiles to C + wasi-sdk, linux/amd64 only)
-- `konsumer/null0-cart-haskell` (wasm32-wasi-ghc, reactor mode)
-- `konsumer/null0-cart-cyber` (interpreted, via `persist_main`)
+- `ghcr.io/notnullgames/null0-cart-c`
+- `ghcr.io/notnullgames/null0-cart-quickjs`
+- `ghcr.io/notnullgames/null0-cart-nelua`
+- `ghcr.io/notnullgames/null0-cart-assemblyscript`
+- `ghcr.io/notnullgames/null0-cart-nim`
+- `ghcr.io/notnullgames/null0-cart-zig`
+- `ghcr.io/notnullgames/null0-cart-go` (tinygo)
+- `ghcr.io/notnullgames/null0-cart-wat`
+- `ghcr.io/notnullgames/null0-cart-walt`
+- `ghcr.io/notnullgames/null0-cart-d` (ldc)
+- `ghcr.io/notnullgames/null0-cart-odin`
+- `ghcr.io/notnullgames/null0-cart-c3`
+- `ghcr.io/notnullgames/null0-cart-onyx`
+- `ghcr.io/notnullgames/null0-cart-grain`
+- `ghcr.io/notnullgames/null0-cart-rust`
+- `ghcr.io/notnullgames/null0-cart-wren` (interpreted)
+- `ghcr.io/notnullgames/null0-cart-lua` (interpreted, via GopherLua)
+- `ghcr.io/notnullgames/null0-cart-python` (interpreted, via RustPython)
+- `ghcr.io/notnullgames/null0-cart-haxe` (via HL/C + wasi-sdk, linux/amd64 only)
+- `ghcr.io/notnullgames/null0-cart-zenc` (Zen-C transpiles to C + wasi-sdk, linux/amd64 only)
+- `ghcr.io/notnullgames/null0-cart-jik` (Jik transpiles to C + wasi-sdk, linux/amd64 only)
+- `ghcr.io/notnullgames/null0-cart-haskell` (wasm32-wasi-ghc, reactor mode)
+- `ghcr.io/notnullgames/null0-cart-cyber` (interpreted, via `persist_main`)
 
 ### how carts get their bindings
 
@@ -40,7 +40,7 @@ of the import list to paste from.)
 
 ```sh
 # build a cart from main.c (and assets) in current dir, output to ~/Desktop/tester.null0
-docker run -it -v .:/src -v ~/Desktop:/out konsumer/null0-cart-c tester
+docker run --rm -v .:/src -v ~/Desktop:/out ghcr.io/notnullgames/null0-cart-c tester
 ```
 
 ## usage in Github CI to build your cart for you
@@ -60,7 +60,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build C Cart
-        run: docker run -v .:/src -v .:/out konsumer/null0-cart-c tester
+        run: docker run -v .:/src -v .:/out ghcr.io/notnullgames/null0-cart-c tester
       - name: Upload cart artifact
         uses: actions/upload-artifact@v4
         with:
@@ -70,109 +70,33 @@ jobs:
 
 
 
-This is really just notes for me:
+## building these images
+
+You don't. CI does, on every tag: it builds each image for amd64 and arm64 on
+native runners and pushes a multi-arch manifest to
+`ghcr.io/notnullgames/null0-cart-<image>`, tagged with the release version and
+`latest`. Publishing by hand is what kept the baked bindings out of sync with
+the engine, and it eats a lot of disk.
+
+Every push (not just tags) builds each image and then builds that language's
+carts *with the image it just built*, so a binding change and the image baking
+it can never drift apart.
+
+Four images - nelua, nim, quickjs and wren - are built on top of the C image.
+They take a `BASE` build-arg so CI can point them at the C image from the same
+run rather than a previously-published one:
 
 ```sh
-# 1-time setup
-docker buildx create --name multiarch --driver docker-container --bootstrap
-docker buildx use multiarch
-docker run --privileged --rm tonistiigi/binfmt --install all
-
-# generate headers (needed on API change)
-npm i
-npm run gen
-
-# just local use (fast, no push)
-docker build -t konsumer/null0-cart-c . -f tools/docker/null0-cart-c.Dockerfile
-docker build -t konsumer/null0-cart-quickjs . -f tools/docker/null0-cart-quickjs.Dockerfile
-docker build -t konsumer/null0-cart-assemblyscript . -f tools/docker/null0-cart-assemblyscript.Dockerfile
-docker build -t konsumer/null0-cart-nelua . -f tools/docker/null0-cart-nelua.Dockerfile
-docker build -t konsumer/null0-cart-nim . -f tools/docker/null0-cart-nim.Dockerfile
-docker build -t konsumer/null0-cart-zig . -f tools/docker/null0-cart-zig.Dockerfile
-docker build -t konsumer/null0-cart-go . -f tools/docker/null0-cart-go.Dockerfile
-docker build -t konsumer/null0-cart-wat . -f tools/docker/null0-cart-wat.Dockerfile
-docker build -t konsumer/null0-cart-walt . -f tools/docker/null0-cart-walt.Dockerfile
-docker build -t konsumer/null0-cart-d . -f tools/docker/null0-cart-d.Dockerfile
-docker build -t konsumer/null0-cart-odin . -f tools/docker/null0-cart-odin.Dockerfile
-docker build -t konsumer/null0-cart-c3 . -f tools/docker/null0-cart-c3.Dockerfile
-docker build -t konsumer/null0-cart-onyx . -f tools/docker/null0-cart-onyx.Dockerfile
-docker build -t konsumer/null0-cart-grain . -f tools/docker/null0-cart-grain.Dockerfile
-docker build -t konsumer/null0-cart-rust . -f tools/docker/null0-cart-rust.Dockerfile
-docker build -t konsumer/null0-cart-wren . -f tools/docker/null0-cart-wren.Dockerfile
-docker build -t konsumer/null0-cart-lua . -f tools/docker/null0-cart-lua.Dockerfile
-docker build -t konsumer/null0-cart-python . -f tools/docker/null0-cart-python.Dockerfile
-docker build --platform linux/amd64 -t konsumer/null0-cart-haxe . -f tools/docker/null0-cart-haxe.Dockerfile
-docker build --platform linux/amd64 -t konsumer/null0-cart-zenc . -f tools/docker/null0-cart-zenc.Dockerfile
-docker build --platform linux/amd64 -t konsumer/null0-cart-jik . -f tools/docker/null0-cart-jik.Dockerfile
-
-# build & publish (needed on API change)
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-c . -f tools/docker/null0-cart-c.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-quickjs . -f tools/docker/null0-cart-quickjs.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-assemblyscript . -f tools/docker/null0-cart-assemblyscript.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-nelua . -f tools/docker/null0-cart-nelua.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-nim . -f tools/docker/null0-cart-nim.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-zig . -f tools/docker/null0-cart-zig.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-go . -f tools/docker/null0-cart-go.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-wat . -f tools/docker/null0-cart-wat.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-walt . -f tools/docker/null0-cart-walt.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-d . -f tools/docker/null0-cart-d.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-odin . -f tools/docker/null0-cart-odin.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-c3 . -f tools/docker/null0-cart-c3.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-onyx . -f tools/docker/null0-cart-onyx.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-grain . -f tools/docker/null0-cart-grain.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-rust . -f tools/docker/null0-cart-rust.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-wren . -f tools/docker/null0-cart-wren.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-lua . -f tools/docker/null0-cart-lua.Dockerfile
-docker buildx build --push --platform linux/amd64,linux/arm64 -t konsumer/null0-cart-python . -f tools/docker/null0-cart-python.Dockerfile
-docker buildx build --push --platform linux/amd64 -t konsumer/null0-cart-haxe . -f tools/docker/null0-cart-haxe.Dockerfile
-docker buildx build --push --platform linux/amd64 -t konsumer/null0-cart-zenc . -f tools/docker/null0-cart-zenc.Dockerfile
-docker buildx build --push --platform linux/amd64 -t konsumer/null0-cart-jik . -f tools/docker/null0-cart-jik.Dockerfile
-
-# test
-docker run -it -v ./carts/c/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-c colorbars_c
-docker run -it -v ./carts/c/simple:/src -v ./build/carts:/out konsumer/null0-cart-c simple_c
-docker run -it -v ./carts/c/gradient:/src -v ./build/carts:/out konsumer/null0-cart-c gradient_c
-docker run -it -v ./carts/c/input:/src -v ./build/carts:/out konsumer/null0-cart-c input_c
-docker run -it -v ./carts/c/sfx:/src -v ./build/carts:/out konsumer/null0-cart-c sfx_c
-docker run -it -v ./carts/c/speak:/src -v ./build/carts:/out konsumer/null0-cart-c speak_c
-docker run -it -v ./carts/c/wasi_demo:/src -v ./build/carts:/out konsumer/null0-cart-c wasi_demo_c
-
-docker run -it -v ./carts/js/simple:/src -v ./build/carts:/out konsumer/null0-cart-quickjs simple_js
-docker run -it -v ./carts/js/input:/src -v ./build/carts:/out konsumer/null0-cart-quickjs input_js
-
-docker run -it -v ./carts/as/simple:/src -v ./build/carts:/out konsumer/null0-cart-assemblyscript simple_as
-
-docker run -it -v ./carts/nelua/simple:/src -v ./build/carts:/out konsumer/null0-cart-nelua simple_nelua
-docker run -it -v ./carts/nelua/colorbars:/src -v ./build/carts:/out konsumer/null0-cart-nelua colorbars_nelua
-
-docker run -it -v ./carts/nim/simple:/src -v ./build/carts:/out konsumer/null0-cart-nim simple_nim
-
-docker run -it -v ./carts/zig/simple:/src -v ./build/carts:/out konsumer/null0-cart-zig simple_zig
-docker run -it -v ./carts/go/simple:/src -v ./build/carts:/out konsumer/null0-cart-go simple_go
-docker run -it -v ./carts/wat/simple:/src -v ./build/carts:/out konsumer/null0-cart-wat simple_wat
-docker run -it -v ./carts/walt/simple:/src -v ./build/carts:/out konsumer/null0-cart-walt simple_walt
-docker run -it -v ./carts/d/simple:/src -v ./build/carts:/out konsumer/null0-cart-d simple_d
-docker run -it -v ./carts/odin/simple:/src -v ./build/carts:/out konsumer/null0-cart-odin simple_odin
-docker run -it -v ./carts/c3/simple:/src -v ./build/carts:/out konsumer/null0-cart-c3 simple_c3
-docker run -it -v ./carts/onyx/simple:/src -v ./build/carts:/out konsumer/null0-cart-onyx simple_onyx
-docker run -it -v ./carts/grain/simple:/src -v ./build/carts:/out konsumer/null0-cart-grain simple_grain
-
-docker run -it -v ./carts/rust/examples/simple:/src -v ./build/carts:/out konsumer/null0-cart-rust simple_rust
-
-docker run -it -v ./carts/python/simple:/src -v ./build/carts:/out konsumer/null0-cart-python simple_python
-docker run -it -v ./carts/wren/simple:/src -v ./build/carts:/out konsumer/null0-cart-wren simple_wren
-docker run -it -v ./carts/lua/simple:/src -v ./build/carts:/out konsumer/null0-cart-lua simple_lua
-
-docker run -it --platform linux/amd64 -v ./carts/haxe/simple:/src -v ./build/carts:/out konsumer/null0-cart-haxe simple_haxe
-
-docker run -it --platform linux/amd64 -v ./carts/zenc/simple:/src -v ./build/carts:/out konsumer/null0-cart-zenc simple_zenc
-docker run -it --platform linux/amd64 -v ./carts/jik/simple:/src -v ./build/carts:/out konsumer/null0-cart-jik simple_jik
-
-docker run -it -v ./carts/haskell/simple:/src -v ./build/carts:/out konsumer/null0-cart-haskell simple_haskell
-docker run -it -v ./carts/cyber/simple:/src -v ./build/carts:/out konsumer/null0-cart-cyber simple_cyber
+docker build -f tools/docker/null0-cart-c.Dockerfile -t ghcr.io/notnullgames/null0-cart-c:latest .
+docker build -f tools/docker/null0-cart-nelua.Dockerfile \
+  --build-arg BASE=ghcr.io/notnullgames/null0-cart-c:latest \
+  -t ghcr.io/notnullgames/null0-cart-nelua:latest .
 ```
 
-CI builds a cart for every language on each push, using these published
-images, so an image that is stale against the current `npm run gen` output
-fails there rather than at release time. Republish after any API change:
-`npm run docker_publish` (or `docker_publish:cart_<lang>` for one).
+To build one locally for debugging (`npm run gen` first, so the bindings it
+bakes are current):
+
+```sh
+npm run docker:cart_c        # builds ghcr.io/notnullgames/null0-cart-c:latest
+npm run cart:simple_c        # then builds a cart with it
+```

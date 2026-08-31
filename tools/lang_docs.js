@@ -9,7 +9,7 @@
 //
 // Each language entry:
 //   title       display name
-//   image       konsumer/null0-cart-<image>
+//   image       the image's short name; the full ref is imageRef() below
 //   kind        'compiled' | 'interpreted'
 //   file        what the cart's source file is called
 //   binding     generated file the declarations are read from (null if none)
@@ -19,9 +19,22 @@
 //   notes[]     language-specific gotchas worth putting on the docs page
 //   example     the starter cart, copied verbatim into templates/<lang>/src
 //   amd64Only   image is linux/amd64 only
+//   base        image this one is FROM (CI builds it first, see BASE arg)
 //   decls(src)  -> { [apiFunctionName]: 'the declaration, verbatim' }
 
 import { readFile } from 'node:fs/promises'
+
+// Cart images live in this repo's own GitHub package registry, built and
+// pushed by CI on every tag. Nothing here is published by hand any more, so
+// this is the one place the location is written down - templates, the docs
+// site, the README and CI all read it from here (via webroot/api.json).
+export const REGISTRY = 'ghcr.io/notnullgames'
+
+export const imageName = (lang) => `${REGISTRY}/null0-cart-${lang.image}`
+
+// `latest` for humans, an exact version for anything that wants to be
+// reproducible
+export const imageRef = (lang, tag = 'latest') => `${imageName(lang)}:${tag}`
 
 // Most bindings are one declaration per line. `byLine` walks the file and, for
 // each line matching `re`, uses capture group 1 as the null0 function name and
@@ -156,6 +169,7 @@ export const languages = {
     highlight: 'nim',
     callback: 'proc load*() {.wasm.} =',
     toolchain: 'nim + wasi-sdk clang',
+    base: 'c',
     notes: ['`import null0`.'],
     decls: byLine(/^proc (\w+)\*\(/)
   },
@@ -169,6 +183,7 @@ export const languages = {
     highlight: 'lua',
     callback: "local function load() <cexport'load'> end",
     toolchain: 'nelua + wasi-sdk clang',
+    base: 'c',
     notes: ["`require 'null0'`. Nelua compiles to C, so it needs null0.h alongside null0.nelua."],
     decls: byLine(/^global function (\w+)\(/)
   },
@@ -346,6 +361,7 @@ export const languages = {
     highlight: 'typescript',
     callback: 'export function update () {}',
     toolchain: 'QuickJS, baked into main.wasm',
+    base: 'c',
     notes: ['The API is plain globals - nothing to import. Callbacks are ESM exports of `main.js`.', 'Structs are plain objects (`{ r: 0, g: 121, b: 241, a: 255 }`); array args know their own length, so you never pass the count.', '`std` and `os` from QuickJS are available as globals, as is WASI.', 'Drop `null0.d.ts` + `jsconfig.json` next to `main.js` for editor completion and typechecking.'],
     decls: byLine(/^\s*function (\w+)\(/)
   },
@@ -385,6 +401,7 @@ export const languages = {
     highlight: 'dart',
     callback: 'var update = Fn.new {}',
     toolchain: 'wren, baked into main.wasm',
+    base: 'c',
     notes: ['`import "null0" for Null0, BLUE` - the API hangs off the `Null0` class.', 'Callbacks are `Fn` values assigned to top-level variables.'],
     // zero-arg functions become wren getters, so match both forms and drop
     // the forwarding body - it's just plumbing to the `foreign static` import
@@ -415,6 +432,9 @@ export async function getLanguageDocs() {
       binding,
       example: example || `carts/${id}/simple`,
       ...meta,
+      registry: REGISTRY,
+      imageRef: imageRef(lang),
+      base: lang.base || null,
       decls: binding ? decls(await readFile(binding, 'utf8')) : {}
     }
   }

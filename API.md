@@ -1862,7 +1862,12 @@ void random_seed_set(u64 seed)
 
 ## languages
 
-A cart can be written in any of these. `<image>` is the docker image that builds it: `docker run --rm -v .:/src -v .:/out konsumer/null0-cart-<image> mygame`.
+A cart can be written in any of these. Each one has a docker image that builds it, published to this repo's package registry by CI:
+
+
+```sh
+docker run --rm -v .:/src -v .:/out ghcr.io/notnullgames/null0-cart-<image> mygame
+```
 
 | language | image | kind | cart source | callback | bindings |
 | --- | --- | --- | --- | --- | --- |

@@ -15,7 +15,7 @@
 
 import { mkdir, writeFile, rm, readdir, copyFile, readFile } from 'node:fs/promises'
 import { join, dirname, basename } from 'node:path'
-import { getLanguageDocs } from './lang_docs.js'
+import { getLanguageDocs, imageRef } from './lang_docs.js'
 
 const languages = await getLanguageDocs()
 
@@ -37,7 +37,7 @@ function dockerRun(lang, { ci = false } = {}) {
   if (lang.amd64Only) {
     flags.push('--platform linux/amd64')
   }
-  return `rm -f webroot/mygame.null0 && docker run ${flags.join(' ')} -v ./cart:/src -v ./webroot:/out konsumer/null0-cart-${lang.image} mygame`
+  return `rm -f webroot/mygame.null0 && docker run ${flags.join(' ')} -v ./cart:/src -v ./webroot:/out ${imageRef(lang)} mygame`
 }
 
 // js/python/lua/wren/cyber ship their bindings as editor-only definitions, and
