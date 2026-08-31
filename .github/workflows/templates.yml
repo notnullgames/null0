@@ -8,8 +8,9 @@
 # Manual only, and dry-run by default: it prints what it would do and changes
 # nothing until you set dry_run to false.
 #
-# Needs a TEMPLATES_TOKEN secret (a PAT with repo scope on the org). The
-# built-in GITHUB_TOKEN cannot create repos or push to other repositories.
+# Needs the NULL0_BOT_TOKEN secret (a PAT with repo scope on the org, also
+# used to trigger the docs-site rebuild). The built-in GITHUB_TOKEN cannot
+# create repos or push to other repositories.
 
 name: Sync cart templates
 
@@ -53,14 +54,14 @@ jobs:
 
       - name: Sync
         env:
-          GH_TOKEN: ${{ secrets.TEMPLATES_TOKEN }}
+          GH_TOKEN: ${{ secrets.NULL0_BOT_TOKEN }}
           LANGUAGE: ${{ inputs.language }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
 
           if [ -z "${GH_TOKEN}" ]; then
-            echo "::error::TEMPLATES_TOKEN is not set - add a PAT with repo scope to the repository secrets"
+            echo "::error::NULL0_BOT_TOKEN is not set - add a PAT with repo scope to the repository secrets"
             exit 1
           fi
 

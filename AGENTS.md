@@ -316,6 +316,10 @@ the carts and hosts, creates the release, deploys the web player and
 `api.json` to pages, and triggers a docs-site rebuild. Nothing is published by
 hand.
 
+The docs trigger and the template sync both use one secret, `NULL0_BOT_TOKEN`
+(a PAT with repo scope - the built-in `GITHUB_TOKEN` can't reach another
+repo). Without it the release still succeeds and the docs job just warns.
+
 Two things a tag does *not* do: sync the `cart_<lang>` template repos (run the
 `Sync cart templates` workflow, dry-run first), and make a brand-new GHCR
 package public - the first push of a new image creates a private package, so

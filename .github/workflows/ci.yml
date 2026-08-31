@@ -231,7 +231,7 @@ jobs:
           tags: ghcr.io/notnullgames/null0-cart-${{ steps.img.outputs.image }}:latest
           labels: org.opencontainers.image.source=https://github.com/notnullgames/null0
           cache-from: type=gha,scope=${{ steps.img.outputs.image }}-amd64
-          cache-to: type=gha,mode=max,scope=${{ steps.img.outputs.image }}-amd64
+          cache-to: type=gha,mode=min,scope=${{ steps.img.outputs.image }}-amd64
       - name: Build ${{ matrix.lang }} carts
         run: npx -y npm-run-all --parallel 'cart:*_${{ matrix.lang }}'
       - name: Upload ${{ matrix.lang }} cart artifacts
@@ -275,7 +275,7 @@ jobs:
           platforms: linux/${{ matrix.arch }}
           labels: org.opencontainers.image.source=https://github.com/notnullgames/null0
           cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.image }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=min,scope=${{ matrix.image }}-${{ matrix.arch }}
           outputs: type=image,name=ghcr.io/notnullgames/null0-cart-${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
       - name: Save digest
         env:
@@ -294,7 +294,7 @@ jobs:
   # `docker run ghcr.io/notnullgames/null0-cart-c` resolves to the right
   # architecture. Tagged with the release version and with latest.
   manifests:
-    name: Manifest (${{ matrix.image }})
+    name: Manifest (${{ matrix.lang }})
     if: github.ref_type == 'tag'
     needs: [languages, images]
     runs-on: ubuntu-latest
@@ -329,10 +329,29 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: |
           cd /tmp/digests
-          refs=$(printf "${IMAGE}@sha256:%s " *)
+          shopt -s nullglob
+          digests=(*)
+          if [ ${#digests[@]} -eq 0 ]; then
+            echo "::error::no digests for ${IMAGE} - the image job must have failed"
+            exit 1
+          fi
+          refs=$(printf "${IMAGE}@sha256:%s " "${digests[@]}")
           # the tag is v0.0.14; the image tag is 0.0.14
           docker buildx imagetools create -t "${IMAGE}:${VERSION#v}" -t "${IMAGE}:latest" ${refs}
           docker buildx imagetools inspect "${IMAGE}:latest"
+          {
+            echo "- \`${IMAGE}:${VERSION#v}\` (${#digests[@]} arch)"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Note on package visibility
+        run: |
+          # a package created by the first push is private, and there is no API
+          # to flip it - so say so plainly rather than leaving `docker run` to
+          # fail with "denied" for everyone else
+          {
+            echo ""
+            echo "If this image is newly created, make it public once:"
+            echo "https://github.com/orgs/notnullgames/packages/container/null0-cart-${{ steps.img.outputs.image }}/settings"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # this creates a release on any tag, and attaches all the artifacts to it, then uploads demo page
   release:
