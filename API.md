@@ -1,4 +1,6 @@
-The Null0 API is exposed to several languages, but we try to keep the syntax mostly the same. See docs/templates in individual languages for exact syntax, this page is more about what you can do with null0. I will use C-like pseudo-code to describe everything here.
+The Null0 API is exposed to every cart language, and we try to keep the shape the same in all of them. This page describes what you can *do* with null0, in C-like pseudo-code.
+
+For the exact syntax in your language, see [notnull.games/null0/languages](https://notnull.games/null0/languages) - every function below is rendered there in each language's own spelling, straight out of that language's generated bindings. The [languages](#languages) table at the bottom lists them.
 
 ## types
 
@@ -375,7 +377,7 @@ Other defined constants:
 - `SCREEN` = `0` - The screen's image number is 0
 - `SCREEN_WIDTH` = `640` - the width of the screen (in pixels)
 - `SCREEN_HEIGHT` = `480` - the height of the screen (in pixels)
-- `NULL0_VERSION` = `0.0.10` - The current tagged version of null0 engine
+- `NULL0_VERSION` = `0.0.12` - The current tagged version of null0 engine
 
 
 ## callbacks
@@ -1856,3 +1858,34 @@ Set the random-seed.
 void random_seed_set(u64 seed)
 ```
 
+
+
+## languages
+
+A cart can be written in any of these. `<image>` is the docker image that builds it: `docker run --rm -v .:/src -v .:/out konsumer/null0-cart-<image> mygame`.
+
+| language | image | kind | cart source | callback | bindings |
+| --- | --- | --- | --- | --- | --- |
+| C | `c` | compiled | `main.c` | `void update() {}` | [`null0.h`](carts/c/null0.h) |
+| Rust | `rust` | compiled | `src/lib.rs` | `#[no_mangle] pub extern "C" fn load() {}` | [`lib.rs`](carts/rust/src/lib.rs) |
+| Zig | `zig` | compiled | `main.zig` | `export fn load() void {}` | [`null0.zig`](carts/zig/null0.zig) |
+| Go | `go` | compiled | `main.go` | `//export load func load() {}` | [`null0.go`](carts/go/null0/null0.go) |
+| Nim | `nim` | compiled | `main.nim` | `proc load*() {.wasm.} =` | [`null0.nim`](carts/nim/null0.nim) |
+| Nelua | `nelua` | compiled | `main.nelua` | `local function load() <cexport'load'> end` | [`null0.nelua`](carts/nelua/null0.nelua) |
+| AssemblyScript | `assemblyscript` | compiled | `main.ts` | `export function load(): void {}` | [`null0.ts`](carts/as/null0.ts) |
+| Odin | `odin` | compiled | `main.odin` | `@(export) load :: proc "c" () {}` | [`null0.odin`](carts/odin/null0/null0.odin) |
+| C3 | `c3` | compiled | `main.c3` | `fn void load() @export("load") {}` | [`null0.c3`](carts/c3/null0.c3) |
+| D | `d` | compiled | `main.d` | `export extern(C) void load() {}` | [`null0.d`](carts/d/null0.d) |
+| Onyx | `onyx` | compiled | `main.onyx` | `#export "load" load` | [`null0.onyx`](carts/onyx/null0.onyx) |
+| Grain | `grain` | compiled | `main.gr` | `provide let load = () => { void }` | [`null0.gr`](carts/grain/null0.gr) |
+| Haxe | `haxe` | compiled | `Main.hx` | `Null0.onUpdate = () -> {}` | [`Null0.hx`](carts/haxe/Null0.hx) |
+| Haskell | `haskell` | compiled | `Main.hs` | `foreign export ccall update :: IO ()` | [`Null0.hs`](carts/haskell/Null0.hs) |
+| Zen-C | `zenc` | compiled | `main.zc` | `void update() {}` | [`null0.h`](carts/zenc/null0.h) |
+| Jik | `jik` | compiled | `main.jik` | `export func update() -> void` | [`null0.jik`](carts/jik/null0.jik) (reference) |
+| WAT | `wat` | compiled | `main.wat` | `(func (export "update") ...)` | [`null0.wat`](carts/wat/null0.wat) (reference) |
+| Walt | `walt` | compiled | `main.walt` | `export function update() {}` | [`null0.walt`](carts/walt/null0.walt) (reference) |
+| JavaScript | `quickjs` | interpreted | `main.js` | `export function update () {}` | [`null0.d.ts`](carts/js/null0.d.ts) |
+| Python | `python` | interpreted | `main.py` | `def update():` | [`null0.pyi`](carts/python/null0.pyi) |
+| Lua | `lua` | interpreted | `main.lua` | `function update() end` | [`null0.lua`](carts/lua/null0.lua) |
+| Wren | `wren` | interpreted | `main.wren` | `var update = Fn.new {}` | [`null0.wren`](carts/wren/null0.wren) |
+| Cyber | `cyber` | interpreted | `main.cy` | `func update():` | [`null0.cy`](carts/cyber/null0.cy) |
