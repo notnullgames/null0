@@ -36,15 +36,44 @@ Running `npm run gen` regenerates all of these. **Never hand-edit them** - your
 change will vanish, and reviewers will assume the generator produced it:
 
 - `host/src/host.c` (from `tools/gen_host.js`)
-- `API.md` (from `tools/gen_api_docs.js`)
+- `API.md` and `webroot/api.json` (from `tools/gen_api_docs.js`)
 - `carts/*/null0.*` - every language's bindings (`null0.h`, `null0.zig`, `null0.wren`, `null0.lua`, ...)
+- `carts/js/null0.d.ts` + `carts/js/jsconfig.json`, `carts/python/null0.pyi` +
+  `carts/python/pyrightconfig.json` - editor-only definitions, the same job
+  `carts/lua/null0.lua` does for LuaLS. Not shipped inside a cart (the
+  `build_*.sh` scripts delete them).
+- `templates/<lang>/` - the starter project published as each `cart_<lang>`
+  template repo (from `tools/gen_templates.js`)
 - `tools/docker/quickjs-cart.c`, `tools/docker/wren-cart.c`, `tools/docker/lua-cart/main.go`, `tools/docker/python-cart/src/main.rs`, `tools/docker/haxe-cart/null0_shim.c`
+
+`gen` runs in two phases, and it has to: `gen_api_docs.js` and
+`gen_templates.js` both go through `tools/lang_docs.js`, which *reads* the
+generated bindings to pull each language's real declaration for every API
+function. Run them alongside the `gen_cart_*` scripts that write those files
+and you race. Phase one is `gen:host` + `gen:cart_*` in parallel, phase two is
+`gen:api_docs` then `gen:templates`.
 
 Hand-written host code lives in `host_header.h` (helpers, memory copying,
 `add_image`/`add_font`/`add_sound`), `host.h` (the `HOST_FUNCTION` macro),
 `fs.c`, `wasi_physfs.h`, `cart_wamr.c`, `cart_emscripten.c`, `main.c`.
 
 ### How `host.c` is generated
+
+### Where per-language docs come from
+
+`tools/lang_docs.js` is the one place that knows a language exists as a
+*language* rather than as a generator: display name, docker image, cart
+filename, callback syntax, gotchas worth telling a human. Its `decls()`
+extractors then read the generated binding and pull out the real declaration
+line per API function - deliberately, instead of re-deriving 23 sets of type
+maps that would drift the moment a generator changed. `webroot/api.json` is
+that data plus the yml, published to
+https://notnullgames.github.io/null0/api.json so the docs site renders a
+per-language API without keeping a copy of any of it.
+
+Adding a language therefore means one entry in `lang_docs.js` too - and its
+`decls` regex must find all of them. There's no partial credit here: if the
+count doesn't match the API, the docs quietly lose functions.
 
 `gen_host.js` has a `functions` map from null0 API name -> the pntr call that
 implements it (`draw_circle: 'pntr_draw_circle_fill(images[0], '`). It builds
@@ -221,6 +250,9 @@ Checklist:
 4. `package.json`: `gen:cart_<lang>`, `cart:simple_<lang>`, `docker:cart_<lang>`,
    `docker_publish:cart_<lang>` - the `*` globs in `gen`/`carts`/`docker` pick
    them up automatically.
+4b. `tools/lang_docs.js` - one entry, including a `decls` extractor that finds
+   every API function in the binding you just generated. This is what puts the
+   language on the website and gives it a `templates/<lang>/` starter project.
 5. `tools/docker/README.md` (3 lists + the test line) and the README checkbox.
 6. Verify it actually runs (below), then tick the box - not before.
 

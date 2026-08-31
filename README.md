@@ -2,6 +2,19 @@ The basic idea here is a small game-engine where you make "carts", in whatever l
 
 [Read the docs](https://notnull.games/null0) to find out more.
 
+### starting a game
+
+Every language has a starter project in [`templates/`](templates/), published
+as a `cart_<lang>` template repo you can press "Use this template" on. They are
+all the same shape: your source in `cart/`, `npm start` to build & serve it.
+Nothing is vendored - the docker image brings the toolchain *and* the bindings,
+and the web player is loaded from this repo's github-pages, so a template can't
+go stale against the engine.
+
+```sh
+npm start                     # build cart/, serve webroot/, rebuild on change
+```
+
 ### languages
 
 I'd like to support a lot of cart-languages. For these to be considered "complete", they should have a header that exposes all the functions/types in an ergonomic format, at least 1 example, a docker for building carts, and maybe a template-project. If there are any other languages you would like to see, [make an issue](https://github.com/notnullgames/null0/issues/new?labels=language&title=Add%20New%20Language%3A%20), and I will see if I can add it.
