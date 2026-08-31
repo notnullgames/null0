@@ -147,6 +147,6 @@
     "gen": "npx -y npm-run-all --parallel 'gen:host' 'gen:cart_*' && npx -y npm-run-all --serial 'gen:api_docs' 'gen:templates'"
   },
   "dependencies": {
-    "yaml": "latest"
+    "yaml": "^2.9.0"
   }
 }
