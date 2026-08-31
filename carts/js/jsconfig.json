@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": [
+      "es2022"
+    ],
+    "types": [],
+    "checkJs": true,
+    "strict": true,
+    "noEmit": true
+  },
+  "include": [
+    "*.js",
+    "null0.d.ts"
+  ]
+}

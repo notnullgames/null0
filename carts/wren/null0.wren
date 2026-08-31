@@ -1013,7 +1013,7 @@ var MAGENTA = Color.new(255, 0, 255, 255)
 var RAYWHITE = Color.new(245, 245, 245, 255)
 
 // The current tagged version of null0 engine
-var NULL0_VERSION = "0.0.10"
+var NULL0_VERSION = "0.0.12"
 
 // Potential image-filtering techniques for scale/etc.
 var FILTER_NEARESTNEIGHBOR = 0

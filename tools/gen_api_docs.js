@@ -1,10 +1,20 @@
-// This will generate the API docs in markdown (used on main webnsite and in this repo)
+// This will generate the API docs (used on the main website and in this repo).
+//
+// Two outputs:
+//   API.md          the human-readable reference, in C-like pseudo-code
+//   webroot/api.json  the same thing as data, plus every language's real
+//                     declaration for each function, published to
+//                     https://notnullgames.github.io/null0/api.json so the
+//                     docs site can render a per-language API without keeping
+//                     its own copy of any of this
 import { writeFile } from 'node:fs/promises'
 import { getApi } from './utils.js'
+import { getLanguageDocs } from './lang_docs.js'
 
-const out = [`The Null0 API is exposed to several languages, but we try to keep the syntax mostly the same. See docs/templates in individual languages for exact syntax, this page is more about what you can do with null0. I will use C-like pseudo-code to describe everything here.`]
+const out = [`The Null0 API is exposed to every cart language, and we try to keep the shape the same in all of them. This page describes what you can *do* with null0, in C-like pseudo-code.`, '', `For the exact syntax in your language, see [notnull.games/null0/languages](https://notnull.games/null0/languages) - every function below is rendered there in each language's own spelling, straight out of that language's generated bindings. The [languages](#languages) table at the bottom lists them.`]
 
 const { constants, enums, structs, scalars, callbacks, ...api } = await getApi()
+const languages = await getLanguageDocs()
 
 function describeFunction(name, def) {
   const out = []
@@ -68,7 +78,7 @@ for (const [name, e] of Object.entries(constants)) {
   if (e.type === 'Color') {
     continue
   }
-  out.push('- `' + name + '` = `' + e.value + '`' + (e.description ? ` - ${e.description}` : '') )
+  out.push('- `' + name + '` = `' + e.value + '`' + (e.description ? ` - ${e.description}` : ''))
 }
 out.push('')
 
@@ -92,4 +102,37 @@ for (const [apiName, apiFuncs] of Object.entries(api)) {
 
 out.push(f.join('---\n'))
 
+// A cart language is only "supported" once it can express all of this, so the
+// table doubles as a status list. The per-function declarations for each
+// language are in api.json (and rendered on the website) - putting 154
+// functions x 23 languages in here would bury the reference itself.
+out.push('', '## languages', '', `A cart can be written in any of these. \`<image>\` is the docker image that builds it: \`docker run --rm -v .:/src -v .:/out konsumer/null0-cart-<image> mygame\`.`, '')
+out.push('| language | image | kind | cart source | callback | bindings |')
+out.push('| --- | --- | --- | --- | --- | --- |')
+for (const [id, lang] of Object.entries(languages)) {
+  const binding = lang.binding ? `[\`${lang.binding.split('/').pop()}\`](${lang.binding})${lang.reference ? ' (reference)' : ''}` : '-'
+  out.push(`| ${lang.title} | \`${lang.image}\` | ${lang.kind} | \`${lang.file}\` | \`${lang.callback.split('\n').join(' ')}\` | ${binding} |`)
+}
+out.push('')
+
 await writeFile('API.md', out.join('\n'))
+
+// Everything above, as data. The docs site fetches this at build time, so it
+// can never drift from api/*.yml the way a hand-copied page does.
+await writeFile(
+  'webroot/api.json',
+  JSON.stringify(
+    {
+      version: constants.NULL0_VERSION.value,
+      scalars,
+      structs,
+      enums,
+      constants,
+      callbacks,
+      groups: Object.fromEntries(Object.entries(api).filter(([name, funcs]) => name !== 'types' && Object.keys(funcs).length)),
+      languages
+    },
+    null,
+    2
+  ) + '\n'
+)

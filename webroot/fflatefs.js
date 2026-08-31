@@ -1,7 +1,7 @@
 // stupidly-minimal fs that uses fflate on the zip
 // it's just enough to load js carts, and read files, but not much else
 
-import * as fflate from 'fflate' // https://esm.sh/fflate/esm/browser.js
+import * as fflate from 'https://esm.sh/fflate@0.8.3/esm/browser.js'
 
 const FILETYPE_REGULAR_FILE = 4
 const FILETYPE_DIRECTORY = 3

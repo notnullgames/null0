@@ -66,18 +66,7 @@ seedTypes(externTypes, { enums, structs }, { enumType: 'i32', structType: (name)
 seedTypes(externRetTypes, { enums, structs }, { enumType: 'i32', structType: 'u32' })
 seedTypes(memberTypes, { enums }, { enumType: 'i32' })
 
-const out = [
-  '// GENERATED FILE - do not edit by hand. See tools/gen_cart_python.js',
-  '#![allow(non_snake_case, non_upper_case_globals, unused_unsafe, dead_code)]',
-  '',
-  'use rustpython_vm as vm;',
-  'use std::cell::OnceCell;',
-  'use std::ffi::CString;',
-  'use vm::function::FuncArgs;',
-  'use vm::scope::Scope;',
-  'use vm::{Interpreter, PyObjectRef, PyResult, VirtualMachine};',
-  ''
-]
+const out = ['// GENERATED FILE - do not edit by hand. See tools/gen_cart_python.js', '#![allow(non_snake_case, non_upper_case_globals, unused_unsafe, dead_code)]', '', 'use rustpython_vm as vm;', 'use std::cell::OnceCell;', 'use std::ffi::CString;', 'use vm::function::FuncArgs;', 'use vm::scope::Scope;', 'use vm::{Interpreter, PyObjectRef, PyResult, VirtualMachine};', '']
 
 // ---- struct definitions (must match the wasm C ABI exactly) ----
 for (const [structName, structDef] of Object.entries(structs)) {
@@ -97,7 +86,9 @@ out.push('#[link(wasm_import_module = "null0")]')
 out.push('extern "C" {')
 for (const [apiName, funcDef] of Object.entries(api)) {
   for (const [funcName, { args, returns }] of Object.entries(funcDef)) {
-    const params = Object.entries(args).map(([name, type]) => `${rustName(name)}: ${externTypes[type] || type}`).join(', ')
+    const params = Object.entries(args)
+      .map(([name, type]) => `${rustName(name)}: ${externTypes[type] || type}`)
+      .join(', ')
     const ret = returns === 'void' ? '' : ` -> ${externRetTypes[returns] || externTypes[returns] || returns}`
     out.push(`    pub fn ${funcName}(${params})${ret};`)
   }
@@ -106,7 +97,8 @@ out.push('}')
 out.push('')
 
 // ---- helpers ----
-out.push(`// a host string (bytes in our own memory, valid until this callback returns)
+out.push(
+  `// a host string (bytes in our own memory, valid until this callback returns)
 fn cstr_to_py(p: *const u8, vm: &VirtualMachine) -> PyObjectRef {
     if p.is_null() {
         return vm.ctx.new_str("").into();
@@ -120,7 +112,9 @@ fn cstr_to_py(p: *const u8, vm: &VirtualMachine) -> PyObjectRef {
         vm.ctx.new_str(String::from_utf8_lossy(bytes).into_owned()).into()
     }
 }
-`, '')
+`,
+  ''
+)
 
 // ---- dict <-> struct conversion helpers ----
 const convHelper = (structName) => {
@@ -389,3 +383,129 @@ pub extern "C" fn mouseMoved(x: f32, y: f32) {
 `)
 
 await writeFile('tools/docker/python-cart/src/main.rs', out.join('\n'))
+
+// TYPE STUBS
+//
+// python carts get their API as globals from the RustPython runtime above, so
+// there is nothing to import at runtime. carts/python/null0.pyi exists purely
+// so an editor (pyright, mypy, ...) can complete & check a cart - the same job
+// carts/lua/null0.lua does for LuaLS and carts/js/null0.d.ts does for JS.
+
+// how an API type is spelled in a python stub
+const pyTypes = {
+  void: 'None',
+  bool: 'bool',
+  i32: 'int',
+  u32: 'int',
+  u64: 'int',
+  f32: 'float',
+  string: 'str',
+  Image: 'Image',
+  Font: 'Font',
+  Sound: 'Sound',
+  Tilemap: 'Tilemap',
+  'Vector[]': 'list[Vector]',
+  'i32[]': 'list[int]'
+}
+
+// enums cross as their int value, structs are plain dicts
+seedTypes(pyTypes, { enums, structs }, { enumType: (name) => name, structType: (name) => name })
+
+const pyMemberTypes = { i32: 'int', u32: 'int', u8: 'int', f32: 'float', string: 'str' }
+
+const py = (type) => pyTypes[type] || type
+
+// a `T[]` arg is followed by a count arg in the yml - the python binding reads
+// the length off the list itself, so the cart never passes it
+function pyParams(args) {
+  const entries = Object.entries(args)
+  const params = []
+  for (let i = 0; i < entries.length; i++) {
+    const [name, type] = entries[i]
+    params.push(`${name}: ${py(type)}`)
+    if (type.endsWith('[]')) {
+      i++
+    }
+  }
+  return params.join(', ')
+}
+
+const pyi = ['# null0 - type stubs for the null0 fantasy console', '#', '# GENERATED FILE - do not edit by hand. See tools/gen_cart_python.js', '#', '# The null0 API is available as plain globals in your cart - nothing to', '# import at runtime, same as the lua/js carts. This file is only here so', '# editors (anything pyright/Pylance-based) can complete & check your cart.', '#', '# Unlike lua and JS, python has no notion of ambient globals, so a checker', '# needs to be told the names exist. Put null0.pyi next to main.py and open', '# your cart with a type-checking-only import. The block never runs, so the', '# cart still just uses the globals at runtime:', '#', '#     TYPE_CHECKING = False', '#', '#     if TYPE_CHECKING:', '#         from null0 import *', '#', '#     # (this cart runtime is RustPython built without the stdlib, so do NOT', '#     # write `from typing import TYPE_CHECKING` - there is no typing module', '#     # to import. A plain module-level flag is what pyright looks for.)', '#', '#     def load():', '#         clear(BLUE)', '#         draw_circle(100, 100, 50, RED)', '', 'from typing import TypedDict', '']
+
+pyi.push('# TYPES', '')
+
+// the handle types are ints - an alias keeps the docs readable without making
+// them a distinct type the checker would fight you over
+for (const [name, { description }] of Object.entries(scalars)) {
+  if (!['Image', 'Font', 'Sound', 'Tilemap'].includes(name)) {
+    continue
+  }
+  pyi.push(`# ${description}`, `${name} = int`, '')
+}
+
+// enums cross as ints too
+for (const [name, { description }] of Object.entries(enums)) {
+  pyi.push(`# ${description}`, `${name} = int`, '')
+}
+
+for (const [name, { description, members }] of Object.entries(structs)) {
+  pyi.push(`class ${name}(TypedDict):`, `    """${description}"""`)
+  for (const [memberName, memberType] of Object.entries(members)) {
+    pyi.push(`    ${memberName}: ${pyMemberTypes[memberType] || memberType}`)
+  }
+  pyi.push('')
+}
+
+for (const [apiName, apiObj] of Object.entries(api)) {
+  if (!Object.keys(apiObj).length) {
+    continue
+  }
+  pyi.push(`# ${apiName.toUpperCase()}`, '')
+  for (const [funcName, { args, returns, description }] of Object.entries(apiObj)) {
+    pyi.push(`def ${funcName}(${pyParams(args)}) -> ${py(returns)}:`, `    """${description}"""`, '    ...', '')
+  }
+}
+
+pyi.push('# CONSTANTS', '')
+for (const [name, def] of Object.entries(constants)) {
+  if (def.description) {
+    pyi.push(`# ${def.description}`)
+  }
+  pyi.push(`${name}: ${py(def.type)}`, '')
+}
+
+for (const [enumName, enumDef] of Object.entries(enums)) {
+  pyi.push(`# ${enumDef.description}`)
+  for (const [entryName] of Object.entries(enumDef.enums)) {
+    pyi.push(`${entryName}: ${enumName}`)
+  }
+  pyi.push('')
+}
+
+pyi.push('# CALLBACKS', '#', '# Define the ones you need in main.py - the host skips any you leave out.', '#')
+for (const [name, { args, description }] of Object.entries({
+  load: { args: {}, description: 'Called once when the cart is loaded.' },
+  update: { args: {}, description: 'Called on every frame.' },
+  unload: { args: {}, description: 'Called when the cart is unloaded.' },
+  ...callbacks
+})) {
+  pyi.push(`# ${description}`, `#     def ${name}(${Object.keys(args).join(', ')}): ...`)
+}
+pyi.push('')
+
+await writeFile('carts/python/null0.pyi', pyi.join('\n').replace(/[ \t]+$/gm, ''))
+
+// A pyright config so a cart typechecks against null0.pyi out of the box.
+// null0 is a stub with no source module (the runtime supplies the names as
+// globals), which is exactly what reportMissingModuleSource complains about.
+await writeFile(
+  'carts/python/pyrightconfig.json',
+  JSON.stringify(
+    {
+      typeCheckingMode: 'standard',
+      reportMissingModuleSource: 'none'
+    },
+    null,
+    2
+  ) + '\n'
+)

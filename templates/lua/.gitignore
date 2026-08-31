@@ -1,0 +1,8 @@
+.DS_Store
+.vscode
+
+# the cart is a build artifact
+webroot/*.null0
+
+# fetched on demand with `npm run bindings`
+cart/null0.lua
