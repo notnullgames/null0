@@ -19,7 +19,6 @@
 //   notes[]     language-specific gotchas worth putting on the docs page
 //   example     the starter cart, copied verbatim into templates/<lang>/src
 //   amd64Only   image is linux/amd64 only
-//   base        image this one is FROM (CI builds it first, see BASE arg)
 //   decls(src)  -> { [apiFunctionName]: 'the declaration, verbatim' }
 
 import { readFile } from 'node:fs/promises'
@@ -169,7 +168,6 @@ export const languages = {
     highlight: 'nim',
     callback: 'proc load*() {.wasm.} =',
     toolchain: 'nim + wasi-sdk clang',
-    base: 'c',
     notes: ['`import null0`.'],
     decls: byLine(/^proc (\w+)\*\(/)
   },
@@ -183,7 +181,6 @@ export const languages = {
     highlight: 'lua',
     callback: "local function load() <cexport'load'> end",
     toolchain: 'nelua + wasi-sdk clang',
-    base: 'c',
     notes: ["`require 'null0'`. Nelua compiles to C, so it needs null0.h alongside null0.nelua."],
     decls: byLine(/^global function (\w+)\(/)
   },
@@ -361,7 +358,6 @@ export const languages = {
     highlight: 'typescript',
     callback: 'export function update () {}',
     toolchain: 'QuickJS, baked into main.wasm',
-    base: 'c',
     notes: ['The API is plain globals - nothing to import. Callbacks are ESM exports of `main.js`.', 'Structs are plain objects (`{ r: 0, g: 121, b: 241, a: 255 }`); array args know their own length, so you never pass the count.', '`std` and `os` from QuickJS are available as globals, as is WASI.', 'Drop `null0.d.ts` + `jsconfig.json` next to `main.js` for editor completion and typechecking.'],
     decls: byLine(/^\s*function (\w+)\(/)
   },
@@ -401,7 +397,6 @@ export const languages = {
     highlight: 'dart',
     callback: 'var update = Fn.new {}',
     toolchain: 'wren, baked into main.wasm',
-    base: 'c',
     notes: ['`import "null0" for Null0, BLUE` - the API hangs off the `Null0` class.', 'Callbacks are `Fn` values assigned to top-level variables.'],
     // zero-arg functions become wren getters, so match both forms and drop
     // the forwarding body - it's just plumbing to the `foreign static` import
@@ -434,7 +429,6 @@ export async function getLanguageDocs() {
       ...meta,
       registry: REGISTRY,
       imageRef: imageRef(lang),
-      base: lang.base || null,
       decls: binding ? decls(await readFile(binding, 'utf8')) : {}
     }
   }

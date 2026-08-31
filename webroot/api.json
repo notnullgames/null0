@@ -2179,7 +2179,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-c:latest",
-      "base": null,
       "decls": {
         "color_tint": "extern Color* color_tint(Color color, Color tint);",
         "color_fade": "extern Color* color_fade(Color color, f32 alpha);",
@@ -2354,7 +2353,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-rust:latest",
-      "base": null,
       "decls": {
         "color_tint": "pub fn color_tint(color: Color, tint: Color) -> *const Color;",
         "color_fade": "pub fn color_fade(color: Color, alpha: f32) -> *const Color;",
@@ -2530,7 +2528,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-zig:latest",
-      "base": null,
       "decls": {
         "color_tint": "pub extern \"null0\" fn color_tint(color: Color, tint: Color) *Color;",
         "color_fade": "pub extern \"null0\" fn color_fade(color: Color, alpha: f32) *Color;",
@@ -2706,7 +2703,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-go:latest",
-      "base": null,
       "decls": {
         "color_tint": "func ColorTint(color Color, tint Color) Color",
         "color_fade": "func ColorFade(color Color, alpha float32) Color",
@@ -2875,7 +2871,6 @@
       "highlight": "nim",
       "callback": "proc load*() {.wasm.} =",
       "toolchain": "nim + wasi-sdk clang",
-      "base": "c",
       "notes": [
         "`import null0`."
       ],
@@ -3050,7 +3045,6 @@
       "highlight": "lua",
       "callback": "local function load() <cexport'load'> end",
       "toolchain": "nelua + wasi-sdk clang",
-      "base": "c",
       "notes": [
         "`require 'null0'`. Nelua compiles to C, so it needs null0.h alongside null0.nelua."
       ],
@@ -3230,7 +3224,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-assemblyscript:latest",
-      "base": null,
       "decls": {
         "color_tint": "export declare function color_tint(color: Color, tint: Color): Color;",
         "color_fade": "export declare function color_fade(color: Color, alpha: f32): Color;",
@@ -3404,7 +3397,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-odin:latest",
-      "base": null,
       "decls": {
         "color_tint": "color_tint :: proc(color: Color, tint: Color) -> ^Color ---",
         "color_fade": "color_fade :: proc(color: Color, alpha: f32) -> ^Color ---",
@@ -3578,7 +3570,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-c3:latest",
-      "base": null,
       "decls": {
         "color_tint": "extern fn Color* color_tint(Color color, Color tint) @wasm(\"null0\", \"color_tint\");",
         "color_fade": "extern fn Color* color_fade(Color color, float alpha) @wasm(\"null0\", \"color_fade\");",
@@ -3752,7 +3743,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-d:latest",
-      "base": null,
       "decls": {
         "color_tint": "extern(C) Color* color_tint(Color color, Color tint);",
         "color_fade": "extern(C) Color* color_fade(Color color, float alpha);",
@@ -3927,7 +3917,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-onyx:latest",
-      "base": null,
       "decls": {
         "color_tint": "color_tint :: (color: Color, tint: Color) -> u32 ---",
         "color_fade": "color_fade :: (color: Color, alpha: f32) -> u32 ---",
@@ -4104,7 +4093,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-grain:latest",
-      "base": null,
       "decls": {
         "color_tint": "provide foreign wasm color_tint: (WasmI32, WasmI32) => WasmI32 from \"null0\"",
         "color_fade": "provide foreign wasm color_fade: (WasmI32, WasmF32) => WasmI32 from \"null0\"",
@@ -4280,7 +4268,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-haxe:latest",
-      "base": null,
       "decls": {
         "color_tint": "public static function colorTint(color:Color, tint:Color):Color",
         "color_fade": "public static function colorFade(color:Color, alpha:Single):Color",
@@ -4455,7 +4442,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-haskell:latest",
-      "base": null,
       "decls": {
         "color_tint": "colorTint :: Color -> Color -> IO Color",
         "color_fade": "colorFade :: Color -> CFloat -> IO Color",
@@ -4630,7 +4616,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-zenc:latest",
-      "base": null,
       "decls": {
         "color_tint": "extern Color* color_tint(Color color, Color tint);",
         "color_fade": "extern Color* color_fade(Color color, f32 alpha);",
@@ -4806,7 +4791,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-jik:latest",
-      "base": null,
       "decls": {
         "clear": "extern func clear as clear(color: int) -> void",
         "color_tint": "extern func color_tint as color_tint(color: int, tint: int) -> int",
@@ -4983,7 +4967,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-wat:latest",
-      "base": null,
       "decls": {
         "color_tint": "(import \"null0\" \"color_tint\" (func $color_tint (param i32 i32) (result i32)))",
         "color_fade": "(import \"null0\" \"color_fade\" (func $color_fade (param i32 f32) (result i32)))",
@@ -5161,7 +5144,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-walt:latest",
-      "base": null,
       "decls": {
         "color_tint": "type ColorTint = (i32, i32) => i32;\nimport { color_tint: ColorTint } from 'null0';",
         "color_fade": "type ColorFade = (i32, f32) => i32;\nimport { color_fade: ColorFade } from 'null0';",
@@ -5330,7 +5312,6 @@
       "highlight": "typescript",
       "callback": "export function update () {}",
       "toolchain": "QuickJS, baked into main.wasm",
-      "base": "c",
       "notes": [
         "The API is plain globals - nothing to import. Callbacks are ESM exports of `main.js`.",
         "Structs are plain objects (`{ r: 0, g: 121, b: 241, a: 255 }`); array args know their own length, so you never pass the count.",
@@ -5514,7 +5495,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-python:latest",
-      "base": null,
       "decls": {
         "color_tint": "def color_tint(color: Color, tint: Color) -> Color",
         "color_fade": "def color_fade(color: Color, alpha: float) -> Color",
@@ -5690,7 +5670,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-lua:latest",
-      "base": null,
       "decls": {
         "color_tint": "function color_tint(color, tint) end",
         "color_fade": "function color_fade(color, alpha) end",
@@ -5869,7 +5848,6 @@
       "highlight": "dart",
       "callback": "var update = Fn.new {}",
       "toolchain": "wren, baked into main.wasm",
-      "base": "c",
       "notes": [
         "`import \"null0\" for Null0, BLUE` - the API hangs off the `Null0` class.",
         "Callbacks are `Fn` values assigned to top-level variables."
@@ -6052,7 +6030,6 @@
       ],
       "registry": "ghcr.io/notnullgames",
       "imageRef": "ghcr.io/notnullgames/null0-cart-cyber:latest",
-      "base": null,
       "decls": {
         "color_tint": "fn color_tint(color Color, tint Color) -> Color",
         "color_fade": "fn color_fade(color Color, alpha f32) -> Color",

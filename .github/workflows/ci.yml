@@ -221,22 +221,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Image name
         id: img
-        run: |
-          node -e '
-            const l = require("./webroot/api.json").languages["${{ matrix.lang }}"]
-            const out = require("fs").createWriteStream(process.env.GITHUB_OUTPUT, { flags: "a" })
-            out.write("image=" + l.image + "\n")
-            out.write("base=" + (l.base || "") + "\n")
-          '
-      - name: Build base image
-        if: steps.img.outputs.base != ''
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: tools/docker/null0-cart-${{ steps.img.outputs.base }}.Dockerfile
-          load: true
-          tags: ghcr.io/notnullgames/null0-cart-${{ steps.img.outputs.base }}:latest
-          cache-from: type=gha,scope=${{ steps.img.outputs.base }}-amd64
+        run: echo "image=$(node -p "require('./webroot/api.json').languages['${{ matrix.lang }}'].image")" >> "$GITHUB_OUTPUT"
       - name: Build image
         uses: docker/build-push-action@v6
         with:
@@ -245,9 +230,6 @@ jobs:
           load: true
           tags: ghcr.io/notnullgames/null0-cart-${{ steps.img.outputs.image }}:latest
           labels: org.opencontainers.image.source=https://github.com/notnullgames/null0
-          # only meaningful for the images that declare a BASE arg; empty
-          # otherwise, so the rest don't get an unused build-arg warning
-          build-args: ${{ steps.img.outputs.base != '' && format('BASE=ghcr.io/notnullgames/null0-cart-{0}:latest', steps.img.outputs.base) || '' }}
           cache-from: type=gha,scope=${{ steps.img.outputs.image }}-amd64
           cache-to: type=gha,mode=max,scope=${{ steps.img.outputs.image }}-amd64
       - name: Build ${{ matrix.lang }} carts
@@ -284,19 +266,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Base image name
-        id: base
-        run: echo "base=$(node -p "require('./webroot/api.json').languages['${{ matrix.lang }}'].base || ''")" >> "$GITHUB_OUTPUT"
-      - name: Build base image
-        if: steps.base.outputs.base != ''
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: tools/docker/null0-cart-${{ steps.base.outputs.base }}.Dockerfile
-          platforms: linux/${{ matrix.arch }}
-          load: true
-          tags: ghcr.io/notnullgames/null0-cart-${{ steps.base.outputs.base }}:latest
-          cache-from: type=gha,scope=${{ steps.base.outputs.base }}-${{ matrix.arch }}
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v6
@@ -305,7 +274,6 @@ jobs:
           file: tools/docker/null0-cart-${{ matrix.image }}.Dockerfile
           platforms: linux/${{ matrix.arch }}
           labels: org.opencontainers.image.source=https://github.com/notnullgames/null0
-          build-args: ${{ steps.base.outputs.base != '' && format('BASE=ghcr.io/notnullgames/null0-cart-{0}:latest', steps.base.outputs.base) || '' }}
           cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}-${{ matrix.arch }}
           outputs: type=image,name=ghcr.io/notnullgames/null0-cart-${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true

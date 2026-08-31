@@ -82,16 +82,12 @@ Every push (not just tags) builds each image and then builds that language's
 carts *with the image it just built*, so a binding change and the image baking
 it can never drift apart.
 
-Four images - nelua, nim, quickjs and wren - are built on top of the C image.
-They take a `BASE` build-arg so CI can point them at the C image from the same
-run rather than a previously-published one:
-
-```sh
-docker build -f tools/docker/null0-cart-c.Dockerfile -t ghcr.io/notnullgames/null0-cart-c:latest .
-docker build -f tools/docker/null0-cart-nelua.Dockerfile \
-  --build-arg BASE=ghcr.io/notnullgames/null0-cart-c:latest \
-  -t ghcr.io/notnullgames/null0-cart-nelua:latest .
-```
+Every image is self-contained - none is built `FROM` another. nelua, nim,
+quickjs and wren used to derive from the C image, which meant they baked
+whatever `null0.h` the last *published* C image happened to carry. They now
+start from the wasi-sdk image and repeat the small preamble (zip, zipcart.sh,
+the toolchain env, `null0.h`) instead. If you change that preamble, change it
+in all five.
 
 To build one locally for debugging (`npm run gen` first, so the bindings it
 bakes are current):
