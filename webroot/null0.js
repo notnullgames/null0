@@ -1,4 +1,8 @@
-import WasiPreview1 from '@easywasm/wasi'
+// Pinned absolute URLs, not bare specifiers: this file is published to
+// https://notnullgames.github.io/null0/null0.js and is meant to be imported
+// straight from there, so it has to resolve without an import map on the
+// importing page.
+import WasiPreview1 from 'https://esm.sh/@easywasm/wasi@0.0.8'
 import fflatefs from './fflatefs.js'
 
 // this is output from emscripten
