@@ -1,0 +1,66 @@
+// null0 Jik example: color bars
+//
+// NOTE: Jik does not have u8, f32, or uint types, so we use C wrappers
+// in the @embed block to bridge the gap.
+
+@embed{C_END}
+#include "null0.h"
+
+// C wrappers to bridge Jik's type system to null0's ABI
+static void jik_clear(int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    clear(c);
+}
+static void jik_draw_rect(int x, int y, int w, int h, int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    draw_rectangle(x, y, w, h, c);
+}
+static void jik_draw_rect_outline(int x, int y, int w, int h, int t, int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    draw_rectangle_outline(x, y, w, h, t, c);
+}
+static void jik_draw_circ(int cx, int cy, int rad, int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    draw_circle(cx, cy, rad, c);
+}
+
+
+C_END
+
+// Jik extern declarations for the C wrappers
+extern func jik_clear as clear(r: int, g: int, b: int, a: int) -> void
+extern func jik_draw_rect as draw_rect(x: int, y: int, w: int, h: int, r: int, g: int, b: int, a: int) -> void
+extern func jik_draw_rect_outline as draw_rect_outline(x: int, y: int, w: int, h: int, t: int, r: int, g: int, b: int, a: int) -> void
+extern func jik_draw_circ as draw_circle(cx: int, cy: int, rad: int, r: int, g: int, b: int, a: int) -> void
+
+func rect(x: int, w: int, r: int, g: int, b: int):
+    draw_rect(x, 10, w, 460, r, g, b, 255)
+    draw_rect_outline(x, 10, w, 460, 1, 255, 255, 255, 255)
+end
+
+func load():
+    w := (640 - 11 * 10) / 10
+
+    // circles for visual interest
+    draw_circle(320, 240, 150, 255, 255, 255, 255)
+    draw_circle(320, 240, 100, 230, 41, 55, 255)
+    draw_circle(320, 240, 50, 0, 0, 0, 255)
+
+    // colored bars
+    rect(10, w, 230, 41, 55)
+    rect(10 + (w + 10) * 1, w, 255, 161, 0)
+    rect(10 + (w + 10) * 2, w, 253, 249, 0)
+    rect(10 + (w + 10) * 3, w, 0, 228, 48)
+    rect(10 + (w + 10) * 4, w, 0, 121, 241)
+    rect(10 + (w + 10) * 5, w, 200, 122, 255)
+    rect(10 + (w + 10) * 6, w, 255, 109, 194)
+    rect(10 + (w + 10) * 7, w, 102, 191, 255)
+    rect(10 + (w + 10) * 8, w, 0, 158, 47)
+    rect(10 + (w + 10) * 9, w, 255, 0, 255)
+end
+
+func update():
+end
+
+func main():
+end

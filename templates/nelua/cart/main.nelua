@@ -1,0 +1,18 @@
+require 'null0'
+
+local function load() <cexport'load'>
+  clear(BLUE)
+  draw_circle(100, 100, 50, RED)
+end
+
+-- callbacks (optional - implement as needed)
+
+-- local function update() <cexport'update'> end
+-- local function unload() <cexport'unload'> end
+-- local function buttonUp(button: GamepadButton, player: uint32) <cexport'buttonUp'> end
+-- local function buttonDown(button: GamepadButton, player: uint32) <cexport'buttonDown'> end
+-- local function keyUp(key: Key) <cexport'keyUp'> end
+-- local function keyDown(key: Key) <cexport'keyDown'> end
+-- local function mouseDown(button: MouseButton) <cexport'mouseDown'> end
+-- local function mouseUp(button: MouseButton) <cexport'mouseUp'> end
+-- local function mouseMoved(x: float32, y: float32) <cexport'mouseMoved'> end

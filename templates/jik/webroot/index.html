@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>mygame</title>
+    <!-- the player is loaded from null0's own github-pages, so there is
+         nothing to vendor here and nothing to keep up to date -->
+    <script type="module" src="https://notnullgames.github.io/null0/null0-cart.js"></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #000;
+      }
+      null0-cart {
+        width: min(100vw, 133.333vh);
+      }
+    </style>
+  </head>
+  <body>
+    <null0-cart src="mygame.null0" loading="eager"></null0-cart>
+  </body>
+</html>

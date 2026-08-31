@@ -143,7 +143,8 @@
     "gen:cart_haskell": "node tools/gen_cart_haskell.js",
     "gen:cart_cyber": "node tools/gen_cart_cyber.js",
     "gen:api_docs": "node tools/gen_api_docs.js",
-    "gen": "npx -y npm-run-all --parallel 'gen:*'"
+    "gen:templates": "node tools/gen_templates.js",
+    "gen": "npx -y npm-run-all --parallel 'gen:host' 'gen:cart_*' && npx -y npm-run-all --serial 'gen:api_docs' 'gen:templates'"
   },
   "dependencies": {
     "yaml": "latest"

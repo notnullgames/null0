@@ -1,0 +1,35 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build cart
+        run: |
+          mkdir -p webroot
+          rm -f webroot/mygame.null0 && docker run --rm --platform linux/amd64 -v ./cart:/src -v ./webroot:/out konsumer/null0-cart-haxe mygame
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./webroot
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
