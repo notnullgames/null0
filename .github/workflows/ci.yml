@@ -141,16 +141,62 @@ jobs:
           name: host_web
           path: null0_web.zip
 
+  # Everything generated from api/*.yml - the bindings, host.c, API.md,
+  # api.json, templates - has to be committed in sync with its generator.
+  # Nothing rebuilds it at release time, so a stale file ships as-is: v0.0.13
+  # went out with API.md and api.json still claiming 0.0.12, because a version
+  # bump alone changes generated output.
+  generated:
+    name: Generated files are current
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Regenerate
+        run: |
+          npm i
+          npm run gen
+      - name: Check for drift
+        run: |
+          if ! git diff --quiet; then
+            echo "::error::generated files are out of date - run 'npm run gen' and commit the result"
+            git --no-pager diff --stat
+            exit 1
+          fi
+          echo "all generated files match their generators"
+
+  # the cart languages, straight from the registry that also generates the
+  # bindings, API docs and templates (tools/lang_docs.js -> webroot/api.json).
+  # A hand-written list here silently fell five languages behind; this cannot.
+  languages:
+    name: Languages
+    runs-on: ubuntu-latest
+    outputs:
+      langs: ${{ steps.list.outputs.langs }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Collect cart languages
+        id: list
+        run: |
+          langs=$(node -p "JSON.stringify(Object.keys(require('./webroot/api.json').languages))")
+          echo "building carts for: ${langs}"
+          echo "langs=${langs}" >> "$GITHUB_OUTPUT"
+
   # builds every example cart, one job per language. the cart:*_<lang> npm
-  # scripts are the source of truth for what gets built (see package.json),
-  # and the published konsumer/null0-cart-<lang> images do the building
+  # scripts say which carts each language has (see package.json), and the
+  # published konsumer/null0-cart-<lang> images do the building
   carts:
     name: Carts (${{ matrix.lang }})
+    needs: languages
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        lang: [c, js, as, nelua, nim, rust, zig, go, wat, walt, d, odin, c3, onyx, grain, python, wren, lua]
+        lang: ${{ fromJSON(needs.languages.outputs.langs) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

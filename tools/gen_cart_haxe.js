@@ -126,7 +126,18 @@ const cMemberTypes = {
 seedTypes(hxTypes, { enums, structs }, { enumType: (name) => name, structType: (name) => name })
 seedTypes(cTypes, { enums, structs }, { enumType: 'int', structType: (name) => `Hx${name} *` })
 seedTypes(hxMemberTypes, { enums }, { enumType: (name) => name })
+
+// An extern's placeholder body has to typecheck too. On a static target an
+// enum abstract is an Int, so `return null` is rejected - a new enum that
+// isn't seeded here breaks the whole file. Structs are classes, so the `null`
+// fallback is right for those.
+seedTypes(hxDummy, { enums }, { enumType: '0' })
 seedTypes(cMemberTypes, { enums }, { enumType: 'int' })
+
+// cHostTypes was spread from cTypes above, i.e. before the seeding, so it
+// misses every type cTypes didn't name by hand - a struct return then gets
+// declared with the bare API name and the shim won't compile. Seed it too.
+seedTypes(cHostTypes, { enums, structs }, { enumType: 'int', structType: (name) => `Hx${name} *` })
 
 // a host string arrives as raw utf8 bytes, wrapped into a haxe String below
 hxTypes.string = 'String'
@@ -285,8 +296,16 @@ for (const [structName, structDef] of Object.entries(structs)) {
   for (const [memberName, memberType] of Object.entries(structDef.members)) {
     hx.push(`  public var ${memberName}:${hxMemberTypes[memberType] || memberType};`)
   }
+  // a default has to typecheck against its parameter: hl.Bytes (a string
+  // member) takes null, not 0, and haxe rejects the whole file otherwise
+  const memberDefault = (name, type) => {
+    if (hxMemberTypes[type] === 'hl.Bytes') {
+      return 'null'
+    }
+    return structName === 'Color' && name === 'a' ? 255 : 0
+  }
   const params = Object.entries(structDef.members)
-    .map(([n, t]) => `${n}:${hxMemberTypes[t] || t} = ${structName === 'Color' && n === 'a' ? 255 : 0}`)
+    .map(([n, t]) => `${n}:${hxMemberTypes[t] || t} = ${memberDefault(n, t)}`)
     .join(', ')
   hx.push(`  public function new(${params}) {`)
   for (const memberName of Object.keys(structDef.members)) {
