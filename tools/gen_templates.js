@@ -13,8 +13,8 @@
 //
 // What is left is your source, a package.json, two workflows and an index.html.
 
-import { mkdir, writeFile, rm, readdir, copyFile } from 'node:fs/promises'
-import { join, dirname } from 'node:path'
+import { mkdir, writeFile, rm, readdir, copyFile, readFile } from 'node:fs/promises'
+import { join, dirname, basename } from 'node:path'
 import { getLanguageDocs } from './lang_docs.js'
 
 const languages = await getLanguageDocs()
@@ -74,6 +74,17 @@ const indexHtml = `<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>mygame</title>
+    <!-- an import map has to come before any module script. only needed for
+         players published before the release that made them import by
+         absolute URL - safe to delete once you no longer care about those -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@easywasm/wasi": "https://esm.sh/@easywasm/wasi@0.0.8",
+          "fflate": "https://esm.sh/fflate@0.8.3/esm/browser.js"
+        }
+      }
+    </script>
     <!-- the player is loaded from null0's own github-pages, so there is
          nothing to vendor here and nothing to keep up to date -->
     <script type="module" src="${CDN}/null0-cart.js"></script>
@@ -219,6 +230,19 @@ function readme(lang) {
   return out.join('\n')
 }
 
+// A cart project that names itself (rust's Cargo.toml) would arrive calling
+// itself "simple", which breaks the template's "search for mygame and rename
+// it" instruction. Rewrite those to mygame as we copy.
+const MANIFESTS = new Set(['Cargo.toml', 'Cargo.lock'])
+
+async function renameProject(file, exampleName) {
+  const before = await readFile(file, 'utf8')
+  const after = before.replaceAll(`name = "${exampleName}"`, 'name = "mygame"')
+  if (after !== before) {
+    await writeFile(file, after)
+  }
+}
+
 // copy the language's `simple` cart in as the starting source
 async function copyExample(from, to) {
   for (const entry of await readdir(from, { withFileTypes: true })) {
@@ -230,6 +254,9 @@ async function copyExample(from, to) {
     } else {
       await mkdir(dirname(dest), { recursive: true })
       await copyFile(src, dest)
+      if (MANIFESTS.has(entry.name)) {
+        await renameProject(dest, basename(from))
+      }
     }
   }
 }

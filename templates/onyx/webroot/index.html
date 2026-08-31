@@ -4,6 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>mygame</title>
+    <!-- an import map has to come before any module script. only needed for
+         players published before the release that made them import by
+         absolute URL - safe to delete once you no longer care about those -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@easywasm/wasi": "https://esm.sh/@easywasm/wasi@0.0.8",
+          "fflate": "https://esm.sh/fflate@0.8.3/esm/browser.js"
+        }
+      }
+    </script>
     <!-- the player is loaded from null0's own github-pages, so there is
          nothing to vendor here and nothing to keep up to date -->
     <script type="module" src="https://notnullgames.github.io/null0/null0-cart.js"></script>
