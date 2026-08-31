@@ -100,6 +100,7 @@ You can currently do all of these things yourself, or use a library for your lan
 - [ ] physics
 - [ ] radio. consider `rx_sdr -f 100M -s 2.4M - | csdr convert_u8_f | csdr fft_cc 1024 | python3 plot_fft.py`
 - [ ] behind CLI flag: call native program, native files
+- [ ] sound-streaming callback for generating sound on the fly (mixed with other sound stuff)
 
 ## thanks
 
