@@ -15,6 +15,10 @@ go stale against the engine.
 npm start                     # build cart/, serve webroot/, rebuild on change
 ```
 
+All you need installed is docker and node - each language's compiler (or
+interpreter) and the current null0 bindings live in
+`ghcr.io/notnullgames/null0-cart-<image>`, built by CI on every release.
+
 They are generated (`npm run gen:templates`) and pushed to their repos by the
 `Sync cart templates` workflow, so adding a language here gives it a template
 for free.

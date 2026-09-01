@@ -15,7 +15,7 @@ jobs:
       - name: Build cart
         run: |
           mkdir -p webroot
-          rm -f webroot/mygame.null0 && docker run --rm -v ./cart:/src -v ./webroot:/out konsumer/null0-cart-haskell mygame
+          rm -f webroot/mygame.null0 && docker run --rm -v ./cart:/src -v ./webroot:/out ghcr.io/notnullgames/null0-cart-haskell:latest mygame
       - name: Attach cart to release
         run: gh release upload ${{ github.event.release.tag_name }} webroot/mygame.null0
         env:
