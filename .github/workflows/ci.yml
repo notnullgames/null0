@@ -370,6 +370,47 @@ jobs:
           name: carts_${{ matrix.lang }}
           path: build/carts/*_${{ matrix.lang }}.null0
 
+  # A picture of every cart, for the gallery cards on the website. Taken by
+  # running the real web player headlessly, so a card can't show something the
+  # cart doesn't actually do - and a cart that renders nothing is reported.
+  screenshots:
+    name: Screenshots
+    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
+    needs: [carts, host_web]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Download carts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: carts_*
+          path: artifacts
+      - name: Download web host
+        uses: actions/download-artifact@v4
+        with:
+          name: host_web
+          path: hostweb
+      - name: Collect
+        run: |
+          mkdir -p build/carts wbuild/host
+          mv artifacts/carts_*/*.null0 build/carts/
+          unzip -j hostweb/null0_web.zip -d wbuild/host
+      - name: Install playwright
+        run: |
+          npm i
+          npx playwright install --with-deps chromium
+      - name: Screenshot every cart
+        run: npm run carts:screenshots
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: cart_screenshots
+          path: build/carts/*.png
+
   # this creates a release on any tag, and attaches all the artifacts to it, then uploads demo page
   release:
     name: Release Tag
@@ -378,6 +419,7 @@ jobs:
     needs:
       - carts
       - manifests
+      - screenshots
       - host_linux
       - host_mac
       - host_windows
@@ -398,6 +440,11 @@ jobs:
         with:
           pattern: host_*
           path: artifacts
+      - name: Download cart screenshots
+        uses: actions/download-artifact@v4
+        with:
+          name: cart_screenshots
+          path: artifacts/screenshots
       - run: ls -al artifacts
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
@@ -409,6 +456,7 @@ jobs:
           unzip -j ../artifacts/host_web/null0_web.zip -d .
           mkdir -p carts
           mv ../artifacts/carts_*/*.null0 carts/
+          mv ../artifacts/screenshots/*.png carts/
           cd carts
           ls *.null0 > list.txt
       - name: Check images are pullable

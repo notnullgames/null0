@@ -123,9 +123,13 @@
     "gen": "npx -y npm-run-all --parallel 'gen:host' 'gen:cart_*' && npx -y npm-run-all --serial 'gen:api_docs' 'gen:templates' 'gen:scripts'",
     "version": "npm run gen && git add -A",
     "carts:list": "mkdir -p build/carts && (cd build/carts && ls *.null0 2>/dev/null > list.txt; true)",
+    "carts:screenshots": "node tools/screenshot_carts.js",
     "check:images": "node tools/check_images.js"
   },
   "dependencies": {
     "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.0"
   }
 }
