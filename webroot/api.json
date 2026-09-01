@@ -3565,6 +3565,7 @@
       "highlight": "c",
       "callback": "fn void load() @export(\"load\") {}",
       "toolchain": "c3c",
+      "amd64Only": true,
       "notes": [
         "`module main` plus `import null0`."
       ],

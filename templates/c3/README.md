@@ -22,8 +22,10 @@ Or call docker yourself:
 
 ```sh
 rm -f webroot/mygame.null0
-docker run --rm --user $(id -u):$(id -g) -v ./cart:/src -v ./webroot:/out ghcr.io/notnullgames/null0-cart-c3:latest mygame
+docker run --rm --user $(id -u):$(id -g) --platform linux/amd64 -v ./cart:/src -v ./webroot:/out ghcr.io/notnullgames/null0-cart-c3:latest mygame
 ```
+
+> This image is `linux/amd64` only, so on Apple Silicon it runs under emulation. That works, it is just slow.
 
 ## writing your game
 

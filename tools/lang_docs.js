@@ -220,6 +220,9 @@ export const languages = {
     highlight: 'c',
     callback: 'fn void load() @export("load") {}',
     toolchain: 'c3c',
+    // c3c only ships x86_64 linux builds - the aarch64 assets are android and
+    // windows, so there is nothing to install on arm64
+    amd64Only: true,
     notes: ['`module main` plus `import null0`.'],
     decls: byLine(/^extern fn \S+ (\w+)\(/)
   },
