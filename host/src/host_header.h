@@ -1054,10 +1054,51 @@ bool host_init(pntr_app *app) {
   return ret;
 }
 
+// Mouse-button events are queued here and handed to microui at a fixed point
+// in the frame, rather than the instant they arrive.
+//
+// Two reasons. The edges are lost if we let pntr_microui_update derive them
+// (see below), and the web build is -sASYNCIFY, so a JS event callback can run
+// while the C frame is suspended - including after the cart has drawn its
+// widgets but before mu_end(), which clears mouse_pressed. A press that lands
+// in that window is consumed without any widget ever seeing it, and where it
+// lands moves around run to run. Draining the queue at the top of the frame
+// means every press is observed by exactly one widget pass.
+#define NULL0_GUI_QUEUE 32
+typedef struct {
+  int button;
+  int x;
+  int y;
+  bool down;
+} Null0GuiMouseEvent;
+static Null0GuiMouseEvent gui_mouse_queue[NULL0_GUI_QUEUE];
+static int gui_mouse_queued = 0;
+
+static void null0_gui_queue_mouse(int button, int x, int y, bool down) {
+  if (button == 0 || gui_mouse_queued >= NULL0_GUI_QUEUE) {
+    return;
+  }
+  gui_mouse_queue[gui_mouse_queued++] = (Null0GuiMouseEvent){.button = button, .x = x, .y = y, .down = down};
+}
+
+static void null0_gui_drain_mouse() {
+  for (int i = 0; i < gui_mouse_queued; i++) {
+    Null0GuiMouseEvent *e = &gui_mouse_queue[i];
+    if (e->down) {
+      mu_input_mousedown(gui_ctx, e->x, e->y, e->button);
+    } else {
+      mu_input_mouseup(gui_ctx, e->x, e->y, e->button);
+    }
+  }
+  gui_mouse_queued = 0;
+}
+
 bool host_update(pntr_app *app) {
   if (gui_ctx != NULL) {
     // feed input into the gui and begin the frame - carts build UI in update
     pntr_microui_update(gui_ctx, app);
+    // ...then this frame's button presses, so the widgets below always see them
+    null0_gui_drain_mouse();
     gui_frame_ended = false;
   }
   cart_update();
@@ -1128,19 +1169,13 @@ void host_event(pntr_app_event *event) {
   // TODO: it would be cool to handle wheel, DnD, cheat & save events as well
   if (event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN) {
     if (gui_ctx != NULL) {
-      int button = null0_mu_mouse_button(event->mouseButton);
-      if (button) {
-        mu_input_mousedown(gui_ctx, (int)event->mouseX, (int)event->mouseY, button);
-      }
+      null0_gui_queue_mouse(null0_mu_mouse_button(event->mouseButton), (int)event->mouseX, (int)event->mouseY, true);
     }
     cart_mouseDown(event->mouseButton);
   }
   if (event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_UP) {
     if (gui_ctx != NULL) {
-      int button = null0_mu_mouse_button(event->mouseButton);
-      if (button) {
-        mu_input_mouseup(gui_ctx, (int)event->mouseX, (int)event->mouseY, button);
-      }
+      null0_gui_queue_mouse(null0_mu_mouse_button(event->mouseButton), (int)event->mouseX, (int)event->mouseY, false);
     }
     cart_mouseUp(event->mouseButton);
   }
