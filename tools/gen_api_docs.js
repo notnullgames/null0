@@ -106,7 +106,8 @@ out.push(f.join('---\n'))
 // table doubles as a status list. The per-function declarations for each
 // language are in api.json (and rendered on the website) - putting 154
 // functions x 23 languages in here would bury the reference itself.
-out.push('', '## languages', '', `A cart can be written in any of these. \`<image>\` is the docker image that builds it: \`docker run --rm -v .:/src -v .:/out konsumer/null0-cart-<image> mygame\`.`, '')
+out.push('', '## languages', '', `A cart can be written in any of these. Each one has a docker image that builds it, published to this repo's package registry by CI:`, '')
+out.push('', '```sh', 'docker run --rm -v .:/src -v .:/out ghcr.io/notnullgames/null0-cart-<image> mygame', '```', '')
 out.push('| language | image | kind | cart source | callback | bindings |')
 out.push('| --- | --- | --- | --- | --- | --- |')
 for (const [id, lang] of Object.entries(languages)) {

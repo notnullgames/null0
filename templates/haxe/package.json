@@ -2,7 +2,7 @@
   "name": "mygame",
   "private": true,
   "scripts": {
-    "build": "mkdir -p webroot && rm -f webroot/mygame.null0 && docker run --rm --user $(id -u):$(id -g) --platform linux/amd64 -v ./cart:/src -v ./webroot:/out konsumer/null0-cart-haxe mygame",
+    "build": "mkdir -p webroot && rm -f webroot/mygame.null0 && docker run --rm --user $(id -u):$(id -g) --platform linux/amd64 -v ./cart:/src -v ./webroot:/out ghcr.io/notnullgames/null0-cart-haxe:latest mygame",
     "web": "npx -y live-server webroot",
     "build:watch": "npx -y nodemon -e hx,png,json,wav,ogg,tmx,tsx --watch cart --exec 'npm run build'",
     "start": "npm run build && npx -y npm-run-all -p web build:watch"

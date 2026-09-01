@@ -259,7 +259,7 @@ Checklist:
 5. `tools/docker/README.md` (3 lists + the test line) and the README checkbox.
 6. Verify it actually runs (below), then tick the box - not before.
 
-Naming: image `konsumer/null0-cart-<lang>`, cart output `<example>_<lang>.null0`.
+Naming: image `ghcr.io/notnullgames/null0-cart-<lang>`, cart output `<example>_<lang>.null0`.
 
 Ergonomics matter more than a 1:1 mapping. Use the language's idioms (wren gets
 classes and getters, lua gets plain globals and tables, go gets `CamelCase`), and
@@ -275,7 +275,7 @@ cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --targ
 #    (the scripts no longer use `-it`, so they work without a TTY)
 docker run --rm --user $(id -u):$(id -g) \
   -v ./carts/lua/simple:/src -v ./build/carts:/out \
-  konsumer/null0-cart-lua simple_lua
+  ghcr.io/notnullgames/null0-cart-lua simple_lua
 
 # 3. run it. it opens a window, so always use a timeout
 timeout 8 ./build/host/null0 build/carts/simple_lua.null0
@@ -303,6 +303,28 @@ Gotchas while testing: C carts need `fflush(stdout)` or output is lost when the
 timeout kills the process; a cart with no `main()` logs a harmless
 `undefined_weak:main` trap.
 
+## Releasing
+
+`npm version patch` (or minor/major). The `version` script regenerates and
+stages everything first, so the bump and its regenerated output are one commit
+- both 0.0.13 and 0.0.14 shipped without that and failed CI's drift check.
+Then `git push --follow-tags`.
+
+The tag does the rest: builds and pushes every cart image to
+`ghcr.io/notnullgames/null0-cart-*` (amd64 + arm64, native runners), builds all
+the carts and hosts, creates the release, deploys the web player and
+`api.json` to pages, and triggers a docs-site rebuild. Nothing is published by
+hand.
+
+The docs trigger and the template sync both use one secret, `NULL0_BOT_TOKEN`
+(a PAT with repo scope - the built-in `GITHUB_TOKEN` can't reach another
+repo). Without it the release still succeeds and the docs job just warns.
+
+Two things a tag does *not* do: sync the `cart_<lang>` template repos (run the
+`Sync cart templates` workflow, dry-run first), and make a brand-new GHCR
+package public - the first push of a new image creates a private package, so
+set the org's default package visibility or flip it once per package.
+
 ## Conventions
 
 - Formatting: `.clang-format` for C, `.prettierrc` for JS (2 spaces, no
@@ -317,10 +339,11 @@ timeout kills the process; a cart with no `main()` logs a harmless
 
 ## Known rough edges
 
-- The docker images bake generated headers/glue, so a stale image silently builds
-  carts against an old API. Rebuild after `npm run gen`. CI builds carts with
-  the _published_ images, so publish them before tagging a release that changed
-  the API.
+- The docker images bake generated headers/glue, so a stale image builds carts
+  against an old API. Locally that's on you: `npm run gen`, then
+  `npm run docker:cart_<lang>` before `npm run cart:*_<lang>`. CI doesn't have
+  the problem - it builds each image and that language's carts in the same job,
+  so they always match.
 - On the web host, struct/string returns need the cart to export `malloc`
   (and `free` for the gc) - carts without them (wat/walt/grain) can't use
   struct-returning functions on the web.

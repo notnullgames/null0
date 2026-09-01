@@ -65,7 +65,7 @@ than special-casing the generator.
 ```sh
 npm run gen                                   # host.c, API.md, all bindings
 cmake --build build --target host             # native host
-docker build -f tools/docker/null0-cart-c.Dockerfile -t konsumer/null0-cart-c .
+docker build -f tools/docker/null0-cart-c.Dockerfile -t ghcr.io/notnullgames/null0-cart-c .
 ```
 
 Images bake the generated headers/glue, so **rebuild every image you intend to

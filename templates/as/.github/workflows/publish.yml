@@ -18,7 +18,7 @@ jobs:
       - name: Build cart
         run: |
           mkdir -p webroot
-          rm -f webroot/mygame.null0 && docker run --rm -v ./cart:/src -v ./webroot:/out konsumer/null0-cart-assemblyscript mygame
+          rm -f webroot/mygame.null0 && docker run --rm -v ./cart:/src -v ./webroot:/out ghcr.io/notnullgames/null0-cart-assemblyscript:latest mygame
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./webroot

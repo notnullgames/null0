@@ -1,6 +1,6 @@
 # Cart languages
 
-`<lang>` here is the docker image suffix: `konsumer/null0-cart-<image>`.
+`<lang>` here is the docker image suffix: `ghcr.io/notnullgames/null0-cart-<image>`.
 
 The machine-readable version of this table is `tools/lang_docs.js` (and the
 `languages` section of `API.md` / `webroot/api.json` generated from it). If you

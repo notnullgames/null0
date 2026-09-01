@@ -9,7 +9,7 @@
 //
 // Each language entry:
 //   title       display name
-//   image       konsumer/null0-cart-<image>
+//   image       the image's short name; the full ref is imageRef() below
 //   kind        'compiled' | 'interpreted'
 //   file        what the cart's source file is called
 //   binding     generated file the declarations are read from (null if none)
@@ -22,6 +22,18 @@
 //   decls(src)  -> { [apiFunctionName]: 'the declaration, verbatim' }
 
 import { readFile } from 'node:fs/promises'
+
+// Cart images live in this repo's own GitHub package registry, built and
+// pushed by CI on every tag. Nothing here is published by hand any more, so
+// this is the one place the location is written down - templates, the docs
+// site, the README and CI all read it from here (via webroot/api.json).
+export const REGISTRY = 'ghcr.io/notnullgames'
+
+export const imageName = (lang) => `${REGISTRY}/null0-cart-${lang.image}`
+
+// `latest` for humans, an exact version for anything that wants to be
+// reproducible
+export const imageRef = (lang, tag = 'latest') => `${imageName(lang)}:${tag}`
 
 // Most bindings are one declaration per line. `byLine` walks the file and, for
 // each line matching `re`, uses capture group 1 as the null0 function name and
@@ -415,6 +427,8 @@ export async function getLanguageDocs() {
       binding,
       example: example || `carts/${id}/simple`,
       ...meta,
+      registry: REGISTRY,
+      imageRef: imageRef(lang),
       decls: binding ? decls(await readFile(binding, 'utf8')) : {}
     }
   }

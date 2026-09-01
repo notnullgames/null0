@@ -25,13 +25,13 @@ pass `-it`, so they work without a TTY):
 mkdir -p build/carts
 docker run --rm --user $(id -u):$(id -g) \
   -v ./carts/lua/simple:/src -v ./build/carts:/out \
-  konsumer/null0-cart-lua simple_lua
+  ghcr.io/notnullgames/null0-cart-lua simple_lua
 ```
 
 `npm run carts` builds every example cart in parallel; CI builds them
 per-language with `npx npm-run-all --parallel 'cart:*_<lang>'`.
 
-If the image is missing: `docker build -f tools/docker/null0-cart-lua.Dockerfile -t konsumer/null0-cart-lua .`
+If the image is missing: `docker build -f tools/docker/null0-cart-lua.Dockerfile -t ghcr.io/notnullgames/null0-cart-lua .`
 (or pull it). **Rebuild the image after `npm run gen`** - images bake a copy of
 the generated bindings, so a stale image compiles against the old API.
 
