@@ -1103,12 +1103,45 @@ static pntr_app_gamepad_button cart_map_key(pntr_app_key key) {
   }
 }
 
+// microui takes mouse buttons as edges, and on the web those edges get lost:
+// browser events land between frames, and pntr_app_pre_events copies
+// mouseButtonsDown into mouseButtonsDownLast at the top of the frame - so by
+// the time pntr_microui_update tests `down && !downLast` the press already
+// looks old. Hover kept working (it only needs a position), which is why the
+// gui looked alive but nothing was clickable. Feeding microui straight from
+// the event is unambiguous. Safe alongside pntr_microui_update's own
+// handling: mu_input_mouse* just OR/AND bits, so a duplicate is a no-op.
+static int null0_mu_mouse_button(pntr_app_mouse_button button) {
+  switch (button) {
+  case PNTR_APP_MOUSE_BUTTON_LEFT:
+    return MU_MOUSE_LEFT;
+  case PNTR_APP_MOUSE_BUTTON_RIGHT:
+    return MU_MOUSE_RIGHT;
+  case PNTR_APP_MOUSE_BUTTON_MIDDLE:
+    return MU_MOUSE_MIDDLE;
+  default:
+    return 0;
+  }
+}
+
 void host_event(pntr_app_event *event) {
   // TODO: it would be cool to handle wheel, DnD, cheat & save events as well
   if (event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN) {
+    if (gui_ctx != NULL) {
+      int button = null0_mu_mouse_button(event->mouseButton);
+      if (button) {
+        mu_input_mousedown(gui_ctx, (int)event->mouseX, (int)event->mouseY, button);
+      }
+    }
     cart_mouseDown(event->mouseButton);
   }
   if (event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_UP) {
+    if (gui_ctx != NULL) {
+      int button = null0_mu_mouse_button(event->mouseButton);
+      if (button) {
+        mu_input_mouseup(gui_ctx, (int)event->mouseX, (int)event->mouseY, button);
+      }
+    }
     cart_mouseUp(event->mouseButton);
   }
   if (event->type == PNTR_APP_EVENTTYPE_MOUSE_MOVE) {
