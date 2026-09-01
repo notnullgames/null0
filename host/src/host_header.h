@@ -686,42 +686,49 @@ bool null0_gui_begin_window(char *title, pntr_rectangle rect) {
   return mu_begin_window(gui_ctx, title, pntr_rectangle_to_mu_rect(rect));
 }
 
-// microui derives a checkbox's and a slider's id from the ADDRESS of the state
-// pointer it is handed (mu_get_id(ctx, &state, sizeof(state))), not from the
-// label. That id has to stay the same frame to frame, because a click is only
-// registered when `hover` - set on an earlier frame, while the button was up -
-// still matches it.
+// microui identifies a control by the address of the state you hand it, and
+// its own API expects that state to belong to the caller:
 //
-// The obvious `int s` local does not give that on the web: -sASYNCIFY unwinds
-// and rewinds the C stack, so the local's address moves between frames, the id
-// changes with it, and the control is never clickable. Natively the stack is
-// fixed, which is exactly why the checkbox worked there and nowhere else.
-// (mu_button is unaffected - it hashes the label text.)
+//   mu_checkbox(ctx, "Checkbox 1", &checks[0]);
+//   mu_checkbox(ctx, "Checkbox 2", &checks[1]);
 //
-// File-scope slots have a fixed address. The checkbox additionally pushes its
-// label as an id scope, so two checkboxes still get different ids.
-static int gui_checkbox_state;
-static mu_Real gui_slider_value;
+// so the address is stable frame to frame *and* different per widget, without
+// anyone naming an id. null0's API passes state by value instead - carts in 23
+// languages can't all hand out pointers - so the host has to supply that
+// address, and a plain local supplies a bad one: its stack address moves
+// between frames on the web (-sASYNCIFY unwinds and rewinds the stack), the id
+// moves with it, and a click never matches the `hover` recorded on the frame
+// before. That is why the checkbox worked natively and never in a browser.
+//
+// Giving each widget a slot keyed by its position in the frame restores both
+// properties. Immediate-mode UI is called in the same order every frame, so
+// the Nth checkbox is the same checkbox - the same reasoning that lets microui
+// use &checks[0] and &checks[1].
+#define NULL0_GUI_MAX_WIDGETS 64
+static int gui_checkbox_slots[NULL0_GUI_MAX_WIDGETS];
+static mu_Real gui_slider_slots[NULL0_GUI_MAX_WIDGETS];
+static int gui_checkbox_count = 0;
+static int gui_slider_count = 0;
+
+static void null0_gui_reset_widgets() {
+  gui_checkbox_count = 0;
+  gui_slider_count = 0;
+}
 
 // a checkbox that takes and returns its state by value
 bool null0_gui_checkbox(char *label, bool state) {
-  gui_checkbox_state = state ? 1 : 0;
-  mu_push_id(gui_ctx, label, (int)strlen(label));
-  mu_checkbox(gui_ctx, label, &gui_checkbox_state);
-  mu_pop_id(gui_ctx);
-  return gui_checkbox_state != 0;
+  int slot = gui_checkbox_count < NULL0_GUI_MAX_WIDGETS ? gui_checkbox_count++ : NULL0_GUI_MAX_WIDGETS - 1;
+  gui_checkbox_slots[slot] = state ? 1 : 0;
+  mu_checkbox(gui_ctx, label, &gui_checkbox_slots[slot]);
+  return gui_checkbox_slots[slot] != 0;
 }
 
 // a slider that takes and returns its value by value
-//
-// NOTE: null0's gui_slider takes no label, so there is nothing to scope the id
-// with - two sliders in one window would share an id. That was already true
-// before this change; giving the value a fixed address only makes the single
-// slider case reliable.
 float null0_gui_slider(float value, float low, float high) {
-  gui_slider_value = value;
-  mu_slider(gui_ctx, &gui_slider_value, low, high);
-  return (float)gui_slider_value;
+  int slot = gui_slider_count < NULL0_GUI_MAX_WIDGETS ? gui_slider_count++ : NULL0_GUI_MAX_WIDGETS - 1;
+  gui_slider_slots[slot] = value;
+  mu_slider(gui_ctx, &gui_slider_slots[slot], low, high);
+  return (float)gui_slider_slots[slot];
 }
 
 // set the current layout row (microui takes the count first, our ABI puts it after the array)
@@ -1105,16 +1112,28 @@ static void null0_gui_queue_mouse(int button, int x, int y, bool down) {
   gui_mouse_queue[gui_mouse_queued++] = (Null0GuiMouseEvent){.button = button, .x = x, .y = y, .down = down};
 }
 
+// One event per frame, deliberately. microui resolves a press against the
+// `hover` recorded on the previous frame, so a press and its release applied
+// in the same widget pass cancel out - the control is hovered, pressed and
+// released before anything can react. Handing over one transition per frame
+// gives every edge its own pass. A fast click takes two frames to resolve,
+// which is a third of a frame's delay nobody can perceive.
 static void null0_gui_drain_mouse() {
-  for (int i = 0; i < gui_mouse_queued; i++) {
-    Null0GuiMouseEvent *e = &gui_mouse_queue[i];
-    if (e->down) {
-      mu_input_mousedown(gui_ctx, e->x, e->y, e->button);
-    } else {
-      mu_input_mouseup(gui_ctx, e->x, e->y, e->button);
-    }
+  if (gui_mouse_queued == 0) {
+    return;
   }
-  gui_mouse_queued = 0;
+
+  Null0GuiMouseEvent e = gui_mouse_queue[0];
+  if (e.down) {
+    mu_input_mousedown(gui_ctx, e.x, e.y, e.button);
+  } else {
+    mu_input_mouseup(gui_ctx, e.x, e.y, e.button);
+  }
+
+  for (int i = 1; i < gui_mouse_queued; i++) {
+    gui_mouse_queue[i - 1] = gui_mouse_queue[i];
+  }
+  gui_mouse_queued--;
 }
 
 bool host_update(pntr_app *app) {
@@ -1123,6 +1142,8 @@ bool host_update(pntr_app *app) {
     pntr_microui_update(gui_ctx, app);
     // ...then this frame's button presses, so the widgets below always see them
     null0_gui_drain_mouse();
+    // widget slots are handed out in call order, so start over each frame
+    null0_gui_reset_widgets();
     gui_frame_ended = false;
   }
   cart_update();
