@@ -144,7 +144,8 @@
     "gen:cart_cyber": "node tools/gen_cart_cyber.js",
     "gen:api_docs": "node tools/gen_api_docs.js",
     "gen:templates": "node tools/gen_templates.js",
-    "gen": "npx -y npm-run-all --parallel 'gen:host' 'gen:cart_*' && npx -y npm-run-all --serial 'gen:api_docs' 'gen:templates'"
+    "gen": "npx -y npm-run-all --parallel 'gen:host' 'gen:cart_*' && npx -y npm-run-all --serial 'gen:api_docs' 'gen:templates'",
+    "version": "npm run gen && git add -A"
   },
   "dependencies": {
     "yaml": "^2.9.0"
