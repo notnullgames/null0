@@ -2451,7 +2451,7 @@ func registerConstants(L *lua.LState) {
 	L.SetGlobal("BLANK", colorTable(L, unsafe.Pointer(&Color{R: 0, G: 0, B: 0, A: 0})))
 	L.SetGlobal("MAGENTA", colorTable(L, unsafe.Pointer(&Color{R: 255, G: 0, B: 255, A: 255})))
 	L.SetGlobal("RAYWHITE", colorTable(L, unsafe.Pointer(&Color{R: 245, G: 245, B: 245, A: 255})))
-	L.SetGlobal("NULL0_VERSION", lua.LString("0.0.15"))
+	L.SetGlobal("NULL0_VERSION", lua.LString("0.0.16"))
 	L.SetGlobal("FILTER_NEARESTNEIGHBOR", lua.LNumber(0))
 	L.SetGlobal("FILTER_BILINEAR", lua.LNumber(1))
 	L.SetGlobal("FILTER_SMOOTH", lua.LNumber(2))
