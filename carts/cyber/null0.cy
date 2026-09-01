@@ -446,7 +446,7 @@ global BLANK Color = Color{r=0, g=0, b=0, a=0}
 global MAGENTA Color = Color{r=255, g=0, b=255, a=255}
 global RAYWHITE Color = Color{r=245, g=245, b=245, a=255}
 -- The current tagged version of null0 engine
-global NULL0_VERSION str = '0.0.16'
+global NULL0_VERSION str = '0.0.17'
 
 -- Potential image-filtering techniques for scale/etc.
 global FILTER_NEARESTNEIGHBOR i32 = 0
