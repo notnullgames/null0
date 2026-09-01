@@ -83,7 +83,7 @@ class Null0 {
   static inline function get_MAGENTA():Color return new Color(255, 0, 255, 255);
   public static var RAYWHITE(get, never):Color;
   static inline function get_RAYWHITE():Color return new Color(245, 245, 245, 255);
-  public static inline var NULL0_VERSION = "0.0.18";
+  public static inline var NULL0_VERSION = "0.0.19";
 
   // callbacks - assign these in main(), eg: Null0.onUpdate = () -> { ... }
 
