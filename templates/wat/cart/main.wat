@@ -3,7 +3,10 @@
   (import "null0" "clear" (func $clear (param i32)))
   (import "null0" "draw_circle" (func $draw_circle (param i32 i32 i32 i32)))
 
-  (memory (export "memory") 1)
+  ;; two pages: the colour data segments below are at 65536, which is one page
+  ;; in - with 1 page the module fails to instantiate ("data segment is out of
+  ;; bounds"), and it must be exported so the host can read Color pointers
+  (memory (export "memory") 2)
 
   ;; Color is a pointer to 4 bytes (r, g, b, a) in your memory, not a packed
   ;; scalar - see null0.wat for the full list of predefined color constants

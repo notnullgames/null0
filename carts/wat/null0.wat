@@ -7,7 +7,8 @@
 ;;
 ;;   (module
 ;;     (import "null0" "clear" (func $clear (param i32)))
-;;     (memory (export "memory") 1)
+;;     (memory (export "memory") 2)   ;; two pages: the color data segments
+;;                                   ;; below sit at 65536, one page in
 ;;     (data (i32.const 65536) "\00\79\f1\ff") ;; BLUE bytes (r g b a)
 ;;     (global $blue i32 (i32.const 65536))
 ;;     (func (export "load")

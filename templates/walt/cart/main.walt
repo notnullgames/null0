@@ -7,7 +7,7 @@
 // two pages: the colors below live at 65536, which is one page in - with
 // `initial: 1` (65536 bytes, addresses 0-65535) every store8 here is off the
 // end and the cart traps with "memory access out of bounds"
-const memory: Memory = { initial: 2 };
+export const memory: Memory = { initial: 2 };
 
 const BLUE: i32 = 65536; // rgba(0, 121, 241, 255)
 const RED: i32 = 65540; // rgba(230, 41, 55, 255)

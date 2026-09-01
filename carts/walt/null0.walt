@@ -5,7 +5,12 @@
 // (walt requires this even for plain i32.store8, and importing memory from
 // 'env' doesn't work here since null0 doesn't provide it):
 //
-//   const memory: Memory = { initial: 2 };  // colors live at 65536, one page in
+//   export const memory: Memory = { initial: 2 };
+//
+//   two pages because the colors live at 65536, one page in; and exported
+//   because the web host reads Color pointers out of cart.memory.buffer
+//   (the native host gets the memory instance from WAMR either way, so a
+//   missing export only breaks in a browser)
 //
 //   type Clear = (i32) => void;
 //   import { clear: Clear } from 'null0';
