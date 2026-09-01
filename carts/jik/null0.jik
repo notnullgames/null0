@@ -310,11 +310,20 @@ alias Tilemap = int
 // Draw an image, scaled, on the screen.
 // extern func draw_image_scaled as draw_image_scaled(src: Image, posX: int, posY: int, scaleX: double, scaleY: double, offsetX: double, offsetY: double, filter: int) -> void
 // Draw some text on the screen.
-// extern func draw_text as draw_text(font: Font, text: *char, posX: int, posY: int, color: int) -> void
+//   Jik has no string type, so draw_text can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_draw_text(...) { draw_text(..., "your text", ...); }
+//     jik:     extern func jik_draw_text as draw_text(font: Font, posX: int, posY: int, color: int) -> void
 // Save an image to persistant storage.
-// extern func save_image as save_image(image: Image, filename: *char) -> void
+//   Jik has no string type, so save_image can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_save_image(...) { save_image(..., "your text", ...); }
+//     jik:     extern func jik_save_image as save_image(image: Image) -> void
 // Load an image from a file in cart.
-// extern func load_image as load_image(filename: *char) -> Image
+//   Jik has no string type, so load_image can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_load_image(...) { load_image(..., "your text", ...); }
+//     jik:     extern func jik_load_image as load_image() -> void
 // Resize an image, return copy.
 // extern func image_resize as image_resize(image: Image, newWidth: int, newHeight: int, filter: int) -> Image
 // Scale an image, return copy.
@@ -330,19 +339,37 @@ alias Tilemap = int
 // Scale a font, return a new font.
 // extern func font_scale as font_scale(font: Font, scaleX: double, scaleY: double, filter: int) -> Font
 // Load a BMF font from a file in cart.
-// extern func load_font_bmf as load_font_bmf(filename: *char, characters: *char) -> Font
+//   Jik has no string type, so load_font_bmf can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_load_font_bmf(...) { load_font_bmf(..., "your text", ...); }
+//     jik:     extern func jik_load_font_bmf as load_font_bmf() -> void
 // Load a BMF font from an image.
-// extern func load_font_bmf_from_image as load_font_bmf_from_image(image: Image, characters: *char) -> Font
+//   Jik has no string type, so load_font_bmf_from_image can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_load_font_bmf_from_image(...) { load_font_bmf_from_image(..., "your text", ...); }
+//     jik:     extern func jik_load_font_bmf_from_image as load_font_bmf_from_image(image: Image) -> void
 // Measure the size of some text.
-// extern func measure_text as measure_text(font: Font, text: *char, textLength: int) -> int
+//   Jik has no string type, so measure_text can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_measure_text(...) { measure_text(..., "your text", ...); }
+//     jik:     extern func jik_measure_text as measure_text(font: Font, textLength: int) -> void
 // Meaure an image (use 0 for screen).
 // extern func measure_image as measure_image(image: Image) -> int
 // Load a TTY font from a file in cart.
-// extern func load_font_tty as load_font_tty(filename: *char, glyphWidth: int, glyphHeight: int, characters: *char) -> Font
+//   Jik has no string type, so load_font_tty can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_load_font_tty(...) { load_font_tty(..., "your text", ...); }
+//     jik:     extern func jik_load_font_tty as load_font_tty(glyphWidth: int, glyphHeight: int) -> void
 // Load a TTY font from an image.
-// extern func load_font_tty_from_image as load_font_tty_from_image(image: Image, glyphWidth: int, glyphHeight: int, characters: *char) -> Font
+//   Jik has no string type, so load_font_tty_from_image can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_load_font_tty_from_image(...) { load_font_tty_from_image(..., "your text", ...); }
+//     jik:     extern func jik_load_font_tty_from_image as load_font_tty_from_image(image: Image, glyphWidth: int, glyphHeight: int) -> void
 // Load a TTF font from a file in cart.
-// extern func load_font_ttf as load_font_ttf(filename: *char, fontSize: int) -> Font
+//   Jik has no string type, so load_font_ttf can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_load_font_ttf(...) { load_font_ttf(..., "your text", ...); }
+//     jik:     extern func jik_load_font_ttf as load_font_ttf(fontSize: int) -> void
 // Invert the colors in an image, in-place.
 // extern func image_color_invert as image_color_invert(image: Image) -> void
 // Calculate a rectangle representing the available alpha border in an image.
@@ -396,7 +423,10 @@ alias Tilemap = int
 // Draw an image, scaled, on an image.
 // extern func draw_image_scaled_on_image as draw_image_scaled_on_image(destination: Image, src: Image, posX: int, posY: int, scaleX: double, scaleY: double, offsetX: double, offsetY: double, filter: int) -> void
 // Draw some text on an image.
-// extern func draw_text_on_image as draw_text_on_image(destination: Image, font: Font, text: *char, posX: int, posY: int, color: int) -> void
+//   Jik has no string type, so draw_text_on_image can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_draw_text_on_image(...) { draw_text_on_image(..., "your text", ...); }
+//     jik:     extern func jik_draw_text_on_image as draw_text_on_image(destination: Image, font: Font, posX: int, posY: int, color: int) -> void
 // Draw a outlined (with thickness) rectangle on the screen.
 // extern func draw_rectangle_outline as draw_rectangle_outline(posX: int, posY: int, width: int, height: int, thickness: int, color: int) -> void
 // Draw a outlined (with thickness) triangle on the screen.
@@ -425,17 +455,32 @@ alias Tilemap = int
 // extern func draw_rectangle_rounded_outline_on_image as draw_rectangle_rounded_outline_on_image(destination: Image, x: int, y: int, width: int, height: int, cornerRadius: int, thickness: int, color: int) -> void
 // GUI
 // Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window.
-// extern func gui_begin_window as gui_begin_window(title: *char, rect: int) -> bool
+//   Jik has no string type, so gui_begin_window can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_gui_begin_window(...) { gui_begin_window(..., "your text", ...); }
+//     jik:     extern func jik_gui_begin_window as gui_begin_window(rect: int) -> void
 // End the current GUI window.
 // extern func gui_end_window as gui_end_window() -> void
 // A button. Returns true when it is clicked.
-// extern func gui_button as gui_button(label: *char) -> bool
+//   Jik has no string type, so gui_button can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_gui_button(...) { gui_button(..., "your text", ...); }
+//     jik:     extern func jik_gui_button as gui_button() -> void
 // A static text label.
-// extern func gui_label as gui_label(text: *char) -> void
+//   Jik has no string type, so gui_label can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_gui_label(...) { gui_label(..., "your text", ...); }
+//     jik:     extern func jik_gui_label as gui_label() -> void
 // A block of wrapping text.
-// extern func gui_text as gui_text(text: *char) -> void
+//   Jik has no string type, so gui_text can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_gui_text(...) { gui_text(..., "your text", ...); }
+//     jik:     extern func jik_gui_text as gui_text() -> void
 // A checkbox. Returns the (possibly changed) state.
-// extern func gui_checkbox as gui_checkbox(label: *char, state: bool) -> bool
+//   Jik has no string type, so gui_checkbox can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_gui_checkbox(...) { gui_checkbox(..., "your text", ...); }
+//     jik:     extern func jik_gui_checkbox as gui_checkbox(state: bool) -> void
 // A slider. Returns the (possibly changed) value.
 // extern func gui_slider as gui_slider(value: double, low: double, high: double) -> double
 // Set the current layout row - the column widths (negative for flexible), and the row height.
@@ -471,7 +516,10 @@ alias Tilemap = int
 // extern func mouse_button_up as mouse_button_up(button: int) -> bool
 // SOUND
 // Load a sound from a file in cart.
-// extern func load_sound as load_sound(filename: *char) -> Sound
+//   Jik has no string type, so load_sound can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_load_sound(...) { load_sound(..., "your text", ...); }
+//     jik:     extern func jik_load_sound as load_sound() -> void
 // Play a sound.
 // extern func play_sound as play_sound(sound: Sound, loop: bool) -> void
 // Stop a sound.
@@ -479,14 +527,20 @@ alias Tilemap = int
 // Unload a sound.
 // extern func unload_sound as unload_sound(sound: Sound) -> void
 // Speak some text and return a sound. Set things to 0 for defaults.
-// extern func tts_sound as tts_sound(text: *char, phonetic: bool, pitch: int, speed: int, throat: int, mouth: int, sing: bool) -> Sound
+//   Jik has no string type, so tts_sound can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_tts_sound(...) { tts_sound(..., "your text", ...); }
+//     jik:     extern func jik_tts_sound as tts_sound(phonetic: bool, pitch: int, speed: int, throat: int, mouth: int, sing: bool) -> void
 // Create Sfx sound.
 // extern func sfx_sound as sfx_sound(params: *int) -> Sound
 // Create Sfx parameters.
 // extern func sfx_generate as sfx_generate(type: int) -> *int
 // TILE
 // Load a tilemap (a Tiled map, exported as JSON) from a file in cart.
-// extern func load_tilemap as load_tilemap(filename: *char) -> Tilemap
+//   Jik has no string type, so load_tilemap can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_load_tilemap(...) { load_tilemap(..., "your text", ...); }
+//     jik:     extern func jik_load_tilemap as load_tilemap() -> void
 // Unload a tilemap.
 // extern func unload_tilemap as unload_tilemap(tilemap: Tilemap) -> void
 // Update a tilemap's animation timers (deltaTime is in seconds).
@@ -496,7 +550,10 @@ alias Tilemap = int
 // Get the size of a single tile of a tilemap, in pixels.
 // extern func tile_tile_size as tile_tile_size(tilemap: Tilemap) -> int
 // Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.)
-// extern func tile_map_prop as tile_map_prop(tilemap: Tilemap, name: *char) -> int
+//   Jik has no string type, so tile_map_prop can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_tile_map_prop(...) { tile_map_prop(..., "your text", ...); }
+//     jik:     extern func jik_tile_map_prop as tile_map_prop(tilemap: Tilemap) -> void
 // Get the number of custom properties on a tilemap.
 // extern func tile_map_prop_count as tile_map_prop_count(tilemap: Tilemap) -> int
 // Get a custom property of a tilemap, by index (PROP_NONE when out of range.)
@@ -512,9 +569,15 @@ alias Tilemap = int
 // Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too.
 // extern func tile_layer_count as tile_layer_count(tilemap: Tilemap) -> int
 // Get the index of a layer of a tilemap, by name (-1 when there is no such layer.)
-// extern func tile_layer_index as tile_layer_index(tilemap: Tilemap, name: *char) -> int
+//   Jik has no string type, so tile_layer_index can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_tile_layer_index(...) { tile_layer_index(..., "your text", ...); }
+//     jik:     extern func jik_tile_layer_index as tile_layer_index(tilemap: Tilemap) -> void
 // Get the name of a layer of a tilemap.
-// extern func tile_layer_name as tile_layer_name(tilemap: Tilemap, layer: int) -> *char
+//   Jik has no string type, so tile_layer_name can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_tile_layer_name(...) { tile_layer_name(..., "your text", ...); }
+//     jik:     extern func jik_tile_layer_name as tile_layer_name(tilemap: Tilemap, layer: int) -> void
 // Get the kind of a layer of a tilemap.
 // extern func tile_layer_type as tile_layer_type(tilemap: Tilemap, layer: int) -> int
 // Get the size of a layer of a tilemap, in tiles.
@@ -522,7 +585,10 @@ alias Tilemap = int
 // Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing.
 // extern func tile_layer_visible as tile_layer_visible(tilemap: Tilemap, layer: int) -> bool
 // Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.)
-// extern func tile_layer_prop as tile_layer_prop(tilemap: Tilemap, layer: int, name: *char) -> int
+//   Jik has no string type, so tile_layer_prop can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_tile_layer_prop(...) { tile_layer_prop(..., "your text", ...); }
+//     jik:     extern func jik_tile_layer_prop as tile_layer_prop(tilemap: Tilemap, layer: int) -> void
 // Get the number of custom properties on a layer of a tilemap.
 // extern func tile_layer_prop_count as tile_layer_prop_count(tilemap: Tilemap, layer: int) -> int
 // Get a custom property of a layer of a tilemap, by index (PROP_NONE when out of range.)
@@ -544,7 +610,10 @@ alias Tilemap = int
 // Get a copy of the image of a single tile in a tilemap.
 // extern func tile_image as tile_image(tilemap: Tilemap, gid: int) -> Image
 // Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them.
-// extern func tile_gid_prop as tile_gid_prop(tilemap: Tilemap, gid: int, name: *char) -> int
+//   Jik has no string type, so tile_gid_prop can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_tile_gid_prop(...) { tile_gid_prop(..., "your text", ...); }
+//     jik:     extern func jik_tile_gid_prop as tile_gid_prop(tilemap: Tilemap, gid: int) -> void
 // Get the number of custom properties on a tile of a tilemap.
 // extern func tile_gid_prop_count as tile_gid_prop_count(tilemap: Tilemap, gid: int) -> int
 // Get a custom property of a tile of a tilemap, by index (PROP_NONE when out of range.)
@@ -554,9 +623,15 @@ alias Tilemap = int
 // Get an object from an object-layer of a tilemap.
 // extern func tile_object as tile_object(tilemap: Tilemap, layer: int, index: int) -> int
 // Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.)
-// extern func tile_object_index as tile_object_index(tilemap: Tilemap, layer: int, name: *char) -> int
+//   Jik has no string type, so tile_object_index can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_tile_object_index(...) { tile_object_index(..., "your text", ...); }
+//     jik:     extern func jik_tile_object_index as tile_object_index(tilemap: Tilemap, layer: int) -> void
 // Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.)
-// extern func tile_object_prop as tile_object_prop(tilemap: Tilemap, layer: int, index: int, name: *char) -> int
+//   Jik has no string type, so tile_object_prop can't be declared here.
+//   Keep the string in a C wrapper and call that:
+//     @embed:  static void jik_tile_object_prop(...) { tile_object_prop(..., "your text", ...); }
+//     jik:     extern func jik_tile_object_prop as tile_object_prop(tilemap: Tilemap, layer: int, index: int) -> void
 // Get the number of custom properties on an object of a tilemap.
 // extern func tile_object_prop_count as tile_object_prop_count(tilemap: Tilemap, layer: int, index: int) -> int
 // Get a custom property of an object of a tilemap, by index (PROP_NONE when out of range.)

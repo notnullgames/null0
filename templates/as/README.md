@@ -36,6 +36,7 @@ export function load(): void {}
 ### AssemblyScript notes
 
 - Import what you use: `import { clear, draw_circle, BLUE } from 'null0.ts'` - that exact specifier, not a relative path.
+- Functions taking text take a plain `string`; the pointer conversion is done for you (the raw `*_ptr` imports are exported too, if you want them).
 - Built with `--runtime stub`, so there is no GC - treat allocations as permanent.
 
 You do not need to copy any null0 bindings into this project - the docker image bakes the current [`carts/as/null0.ts`](https://raw.githubusercontent.com/notnullgames/null0/main/carts/as/null0.ts) in for you.

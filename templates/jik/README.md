@@ -38,6 +38,7 @@ export func update() -> void
 ### Jik notes
 
 - Jik's types don't line up with the null0 ABI, so null0.jik is a set of `extern` declarations and C wrappers to copy into your cart's `@embed` block.
+- Jik has no string type at all, so the 25 functions taking text cannot be declared - keep the literal inside the C wrapper.
 
 Run `npm run bindings` to drop the current `null0.jik` into `cart/` for your editor. It is gitignored on purpose - fetch it again whenever you want, rather than letting a stale copy rot in your repo.
 

@@ -487,15 +487,27 @@ export declare function draw_image_flipped(src: u32, posX: i32, posY: i32, flipH
 /** Draw an image, scaled, on the screen. */
 @external("null0", "draw_image_scaled")
 export declare function draw_image_scaled(src: u32, posX: i32, posY: i32, scaleX: f32, scaleY: f32, offsetX: f32, offsetY: f32, filter: ImageFilter): void;
-/** Draw some text on the screen. */
+/** Draw some text on the screen. (raw pointer form) */
 @external("null0", "draw_text")
-export declare function draw_text(font: u32, text: usize, posX: i32, posY: i32, color: Color): void;
-/** Save an image to persistant storage. */
+export declare function draw_text_ptr(font: u32, text: usize, posX: i32, posY: i32, color: Color): void;
+/** Draw some text on the screen. */
+export function draw_text(font: u32, text: string, posX: i32, posY: i32, color: Color): void {
+  draw_text_ptr(font, stringToPtr(text), posX, posY, color);
+}
+/** Save an image to persistant storage. (raw pointer form) */
 @external("null0", "save_image")
-export declare function save_image(image: u32, filename: usize): void;
-/** Load an image from a file in cart. */
+export declare function save_image_ptr(image: u32, filename: usize): void;
+/** Save an image to persistant storage. */
+export function save_image(image: u32, filename: string): void {
+  save_image_ptr(image, stringToPtr(filename));
+}
+/** Load an image from a file in cart. (raw pointer form) */
 @external("null0", "load_image")
-export declare function load_image(filename: usize): u32;
+export declare function load_image_ptr(filename: usize): u32;
+/** Load an image from a file in cart. */
+export function load_image(filename: string): u32 {
+  return load_image_ptr(stringToPtr(filename));
+}
 /** Resize an image, return copy. */
 @external("null0", "image_resize")
 export declare function image_resize(image: u32, newWidth: i32, newHeight: i32, filter: ImageFilter): u32;
@@ -517,27 +529,51 @@ export declare function font_copy(font: u32): u32;
 /** Scale a font, return a new font. */
 @external("null0", "font_scale")
 export declare function font_scale(font: u32, scaleX: f32, scaleY: f32, filter: ImageFilter): u32;
-/** Load a BMF font from a file in cart. */
+/** Load a BMF font from a file in cart. (raw pointer form) */
 @external("null0", "load_font_bmf")
-export declare function load_font_bmf(filename: usize, characters: usize): u32;
-/** Load a BMF font from an image. */
+export declare function load_font_bmf_ptr(filename: usize, characters: usize): u32;
+/** Load a BMF font from a file in cart. */
+export function load_font_bmf(filename: string, characters: string): u32 {
+  return load_font_bmf_ptr(stringToPtr(filename), stringToPtr(characters));
+}
+/** Load a BMF font from an image. (raw pointer form) */
 @external("null0", "load_font_bmf_from_image")
-export declare function load_font_bmf_from_image(image: u32, characters: usize): u32;
-/** Measure the size of some text. */
+export declare function load_font_bmf_from_image_ptr(image: u32, characters: usize): u32;
+/** Load a BMF font from an image. */
+export function load_font_bmf_from_image(image: u32, characters: string): u32 {
+  return load_font_bmf_from_image_ptr(image, stringToPtr(characters));
+}
+/** Measure the size of some text. (raw pointer form) */
 @external("null0", "measure_text")
-export declare function measure_text(font: u32, text: usize, textLength: i32): Dimensions;
+export declare function measure_text_ptr(font: u32, text: usize, textLength: i32): Dimensions;
+/** Measure the size of some text. */
+export function measure_text(font: u32, text: string, textLength: i32): Dimensions {
+  return measure_text_ptr(font, stringToPtr(text), textLength);
+}
 /** Meaure an image (use 0 for screen). */
 @external("null0", "measure_image")
 export declare function measure_image(image: u32): Dimensions;
-/** Load a TTY font from a file in cart. */
+/** Load a TTY font from a file in cart. (raw pointer form) */
 @external("null0", "load_font_tty")
-export declare function load_font_tty(filename: usize, glyphWidth: i32, glyphHeight: i32, characters: usize): u32;
-/** Load a TTY font from an image. */
+export declare function load_font_tty_ptr(filename: usize, glyphWidth: i32, glyphHeight: i32, characters: usize): u32;
+/** Load a TTY font from a file in cart. */
+export function load_font_tty(filename: string, glyphWidth: i32, glyphHeight: i32, characters: string): u32 {
+  return load_font_tty_ptr(stringToPtr(filename), glyphWidth, glyphHeight, stringToPtr(characters));
+}
+/** Load a TTY font from an image. (raw pointer form) */
 @external("null0", "load_font_tty_from_image")
-export declare function load_font_tty_from_image(image: u32, glyphWidth: i32, glyphHeight: i32, characters: usize): u32;
-/** Load a TTF font from a file in cart. */
+export declare function load_font_tty_from_image_ptr(image: u32, glyphWidth: i32, glyphHeight: i32, characters: usize): u32;
+/** Load a TTY font from an image. */
+export function load_font_tty_from_image(image: u32, glyphWidth: i32, glyphHeight: i32, characters: string): u32 {
+  return load_font_tty_from_image_ptr(image, glyphWidth, glyphHeight, stringToPtr(characters));
+}
+/** Load a TTF font from a file in cart. (raw pointer form) */
 @external("null0", "load_font_ttf")
-export declare function load_font_ttf(filename: usize, fontSize: i32): u32;
+export declare function load_font_ttf_ptr(filename: usize, fontSize: i32): u32;
+/** Load a TTF font from a file in cart. */
+export function load_font_ttf(filename: string, fontSize: i32): u32 {
+  return load_font_ttf_ptr(stringToPtr(filename), fontSize);
+}
 /** Invert the colors in an image, in-place. */
 @external("null0", "image_color_invert")
 export declare function image_color_invert(image: u32): void;
@@ -616,9 +652,13 @@ export declare function draw_image_flipped_on_image(destination: u32, src: u32, 
 /** Draw an image, scaled, on an image. */
 @external("null0", "draw_image_scaled_on_image")
 export declare function draw_image_scaled_on_image(destination: u32, src: u32, posX: i32, posY: i32, scaleX: f32, scaleY: f32, offsetX: f32, offsetY: f32, filter: ImageFilter): void;
-/** Draw some text on an image. */
+/** Draw some text on an image. (raw pointer form) */
 @external("null0", "draw_text_on_image")
-export declare function draw_text_on_image(destination: u32, font: u32, text: usize, posX: i32, posY: i32, color: Color): void;
+export declare function draw_text_on_image_ptr(destination: u32, font: u32, text: usize, posX: i32, posY: i32, color: Color): void;
+/** Draw some text on an image. */
+export function draw_text_on_image(destination: u32, font: u32, text: string, posX: i32, posY: i32, color: Color): void {
+  draw_text_on_image_ptr(destination, font, stringToPtr(text), posX, posY, color);
+}
 /** Draw a outlined (with thickness) rectangle on the screen. */
 @external("null0", "draw_rectangle_outline")
 export declare function draw_rectangle_outline(posX: i32, posY: i32, width: i32, height: i32, thickness: i32, color: Color): void;
@@ -660,24 +700,44 @@ export declare function draw_polygon_outline_on_image(destination: u32, points: 
 export declare function draw_rectangle_rounded_outline_on_image(destination: u32, x: i32, y: i32, width: i32, height: i32, cornerRadius: i32, thickness: i32, color: Color): void;
 
 // Gui functions
-/** Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window. */
+/** Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window. (raw pointer form) */
 @external("null0", "gui_begin_window")
-export declare function gui_begin_window(title: usize, rect: Rectangle): bool;
+export declare function gui_begin_window_ptr(title: usize, rect: Rectangle): bool;
+/** Begin a GUI window. Returns false if the window is collapsed or closed - skip its contents, but still call gui_end_window. */
+export function gui_begin_window(title: string, rect: Rectangle): bool {
+  return gui_begin_window_ptr(stringToPtr(title), rect);
+}
 /** End the current GUI window. */
 @external("null0", "gui_end_window")
 export declare function gui_end_window(): void;
-/** A button. Returns true when it is clicked. */
+/** A button. Returns true when it is clicked. (raw pointer form) */
 @external("null0", "gui_button")
-export declare function gui_button(label: usize): bool;
-/** A static text label. */
+export declare function gui_button_ptr(label: usize): bool;
+/** A button. Returns true when it is clicked. */
+export function gui_button(label: string): bool {
+  return gui_button_ptr(stringToPtr(label));
+}
+/** A static text label. (raw pointer form) */
 @external("null0", "gui_label")
-export declare function gui_label(text: usize): void;
-/** A block of wrapping text. */
+export declare function gui_label_ptr(text: usize): void;
+/** A static text label. */
+export function gui_label(text: string): void {
+  gui_label_ptr(stringToPtr(text));
+}
+/** A block of wrapping text. (raw pointer form) */
 @external("null0", "gui_text")
-export declare function gui_text(text: usize): void;
-/** A checkbox. Returns the (possibly changed) state. */
+export declare function gui_text_ptr(text: usize): void;
+/** A block of wrapping text. */
+export function gui_text(text: string): void {
+  gui_text_ptr(stringToPtr(text));
+}
+/** A checkbox. Returns the (possibly changed) state. (raw pointer form) */
 @external("null0", "gui_checkbox")
-export declare function gui_checkbox(label: usize, state: bool): bool;
+export declare function gui_checkbox_ptr(label: usize, state: bool): bool;
+/** A checkbox. Returns the (possibly changed) state. */
+export function gui_checkbox(label: string, state: bool): bool {
+  return gui_checkbox_ptr(stringToPtr(label), state);
+}
 /** A slider. Returns the (possibly changed) value. */
 @external("null0", "gui_slider")
 export declare function gui_slider(value: f32, low: f32, high: f32): f32;
@@ -730,9 +790,13 @@ export declare function mouse_button_released(button: MouseButton): bool;
 export declare function mouse_button_up(button: MouseButton): bool;
 
 // Sound functions
-/** Load a sound from a file in cart. */
+/** Load a sound from a file in cart. (raw pointer form) */
 @external("null0", "load_sound")
-export declare function load_sound(filename: usize): u32;
+export declare function load_sound_ptr(filename: usize): u32;
+/** Load a sound from a file in cart. */
+export function load_sound(filename: string): u32 {
+  return load_sound_ptr(stringToPtr(filename));
+}
 /** Play a sound. */
 @external("null0", "play_sound")
 export declare function play_sound(sound: u32, loop: bool): void;
@@ -742,9 +806,13 @@ export declare function stop_sound(sound: u32): void;
 /** Unload a sound. */
 @external("null0", "unload_sound")
 export declare function unload_sound(sound: u32): void;
-/** Speak some text and return a sound. Set things to 0 for defaults. */
+/** Speak some text and return a sound. Set things to 0 for defaults. (raw pointer form) */
 @external("null0", "tts_sound")
-export declare function tts_sound(text: usize, phonetic: bool, pitch: i32, speed: i32, throat: i32, mouth: i32, sing: bool): u32;
+export declare function tts_sound_ptr(text: usize, phonetic: bool, pitch: i32, speed: i32, throat: i32, mouth: i32, sing: bool): u32;
+/** Speak some text and return a sound. Set things to 0 for defaults. */
+export function tts_sound(text: string, phonetic: bool, pitch: i32, speed: i32, throat: i32, mouth: i32, sing: bool): u32 {
+  return tts_sound_ptr(stringToPtr(text), phonetic, pitch, speed, throat, mouth, sing);
+}
 /** Create Sfx sound. */
 @external("null0", "sfx_sound")
 export declare function sfx_sound(params: SfxParams): u32;
@@ -753,9 +821,13 @@ export declare function sfx_sound(params: SfxParams): u32;
 export declare function sfx_generate(type: SfxPresetType): SfxParams;
 
 // Tile functions
-/** Load a tilemap (a Tiled map, exported as JSON) from a file in cart. */
+/** Load a tilemap (a Tiled map, exported as JSON) from a file in cart. (raw pointer form) */
 @external("null0", "load_tilemap")
-export declare function load_tilemap(filename: usize): u32;
+export declare function load_tilemap_ptr(filename: usize): u32;
+/** Load a tilemap (a Tiled map, exported as JSON) from a file in cart. */
+export function load_tilemap(filename: string): u32 {
+  return load_tilemap_ptr(stringToPtr(filename));
+}
 /** Unload a tilemap. */
 @external("null0", "unload_tilemap")
 export declare function unload_tilemap(tilemap: u32): void;
@@ -768,9 +840,13 @@ export declare function tile_map_size(tilemap: u32): Dimensions;
 /** Get the size of a single tile of a tilemap, in pixels. */
 @external("null0", "tile_tile_size")
 export declare function tile_tile_size(tilemap: u32): Dimensions;
-/** Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.) */
+/** Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.) (raw pointer form) */
 @external("null0", "tile_map_prop")
-export declare function tile_map_prop(tilemap: u32, name: usize): TilemapProp;
+export declare function tile_map_prop_ptr(tilemap: u32, name: usize): TilemapProp;
+/** Get a custom property of a tilemap, by name (PROP_NONE when there is no such property.) */
+export function tile_map_prop(tilemap: u32, name: string): TilemapProp {
+  return tile_map_prop_ptr(tilemap, stringToPtr(name));
+}
 /** Get the number of custom properties on a tilemap. */
 @external("null0", "tile_map_prop_count")
 export declare function tile_map_prop_count(tilemap: u32): i32;
@@ -792,12 +868,20 @@ export declare function tilemap_image(tilemap: u32): u32;
 /** Get the number of layers in a tilemap. Layers are numbered depth-first, so the children of a group layer have their own indexes too. */
 @external("null0", "tile_layer_count")
 export declare function tile_layer_count(tilemap: u32): i32;
-/** Get the index of a layer of a tilemap, by name (-1 when there is no such layer.) */
+/** Get the index of a layer of a tilemap, by name (-1 when there is no such layer.) (raw pointer form) */
 @external("null0", "tile_layer_index")
-export declare function tile_layer_index(tilemap: u32, name: usize): i32;
-/** Get the name of a layer of a tilemap. */
+export declare function tile_layer_index_ptr(tilemap: u32, name: usize): i32;
+/** Get the index of a layer of a tilemap, by name (-1 when there is no such layer.) */
+export function tile_layer_index(tilemap: u32, name: string): i32 {
+  return tile_layer_index_ptr(tilemap, stringToPtr(name));
+}
+/** Get the name of a layer of a tilemap. (raw pointer form) */
 @external("null0", "tile_layer_name")
-export declare function tile_layer_name(tilemap: u32, layer: i32): usize;
+export declare function tile_layer_name_ptr(tilemap: u32, layer: i32): usize;
+/** Get the name of a layer of a tilemap. */
+export function tile_layer_name(tilemap: u32, layer: i32): string {
+  return ptrToString(tile_layer_name_ptr(tilemap, layer));
+}
 /** Get the kind of a layer of a tilemap. */
 @external("null0", "tile_layer_type")
 export declare function tile_layer_type(tilemap: u32, layer: i32): TileLayerKind;
@@ -807,9 +891,13 @@ export declare function tile_layer_size(tilemap: u32, layer: i32): Dimensions;
 /** Get whether a layer of a tilemap is visible. Drawing a layer that Tiled marked hidden draws nothing. */
 @external("null0", "tile_layer_visible")
 export declare function tile_layer_visible(tilemap: u32, layer: i32): bool;
-/** Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.) */
+/** Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.) (raw pointer form) */
 @external("null0", "tile_layer_prop")
-export declare function tile_layer_prop(tilemap: u32, layer: i32, name: usize): TilemapProp;
+export declare function tile_layer_prop_ptr(tilemap: u32, layer: i32, name: usize): TilemapProp;
+/** Get a custom property of a layer of a tilemap, by name (PROP_NONE when there is no such property.) */
+export function tile_layer_prop(tilemap: u32, layer: i32, name: string): TilemapProp {
+  return tile_layer_prop_ptr(tilemap, layer, stringToPtr(name));
+}
 /** Get the number of custom properties on a layer of a tilemap. */
 @external("null0", "tile_layer_prop_count")
 export declare function tile_layer_prop_count(tilemap: u32, layer: i32): i32;
@@ -840,9 +928,13 @@ export declare function tile_draw_tile(tilemap: u32, gid: i32, posX: i32, posY: 
 /** Get a copy of the image of a single tile in a tilemap. */
 @external("null0", "tile_image")
 export declare function tile_image(tilemap: u32, gid: i32): u32;
-/** Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them. */
+/** Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them. (raw pointer form) */
 @external("null0", "tile_gid_prop")
-export declare function tile_gid_prop(tilemap: u32, gid: i32, name: usize): TilemapProp;
+export declare function tile_gid_prop_ptr(tilemap: u32, gid: i32, name: usize): TilemapProp;
+/** Get a custom property of a tile of a tilemap, by name (PROP_NONE when there is no such property.) These come from the tileset, so every tile with this gid shares them. */
+export function tile_gid_prop(tilemap: u32, gid: i32, name: string): TilemapProp {
+  return tile_gid_prop_ptr(tilemap, gid, stringToPtr(name));
+}
 /** Get the number of custom properties on a tile of a tilemap. */
 @external("null0", "tile_gid_prop_count")
 export declare function tile_gid_prop_count(tilemap: u32, gid: i32): i32;
@@ -855,12 +947,20 @@ export declare function tile_object_count(tilemap: u32, layer: i32): i32;
 /** Get an object from an object-layer of a tilemap. */
 @external("null0", "tile_object")
 export declare function tile_object(tilemap: u32, layer: i32, index: i32): TilemapObject;
-/** Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.) */
+/** Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.) (raw pointer form) */
 @external("null0", "tile_object_index")
-export declare function tile_object_index(tilemap: u32, layer: i32, name: usize): i32;
-/** Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.) */
+export declare function tile_object_index_ptr(tilemap: u32, layer: i32, name: usize): i32;
+/** Get the index of an object on an object-layer of a tilemap, by name (-1 when there is no such object.) */
+export function tile_object_index(tilemap: u32, layer: i32, name: string): i32 {
+  return tile_object_index_ptr(tilemap, layer, stringToPtr(name));
+}
+/** Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.) (raw pointer form) */
 @external("null0", "tile_object_prop")
-export declare function tile_object_prop(tilemap: u32, layer: i32, index: i32, name: usize): TilemapProp;
+export declare function tile_object_prop_ptr(tilemap: u32, layer: i32, index: i32, name: usize): TilemapProp;
+/** Get a custom property of an object of a tilemap, by name (PROP_NONE when there is no such property.) */
+export function tile_object_prop(tilemap: u32, layer: i32, index: i32, name: string): TilemapProp {
+  return tile_object_prop_ptr(tilemap, layer, index, stringToPtr(name));
+}
 /** Get the number of custom properties on an object of a tilemap. */
 @external("null0", "tile_object_prop_count")
 export declare function tile_object_prop_count(tilemap: u32, layer: i32, index: i32): i32;
@@ -897,4 +997,9 @@ export function vectorArrayToPtr(vectors: StaticArray<Vector>): usize {
 /** Convert string to null-terminated C string pointer */
 export function stringToPtr(str: string): usize {
   return changetype<usize>(String.UTF8.encode(str, true));
+}
+
+/** Read a null-terminated utf8 string the host wrote into cart memory */
+export function ptrToString(ptr: usize): string {
+  return ptr == 0 ? '' : String.UTF8.decodeUnsafeCStr(ptr);
 }

@@ -653,3 +653,21 @@ random_seed_get :: () -> u64 ---
 // Set the random-seed.
 random_seed_set :: (seed: u64) -> void ---
 }
+
+// Convert an onyx `str` to the null-terminated utf8 pointer the host wants:
+//
+//     draw_text(FONT_DEFAULT, cstr("hello"), 170, 92, WHITE)
+//
+// One shared buffer - null0 copies the bytes out during the call, so it
+// never needs to outlive the call itself.
+null0_cstr_buf: [1024] u8;
+
+cstr :: (s: str) -> u32 {
+    n := s.count;
+    if n > 1023 do n = 1023;
+    for i in 0 .. n {
+        null0_cstr_buf[i] = s.data[i];
+    }
+    null0_cstr_buf[n] = 0;
+    return cast(u32) cast(rawptr) ~~null0_cstr_buf;
+}

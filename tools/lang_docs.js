@@ -194,7 +194,7 @@ export const languages = {
     highlight: 'typescript',
     callback: 'export function load(): void {}',
     toolchain: 'asc',
-    notes: ["Import what you use: `import { clear, draw_circle, BLUE } from 'null0.ts'` - that exact specifier, not a relative path.", 'Built with `--runtime stub`, so there is no GC - treat allocations as permanent.'],
+    notes: ["Import what you use: `import { clear, draw_circle, BLUE } from 'null0.ts'` - that exact specifier, not a relative path.", 'Functions taking text take a plain `string`; the pointer conversion is done for you (the raw `*_ptr` imports are exported too, if you want them).', 'Built with `--runtime stub`, so there is no GC - treat allocations as permanent.'],
     decls: byAttr(/^@external\("null0", "(\w+)"\)/)
   },
 
@@ -250,7 +250,7 @@ export const languages = {
     callback: '#export "load" load',
     entry: 'main :: () {}',
     toolchain: 'onyx',
-    notes: ['`#load "null0.onyx"`, and keep an empty `main` around.'],
+    notes: ['`#load "null0.onyx"`, and keep an empty `main` around.', 'Text takes a `u32` pointer, not a `str` - onyx cannot alias a foreign import name, so wrap literals with `cstr("...")` from the bindings.'],
     decls: byLine(/^\s*(\w+) :: \(.*\) -> \S+ ---\s*$/)
   },
 
@@ -320,7 +320,7 @@ export const languages = {
     toolchain: 'jik (transpiles to C) + wasi-sdk',
     amd64Only: true,
     reference: true,
-    notes: ["Jik's types don't line up with the null0 ABI, so null0.jik is a set of `extern` declarations and C wrappers to copy into your cart's `@embed` block."],
+    notes: ["Jik's types don't line up with the null0 ABI, so null0.jik is a set of `extern` declarations and C wrappers to copy into your cart's `@embed` block.", 'Jik has no string type at all, so the 25 functions taking text cannot be declared - keep the literal inside the C wrapper.'],
     decls: byLine(/^\/\/ extern func (\w+) as /, { strip: /^\/\/\s?/ })
   },
 

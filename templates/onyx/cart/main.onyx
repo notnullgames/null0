@@ -6,10 +6,9 @@ main :: () {}
 load :: () {
     clear(BLUE);
     draw_circle(100, 100, 50, RED);
-    // a string crosses as a u32 pointer to null-terminated utf8, so the
-    // literal carries its own \0 and we pass the data pointer
-    text := "hello from Onyx\0";
-    draw_text(FONT_DEFAULT, cast(u32) text.data, 170, 92, WHITE);
+    // a string crosses as a pointer to null-terminated utf8; cstr() from the
+    // bindings does that conversion
+    draw_text(FONT_DEFAULT, cstr("hello from Onyx"), 170, 92, WHITE);
 }
 
 #export "load" load

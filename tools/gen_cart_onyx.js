@@ -140,6 +140,13 @@ for (const [colorName, colorDef] of Object.entries(constants)) {
 }
 
 // Generate foreign block
+// A string crosses as a pointer to null-terminated utf8, but an onyx `str` is
+// a (data, count) slice and isn't null-terminated. Onyx can't alias a foreign
+// import name - `#foreign "null0" "draw_text"` and a per-declaration form are
+// both rejected - so `draw_text` has to stay the raw u32 import and can't be
+// wrapped under its own name. cstr() below is the next best thing: it keeps
+// the call site to one obvious conversion instead of making every cart spell
+// its literal "...\0" and reach for .data.
 out.push('', '#foreign "null0" {')
 for (const [apiName, funcDef] of Object.entries(api)) {
   out.push('', `// ${apiName.toUpperCase()}`)
@@ -151,6 +158,23 @@ for (const [apiName, funcDef] of Object.entries(api)) {
     out.push(`${funcName} :: (${params}) -> ${retTypes[returns] || returns} ---`)
   }
 }
+out.push('}', '')
+
+out.push('// Convert an onyx `str` to the null-terminated utf8 pointer the host wants:')
+out.push('//')
+out.push('//     draw_text(FONT_DEFAULT, cstr("hello"), 170, 92, WHITE)')
+out.push('//')
+out.push('// One shared buffer - null0 copies the bytes out during the call, so it')
+out.push('// never needs to outlive the call itself.')
+out.push('null0_cstr_buf: [1024] u8;', '')
+out.push('cstr :: (s: str) -> u32 {')
+out.push('    n := s.count;')
+out.push('    if n > 1023 do n = 1023;')
+out.push('    for i in 0 .. n {')
+out.push('        null0_cstr_buf[i] = s.data[i];')
+out.push('    }')
+out.push('    null0_cstr_buf[n] = 0;')
+out.push('    return cast(u32) cast(rawptr) ~~null0_cstr_buf;')
 out.push('}', '')
 
 await mkdir('carts/onyx', { recursive: true })

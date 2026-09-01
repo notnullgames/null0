@@ -154,6 +154,40 @@ for (const [apiName, funcDef] of Object.entries(api)) {
     const asReturn = retTypes[returns] || returns
     const paramList = argsMap(args)
 
+    // A string crosses as a pointer, but making every cart write
+    // stringToPtr(...) at the call site is exactly the kind of 1:1 mapping the
+    // other high-level bindings avoid. Declare the raw import under a _ptr
+    // name and export an ergonomic wrapper over it.
+    const stringArgs = Object.entries(args).filter(([, type]) => type === 'string')
+    if (stringArgs.length || returns === 'string') {
+      const rawParams = Object.entries(args)
+        .map(([name, type]) => `${name}: ${argTypes[type] || type}`)
+        .join(', ')
+      out.push(`/** ${description} (raw pointer form) */`)
+      out.push(`@external("null0", "${funcName}")`)
+      out.push(`export declare function ${funcName}_ptr(${rawParams}): ${asReturn};`)
+
+      const niceParams = Object.entries(args)
+        .map(([name, type]) => `${name}: ${type === 'string' ? 'string' : argTypes[type] || type}`)
+        .join(', ')
+      const callArgs = Object.entries(args)
+        .map(([name, type]) => (type === 'string' ? `stringToPtr(${name})` : name))
+        .join(', ')
+      const niceReturn = returns === 'string' ? 'string' : asReturn
+      const call = `${funcName}_ptr(${callArgs})`
+      out.push(`/** ${description} */`)
+      out.push(`export function ${funcName}(${niceParams}): ${niceReturn} {`)
+      if (returns === 'void') {
+        out.push(`  ${call};`)
+      } else if (returns === 'string') {
+        out.push(`  return ptrToString(${call});`)
+      } else {
+        out.push(`  return ${call};`)
+      }
+      out.push(`}`)
+      continue
+    }
+
     // Generate function declaration with description and @external decorator
     out.push(`/** ${description} */`)
     out.push(`@external("null0", "${funcName}")`)
@@ -186,6 +220,11 @@ out.push('', '// String conversion helpers for WASM FFI')
 out.push(`/** Convert string to null-terminated C string pointer */`)
 out.push(`export function stringToPtr(str: string): usize {`)
 out.push(`  return changetype<usize>(String.UTF8.encode(str, true));`)
+out.push(`}`)
+out.push('')
+out.push(`/** Read a null-terminated utf8 string the host wrote into cart memory */`)
+out.push(`export function ptrToString(ptr: usize): string {`)
+out.push(`  return ptr == 0 ? '' : String.UTF8.decodeUnsafeCStr(ptr);`)
 out.push(`}`)
 
 await mkdir('carts/as', { recursive: true })

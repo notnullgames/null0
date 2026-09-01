@@ -53,8 +53,11 @@ alias Tilemap = int
 
 // Jik types available: int, double, char, bool
 // For null0 types that don't map directly, we use C wrappers
+// Jik has no string type at all: its parser rejects both `*char` and `string`
+// as a parameter type. The 25 functions that take or return one therefore
+// cannot be declared here - they get a note and a C-wrapper sketch instead of
+// a declaration that wouldn't compile.
 const argTypes = {
-  string: '*char',       // char* - Jik uses *byte but extern func can use *char
   bool: 'bool',
   i32: 'int',
   f32: 'double',         // Jik has no f32 — C wrappers convert
@@ -80,7 +83,6 @@ const argTypes = {
 
 const retTypes = {
   void: 'void',
-  string: '*char',
   bool: 'bool',
   i32: 'int',
   f32: 'double',
@@ -141,12 +143,28 @@ out.push('')
 for (const [apiName, funcDef] of Object.entries(api)) {
   out.push(`// ${apiName.toUpperCase()}`)
   for (const [funcName, { args, returns, description }] of Object.entries(funcDef)) {
+    out.push(`// ${description}`)
+
+    const stringArgs = Object.entries(args).filter(([, type]) => type === 'string')
+    if (stringArgs.length || returns === 'string') {
+      // No jik declaration is possible. Say so, and show the shape of the C
+      // wrapper that is - the string stays on the C side of the boundary.
+      const passable = Object.entries(args)
+        .filter(([, type]) => type !== 'string')
+        .map(([name, type]) => `${name}: ${argTypes[type] || type}`)
+        .join(', ')
+      out.push(`//   Jik has no string type, so ${funcName} can't be declared here.`)
+      out.push(`//   Keep the string in a C wrapper and call that:`)
+      out.push(`//     @embed:  static void jik_${funcName}(...) { ${funcName}(..., "your text", ...); }`)
+      out.push(`//     jik:     extern func jik_${funcName} as ${funcName}(${passable}) -> void`)
+      continue
+    }
+
     const params = Object.entries(args)
       .map(([name, type]) => `${name}: ${argTypes[type] || type}`)
       .join(', ')
     const retType = retTypes[returns]
     const retDecl = retType ? ` -> ${retType}` : ''
-    out.push(`// ${description}`)
     out.push(`// extern func ${funcName} as ${funcName}(${params})${retDecl}`)
   }
 }

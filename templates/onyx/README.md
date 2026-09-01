@@ -42,6 +42,7 @@ main :: () {}
 ### Onyx notes
 
 - `#load "null0.onyx"`, and keep an empty `main` around.
+- Text takes a `u32` pointer, not a `str` - onyx cannot alias a foreign import name, so wrap literals with `cstr("...")` from the bindings.
 
 You do not need to copy any null0 bindings into this project - the docker image bakes the current [`carts/onyx/null0.onyx`](https://raw.githubusercontent.com/notnullgames/null0/main/carts/onyx/null0.onyx) in for you.
 
