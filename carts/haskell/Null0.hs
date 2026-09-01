@@ -233,7 +233,7 @@ raywhite = Color 245 245 245 255
 
 -- | The current tagged version of null0 engine
 null0Version :: String
-null0Version = "0.0.14"
+null0Version = "0.0.15"
 
 -- Potential image-filtering techniques for scale/etc.
 filterNearestneighbor :: Int32
