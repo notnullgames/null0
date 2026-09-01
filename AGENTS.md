@@ -322,8 +322,18 @@ repo). Without it the release still succeeds and the docs job just warns.
 
 Two things a tag does *not* do: sync the `cart_<lang>` template repos (run the
 `Sync cart templates` workflow, dry-run first), and make a brand-new GHCR
-package public - the first push of a new image creates a private package, so
-set the org's default package visibility or flip it once per package.
+package public.
+
+A newly created package is private, and there is no API and no org-wide
+default that changes that - the org's "Package Creation" setting only controls
+which visibilities are *allowed*, and a package inherits a linked repo's
+access but explicitly not its visibility. So it is once per package, by hand:
+
+    https://github.com/orgs/notnullgames/packages/container/null0-cart-<image>/settings
+
+then Danger Zone -> Change visibility -> Public. The release job prints all of
+those links into its run summary so they're in one place. Only needed the
+first time an image is published; after that the setting sticks.
 
 ## Conventions
 

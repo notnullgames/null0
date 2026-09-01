@@ -342,16 +342,6 @@ jobs:
           {
             echo "- \`${IMAGE}:${VERSION#v}\` (${#digests[@]} arch)"
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Note on package visibility
-        run: |
-          # a package created by the first push is private, and there is no API
-          # to flip it - so say so plainly rather than leaving `docker run` to
-          # fail with "denied" for everyone else
-          {
-            echo ""
-            echo "If this image is newly created, make it public once:"
-            echo "https://github.com/orgs/notnullgames/packages/container/null0-cart-${{ steps.img.outputs.image }}/settings"
-          } >> "$GITHUB_STEP_SUMMARY"
 
   # this creates a release on any tag, and attaches all the artifacts to it, then uploads demo page
   release:
@@ -388,6 +378,23 @@ jobs:
           mv ../artifacts/carts_*/*.null0 carts/
           cd carts
           ls *.null0 > list.txt
+      - name: Package visibility checklist
+        # A newly created GHCR package is private and there is no API to change
+        # that, so `docker run` gives everyone "denied" until it's flipped by
+        # hand. One list here beats hunting through 23 job summaries.
+        run: |
+          {
+            echo "## Cart images"
+            echo ""
+            echo "A **newly created** package is private. Flip it once, then it stays public:"
+            echo ""
+            node -e '
+              const langs = require("./webroot/api.json").languages
+              for (const image of [...new Set(Object.values(langs).map((l) => l.image))].sort()) {
+                console.log(`- [null0-cart-${image}](https://github.com/orgs/notnullgames/packages/container/null0-cart-${image}/settings) - Danger Zone -> Change visibility`)
+              }
+            '
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages
