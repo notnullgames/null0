@@ -380,13 +380,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Download all artifacts
+      # Fetch only the release assets. Downloading *everything* also pulled the
+      # 41 digest artifacts - one empty file each, bookkeeping for the manifest
+      # job - and the download failed outright on the volume.
+      - name: Download cart artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: carts_*
           path: artifacts
-      - name: Drop the image digests
-        # bookkeeping for the manifest job, not release assets
-        run: rm -rf artifacts/digest-*
+      - name: Download host artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: host_*
+          path: artifacts
       - run: ls -al artifacts
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
@@ -400,6 +406,23 @@ jobs:
           mv ../artifacts/carts_*/*.null0 carts/
           cd carts
           ls *.null0 > list.txt
+      - name: Package visibility checklist
+        # A newly created GHCR package is private and there is no API to change
+        # that, so `docker run` gives everyone "denied" until it's flipped by
+        # hand. One list here beats hunting through 23 job summaries.
+        run: |
+          {
+            echo "## Cart images"
+            echo ""
+            echo "A **newly created** package is private. Flip it once, then it stays public:"
+            echo ""
+            node -e '
+              const langs = require("./webroot/api.json").languages
+              for (const image of [...new Set(Object.values(langs).map((l) => l.image))].sort()) {
+                console.log(`- [null0-cart-${image}](https://github.com/orgs/notnullgames/packages/container/null0-cart-${image}/settings) - Danger Zone -> Change visibility`)
+              }
+            '
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages
