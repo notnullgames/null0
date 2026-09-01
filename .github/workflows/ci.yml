@@ -188,13 +188,19 @@ jobs:
         uses: actions/checkout@v4
       - name: Collect cart languages
         id: list
+        env:
+          IS_TAG: ${{ github.ref_type == 'tag' }}
         run: |
           node -e '
             const { languages } = require("./webroot/api.json")
             const langs = Object.values(languages)
+            // carts only ever run on amd64 runners, so arm64 is a release
+            // concern - building it on every push would double the work for
+            // nothing
+            const isTag = process.env.IS_TAG === "true"
             const builds = langs.flatMap((l) => [
               { lang: l.id, image: l.image, arch: "amd64", runner: "ubuntu-latest" },
-              ...(l.amd64Only ? [] : [{ lang: l.id, image: l.image, arch: "arm64", runner: "ubuntu-24.04-arm" }])
+              ...(isTag && !l.amd64Only ? [{ lang: l.id, image: l.image, arch: "arm64", runner: "ubuntu-24.04-arm" }] : [])
             ])
             const out = require("fs").createWriteStream(process.env.GITHUB_OUTPUT, { flags: "a" })
             out.write("langs=" + JSON.stringify(langs.map((l) => l.id)) + "\n")
@@ -202,50 +208,12 @@ jobs:
             console.log(`${langs.length} languages, ${builds.length} image builds`)
           '
 
-  # Builds each language's image and then its carts *with that image*, in the
-  # same job. Carts are never built against a previously-published image, so
-  # a binding change and the image that bakes it can't drift apart - which is
-  # exactly how every haxe cart came to be broken without CI noticing.
-  carts:
-    name: Carts (${{ matrix.lang }})
-    needs: languages
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        lang: ${{ fromJSON(needs.languages.outputs.langs) }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Image name
-        id: img
-        run: echo "image=$(node -p "require('./webroot/api.json').languages['${{ matrix.lang }}'].image")" >> "$GITHUB_OUTPUT"
-      - name: Build image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: tools/docker/null0-cart-${{ steps.img.outputs.image }}.Dockerfile
-          load: true
-          tags: ghcr.io/notnullgames/null0-cart-${{ steps.img.outputs.image }}:latest
-          labels: org.opencontainers.image.source=https://github.com/notnullgames/null0
-          cache-from: type=gha,scope=${{ steps.img.outputs.image }}-amd64
-          cache-to: type=gha,mode=min,scope=${{ steps.img.outputs.image }}-amd64
-      - name: Build ${{ matrix.lang }} carts
-        run: npx -y npm-run-all --parallel 'cart:*_${{ matrix.lang }}'
-      - name: Upload ${{ matrix.lang }} cart artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: carts_${{ matrix.lang }}
-          path: build/carts/*_${{ matrix.lang }}.null0
-
-  # Tags only: push every image to this repo's package registry, one native
-  # runner per architecture (QEMU would take hours on GHC). Each build pushes
-  # by digest; the manifest job below stitches them into one multi-arch tag.
+  # Every image, pushed to this repo's package registry. Runs on every push,
+  # not just tags: the carts job below builds against these, so they have to
+  # exist first. One native runner per architecture (QEMU would take hours on
+  # GHC); arm64 only on a tag, since carts only ever build on amd64 runners.
   images:
     name: Image (${{ matrix.image }}/${{ matrix.arch }})
-    if: github.ref_type == 'tag'
     needs: languages
     runs-on: ${{ matrix.runner }}
     permissions:
@@ -290,12 +258,12 @@ jobs:
           path: /tmp/digests/*
           retention-days: 1
 
-  # Stitches each language's per-arch pushes into one multi-arch tag, so
-  # `docker run ghcr.io/notnullgames/null0-cart-c` resolves to the right
-  # architecture. Tagged with the release version and with latest.
+  # Stitches each language's per-arch pushes into one multi-arch tag.
+  # Always tagged ci-<sha>, which is what the carts job pulls - so carts are
+  # built against the images from this very run, never a previous release's.
+  # A tag additionally gets the release version and `latest`.
   manifests:
     name: Manifest (${{ matrix.lang }})
-    if: github.ref_type == 'tag'
     needs: [languages, images]
     runs-on: ubuntu-latest
     permissions:
@@ -327,6 +295,8 @@ jobs:
         env:
           IMAGE: ghcr.io/notnullgames/null0-cart-${{ steps.img.outputs.image }}
           VERSION: ${{ github.ref_name }}
+          IS_TAG: ${{ github.ref_type == 'tag' }}
+          SHA: ${{ github.sha }}
         run: |
           cd /tmp/digests
           shopt -s nullglob
@@ -336,22 +306,56 @@ jobs:
             exit 1
           fi
           refs=$(printf "${IMAGE}@sha256:%s " "${digests[@]}")
-          # the tag is v0.0.14; the image tag is 0.0.14
-          docker buildx imagetools create -t "${IMAGE}:${VERSION#v}" -t "${IMAGE}:latest" ${refs}
-          docker buildx imagetools inspect "${IMAGE}:latest"
-          {
-            echo "- \`${IMAGE}:${VERSION#v}\` (${#digests[@]} arch)"
-          } >> "$GITHUB_STEP_SUMMARY"
-      - name: Note on package visibility
+
+          tags=(-t "${IMAGE}:ci-${SHA}")
+          if [ "${IS_TAG}" = "true" ]; then
+            # the git tag is v0.0.15; the image tag is 0.0.15
+            tags+=(-t "${IMAGE}:${VERSION#v}" -t "${IMAGE}:latest")
+          fi
+
+          docker buildx imagetools create "${tags[@]}" ${refs}
+          docker buildx imagetools inspect "${IMAGE}:ci-${SHA}"
+
+  # Builds each language's carts against the image this run just published.
+  # Nothing here rebuilds an image: `images` is a hard dependency, so a cart
+  # can never be built against a stale one - which is how every haxe cart came
+  # to be broken without CI noticing.
+  carts:
+    name: Carts (${{ matrix.lang }})
+    needs: [languages, manifests]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: ${{ fromJSON(needs.languages.outputs.langs) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull this run's image
+        env:
+          SHA: ${{ github.sha }}
         run: |
-          # a package created by the first push is private, and there is no API
-          # to flip it - so say so plainly rather than leaving `docker run` to
-          # fail with "denied" for everyone else
-          {
-            echo ""
-            echo "If this image is newly created, make it public once:"
-            echo "https://github.com/orgs/notnullgames/packages/container/null0-cart-${{ steps.img.outputs.image }}/settings"
-          } >> "$GITHUB_STEP_SUMMARY"
+          image="ghcr.io/notnullgames/null0-cart-$(node -p "require('./webroot/api.json').languages['${{ matrix.lang }}'].image")"
+          docker pull "${image}:ci-${SHA}"
+          # the cart:* npm scripts refer to :latest, so point that at what we
+          # just pulled rather than teaching every script about the sha
+          docker tag "${image}:ci-${SHA}" "${image}:latest"
+      - name: Build ${{ matrix.lang }} carts
+        run: npx -y npm-run-all --parallel 'cart:*_${{ matrix.lang }}'
+      - name: Upload ${{ matrix.lang }} cart artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: carts_${{ matrix.lang }}
+          path: build/carts/*_${{ matrix.lang }}.null0
 
   # this creates a release on any tag, and attaches all the artifacts to it, then uploads demo page
   release:
