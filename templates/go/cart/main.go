@@ -6,35 +6,13 @@ import null0 "null0"
 func load() {
 	null0.Clear(null0.BLUE)
 	null0.DrawCircle(100, 100, 50, null0.RED)
+	null0.DrawText(null0.FONT_DEFAULT, "hello from Go", 170, 92, null0.WHITE)
 }
 
-// callbacks (optional - implement as needed)
-
-// //export update
-// func update() {}
-
-// //export unload
-// func unload() {}
-
-// //export buttonUp
-// func buttonUp(button null0.GamepadButton, player uint32) {}
-
-// //export buttonDown
-// func buttonDown(button null0.GamepadButton, player uint32) {}
-
-// //export keyUp
-// func keyUp(key null0.Key) {}
-
-// //export keyDown
-// func keyDown(key null0.Key) {}
-
-// //export mouseDown
-// func mouseDown(button null0.MouseButton) {}
-
-// //export mouseUp
-// func mouseUp(button null0.MouseButton) {}
-
-// //export mouseMoved
-// func mouseMoved(x, y float32) {}
-
+// tinygo needs a main, even though null0 never calls it
 func main() {}
+
+// callbacks (optional - implement as needed)
+//
+//	//export update
+//	func update() {}

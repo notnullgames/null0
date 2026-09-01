@@ -1,74 +1,11 @@
-// null0 Zen-C example: color bars
 include "null0.h"
 
 export fn load() {
-    // Draw colored bars across the screen, one predefined color constant
-    // at a time (zc v0.4.4 segfaults its own compiler on any cart-authored
-    // declaration naming Color/Vector/etc - see tools/gen_cart_zenc.js;
-    // carts/zenc/demo has a real Vector[] example via the generated
-    // primitive-typed draw_polygon wrapper)
-
-    let margin: int = 10;
-    let bar_width: int = (SCREEN_WIDTH - margin * 11) / 10;
-    let bar_height: int = SCREEN_HEIGHT - margin * 2;
-
-    // draw a couple circles for visual interest
-    draw_circle(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 150, WHITE);
-    draw_circle(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 100, RED);
-    draw_circle(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 50, BLACK);
-
-    // draw each bar individually
-    let bx: int = margin;
-    draw_rectangle(bx, margin, bar_width, bar_height, RED);
-    draw_rectangle_outline(bx, margin, bar_width, bar_height, 1, WHITE);
-    bx += bar_width + margin;
-
-    draw_rectangle(bx, margin, bar_width, bar_height, ORANGE);
-    draw_rectangle_outline(bx, margin, bar_width, bar_height, 1, WHITE);
-    bx += bar_width + margin;
-
-    draw_rectangle(bx, margin, bar_width, bar_height, YELLOW);
-    draw_rectangle_outline(bx, margin, bar_width, bar_height, 1, WHITE);
-    bx += bar_width + margin;
-
-    draw_rectangle(bx, margin, bar_width, bar_height, GREEN);
-    draw_rectangle_outline(bx, margin, bar_width, bar_height, 1, WHITE);
-    bx += bar_width + margin;
-
-    draw_rectangle(bx, margin, bar_width, bar_height, BLUE);
-    draw_rectangle_outline(bx, margin, bar_width, bar_height, 1, WHITE);
-    bx += bar_width + margin;
-
-    draw_rectangle(bx, margin, bar_width, bar_height, PURPLE);
-    draw_rectangle_outline(bx, margin, bar_width, bar_height, 1, WHITE);
-    bx += bar_width + margin;
-
-    draw_rectangle(bx, margin, bar_width, bar_height, PINK);
-    draw_rectangle_outline(bx, margin, bar_width, bar_height, 1, WHITE);
-    bx += bar_width + margin;
-
-    draw_rectangle(bx, margin, bar_width, bar_height, SKYBLUE);
-    draw_rectangle_outline(bx, margin, bar_width, bar_height, 1, WHITE);
-    bx += bar_width + margin;
-
-    draw_rectangle(bx, margin, bar_width, bar_height, LIME);
-    draw_rectangle_outline(bx, margin, bar_width, bar_height, 1, WHITE);
-    bx += bar_width + margin;
-
-    draw_rectangle(bx, margin, bar_width, bar_height, MAGENTA);
-    draw_rectangle_outline(bx, margin, bar_width, bar_height, 1, WHITE);
+    clear(BLUE);
+    draw_circle(100, 100, 50, RED);
+    draw_text(FONT_DEFAULT, "hello from Zen-C", 170, 92, WHITE);
 }
 
-export fn update() {
-    // nothing to do per-frame
-}
-
-// Other available callbacks:
-// export fn unload() { }
-// export fn keyDown(key: int) { }
-// export fn keyUp(key: int) { }
-// export fn buttonDown(button: int, player: uint) { }
-// export fn buttonUp(button: int, player: uint) { }
-// export fn mouseDown(button: int) { }
-// export fn mouseUp(button: int) { }
-// export fn mouseMoved(x: float, y: float) { }
+// callbacks (optional - implement as needed)
+//
+//   export fn update() {}

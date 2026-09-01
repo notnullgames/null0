@@ -1,23 +1,28 @@
 // simple walt cart for null0 (see null0.walt for the full bindings)
 //
-// Color is a pointer to 4 bytes (r, g, b, a) in memory, not a packed
-// scalar - these constants are addresses that _null0_init_colors()
-// populates at startup.
+// Color is a pointer to 4 bytes (r, g, b, a) in memory, and a string is a
+// pointer to null-terminated bytes - neither is a packed scalar, so both are
+// written into memory below and passed as addresses.
 
-// two pages: the colors below live at 65536, which is one page in - with
-// `initial: 1` (65536 bytes, addresses 0-65535) every store8 here is off the
-// end and the cart traps with "memory access out of bounds"
+// two pages because everything above lives at 65536, one page in; exported
+// because the host reads those pointers out of cart.memory
 export const memory: Memory = { initial: 2 };
 
-const BLUE: i32 = 65536; // rgba(0, 121, 241, 255)
-const RED: i32 = 65540; // rgba(230, 41, 55, 255)
+const BLUE: i32 = 65536;  // rgba(0, 121, 241, 255)
+const RED: i32 = 65540;   // rgba(230, 41, 55, 255)
+const WHITE: i32 = 65544; // rgba(255, 255, 255, 255)
+const TEXT: i32 = 65548;  // "hello from Walt"
 
 type Clear = (i32) => void;
 type DrawCircle = (i32, i32, i32, i32) => void;
-import { clear: Clear, draw_circle: DrawCircle } from 'null0';
+type DrawText = (i32, i32, i32, i32, i32) => void;
+import { clear: Clear, draw_circle: DrawCircle, draw_text: DrawText } from 'null0';
 
 // called on load
 export function load(): void {
+  // walt has no data segments, so the bytes go in at runtime. these stores
+  // must be inline in a function body - wrapping them in their own function
+  // triggers a walt-compiler codegen bug (invalid bytecode)
   i32.store8(65536, 0);
   i32.store8(65537, 121);
   i32.store8(65538, 241);
@@ -26,19 +31,31 @@ export function load(): void {
   i32.store8(65541, 41);
   i32.store8(65542, 55);
   i32.store8(65543, 255);
+  i32.store8(65544, 255);
+  i32.store8(65545, 255);
+  i32.store8(65546, 255);
+  i32.store8(65547, 255);
+  i32.store8(65548 + 0, 104);
+  i32.store8(65548 + 1, 101);
+  i32.store8(65548 + 2, 108);
+  i32.store8(65548 + 3, 108);
+  i32.store8(65548 + 4, 111);
+  i32.store8(65548 + 5, 32);
+  i32.store8(65548 + 6, 102);
+  i32.store8(65548 + 7, 114);
+  i32.store8(65548 + 8, 111);
+  i32.store8(65548 + 9, 109);
+  i32.store8(65548 + 10, 32);
+  i32.store8(65548 + 11, 87);
+  i32.store8(65548 + 12, 97);
+  i32.store8(65548 + 13, 108);
+  i32.store8(65548 + 14, 116);
+  i32.store8(65548 + 15, 0);
+
   clear(BLUE);
   draw_circle(100, 100, 50, RED);
+  draw_text(0, TEXT, 170, 92, WHITE);
 }
 
 // called on every frame
 export function update(): void {}
-
-// other callbacks you can implement:
-// export function unload(): void {}
-// export function buttonUp(button: i32, player: i32): void {}
-// export function buttonDown(button: i32, player: i32): void {}
-// export function keyUp(key: i32): void {}
-// export function keyDown(key: i32): void {}
-// export function mouseDown(button: i32): void {}
-// export function mouseUp(button: i32): void {}
-// export function mouseMoved(x: f32, y: f32): void {}

@@ -1,8 +1,12 @@
 #include "null0.h"
 
+// every language's `simple` cart draws exactly this, so you can put any two
+// of them side by side and see only the language differ
+
 int main() {
   clear(BLUE);
   draw_circle(100, 100, 50, RED);
+  draw_text(FONT_DEFAULT, "hello from C", 170, 92, WHITE);
   return 0;
 }
 

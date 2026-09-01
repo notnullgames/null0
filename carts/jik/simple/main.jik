@@ -1,66 +1,40 @@
-// null0 Jik example: color bars
+// simple jik cart for null0
 //
-// NOTE: Jik does not have u8, f32, or uint types, so we use C wrappers
-// in the @embed block to bridge the gap.
+// Jik has no u8/f32/uint, no pointer types and no string type, so it cannot
+// name null0's Color (four bytes) or pass a char*. The pattern is a small C
+// wrapper in an @embed block that builds those and calls through - see
+// carts/jik/null0.jik for the full list of declarations to copy from.
+//
+// That's why the text lives in C here: `text: *char` and `text: string` are
+// both rejected by the jik parser, so the literal can't cross the boundary.
 
 @embed{C_END}
 #include "null0.h"
 
-// C wrappers to bridge Jik's type system to null0's ABI
 static void jik_clear(int r, int g, int b, int a) {
     Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
     clear(c);
-}
-static void jik_draw_rect(int x, int y, int w, int h, int r, int g, int b, int a) {
-    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
-    draw_rectangle(x, y, w, h, c);
-}
-static void jik_draw_rect_outline(int x, int y, int w, int h, int t, int r, int g, int b, int a) {
-    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
-    draw_rectangle_outline(x, y, w, h, t, c);
 }
 static void jik_draw_circ(int cx, int cy, int rad, int r, int g, int b, int a) {
     Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
     draw_circle(cx, cy, rad, c);
 }
-
-
+static void jik_draw_hello(int x, int y, int r, int g, int b, int a) {
+    Color c = { (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a };
+    draw_text(FONT_DEFAULT, "hello from Jik", x, y, c);
+}
 C_END
 
-// Jik extern declarations for the C wrappers
 extern func jik_clear as clear(r: int, g: int, b: int, a: int) -> void
-extern func jik_draw_rect as draw_rect(x: int, y: int, w: int, h: int, r: int, g: int, b: int, a: int) -> void
-extern func jik_draw_rect_outline as draw_rect_outline(x: int, y: int, w: int, h: int, t: int, r: int, g: int, b: int, a: int) -> void
 extern func jik_draw_circ as draw_circle(cx: int, cy: int, rad: int, r: int, g: int, b: int, a: int) -> void
-
-func rect(x: int, w: int, r: int, g: int, b: int):
-    draw_rect(x, 10, w, 460, r, g, b, 255)
-    draw_rect_outline(x, 10, w, 460, 1, 255, 255, 255, 255)
-end
+extern func jik_draw_hello as draw_hello(x: int, y: int, r: int, g: int, b: int, a: int) -> void
 
 func load():
-    w := (640 - 11 * 10) / 10
-
-    // circles for visual interest
-    draw_circle(320, 240, 150, 255, 255, 255, 255)
-    draw_circle(320, 240, 100, 230, 41, 55, 255)
-    draw_circle(320, 240, 50, 0, 0, 0, 255)
-
-    // colored bars
-    rect(10, w, 230, 41, 55)
-    rect(10 + (w + 10) * 1, w, 255, 161, 0)
-    rect(10 + (w + 10) * 2, w, 253, 249, 0)
-    rect(10 + (w + 10) * 3, w, 0, 228, 48)
-    rect(10 + (w + 10) * 4, w, 0, 121, 241)
-    rect(10 + (w + 10) * 5, w, 200, 122, 255)
-    rect(10 + (w + 10) * 6, w, 255, 109, 194)
-    rect(10 + (w + 10) * 7, w, 102, 191, 255)
-    rect(10 + (w + 10) * 8, w, 0, 158, 47)
-    rect(10 + (w + 10) * 9, w, 255, 0, 255)
+    clear(0, 121, 241, 255)
+    draw_circle(100, 100, 50, 230, 41, 55, 255)
+    draw_hello(170, 92, 255, 255, 255, 255)
 end
 
-func update():
-end
-
+// jik needs a main, even though null0 never calls it
 func main():
 end

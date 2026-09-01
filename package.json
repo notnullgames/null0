@@ -66,7 +66,7 @@
     "cart:demo_haskell": "mkdir -p build/carts && docker run --rm --user $(id -u):$(id -g) -v ./carts/haskell/demo:/src -v ./build/carts:/out ghcr.io/notnullgames/null0-cart-haskell:latest demo_haskell",
     "cart:simple_cyber": "mkdir -p build/carts && docker run --rm --user $(id -u):$(id -g) -v ./carts/cyber/simple:/src -v ./build/carts:/out ghcr.io/notnullgames/null0-cart-cyber:latest simple_cyber",
     "cart:demo_cyber": "mkdir -p build/carts && docker run --rm --user $(id -u):$(id -g) -v ./carts/cyber/demo:/src -v ./build/carts:/out ghcr.io/notnullgames/null0-cart-cyber:latest demo_cyber",
-    "carts": "npx -y npm-run-all --serial 'cart:*'; npm run carts:list",
+    "carts": "npx -y npm-run-all --serial --continue-on-error 'cart:*'; npm run carts:list",
     "docker:cart_c": "docker build -f tools/docker/null0-cart-c.Dockerfile -t ghcr.io/notnullgames/null0-cart-c:latest .",
     "docker:cart_assemblyscript": "docker build -f tools/docker/null0-cart-assemblyscript.Dockerfile -t ghcr.io/notnullgames/null0-cart-assemblyscript:latest .",
     "docker:cart_nelua": "docker build -f tools/docker/null0-cart-nelua.Dockerfile -t ghcr.io/notnullgames/null0-cart-nelua:latest .",

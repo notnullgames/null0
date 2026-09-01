@@ -1,16 +1,14 @@
-export function load() {
+// the null0 API is available as plain globals - nothing to import. drop
+// null0.d.ts next to this file for editor completion.
+
+export function load () {
   clear(BLUE)
   draw_circle(100, 100, 50, RED)
+  draw_text(FONT_DEFAULT, 'hello from JavaScript', 170, 92, WHITE)
 }
 
-// callbacks (optional - implement as needed)
-
-// export function update() {}
-// export function unload() {}
-// export function buttonUp(button, player) {}
-// export function buttonDown(button, player) {}
-// export function keyUp(key) {}
-// export function keyDown(key) {}
-// export function mouseDown(button) {}
-// export function mouseUp(button) {}
-// export function mouseMoved(x, y) {}
+// other callbacks you can export:
+//
+//   export function update () {}
+//   export function unload () {}
+//   export function buttonDown (button, player) {}

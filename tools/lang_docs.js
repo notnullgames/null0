@@ -194,7 +194,7 @@ export const languages = {
     highlight: 'typescript',
     callback: 'export function load(): void {}',
     toolchain: 'asc',
-    notes: ["Import what you use: `import { clear, draw_circle, BLUE } from './null0'`.", 'Built with `--runtime stub`, so there is no GC - treat allocations as permanent.'],
+    notes: ["Import what you use: `import { clear, draw_circle, BLUE } from 'null0.ts'` - that exact specifier, not a relative path.", 'Built with `--runtime stub`, so there is no GC - treat allocations as permanent.'],
     decls: byAttr(/^@external\("null0", "(\w+)"\)/)
   },
 

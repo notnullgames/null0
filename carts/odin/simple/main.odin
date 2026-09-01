@@ -6,33 +6,10 @@ import null0 "null0"
 load :: proc "c" () {
     null0.clear(null0.BLUE)
     null0.draw_circle(100, 100, 50, null0.RED)
+    null0.draw_text(null0.FONT_DEFAULT, "hello from Odin", 170, 92, null0.WHITE)
 }
 
 // callbacks (optional - implement as needed)
-
-// @(export)
-// update :: proc "c" () {}
-
-// @(export)
-// unload :: proc "c" () {}
-
-// @(export)
-// buttonUp :: proc "c" (button: null0.GamepadButton, player: u32) {}
-
-// @(export)
-// buttonDown :: proc "c" (button: null0.GamepadButton, player: u32) {}
-
-// @(export)
-// keyUp :: proc "c" (key: null0.Key) {}
-
-// @(export)
-// keyDown :: proc "c" (key: null0.Key) {}
-
-// @(export)
-// mouseDown :: proc "c" (button: null0.MouseButton) {}
-
-// @(export)
-// mouseUp :: proc "c" (button: null0.MouseButton) {}
-
-// @(export)
-// mouseMoved :: proc "c" (x, y: f32) {}
+//
+//   @(export)
+//   update :: proc "c" () {}
