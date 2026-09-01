@@ -1,5 +1,5 @@
 {
-  "version": "0.0.20",
+  "version": "0.0.21",
   "scalars": {
     "void": {
       "description": "This function does not return anything.",
@@ -672,7 +672,7 @@
       "description": "the height of the screen (in pixels)"
     },
     "NULL0_VERSION": {
-      "value": "0.0.20",
+      "value": "0.0.21",
       "type": "string",
       "description": "The current tagged version of null0 engine"
     }
