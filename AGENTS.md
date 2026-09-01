@@ -310,6 +310,14 @@ stages everything first, so the bump and its regenerated output are one commit
 - both 0.0.13 and 0.0.14 shipped without that and failed CI's drift check.
 Then `git push --follow-tags`.
 
+A normal push only runs the cheap half: the generated-files drift check and
+the four host builds. Building 23 images, 23 manifests and 23 cart jobs is ~75
+jobs, which is far too much for a one-line change - and the engine is only
+ever consumed at a release anyway. If you've touched a Dockerfile, a
+generator, or the API and want that checked *before* burning a version number,
+run the workflow by hand: Actions -> CI -> Run workflow. It does everything a
+tag does except create the release.
+
 The tag does the rest: builds and pushes every cart image to
 `ghcr.io/notnullgames/null0-cart-*` (amd64 + arm64, native runners), builds all
 the carts and hosts, creates the release, deploys the web player and

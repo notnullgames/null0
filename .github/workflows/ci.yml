@@ -1,4 +1,8 @@
-on: push
+on:
+  push:
+  # a full build without burning a version number - use this before tagging if
+  # you've touched a Dockerfile, a generator, or the API
+  workflow_dispatch:
 
 concurrency:
   # per-ref, not global: a tag's run builds and publishes the release, and a
@@ -180,6 +184,7 @@ jobs:
   languages:
     name: Languages
     runs-on: ubuntu-latest
+    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
     outputs:
       langs: ${{ steps.list.outputs.langs }}
       builds: ${{ steps.list.outputs.builds }}
@@ -215,6 +220,7 @@ jobs:
   images:
     name: Image (${{ matrix.image }}/${{ matrix.arch }})
     needs: languages
+    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
@@ -265,6 +271,7 @@ jobs:
   manifests:
     name: Manifest (${{ matrix.lang }})
     needs: [languages, images]
+    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -323,6 +330,7 @@ jobs:
   carts:
     name: Carts (${{ matrix.lang }})
     needs: [languages, manifests]
+    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
