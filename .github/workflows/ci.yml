@@ -406,22 +406,34 @@ jobs:
           mv ../artifacts/carts_*/*.null0 carts/
           cd carts
           ls *.null0 > list.txt
-      - name: Package visibility checklist
-        # A newly created GHCR package is private and there is no API to change
-        # that, so `docker run` gives everyone "denied" until it's flipped by
-        # hand. One list here beats hunting through 23 job summaries.
+      - name: Check images are pullable
+        # A newly created GHCR package is private, and there is no API to make
+        # it public - so this is the one manual step in a release. Rather than
+        # list all 23 every time, ask the registry anonymously (no token, which
+        # is exactly what a user has) and name only the ones that are unreachable.
         run: |
           {
             echo "## Cart images"
             echo ""
-            echo "A **newly created** package is private. Flip it once, then it stays public:"
-            echo ""
-            node -e '
-              const langs = require("./webroot/api.json").languages
-              for (const image of [...new Set(Object.values(langs).map((l) => l.image))].sort()) {
-                console.log(`- [null0-cart-${image}](https://github.com/orgs/notnullgames/packages/container/null0-cart-${image}/settings) - Danger Zone -> Change visibility`)
-              }
-            '
+            broken=0
+            for image in $(node -p "[...new Set(Object.values(require('./webroot/api.json').languages).map((l) => l.image))].sort().join(' ')"); do
+              repo="notnullgames/null0-cart-${image}"
+              token=$(curl -sf "https://ghcr.io/token?service=ghcr.io&scope=repository:${repo}:pull" | node -pe "try{JSON.parse(require('fs').readFileSync(0,'utf8')).token||''}catch(e){''}" || true)
+              code=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${token}" \
+                -H "Accept: application/vnd.oci.image.index.v1+json,application/vnd.docker.distribution.manifest.list.v2+json" \
+                "https://ghcr.io/v2/${repo}/manifests/latest" || true)
+              if [ "${code}" != "200" ]; then
+                broken=$((broken + 1))
+                echo "- :lock: [null0-cart-${image}](https://github.com/orgs/notnullgames/packages/container/null0-cart-${image}/settings) - **private** (HTTP ${code}), Danger Zone -> Change package visibility"
+              fi
+            done
+            if [ "${broken}" -eq 0 ]; then
+              echo ":white_check_mark: all images are public and pullable."
+            else
+              echo ""
+              echo "**${broken}** image(s) above are private, so \`docker run\` fails for everyone else."
+              echo "Note this is *package* visibility, not the \`cart_*\` repository's."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Setup Pages
         uses: actions/configure-pages@v5
