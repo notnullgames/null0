@@ -51,17 +51,30 @@
 
     const DEFAULT_CART = 'simple_c'
 
+    // carts/list.txt is written by `npm run carts:list`. If it's missing or
+    // empty you have simply not built any carts yet - say so, rather than
+    // rendering a picker full of nothing and a cart that 404s.
     const cartNames = await fetch('carts/list.txt')
-      .then((r) => r.text())
+      .then((r) => (r.ok ? r.text() : ''))
+      .catch(() => '')
       .then((t) =>
         t
           .trim()
           .split('\n')
-          .map((n) => n.replace('.null0', ''))
+          .map((n) => n.trim().replace('.null0', ''))
+          .filter(Boolean)
           .sort()
       )
 
-    const current = document.location.hash ? document.location.hash.slice(1) : DEFAULT_CART
+    if (!cartNames.length) {
+      document.getElementById('picker').remove()
+      document.getElementById('demo').innerHTML =
+        '<p>No carts built yet. Run <code>npm run carts</code> (or <code>npm run cart:simple_c</code> for just one), then reload.</p>'
+      throw new Error('no carts in build/carts')
+    }
+
+    const requested = document.location.hash ? document.location.hash.slice(1) : DEFAULT_CART
+    const current = cartNames.includes(requested) ? requested : cartNames[0]
 
     const select = document.getElementById('cartSelect')
     for (const name of cartNames) {

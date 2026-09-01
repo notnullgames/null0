@@ -14,7 +14,7 @@ const out = [
 // (walt requires this even for plain i32.store8, and importing memory from
 // 'env' doesn't work here since null0 doesn't provide it):
 //
-//   const memory: Memory = { initial: 1 };
+//   const memory: Memory = { initial: 2 };  // colors live at 65536, one page in
 //
 //   type Clear = (i32) => void;
 //   import { clear: Clear } from 'null0';

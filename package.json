@@ -66,7 +66,7 @@
     "cart:demo_haskell": "mkdir -p build/carts && docker run --rm --user $(id -u):$(id -g) -v ./carts/haskell/demo:/src -v ./build/carts:/out ghcr.io/notnullgames/null0-cart-haskell:latest demo_haskell",
     "cart:simple_cyber": "mkdir -p build/carts && docker run --rm --user $(id -u):$(id -g) -v ./carts/cyber/simple:/src -v ./build/carts:/out ghcr.io/notnullgames/null0-cart-cyber:latest simple_cyber",
     "cart:demo_cyber": "mkdir -p build/carts && docker run --rm --user $(id -u):$(id -g) -v ./carts/cyber/demo:/src -v ./build/carts:/out ghcr.io/notnullgames/null0-cart-cyber:latest demo_cyber",
-    "carts": "npx -y npm-run-all --serial 'cart:*' && cd build/carts && ls *.null0 > list.txt",
+    "carts": "npx -y npm-run-all --serial 'cart:*'; npm run carts:list",
     "docker:cart_c": "docker build -f tools/docker/null0-cart-c.Dockerfile -t ghcr.io/notnullgames/null0-cart-c:latest .",
     "docker:cart_assemblyscript": "docker build -f tools/docker/null0-cart-assemblyscript.Dockerfile -t ghcr.io/notnullgames/null0-cart-assemblyscript:latest .",
     "docker:cart_nelua": "docker build -f tools/docker/null0-cart-nelua.Dockerfile -t ghcr.io/notnullgames/null0-cart-nelua:latest .",
@@ -91,8 +91,8 @@
     "docker:cart_haskell": "docker build -f tools/docker/null0-cart-haskell.Dockerfile -t ghcr.io/notnullgames/null0-cart-haskell:latest .",
     "docker:cart_cyber": "docker build -f tools/docker/null0-cart-cyber.Dockerfile -t ghcr.io/notnullgames/null0-cart-cyber:latest .",
     "docker": "npx -y npm-run-all --serial 'docker:*'",
-    "start": "npx -y live-server --mount=/carts:./build/carts --mount=/null0.mjs:./wbuild/host/null0.mjs --mount=/carts:./build/carts webroot",
-    "prestart": "npm run host:web",
+    "start": "npx -y live-server --mount=/carts:./build/carts --mount=/null0.mjs:./wbuild/host/null0.mjs webroot",
+    "prestart": "npm run host:web && npm run carts:list",
     "gen:host": "node tools/gen_host.js",
     "gen:cart_c": "node tools/gen_cart_c.js",
     "gen:cart_js": "node tools/gen_cart_js.js",
@@ -120,7 +120,8 @@
     "gen:api_docs": "node tools/gen_api_docs.js",
     "gen:templates": "node tools/gen_templates.js",
     "gen": "npx -y npm-run-all --parallel 'gen:host' 'gen:cart_*' && npx -y npm-run-all --serial 'gen:api_docs' 'gen:templates'",
-    "version": "npm run gen && git add -A"
+    "version": "npm run gen && git add -A",
+    "carts:list": "mkdir -p build/carts && (cd build/carts && ls *.null0 2>/dev/null > list.txt; true)"
   },
   "dependencies": {
     "yaml": "^2.9.0"
