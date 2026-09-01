@@ -686,18 +686,42 @@ bool null0_gui_begin_window(char *title, pntr_rectangle rect) {
   return mu_begin_window(gui_ctx, title, pntr_rectangle_to_mu_rect(rect));
 }
 
+// microui derives a checkbox's and a slider's id from the ADDRESS of the state
+// pointer it is handed (mu_get_id(ctx, &state, sizeof(state))), not from the
+// label. That id has to stay the same frame to frame, because a click is only
+// registered when `hover` - set on an earlier frame, while the button was up -
+// still matches it.
+//
+// The obvious `int s` local does not give that on the web: -sASYNCIFY unwinds
+// and rewinds the C stack, so the local's address moves between frames, the id
+// changes with it, and the control is never clickable. Natively the stack is
+// fixed, which is exactly why the checkbox worked there and nowhere else.
+// (mu_button is unaffected - it hashes the label text.)
+//
+// File-scope slots have a fixed address. The checkbox additionally pushes its
+// label as an id scope, so two checkboxes still get different ids.
+static int gui_checkbox_state;
+static mu_Real gui_slider_value;
+
 // a checkbox that takes and returns its state by value
 bool null0_gui_checkbox(char *label, bool state) {
-  int s = state ? 1 : 0;
-  mu_checkbox(gui_ctx, label, &s);
-  return s != 0;
+  gui_checkbox_state = state ? 1 : 0;
+  mu_push_id(gui_ctx, label, (int)strlen(label));
+  mu_checkbox(gui_ctx, label, &gui_checkbox_state);
+  mu_pop_id(gui_ctx);
+  return gui_checkbox_state != 0;
 }
 
 // a slider that takes and returns its value by value
+//
+// NOTE: null0's gui_slider takes no label, so there is nothing to scope the id
+// with - two sliders in one window would share an id. That was already true
+// before this change; giving the value a fixed address only makes the single
+// slider case reliable.
 float null0_gui_slider(float value, float low, float high) {
-  mu_Real v = value;
-  mu_slider(gui_ctx, &v, low, high);
-  return (float)v;
+  gui_slider_value = value;
+  mu_slider(gui_ctx, &gui_slider_value, low, high);
+  return (float)gui_slider_value;
 }
 
 // set the current layout row (microui takes the count first, our ABI puts it after the array)
