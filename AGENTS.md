@@ -199,6 +199,54 @@ The native host runs WAMR's **fast interpreter**, with these consequences:
   so cart files still win. `~/Library/Application Support/<cart>/` on mac,
   `~/.local/share/null0/<cart>/` on linux.
 
+## Rule 4: the GUI wrappers are load-bearing, don't "simplify" them
+
+`null0_gui_checkbox` / `null0_gui_slider` in `host_header.h` look like they do
+pointless work. They don't. Three separate bugs live here, and all three only
+showed up on the **web** host - the native one worked the whole time, which is
+what made them so slow to find.
+
+**microui identifies a control by the address of the state you hand it**, not
+by its label. Its own API expects that state to belong to the caller:
+
+```c
+mu_checkbox(ctx, "Checkbox 1", &checks[0]);
+mu_checkbox(ctx, "Checkbox 2", &checks[1]);
+```
+
+so the address is stable frame to frame *and* different per widget for free.
+null0's API passes state by value (carts in 23 languages can't all hand out
+pointers), so the host has to supply that address:
+
+- A plain local **will not do**. `-sASYNCIFY` unwinds and rewinds the C stack,
+  so a local's address moves between frames, the id moves with it, and a click
+  never matches the `hover` recorded on the previous frame. The control simply
+  never responds in a browser.
+- One shared static fixes the address but gives every checkbox the same id.
+- What works: a slot per widget, keyed by call order in the frame
+  (`gui_checkbox_slots[n]`), reset each frame. Same shape as microui's
+  `&checks[0]` / `&checks[1]`. Order-keyed identity is the immediate-mode
+  contract - a cart that shows widgets conditionally can shift microui's
+  transient hover/focus by one for a frame, which is inherent and harmless
+  (the cart owns the values).
+
+**Mouse buttons are queued, not fed on arrival** (`gui_mouse_queue`). Two
+reasons. `pntr_microui_update` derives edges as `down && !downLast`, and on the
+web those are always gone by the time it looks: browser events land between
+frames, and `pntr_app_pre_events` copies `down` into `downLast` at the top of
+the frame. And with Asyncify a JS callback can run while the C frame is
+suspended, so feeding microui at event time can land after the widgets ran but
+before `mu_end()` clears `mouse_pressed`. Draining at a fixed point in the
+frame fixes both.
+
+**One transition per frame.** microui resolves a press against the `hover` from
+the previous frame, so a press and its release applied in the same widget pass
+cancel out. A fast click therefore resolves over two frames.
+
+If you change any of this, test it **in a browser**, not just natively - and
+test with more than one checkbox on screen. `carts/c/gui` has several
+deliberately, because a single one of each passes even when identity is broken.
+
 ## Adding a cart language
 
 There are two shapes. Copy the closest existing one instead of inventing.

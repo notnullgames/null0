@@ -13,6 +13,11 @@ description: Debug or fix the null0 host/engine - crashes (SIGSEGV/SIGBUS), cart
   vectors), `host.h` (the `HOST_FUNCTION` macro), `main.c` (pntr_app entry),
   `cart_wamr.c` (native cart loading/callbacks), `cart_emscripten.c` + `webroot/`
   (web equivalents), `fs.c` (physfs), `wasi_physfs.h` (the WASI subset).
+- **Test GUI changes in a browser.** The native and web hosts differ enough
+  that three separate microui input bugs were native-clean and web-broken. The
+  `null0_gui_*` wrappers in `host_header.h` are deliberate - read "Rule 4" in
+  AGENTS.md before touching them, and use `carts/c/gui`, which has several
+  checkboxes and sliders precisely so identity bugs show up.
 
 Changes that affect cart lifecycle usually need the same edit in **both**
 `cart_wamr.c` and the web path (`webroot/null0.js`).
