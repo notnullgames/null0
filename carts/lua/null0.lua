@@ -1195,7 +1195,7 @@ MAGENTA = { r = 255, g = 0, b = 255, a = 255 }
 ---@type Color
 RAYWHITE = { r = 245, g = 245, b = 245, a = 255 }
 ---The current tagged version of null0 engine
-NULL0_VERSION = "0.0.21"
+NULL0_VERSION = "0.0.22"
 
 -- Potential image-filtering techniques for scale/etc.
 FILTER_NEARESTNEIGHBOR = 0
