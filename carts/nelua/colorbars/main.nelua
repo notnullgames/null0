@@ -1,24 +1,26 @@
--- Import the null0 API functions
+-- colorbars, ported line for line from carts/c/colorbars so the two can be
+-- compared side by side. Draws once, in load - nothing here changes per frame,
+-- and the host does not clear between frames.
+
 require 'null0'
 
 global function load(): void <cexport "load">
-  clear(BLACK)
-end
-
-global function update(): void <cexport "update">
-  local colors: [8]Color = {
-    WHITE, BLACK, RED, GREEN, BLUE, YELLOW, LIGHTGRAY, GRAY
+  local colors: [26]Color = {
+    LIGHTGRAY, GRAY, DARKGRAY, YELLOW, GOLD, ORANGE, PINK, RED, MAROON,
+    GREEN, LIME, DARKGREEN, BLANK, SKYBLUE, DARKBLUE, PURPLE, VIOLET,
+    DARKPURPLE, BEIGE, BROWN, DARKBROWN, WHITE, BLACK, BLUE, MAGENTA, RAYWHITE
   }
 
   local margin: int32 = 10
-  local bar_width: int32 = (SCREEN_WIDTH // 8) - margin
-  local bar_height: int32 = SCREEN_HEIGHT - (margin * 2)
+  -- margin // 4 is integer division in the C original too, so this is + 2
+  local bar_width: float32 = (SCREEN_WIDTH / (26.0 * 2)) + (margin // 4)
+  local bar_height: float32 = SCREEN_HEIGHT - (margin * 2.0)
 
-  -- Draw concentric circles
+  -- a target, so the transparent bar is visible against something
   local d: int32 = SCREEN_HEIGHT // 4
   local i: int32 = 0
-  while d > 0 do
-    d = d - bar_width
+  while d ~= 0 do
+    d = (@int32)(d - bar_width)
     if i % 2 == 1 then
       draw_circle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, d, WHITE)
     else
@@ -27,19 +29,13 @@ global function update(): void <cexport "update">
     i = i + 1
   end
 
-  -- Draw color bars
-  for x: int32 = 0, < 8 do
-    local rect_x: int32 = margin + (x * (bar_width + margin))
-    draw_rectangle(rect_x, margin, bar_width, bar_height, colors[x])
-    
+  for x: int32 = 0, < 26 do
+    local rect_x: int32 = (@int32)(margin + (x * (bar_width + margin)))
+    draw_rectangle(rect_x, margin, (@int32)(bar_width), (@int32)(bar_height), colors[x])
     if x == 0 then
-      draw_rectangle_outline(rect_x, margin, bar_width, bar_height, 1, WHITE)
+      draw_rectangle_outline(rect_x, margin, (@int32)(bar_width), (@int32)(bar_height), 1, WHITE)
     else
-      draw_rectangle_outline(rect_x, margin, bar_width, bar_height, 1, LIGHTGRAY)
+      draw_rectangle_outline(rect_x, margin, (@int32)(bar_width), (@int32)(bar_height), 1, LIGHTGRAY)
     end
   end
 end
-
-global function unload(): void <cexport "unload">
-  -- cleanup if needed
-end 
