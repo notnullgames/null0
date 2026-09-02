@@ -52,6 +52,29 @@ Run `npm run bindings` to drop the current `null0.lua` into `cart/` for your edi
 Two workflows come with this template:
 
 - **Publish** builds the cart and deploys `webroot/` to github-pages on every push to `main`, so anyone can play your game in a browser without installing anything.
-- **Release** attaches `mygame.null0` to any github release you create.
+- **Release** attaches the cart *and* a standalone native game for every platform to any github release you create.
 
-Players who want it natively can grab [the runtime](https://github.com/notnullgames/null0/releases) and run `null0 mygame.null0`.
+So each release of your game ships:
+
+| asset | what it is |
+| --- | --- |
+| `mygame.null0` | the cart itself - play it in a browser, or with `null0 mygame.null0` |
+| `mygame_linux_x86-64.zip` | a single native executable, nothing to install |
+| `mygame_macos.zip` | the same, universal (Intel and Apple Silicon) |
+| `mygame_windows_x64.zip` | the same, as `mygame.exe` |
+
+### standalone games
+
+The runtime mounts a zip appended to its own executable, so a standalone game is just the null0 runtime with your cart concatenated onto the end. The **Release** workflow does that for you, but it is one command by hand - grab a runtime from [null0 releases](https://github.com/notnullgames/null0/releases) and:
+
+```sh
+# linux or mac
+cat null0 mygame.null0 > mygame && chmod +x mygame
+```
+
+```bat
+REM windows
+copy /b null0.exe+mygame.null0 mygame.exe
+```
+
+The result is an ordinary executable that needs no arguments and no null0 installed. Players who already have the runtime can still just run `null0 mygame.null0`.

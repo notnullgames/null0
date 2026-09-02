@@ -16,7 +16,33 @@ jobs:
         run: |
           mkdir -p webroot
           rm -f webroot/mygame.null0 && docker run --rm --platform linux/amd64 -v ./cart:/src -v ./webroot:/out ghcr.io/notnullgames/null0-cart-haxe:latest mygame
-      - name: Attach cart to release
-        run: gh release upload ${{ github.event.release.tag_name }} webroot/mygame.null0
+
+      # The runtime mounts a zip appended to its own executable, so a
+      # standalone game is just the current null0 runtime with the cart stuck
+      # on the end. Nothing is compiled per-platform - the cart bytes are
+      # identical in all of them, and in mygame.null0 itself.
+      - name: Build standalone native games
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for platform in linux_x86-64 macos windows_x64; do
+            rm -rf runtime && mkdir runtime
+            gh release download -R notnullgames/null0 --pattern "null0_${platform}.zip" -D runtime
+            unzip -oq "runtime/null0_${platform}.zip" -d runtime
+            if [ -f runtime/null0.exe ]; then
+              cat runtime/null0.exe webroot/mygame.null0 > runtime/mygame.exe
+              (cd runtime && zip -q "../dist/mygame_${platform}.zip" mygame.exe)
+            else
+              cat runtime/null0 webroot/mygame.null0 > runtime/mygame
+              chmod +x runtime/mygame
+              (cd runtime && zip -q "../dist/mygame_${platform}.zip" mygame)
+            fi
+          done
+          ls -l dist
+
+      - name: Attach cart and native games to release
+        run: gh release upload ${{ github.event.release.tag_name }} webroot/mygame.null0 dist/mygame_*.zip
         env:
           GH_TOKEN: ${{ github.token }}
