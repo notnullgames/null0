@@ -169,8 +169,34 @@ jobs:
         run: |
           mkdir -p webroot
           ${dockerRun(lang, { ci: true })}
-      - name: Attach cart to release
-        run: gh release upload \${{ github.event.release.tag_name }} webroot/mygame.null0
+
+      # The runtime mounts a zip appended to its own executable, so a
+      # standalone game is just the current null0 runtime with the cart stuck
+      # on the end. Nothing is compiled per-platform - the cart bytes are
+      # identical in all of them, and in mygame.null0 itself.
+      - name: Build standalone native games
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for platform in linux_x86-64 macos windows_x64; do
+            rm -rf runtime && mkdir runtime
+            gh release download -R notnullgames/null0 --pattern "null0_\${platform}.zip" -D runtime
+            unzip -oq "runtime/null0_\${platform}.zip" -d runtime
+            if [ -f runtime/null0.exe ]; then
+              cat runtime/null0.exe webroot/mygame.null0 > runtime/mygame.exe
+              (cd runtime && zip -q "../dist/mygame_\${platform}.zip" mygame.exe)
+            else
+              cat runtime/null0 webroot/mygame.null0 > runtime/mygame
+              chmod +x runtime/mygame
+              (cd runtime && zip -q "../dist/mygame_\${platform}.zip" mygame)
+            fi
+          done
+          ls -l dist
+
+      - name: Attach cart and native games to release
+        run: gh release upload \${{ github.event.release.tag_name }} webroot/mygame.null0 dist/mygame_*.zip
         env:
           GH_TOKEN: \${{ github.token }}
 `
@@ -223,10 +249,21 @@ function readme(lang) {
   out.push('## publishing', '')
   out.push('Two workflows come with this template:', '')
   out.push('- **Publish** builds the cart and deploys `webroot/` to github-pages on every push to `main`, so anyone can play your game in a browser without installing anything.')
-  out.push('- **Release** attaches `mygame.null0` to any github release you create.')
+  out.push('- **Release** attaches the cart *and* a standalone native game for every platform to any github release you create.')
   out.push('')
-  out.push('Players who want it natively can grab [the runtime](https://github.com/notnullgames/null0/releases) and run `null0 mygame.null0`.')
+  out.push('So each release of your game ships:', '')
+  out.push('| asset | what it is |')
+  out.push('| --- | --- |')
+  out.push('| `mygame.null0` | the cart itself - play it in a browser, or with `null0 mygame.null0` |')
+  out.push('| `mygame_linux_x86-64.zip` | a single native executable, nothing to install |')
+  out.push('| `mygame_macos.zip` | the same, universal (Intel and Apple Silicon) |')
+  out.push('| `mygame_windows_x64.zip` | the same, as `mygame.exe` |')
   out.push('')
+  out.push('### standalone games', '')
+  out.push('The runtime mounts a zip appended to its own executable, so a standalone game is just the null0 runtime with your cart concatenated onto the end. The **Release** workflow does that for you, but it is one command by hand - grab a runtime from [null0 releases](https://github.com/notnullgames/null0/releases) and:', '')
+  out.push('```sh', '# linux or mac', 'cat null0 mygame.null0 > mygame && chmod +x mygame', '```', '')
+  out.push('```bat', 'REM windows', 'copy /b null0.exe+mygame.null0 mygame.exe', '```', '')
+  out.push('The result is an ordinary executable that needs no arguments and no null0 installed. Players who already have the runtime can still just run `null0 mygame.null0`.', '')
   return out.join('\n')
 }
 
