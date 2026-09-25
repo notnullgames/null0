@@ -115,7 +115,7 @@ investigating - not just "not gotten to yet". Full details in
 ### android
 
 `npm run host:android` builds an apk (`android/app/build/outputs/apk/`). It
-needs the Android SDK and JDK 17; gradle installs the NDK and CMake it wants.
+needs the Android SDK and JDK 17 or newer; gradle installs the NDK and CMake it wants.
 Open a `.null0` from the app (or from a file manager/browser download) and it
 is kept in the app's list for next time.
 
@@ -125,6 +125,8 @@ is kept in the app's list for next time.
 - Physical gamepads work, and the left analog stick also drives the dpad.
 - Landscape (controller beside the game) or portrait (controller below it).
 - Back quits the cart. `printf` from carts shows up in `adb logcat -s null0`.
+
+To test in an emulator, start one (`emulator -avd <name>`, or Android Studio's Device Manager), then `adb install -r android/app/build/outputs/apk/release/app-release.apk`, `adb push mygame.null0 /sdcard/Download/`, and use "Open cart…" in the app.
 
 ## todo/ideas
 
