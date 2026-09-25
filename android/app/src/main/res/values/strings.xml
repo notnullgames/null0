@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">null0</string>
+  <string name="open">Open cart…</string>
+  <string name="controller">On-screen controller</string>
+  <string name="orientation">Orientation</string>
+  <string name="landscape">Landscape</string>
+  <string name="portrait">Portrait</string>
+  <string name="carts">Carts</string>
+  <string name="empty">No carts yet. Open a .null0 file to play it - it will show up here.</string>
+  <string name="hint">Tap to play, long-press to remove. Back quits a cart.</string>
+  <string name="delete_title">Remove %1$s?</string>
+  <string name="delete_message">This removes the cart from null0. Its saved files are kept.</string>
+  <string name="delete">Remove</string>
+  <string name="import_failed">Could not open %1$s</string>
+</resources>

@@ -1,4 +1,5 @@
-string(TOLOWER ${CMAKE_HOST_SYSTEM_NAME} WAMR_BUILD_PLATFORM)
+# the system we build *for* - the host system is wrong when cross-compiling (android)
+string(TOLOWER ${CMAKE_SYSTEM_NAME} WAMR_BUILD_PLATFORM)
 set (WAMR_BUILD_INTERP 1)
 set (WAMR_BUILD_DEBUG_INTERP 0)
 set (WAMR_BUILD_FAST_INTERP 1)
@@ -13,6 +14,13 @@ set (WAMR_BUILD_GC 1)
 set (WAMR_BUILD_TAIL_CALL 1)
 set (WAMR_BUILD_DUMP_CALL_STACK 1)
 set (WAMR_BUILD_CUSTOM_NAME_SECTION 1)
+if(ANDROID)
+  # WAMR's guard-page trick walks the native thread's stack, and on android
+  # (NativeActivity's thread) that runs into the real guard page and SIGSEGVs
+  # in wasm_runtime_full_init. software bounds-checks work everywhere
+  set (WAMR_DISABLE_HW_BOUND_CHECK 1)
+  set (WAMR_DISABLE_STACK_HW_BOUND_CHECK 1)
+endif()
 
 FetchContent_Declare(wamr
   URL https://github.com/bytecodealliance/wasm-micro-runtime/archive/refs/heads/master.zip

@@ -14,8 +14,10 @@ it the null0 API as wasm imports, and calls exported callbacks (`update`,
 `keyDown`, ...) as the game runs. Carts can be written in 18 languages, so most
 work here is "teach another language to talk to the same ABI".
 
-Hosts: native (raylib + WAMR) and web (emscripten + browser WebAssembly). The
-README mentions libretro, but there is no libretro code in the tree yet.
+Hosts: native (raylib + WAMR), android (the same native host, built by the
+NDK - see "The android host" below) and web (emscripten + browser
+WebAssembly). The README mentions libretro, but there is no libretro code in
+the tree yet.
 
 ## Repo map
 
@@ -27,6 +29,7 @@ README mentions libretro, but there is no libretro code in the tree yet.
 | `tools/docker/`     | One Dockerfile + one `build_<lang>.sh` per language, plus baked interpreter sources.                |
 | `carts/<lang>/`     | The language's null0 header/bindings + example carts.                                               |
 | `host/src/`         | The engine. Mostly hand-written; `host.c` is generated.                                             |
+| `android/`          | Gradle project for the android host: launcher + NativeActivity wrapper (Java). |
 | `webroot/`          | The web player (`null0.js` loads the emscripten host, then the cart).                               |
 | `build/`, `wbuild/` | Native and web build output (gitignored).                                                           |
 
@@ -58,7 +61,8 @@ and you race. Phase one is `gen:host` + `gen:cart_*` in parallel, phase two is
 
 Hand-written host code lives in `host_header.h` (helpers, memory copying,
 `add_image`/`add_font`/`add_sound`), `host.h` (the `HOST_FUNCTION` macro),
-`fs.c`, `wasi_physfs.h`, `cart_wamr.c`, `cart_emscripten.c`, `main.c`.
+`fs.c`, `wasi_physfs.h`, `cart_wamr.c`, `cart_emscripten.c`, `main.c`,
+`android.c`.
 
 ### How `host.c` is generated
 
@@ -246,6 +250,41 @@ cancel out. A fast click therefore resolves over two frames.
 If you change any of this, test it **in a browser**, not just natively - and
 test with more than one checkbox on screen. `carts/c/gui` has several
 deliberately, because a single one of each passes even when identity is broken.
+
+## The android host
+
+`android/` is a gradle project whose native half is the root `CMakeLists.txt`
+(`host` becomes `libnull0.so` when `ANDROID` is set). raylib runs as
+`PLATFORM_ANDROID` inside a NativeActivity; everything android-specific in C
+is in `host/src/android.c`, hooked in with `#ifdef __ANDROID__`.
+
+- **The cart runs in its own process** (`android:process=":cart"`), killed
+  when the cart ends. The host keeps its state in globals (WAMR runtime,
+  handle vectors, physfs), so it can only ever run one cart per process.
+- **raylib doesn't handle rotation or a resized surface.** Orientation is fixed
+  per activity (`CartActivityLandscape`/`Portrait`), and fullscreen is set
+  before the native window exists. `main.c` redefines `InitWindow` to
+  `InitWindow(0, 0, ...)` on android - pntr_app's 2x window would otherwise be
+  letterboxed by raylib, leaving nowhere to draw the controller.
+- **The on-screen controller is drawn after pntr_app renders** (`main.c` routes
+  `EndDrawing` through `null0_android_draw_controller`) and pressed through
+  `pntr_app_process_event`, so callbacks and polling both see it, as player 0.
+- **Touches are mice with no hover.** pntr_app only moves its pointer by
+  deltas, and microui (the gui) needs the control *and* its window hovered on
+  earlier frames. `null0_android_filter_event` moves the pointer on touch-down
+  and replays the press two frames later. Touches that start on the
+  controller never reach the cart as mouse events.
+- **WAMR's hardware bound-checks are off on android** (`Findwamr.cmake`): its
+  stack guard-page probe SIGSEGVs on NativeActivity's thread.
+- `Findwamr.cmake` picks the platform from `CMAKE_SYSTEM_NAME`, not the host
+  system, so it's right when cross-compiling.
+- `timespec_get` only exists from API 29; minSdk is 24.
+- stdout/stderr are piped to logcat (tag `null0`).
+
+Testing: `adb logcat -s null0` for output, `adb shell input motionevent
+DOWN x y` / `UP` to hold a touch (a plain `input tap` can land in a single
+frame), `adb shell input gamepad keyevent KEYCODE_BUTTON_A` for a physical pad,
+and `adb exec-out screencap -p > shot.png` to look at it.
 
 ## Adding a cart language
 

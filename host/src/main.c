@@ -3,6 +3,20 @@
 #define PNTR_TILED_IMPLEMENTATION
 #define PNTR_MICROUI_IMPLEMENTATION
 
+#ifdef __ANDROID__
+#include "raylib.h"
+// pntr_app opens a 2x window, which raylib letterboxes on android - leaving
+// nowhere to draw the on-screen controller. use the whole display instead
+#define InitWindow(width, height, title) InitWindow(0, 0, title)
+// draw the on-screen controller over each frame, just before it's shown
+void null0_android_draw_controller();
+static inline void null0_android_end_drawing() {
+  null0_android_draw_controller();
+  EndDrawing();
+}
+#define EndDrawing null0_android_end_drawing
+#endif
+
 #include "host.h"
 
 bool Init(pntr_app *app) {

@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "rm -rf build wbuild",
     "host:native": "cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build",
+    "host:android": "cd android && ./gradlew assembleRelease",
     "host:web": "emcmake cmake -G Ninja -B wbuild -DCMAKE_BUILD_TYPE=Release && cmake --build wbuild --target host",
     "hosts": "npx -y npm-run-all --serial 'host:*'",
     "cart:colorbars_c": "mkdir -p build/carts && docker run --rm --user $(id -u):$(id -g) -v ./carts/c/colorbars:/src -v ./build/carts:/out ghcr.io/notnullgames/null0-cart-c:latest colorbars_c",

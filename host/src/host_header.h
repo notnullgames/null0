@@ -976,6 +976,13 @@ uint32_t copy_memory_to_cart(void *src, uint32_t size) {
 }
 
 bool host_init(pntr_app *app) {
+#ifdef __ANDROID__
+  // the launcher hands over a cart file - there's no executable to embed in
+  bool has_embedded = false;
+  if (!app->argFile) {
+    app->argFile = null0_android_cart_path();
+  }
+#else
   // First try to find embedded cart in executable
   char* exe_path = get_executable_path();
   bool has_embedded = exe_path && fs_has_embedded_cart(exe_path);
@@ -993,6 +1000,7 @@ bool host_init(pntr_app *app) {
   }
   
   if (exe_path) free(exe_path);
+#endif
 
   if (!app->argFile) {
     pntr_app_log(PNTR_APP_LOG_ERROR, "Usage: null <CART>");
@@ -1001,7 +1009,11 @@ bool host_init(pntr_app *app) {
 
   null0_app = app;
 
+#ifdef __ANDROID__
+  if (!PHYSFS_init(null0_android_physfs_init())) {
+#else
   if (!PHYSFS_init("/")) {
+#endif
     pntr_app_log(PNTR_APP_LOG_ERROR, "Could not start filesystem.");
     return false;
   }
@@ -1137,6 +1149,11 @@ static void null0_gui_drain_mouse() {
 }
 
 bool host_update(pntr_app *app) {
+#ifdef __ANDROID__
+  if (!null0_android_update(app)) {
+    return false;
+  }
+#endif
   if (gui_ctx != NULL) {
     // feed input into the gui and begin the frame - carts build UI in update
     pntr_microui_update(gui_ctx, app);
@@ -1212,6 +1229,12 @@ static int null0_mu_mouse_button(pntr_app_mouse_button button) {
 
 void host_event(pntr_app_event *event) {
   // TODO: it would be cool to handle wheel, DnD, cheat & save events as well
+#ifdef __ANDROID__
+  // touches on the on-screen controller aren't mouse-clicks on the game
+  if (null0_android_filter_event(event)) {
+    return;
+  }
+#endif
   if (event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN) {
     if (gui_ctx != NULL) {
       null0_gui_queue_mouse(null0_mu_mouse_button(event->mouseButton), (int)event->mouseX, (int)event->mouseY, true);
@@ -1263,6 +1286,11 @@ uint64_t null0_current_time() {
   struct _timeb tb;
   _ftime64_s(&tb);
   return (uint64_t)tb.time * 1000ULL + (uint64_t)tb.millitm;
+#elif defined(__ANDROID__)
+  // timespec_get only exists from android API 29
+  struct timespec ts;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)(ts.tv_nsec / 1000000ULL);
 #else
   struct timespec ts;
   if (timespec_get(&ts, TIME_UTC) == TIME_UTC) {

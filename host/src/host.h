@@ -40,6 +40,15 @@ bool host_update(pntr_app *app);
 void host_event(pntr_app_event *event);
 void host_close();
 
+#ifdef __ANDROID__
+// android glue (android.c): where the cart comes from, input, the on-screen controller
+char *null0_android_cart_path();
+const char *null0_android_physfs_init();
+bool null0_android_update(pntr_app *app);
+bool null0_android_filter_event(pntr_app_event *event);
+void null0_android_draw_controller();
+#endif
+
 // These are callbacks in user's cart
 bool cart_init(pntr_app *app, unsigned char *wasmBytes, unsigned int wasmSize);
 void cart_update();

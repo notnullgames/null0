@@ -1,4 +1,4 @@
-The basic idea here is a small game-engine where you make "carts", in whatever language you like, which will run on native, libretro, or web.
+The basic idea here is a small game-engine where you make "carts", in whatever language you like, which will run on native, android, libretro, or web.
 
 [Read the docs](https://notnull.games/null0) to find out more.
 
@@ -111,6 +111,20 @@ investigating - not just "not gotten to yet". Full details in
 - distibute the null0 file, and have users download the null0 runtime for their platform.
 - name your cart main.null0, and rename null0 (for each platform) to whatever you want
 - you can merge them: `cat null0 mygame.null0 > mygame && chmod +x mygame`
+
+### android
+
+`npm run host:android` builds an apk (`android/app/build/outputs/apk/`). It
+needs the Android SDK and JDK 17; gradle installs the NDK and CMake it wants.
+Open a `.null0` from the app (or from a file manager/browser download) and it
+is kept in the app's list for next time.
+
+- On-screen SNES-style controller (dpad, A/B/X/Y, L/R, select/start), with
+  multi-touch, dpad diagonals, and B+Y style "between two buttons" presses.
+  Turn it off in the app's settings if you only use a real controller.
+- Physical gamepads work, and the left analog stick also drives the dpad.
+- Landscape (controller beside the game) or portrait (controller below it).
+- Back quits the cart. `printf` from carts shows up in `adb logcat -s null0`.
 
 ## todo/ideas
 
