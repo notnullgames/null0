@@ -16,71 +16,24 @@ permissions:
   id-token: write
 
 jobs:
-  # TODO: seperate these into different steps and remove matrix?
   host_linux:
     needs: generated
-    strategy:
-      matrix:
-        include:
-          - arch: x86_64
-            os: ubuntu-latest
-          # skipped because github is being really slow about arm
-          # - arch: arm64
-          #   os: ubuntu-24.04-arm64
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Build Linux Host (x86_64)
-        if: matrix.container == false && matrix.arch == 'x86_64'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev zip
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target host
           (cd build/host && zip ../../null0_linux_x86-64.zip null0)
-      - name: Upload Linux Host (x86_64) artifact
-        if: matrix.container == false && matrix.arch == 'x86_64'
+      - name: Upload Linux Host artifact
         uses: actions/upload-artifact@v4
         with:
-          name: host_linux_x86-64
+          name: host_linux
           path: null0_linux_x86-64.zip
-
-      - name: Build Linux Hosts (arm64) - X11/Wayland and DRM
-        if: matrix.container == false && matrix.arch == 'arm64'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends curl git pkg-config cmake build-essential ninja-build zip \
-            libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libwayland-bin libxkbcommon-dev \
-            libdrm-dev libgbm-dev libegl1-mesa-dev libgles2-mesa-dev libasound2-dev libudev-dev libinput-dev clang
-          # Regular (desktop) build
-          cmake -B build_desktop -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1 \
-            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_C_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument" \
-            -DCMAKE_CXX_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument"
-          cmake --build build_desktop --target host
-          # DRM build
-          cmake -B build_drm -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DPLATFORM=DRM -DGRAPHICS=GRAPHICS_API_OPENGL_ES2 \
-            -DWAMR_BUILD_SIMD=0 -DWAMR_BUILD_INVOKE_NATIVE_GENERAL=1 \
-            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_C_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument" \
-            -DCMAKE_CXX_FLAGS="-Wno-unknown-warning-option -Wno-unused-command-line-argument"
-          cmake --build build_drm --target host
-      - name: Upload  Linux Hosts (arm64) artifact
-        if: matrix.container == false && matrix.arch == 'arm64'
-        uses: actions/upload-artifact@v4
-        with:
-          name: host_linux_arm64
-          path: build_desktop/host/null0
-      - name: Upload  Linux Hosts (drm_arm64) artifact
-        if: matrix.container == false && matrix.arch == 'arm64'
-        uses: actions/upload-artifact@v4
-        with:
-          name: host_linux_arm64_drm
-          path: build_drm/host/null0
 
   host_mac:
     needs: generated
@@ -130,9 +83,11 @@ jobs:
           name: host_windows
           path: null0_windows_x64.zip
 
+  # not a release asset: the web player is published to pages, and the
+  # screenshots job runs carts in it
   host_web:
     needs: generated
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -141,15 +96,15 @@ jobs:
         with:
           version: 'latest'
       - name: Build Web Host
-        run: npm run host:web
-      - name: Zip Web Host
-        run: Compress-Archive -Path wbuild/host/null0.mjs -DestinationPath null0_web.zip
-        shell: pwsh
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build
+          npm run host:web
       - name: Upload Web Host artifact
         uses: actions/upload-artifact@v4
         with:
           name: host_web
-          path: null0_web.zip
+          path: wbuild/host/null0.mjs
 
   host_android:
     needs: generated
@@ -415,12 +370,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: host_web
-          path: hostweb
+          path: wbuild/host
       - name: Collect
         run: |
-          mkdir -p build/carts wbuild/host
+          mkdir -p build/carts
           mv artifacts/carts_*/*.null0 build/carts/
-          unzip -j hostweb/null0_web.zip -d wbuild/host
       - name: Install playwright
         run: |
           npm i
@@ -433,7 +387,10 @@ jobs:
           name: cart_screenshots
           path: build/carts/*.png
 
-  # this creates a release on any tag, and attaches all the artifacts to it, then uploads demo page
+  # On a tag: a release with just the runtimes attached (template repos
+  # download the native ones by name - null0_<platform>.zip), and the website
+  # (web player + every cart + its screenshot) deployed to pages. Carts are
+  # built to test the images and fill the website; they aren't release assets.
   release:
     name: Release Tag
     runs-on: ubuntu-latest
@@ -450,38 +407,36 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      # Fetch only the release assets. Downloading *everything* also pulled the
-      # 41 digest artifacts - one empty file each, bookkeeping for the manifest
-      # job - and the download failed outright on the volume.
-      - name: Download cart artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: carts_*
-          path: artifacts
-      - name: Download host artifacts
+      - name: Download runtimes
         uses: actions/download-artifact@v4
         with:
           pattern: host_*
           path: artifacts
+          merge-multiple: true
+      - name: Download carts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: carts_*
+          path: webroot/carts
+          merge-multiple: true
       - name: Download cart screenshots
         uses: actions/download-artifact@v4
         with:
           name: cart_screenshots
-          path: artifacts/screenshots
-      - run: ls -al artifacts
+          path: webroot/carts
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/null0_linux_x86-64.zip
+            artifacts/null0_macos.zip
+            artifacts/null0_windows_x64.zip
+            artifacts/null0_android.apk
       - name: Setup website
         run: |
-          cd webroot
-          unzip -j ../artifacts/host_web/null0_web.zip -d .
-          mkdir -p carts
-          mv ../artifacts/carts_*/*.null0 carts/
-          mv ../artifacts/screenshots/*.png carts/
-          cd carts
-          ls *.null0 > list.txt
+          mv artifacts/null0.mjs webroot/
+          (cd webroot/carts && ls *.null0 > list.txt)
       - name: Check images are pullable
         # A newly created GHCR package is private, and there is no API to make
         # it public - so this is the one manual step in a release. Rather than
