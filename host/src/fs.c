@@ -257,7 +257,21 @@ bool fs_set_write_dir(const char *cartFilename) {
     return false;
   }
 
+#ifdef __ANDROID__
+  // physfs's pref-dir on android is just the app's files dir, whatever
+  // org/app you ask for - so make the per-cart dir under it ourselves
+  const char *prefDir = PHYSFS_getPrefDir("null0", cartName);
+  static char androidDir[4096];
+  if (prefDir != NULL) {
+    snprintf(androidDir, sizeof(androidDir), "%ssaves/", prefDir);
+    mkdir(androidDir, 0700);
+    snprintf(androidDir, sizeof(androidDir), "%ssaves/%s/", prefDir, cartName);
+    mkdir(androidDir, 0700);
+  }
+  const char *writeDir = prefDir == NULL ? NULL : androidDir;
+#else
   const char *writeDir = PHYSFS_getPrefDir("null0", cartName);
+#endif
   free(cartName);
 
   if (writeDir == NULL) {

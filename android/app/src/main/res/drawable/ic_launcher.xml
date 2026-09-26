@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- a little SNES-style pad -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="48dp"
+  android:height="48dp"
+  android:viewportWidth="48"
+  android:viewportHeight="48">
+  <path android:fillColor="#222226" android:pathData="M8,4h32a4,4 0 0 1 4,4v32a4,4 0 0 1 -4,4h-32a4,4 0 0 1 -4,-4v-32a4,4 0 0 1 4,-4z" />
+  <path android:fillColor="#9A9AA6" android:pathData="M12,20h4v-4h4v4h4v4h-4v4h-4v-4h-4z" />
+  <path android:fillColor="#3C50C8" android:pathData="M34,14m-3,0a3,3 0 1 0 6,0a3,3 0 1 0 -6,0" />
+  <path android:fillColor="#C82832" android:pathData="M39,20m-3,0a3,3 0 1 0 6,0a3,3 0 1 0 -6,0" />
+  <path android:fillColor="#E6B41E" android:pathData="M34,26m-3,0a3,3 0 1 0 6,0a3,3 0 1 0 -6,0" />
+  <path android:fillColor="#28964A" android:pathData="M29,20m-3,0a3,3 0 1 0 6,0a3,3 0 1 0 -6,0" />
+  <path android:fillColor="#FFFFFF" android:pathData="M14,34h20v3h-20z" />
+</vector>

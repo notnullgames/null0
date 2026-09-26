@@ -151,6 +151,28 @@ jobs:
           name: host_web
           path: null0_web.zip
 
+  host_android:
+    needs: generated
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      # the runner has the Android SDK; gradle installs the pinned NDK and CMake
+      - name: Build Android Host
+        run: npm run host:android
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk null0_android.apk
+      - name: Upload Android Host artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: host_android
+          path: null0_android.apk
+
   # Everything generated from api/*.yml - the bindings, host.c, API.md,
   # api.json, templates - has to be committed in sync with its generator.
   # Nothing rebuilds it at release time, so a stale file ships as-is: v0.0.13
@@ -424,6 +446,7 @@ jobs:
       - host_mac
       - host_windows
       - host_web
+      - host_android
     steps:
       - name: Checkout
         uses: actions/checkout@v4
