@@ -166,7 +166,6 @@ jobs:
     name: Languages
     needs: generated
     runs-on: ubuntu-latest
-    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
     outputs:
       langs: ${{ steps.list.outputs.langs }}
       builds: ${{ steps.list.outputs.builds }}
@@ -305,14 +304,16 @@ jobs:
           docker buildx imagetools create "${tags[@]}" ${refs}
           docker buildx imagetools inspect "${IMAGE}:ci-${SHA}"
 
-  # Builds each language's carts against the image this run just published.
-  # Nothing here rebuilds an image: `images` is a hard dependency, so a cart
-  # can never be built against a stale one - which is how every haxe cart came
-  # to be broken without CI noticing.
+  # Builds every language's carts, on every push - they test the host API
+  # against every binding, and they're what the website shows. On a tag (or
+  # a manual run) they're built against the images this run just published,
+  # so a release can never ship carts from a stale image - which is how every
+  # haxe cart came to be broken without CI noticing. On a plain push no images
+  # are built, so they use the published :latest.
   carts:
     name: Carts (${{ matrix.lang }})
     needs: [languages, manifests]
-    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
+    if: ${{ !cancelled() && needs.languages.result == 'success' && needs.manifests.result != 'failure' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -331,6 +332,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Pull this run's image
+        if: needs.manifests.result == 'success'
         env:
           SHA: ${{ github.sha }}
         run: |
@@ -352,8 +354,10 @@ jobs:
   # cart doesn't actually do - and a cart that renders nothing is reported.
   screenshots:
     name: Screenshots
-    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
     needs: [carts, host_web]
+    # manifests is skipped on a plain push, and a skipped ancestor skips
+    # everything downstream unless the condition says otherwise
+    if: ${{ !cancelled() && needs.carts.result == 'success' && needs.host_web.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -387,22 +391,18 @@ jobs:
           name: cart_screenshots
           path: build/carts/*.png
 
-  # On a tag: a release with just the runtimes attached (template repos
-  # download the native ones by name - null0_<platform>.zip), and the website
-  # (web player + every cart + its screenshot) deployed to pages. Carts are
-  # built to test the images and fill the website; they aren't release assets.
+  # On a tag: a release with just the runtimes attached. Template repos
+  # download the native ones by name (null0_<platform>.zip), so keep those
+  # names. Carts are not release assets - they're on the website.
   release:
     name: Release Tag
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
     needs:
       - carts
-      - manifests
-      - screenshots
       - host_linux
       - host_mac
       - host_windows
-      - host_web
       - host_android
     steps:
       - name: Checkout
@@ -413,17 +413,6 @@ jobs:
           pattern: host_*
           path: artifacts
           merge-multiple: true
-      - name: Download carts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: carts_*
-          path: webroot/carts
-          merge-multiple: true
-      - name: Download cart screenshots
-        uses: actions/download-artifact@v4
-        with:
-          name: cart_screenshots
-          path: webroot/carts
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
@@ -433,10 +422,6 @@ jobs:
             artifacts/null0_macos.zip
             artifacts/null0_windows_x64.zip
             artifacts/null0_android.apk
-      - name: Setup website
-        run: |
-          mv artifacts/null0.mjs webroot/
-          (cd webroot/carts && ls *.null0 > list.txt)
       - name: Check images are pullable
         # A newly created GHCR package is private, and there is no API to make
         # it public - so this is the one manual step in a release. Rather than
@@ -466,6 +451,38 @@ jobs:
               echo "Note this is *package* visibility, not the \`cart_*\` repository's."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # The website (github-pages): the web player, api.json, and every cart with
+  # its screenshot. Deployed on every push to main, and on a tag.
+  website:
+    name: Website
+    runs-on: ubuntu-latest
+    needs: [carts, screenshots, host_web]
+    if: ${{ !cancelled() && (github.ref == 'refs/heads/main' || github.ref_type == 'tag') && needs.carts.result == 'success' && needs.screenshots.result == 'success' && needs.host_web.result == 'success' }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download web host
+        uses: actions/download-artifact@v4
+        with:
+          name: host_web
+          path: webroot
+      - name: Download carts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: carts_*
+          path: webroot/carts
+          merge-multiple: true
+      - name: Download cart screenshots
+        uses: actions/download-artifact@v4
+        with:
+          name: cart_screenshots
+          path: webroot/carts
+      - name: List carts
+        run: (cd webroot/carts && ls *.null0 > list.txt)
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages
@@ -483,7 +500,7 @@ jobs:
     name: Rebuild docs site
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
-    needs: release
+    needs: [release, website]
     steps:
       - name: Trigger notnullgames build
         env:

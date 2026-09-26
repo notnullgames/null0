@@ -397,25 +397,29 @@ stages everything first, so the bump and its regenerated output are one commit
 - both 0.0.13 and 0.0.14 shipped without that and failed CI's drift check.
 Then `git push --follow-tags`.
 
-A normal push only runs the cheap half: the generated-files drift check and
-the five host builds. Building 23 images, 23 manifests and 23 cart jobs is ~75
-jobs, which is far too much for a one-line change - and the engine is only
-ever consumed at a release anyway. If you've touched a Dockerfile, a
-generator, or the API and want that checked *before* burning a version number,
-run the workflow by hand: Actions -> CI -> Run workflow. It does everything a
-tag does except create the release.
+Every push runs the drift check, the five host builds, and every language's
+carts against the published `:latest` images, then screenshots them. A push to
+`main` also deploys the website (github-pages): the web player, `api.json`,
+and the carts with their screenshots. The web player that template repos load
+comes from there, so it tracks `main`, not the last release.
+
+What a push does *not* do is build the 23 cart images - that's ~50 more jobs,
+too much for a one-line change. If you've touched a Dockerfile, a generator,
+or the API and want the images checked *before* burning a version number, run
+the workflow by hand: Actions -> CI -> Run workflow. It builds the images and
+builds the carts against *those*, and does everything a tag does except
+create the release.
 
 The tag does the rest: builds and pushes every cart image to
-`ghcr.io/notnullgames/null0-cart-*` (amd64 + arm64, native runners), builds all
-the carts and hosts, creates the release, deploys the web player and
-`api.json` to pages, and triggers a docs-site rebuild. Nothing is published by
-hand.
+`ghcr.io/notnullgames/null0-cart-*` (amd64 + arm64, native runners), builds the
+carts against those images, creates the release, deploys the website, and
+triggers a docs-site rebuild. Nothing is published by hand.
 
 The release itself carries only the runtimes: `null0_linux_x86-64.zip`,
 `null0_macos.zip`, `null0_windows_x64.zip` and `null0_android.apk`. Keep those
 names - the template repos' release workflows download the native ones by
-name. Carts and their screenshots are built to test the images and to fill the
-website (pages); they are not release assets.
+name. Carts and their screenshots are not release assets; they're on the
+website.
 
 The docs trigger and the template sync both use one secret, `NULL0_BOT_TOKEN`
 (a PAT with repo scope - the built-in `GITHUB_TOKEN` can't reach another
